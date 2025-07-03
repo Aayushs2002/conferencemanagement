@@ -20,6 +20,7 @@ class ProfileController extends Controller
 
     public function updateProfile(Request $request)
     {
+        
         try {
             $rules = [
                 'institution_id' => 'required',
@@ -27,7 +28,6 @@ class ProfileController extends Controller
                 'department_id' => 'required',
                 'institute_address' => 'required',
                 'image' => 'required',
-                'other_institution_name' => 'required',
             ];
 
             $messages = [

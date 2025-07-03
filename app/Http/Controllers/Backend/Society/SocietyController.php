@@ -66,19 +66,27 @@ class SocietyController extends Controller
             $user = User::create($req);
 
             //insert into pivot table user society
-            UserSociety::create([
-                'user_id' => $user->id,
-                'society_id' => $society->id
-            ]);
+            // UserSociety::create([
+            //     'user_id' => $user->id,
+            //     'society_id' => $society->id
+            // ]);
+            $user->societies()->attach($society->id);
 
             //create role society admin role for this society
             $role = Role::where('name', 'society admin')->where('society_id', $society->id)->first();
             if (!$role) {
-                $role = Role::create([
-                    'name' => 'society admin',
-                    'guard_name' => 'web',
-                    'society_id' => $society->id
+                // $role = Role::create([
+                //     'name' => 'society admin',
+                //     'guard_name' => 'web',
+                //     'society_id' => $society->id
+                // ]);
+                $role = new Role([
+                    "name" => 'society admin',
+                    "guard_name" => "web",
+                    "society_id" => $society->id
                 ]);
+
+                $role->saveQuietly();
                 $role->givePermissionTo(Permission::all());
                 $user->assignRole($role);
             }

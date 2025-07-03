@@ -61,8 +61,9 @@ class MemberTypeController extends Controller
             $req['society_id'] = $society->id;
             MemberType::create($req);
 
-            return redirect()->route('member-type.index', 'society')->with('status', 'Member Type Added Successfully');
+            return redirect()->route('memberType.index', $society)->with('status', 'Member Type Added Successfully');
         } catch (Exception $e) {
+            dd($e);
             return redirect()->back()->with('delete', 'Internal Server Error');
         }
     }
@@ -85,7 +86,7 @@ class MemberTypeController extends Controller
 
             $memberType->update($req);
 
-            return redirect()->route('member-type.index', 'society')->with('status', 'Member Type Updated Successfully');
+            return redirect()->route('memberType.index', $society)->with('status', 'Member Type Updated Successfully');
         } catch (Exception $e) {
             return redirect()->back()->with('delete', 'Internal Server Error');
         }

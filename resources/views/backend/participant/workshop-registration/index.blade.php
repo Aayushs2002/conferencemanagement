@@ -42,7 +42,7 @@
                                    <div class="row">
                                        @if (
                                            (current_user()->userDetail->country_id == 125 || current_user()->userDetail->country->country_name == 'India') &&
-                                               $national_payemnt_setting->profile_id)
+                                               $national_payemnt_setting?->profile_id)
                                            <div class="col-md-3">
                                                <div class="card mb-4 position-relative">
                                                    <label for="fonePayRadio">
@@ -65,7 +65,7 @@
                                            </div>
                                        @endif
                                        @if (current_user()->userDetail->country_id == 125)
-                                           @if ($national_payemnt_setting->moco_merchant_id)
+                                           @if ($national_payemnt_setting?->moco_merchant_id)
                                                <div class="col-md-3">
                                                    <div class="card mb-4 pb-4 position-relative border-2">
                                                        <label for="mocoRadio">
@@ -85,7 +85,7 @@
                                                    </div>
                                                </div>
                                            @endif
-                                           @if ($national_payemnt_setting->esewa_secret_key)
+                                           @if ($national_payemnt_setting?->esewa_secret_key)
                                                <div class="col-md-3">
                                                    <div class="card mb-4 pb-3 position-relative border-2">
                                                        <label for="esewaRadio">
@@ -105,7 +105,7 @@
                                                    </div>
                                                </div>
                                            @endif
-                                           @if ($national_payemnt_setting->khalti_live_secret_key)
+                                           @if ($national_payemnt_setting?->khalti_live_secret_key)
                                                <div class="col-md-3">
                                                    <div class="card mb-4 pb-0.5 position-relative border-2">
                                                        <label for="khaltiRadio">
@@ -597,7 +597,7 @@
                    };
 
                    $.ajax({
-                       url: "{{ route('my-society.conference.workshop-registration.moco', [$society, $conference, $hashedWorkshop]) }}",
+                       url: "{{ route('my-society.conference.workshop-registration.moco', [$society, $conference, $hashedWorkshop ?? 'sa']) }}",
                        method: 'POST',
                        data: formData,
                        dataType: 'json',

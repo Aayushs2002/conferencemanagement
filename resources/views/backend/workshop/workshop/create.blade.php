@@ -18,7 +18,7 @@
                     @csrf
 
                     @isset($workshop)
-                        @method('patch') 
+                        @method('patch')
                     @endisset
                     <div class="row g-6">
                         <div class="col-12">
@@ -303,27 +303,15 @@
             const endDatePicker = flatpickr(endInput, {
                 dateFormat: "Y-m-d"
             });
+            const startDatePicker = flatpickr(startInput, {
+                dateFormat: "Y-m-d"
+            });
 
             const registrationDeadlinePicker = flatpickr(registrationDeadlineInput, {
                 dateFormat: "Y-m-d"
             });
 
-            flatpickr(startInput, {
-                dateFormat: "Y-m-d",
-                minDate: "today",
-                onChange: function(selectedDates) {
-                    if (selectedDates.length > 0) {
-                        const startDate = selectedDates[0];
-
-                        // Set end_date >= start_date
-                        endDatePicker.set('minDate', startDate);
-
-                        // Set registration_deadline < start_date
-                        const maxDeadline = new Date(startDate.getTime() - 1);
-                        registrationDeadlinePicker.set('maxDate', maxDeadline);
-                    }
-                }
-            });
+            // Add event listener to the start date picker
 
 
 

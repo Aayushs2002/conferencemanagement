@@ -19,7 +19,7 @@ use Illuminate\Support\Facades\DB;
 
 class ConferenceRegistrationController extends Controller
 {
-    public function __construct(protected FileService $file_service) {}
+    public function __construct(protected FileService $file_service) {} 
 
     public function index($society, $conference)
     {

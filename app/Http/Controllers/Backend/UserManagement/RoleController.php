@@ -17,7 +17,7 @@ class RoleController extends Controller
 {
     /**
      * Display a listing of the resource.
-     */
+     */ 
     public function index($society, $conference)
     {
         $roles = Role::where('society_id', $society->id)->get();

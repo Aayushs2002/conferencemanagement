@@ -353,7 +353,7 @@
                                     <input type="hidden" name="international_id" id="international_id"
                                         value="{{ $internationalPayment ? $internationalPayment->id : '' }}">
                                     <div class="mb-6">
-                                        <textarea class="form-control ckeditor" id="bank_detail" name="bank_detail" rows="5" cols="30">{{ !empty(old('bank_detail')) ? old('bank_detail') : $internationalPayment->bank_detail }}</textarea>
+                                        <textarea class="form-control ckeditor" id="bank_detail" name="bank_detail" rows="5" cols="30">{{ !empty(old('bank_detail')) ? old('bank_detail') : $internationalPayment?->bank_detail }}</textarea>
                                         <div class="text-danger" id="bankDetailError"></div>
                                         @error('bank_detail')
                                             <p class="text-danger">{{ $message }}</p>
