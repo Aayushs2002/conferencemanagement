@@ -24,6 +24,7 @@ Route::middleware('auth')->group(function () {
     Route::controller(ConferenceRegistrationController::class)->prefix('/my-society/{society}/conference/{conference}')->name('my-society.conference.')->group(function () {
         Route::get('/conference-registration', 'index')->name('index');
         Route::get('/conference-registration/create', 'create')->name('create');
+        Route::post('/conference-registration/store', 'store')->name('store');
         Route::post('/check-submission', 'checkSubmission')->name('checkSubmission');
         Route::post('/online-payment-submit', 'onlinePaymentSubmit')->name('submit');
         Route::patch('/update-conference-registation', 'updateRegistration')->name('updateRegistration');
@@ -89,7 +90,23 @@ Route::middleware('auth')->group(function () {
     Route::controller(WorkshopPaymentController::class)->name('my-society.conference.workshop-registration.')->prefix('/my-society/{society}/conference/{conference}/workshop-registration')->group(function () {
         Route::post('/fonepay/{workshop}', 'fonePay')->name('fonePay');
         Route::get('/fone-pay/success', 'fonePaySuccess')->name('fonePaySuccess');
-        Route::get('/international-payment/{id}/{price}', 'internationalPayment')->name('internationalPayment');
+
+        //Moco Route
+        Route::post('/moco/{workshop}', 'moco')->name('moco');
+        Route::post('/moco/check/payment', 'mocoCheckStatus')->name('mocoCheckStatus');
+        Route::get('/moco/payment-success', 'mocoSuccess')->name('mocoSuccess');
+
+        //Esewa Route
+        Route::post('/esewa/payment/{workshop}', 'esewa')->name('esewa');
+        Route::get('/esewa/success', 'esewaSuccess')->name('esewaSuccess');
+        Route::get('/esewa/error', 'esewaError')->name('esewaError');
+
+        //Khati Route
+        Route::post('/khalti/payment/{workshop}', 'khalti')->name('khalti');
+        Route::get('/khalti/success', 'khaltiSuccess')->name('khaltiSuccess');
+
+        //international payment
+        Route::post('/international-payment/{workshop}', 'internationalPayment')->name('internationalPayment');
         Route::get('/international-payment-result/success-process', 'internationalPaymentResultSuccessProcess')->name('internationalPaymentResultSuccessProcess');
         Route::get('/international-payment-result/success', 'internationalPaymentResultSuccess')->name('internationalPaymentResultSuccess');
         Route::get('/international-payment-result/fail', 'internationalPaymentResultFail')->name('internationalPaymentResultFail');
@@ -97,4 +114,3 @@ Route::middleware('auth')->group(function () {
         Route::get('/international-payment-result/backend', 'internationalPaymentResultBackend')->name('internationalPaymentResultBackend');
     });
 });
- 

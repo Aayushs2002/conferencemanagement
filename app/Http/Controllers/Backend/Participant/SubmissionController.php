@@ -4,15 +4,18 @@ namespace App\Http\Controllers\Backend\Participant;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Participant\SubmissionRequest;
+use App\Mail\Submission\SubmissionSubmittedToUserMail;
 use App\Models\Conference\Author;
 use App\Models\Conference\Submission;
 use App\Models\Conference\SubmissionCategoryMajorTrack;
 use App\Models\Conference\SubmissionDiscussion;
 use App\Models\SubmissionSetting;
+use App\Models\User;
 use App\Services\File\FileService;
 use Exception;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Redis;
 
 class SubmissionController extends Controller
@@ -32,9 +35,10 @@ class SubmissionController extends Controller
                     ->where('expert_id', current_user()->id);
             })
             ->get();
-
-        // dd($submissions);
-        return view('backend.participant.submission.index', compact('conference', 'submissions', 'society'));
+            // dd($submissions,current_user());    
+        $submissionSetting = SubmissionSetting::where('conference_id', $conference->id)->first();
+        // dd($submissionSetting);
+        return view('backend.participant.submission.index', compact('conference', 'submissions', 'society', 'submissionSetting'));
     }
 
     public function create($society, $conference)
@@ -50,7 +54,7 @@ class SubmissionController extends Controller
             return redirect()->back()->with('delete', 'Submission date has ended.');
         }
         $submissionTracks = SubmissionCategoryMajorTrack::where(['conference_id' => $conference->id, 'status' => 1])->get();
-        
+
         return view('backend.participant.submission.create', compact('society', 'conference', 'submissionTracks', 'setting'));
     }
 
@@ -81,11 +85,34 @@ class SubmissionController extends Controller
             if (!empty($validated['image'])) {
                 $validated['image'] = $this->file_service->fileUpload($validated['image'], 'diagram', 'participant/submission/image');
             }
-
+            $authUser = User::whereId(current_user())->first();
             $validated['user_id'] = current_user()->id;
             $validated['conference_id'] = $conference->id;
             $validated['submitted_date'] = now();
 
+            $start = \Carbon\Carbon::parse($conference->start_date);
+            $end = \Carbon\Carbon::parse($conference->end_date);
+
+            if ($start->month === $end->month && $start->year === $end->year) {
+                // Same month and year: 10–12 April 2025
+                $conferenceDate = $start->format('d') . '-' . $end->format('d F Y');
+            } elseif ($start->year === $end->year) {
+                // Same year but different months: 28 March – 2 April 2025
+                $conferenceDate = $start->format('d F') . ' - ' . $end->format('d F Y');
+            } else {
+                // Different years: 30 December 2024 – 2 January 2025
+                $conferenceDate = $start->format('d F Y') . ' - ' . $end->format('d F Y');
+            }
+            $userMailData = [
+                'name' => $authUser->fullName($authUser),
+                'namePrefix' => $authUser->userDetail->namePrefix->prefix,
+                'topic' => $validated['title'],
+                'conferenceTheme' => $conference->conference_theme,
+                'societyEmail' => $society->contact_person_email,
+                'societyName' => $society->abbreviation,
+                'conferenceDate' => $conferenceDate
+            ];
+            Mail::to($authUser->email)->send(new SubmissionSubmittedToUserMail($userMailData));
             DB::beginTransaction();
             // dd(current_user()->userDetail->phone);
             $submission = Submission::create($validated);

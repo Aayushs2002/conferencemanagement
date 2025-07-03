@@ -91,7 +91,7 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/conference-certificate/{conference-certificate}/signature/{signature}', [ConferenceCertificateController::class, 'deleteImage'])->name('conference-certificate.signature.remove');
 
- 
+
     //submission setting route started
     Route::controller(SubmissionSettingController::class)->middleware('auto.conf.permission')->prefix('/society/{society}/conference/{conference}/submission')->name('submission.')->group(function () {
         Route::get('/submission-setting', 'index')->name('setting');
@@ -124,6 +124,7 @@ Route::middleware('auth')->group(function () {
         Route::post('send-mail', 'sendMail')->name('sendMail');
         Route::post('send-mail-submit', 'sendMailSubmit')->name('sendMailSubmit');
         Route::get('/get-users', 'getUsersByTypeAndPresentation')->name('get.users');
+        Route::get('/export-word', 'exportWord')->name('export.word');
     });
 
     Route::prefix('/society/{society}/conference/{conference}')->group(function () {

@@ -107,7 +107,7 @@
                                <td>{{ $registration->registrant_type == 1 ? 'Attendee' : 'Speaker' }}</td>
                                <td>
                                    @if (!empty($registration->amount))
-                                       {{ current_user()->userDetail->country->country_name == 'Nepal' ? 'Rs. ' : '$' }}{{ $registration->amount }}
+                                       {{ $registration->payment_type == 5 ? '$ ' : 'Rs.' }}{{ $registration->amount }}
                                    @elseif (!empty($registration->payment_voucher))
                                        @php
                                            $explodeFileName = explode('.', $registration->payment_voucher);
@@ -140,8 +140,8 @@
                                <td>
                                    @if ($registration)
                                        {{-- @if ($registration->attendances->where('status', 1)->count() == 2) --}}
-                                       <a href="" target="_blank" class="btn btn-primary btn-sm mb-1"><i
-                                               class="nav-icon i-File"></i> Generate Certificate</a>
+                                       {{-- <a href="" target="_blank" class="btn btn-primary btn-sm mb-1"><i
+                                               class="nav-icon i-File"></i> Generate Certificate</a> --}}
                                    @elseif ($registration->verified_status == 1)
                                        <span class="badge bg-success">Verified</span>
                                    @else

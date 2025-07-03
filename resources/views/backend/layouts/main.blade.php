@@ -10,6 +10,7 @@
 
     <title>Dashboard | @yield('title') </title>
 
+<meta name="google" content="notranslate">
 
     <meta name="description" content="" />
     <meta name="csrf-token" content="{{ csrf_token() }}">

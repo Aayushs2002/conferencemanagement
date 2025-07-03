@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Backend\Participant;
 
 use App\Http\Controllers\Controller;
 use App\Models\Conference\ConferenceMemberTypePrice;
+use App\Models\Payment\InternationalPayment;
+use App\Models\Payment\NationalPayment;
 use App\Models\User\UserSociety;
 use App\Models\Workshop\Workshop;
 use App\Models\Workshop\WorkshopRegistration;
@@ -29,14 +31,17 @@ class WorkshopRegistrationController extends Controller
             'user_id' => current_user()->id,
             'status' => 1
         ])->whereIn('workshop_id', $workshops->pluck('id'))->get();
-
+        $national_payemnt_setting = NationalPayment::where('society_id', $conference->society_id)->first();
+        $international_payemnt_setting = InternationalPayment::where('society_id', $conference->society_id)->first();
         return view('backend.participant.workshop-registration.index', compact(
             'society',
             'workshops',
             'conference',
             'societyUser',
             'checkPayment',
-            'registrations'
+            'registrations',
+            'national_payemnt_setting',
+            'international_payemnt_setting'
         ));
     }
 

@@ -419,24 +419,6 @@
                     </div>
                 </div>
             </div>
-            <div class="col-lg-3 col-sm-6">
-                <div class="card card-border-shadow-info h-100">
-                    <div class="card-body">
-                        <div class="d-flex align-items-center mb-1">
-                            <div class="avatar me-4">
-                                <span class="avatar-initial rounded bg-label-info"><i
-                                        class="icon-base ti tabler-clock icon-28px"></i></span>
-                            </div>
-                            <h4 class="mb-0">13</h4>
-                        </div>
-                        <p class="mb-1">Late vehicles</p>
-                        <p class="mb-0">
-                            <span class="text-heading fw-medium me-2">-2.5%</span>
-                            <small class="text-body-secondary">than last week</small>
-                        </p>
-                    </div>
-                </div>
-            </div>
         </div>
     @endif
 @endsection

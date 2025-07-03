@@ -58,6 +58,11 @@ class Submission extends Model
         return $this->belongsTo(User::class, 'user_id', 'id');
     }
 
+    public function conference()
+    {
+        return $this->belongsTo(Conference::class, 'conference_id', 'id');
+    }
+
     public function expert()
     {
         return $this->belongsTo(User::class, 'expert_id');

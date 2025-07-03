@@ -17,6 +17,9 @@ foreach (glob(__DIR__ . '/web/*.php') as $file) {
     require $file;
 }
 
+Route::get('/', function () {
+    return redirect()->route('login');
+});
 //dashboard route
 Route::middleware('auth', 'verified')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');

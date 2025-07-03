@@ -55,13 +55,13 @@
                         <option {{ request()->payment_type == 3 ? 'selected' : '' }} value="3">
                             Esewa
                         </option>
-                        <option {{ request()->payment_type == 4 ? 'selected' : '' }} value="3">
-                            Khalti
+                        <option {{ request()->payment_type == 4 ? 'selected' : '' }} value="4">
+                            Khalti 
                         </option>
-                        <option {{ request()->payment_type == 5 ? 'selected' : '' }} value="3">
+                        <option {{ request()->payment_type == 5 ? 'selected' : '' }} value="5">
                             Card Payment
                         </option>
-                        <option {{ request()->payment_type == 6 ? 'selected' : '' }} value="3">
+                        <option {{ request()->payment_type == 6 ? 'selected' : '' }} value="6">
                             Voucher Payment
                         </option>
                     </select>

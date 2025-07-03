@@ -191,7 +191,7 @@ return [
         'signup-user.inviteForConferenceSubmit' => 'Invite For Conference',
         'signup-user.makeExpert' => 'Assign Expert',
 
-        //Role Permission
+        //Role Permission 
         'roles.index' => 'View Role',
         'roles.create' => 'Add Role',
         'roles.store' => 'Add Role',

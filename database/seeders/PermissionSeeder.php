@@ -550,7 +550,21 @@ class PermissionSeeder extends Seeder
                 'guard_name' => 'web',
                 'parent' => 'User'
             ],
-
+            [
+                'name' => 'Pass Designation',
+                'guard_name' => 'web',
+                'parent' => 'User'
+            ],
+            [
+                'name' => 'Merge User',
+                'guard_name' => 'web',
+                'parent' => 'User'
+            ],
+            [
+                'name' => 'Reset Password',
+                'guard_name' => 'web',
+                'parent' => 'User'
+            ],
             //User Management And Role
             [
                 'name' => 'View Role',

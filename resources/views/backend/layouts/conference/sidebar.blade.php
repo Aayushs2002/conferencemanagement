@@ -36,7 +36,8 @@
                     'View Pass Setting',
                     'View Certificate Setting',
                 ]))
-            <li class="menu-item {{ request()->segment(5) == 'conference-registration' ? 'active open' : '' }}">
+            <li
+                class="menu-item {{ request()->segment(5) == 'conference-registration' && request()->segment(1) != 'my-society' ? 'active open' : '' }}">
                 <a href="javascript:void(0);" class="menu-link menu-toggle">
                     <i class="menu-icon icon-base ti tabler-registered"></i>
 
@@ -123,7 +124,8 @@
                     'View Submission Setting',
                     'View Category/Major Track',
                 ]))
-            <li class="menu-item {{ request()->segment(5) == 'submission' ? 'active open' : '' }}">
+            <li
+                class="menu-item {{ request()->segment(5) == 'submission' && request()->segment(1) != 'my-society' ? 'active open' : '' }}">
                 <a href="javascript:void(0);" class="menu-link menu-toggle">
                     <i class="menu-icon icon-base ti tabler-file-description"></i>
 
@@ -132,7 +134,7 @@
                 <ul class="menu-sub">
                     @if (auth()->user()->hasConferencePermissionBlade($conference, 'View Submission'))
                         <li
-                            class="menu-item {{ request()->segment(5) == 'submission' && request()->segment(6) == '' ? 'active' : '' }}">
+                            class="menu-item {{ request()->segment(5) == 'submission' &&request()->segment(6) == '' && request()->segment(1) != 'my-society' ? 'active' : '' }}">
                             <a href="{{ route('submission.index', [request()->segment(2), request()->segment(4)]) }}"
                                 class="menu-link">
                                 <div data-i18n="Submission">Submission</div>

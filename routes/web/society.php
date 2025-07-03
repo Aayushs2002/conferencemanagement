@@ -40,7 +40,7 @@ Route::middleware('auth')->group(function () {
     Route::resource('/department', DepartmentController::class)->middleware('check.superadmin')->except('show');
     //name department ended
 
-
+ 
     //payment setting controller stared
     Route::prefix('/society/{society}')->middleware('check.societyadmin')->group(function () {
         Route::controller(PaymentSettingController::class)->prefix('/payment')->name('payment.')->group(function () {

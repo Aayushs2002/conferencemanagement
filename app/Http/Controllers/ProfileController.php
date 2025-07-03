@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\ProfileUpdateRequest;
 use App\Models\User;
+use App\Models\User\UserInstitution;
 use App\Services\File\FileService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -26,6 +27,7 @@ class ProfileController extends Controller
                 'department_id' => 'required',
                 'institute_address' => 'required',
                 'image' => 'required',
+                'other_institution_name' => 'required',
             ];
 
             $messages = [
@@ -40,6 +42,10 @@ class ProfileController extends Controller
                 $messages['council_number.required'] = 'The council number is required.';
             } else {
                 $rules['council_number'] = 'nullable';
+            }
+
+            if ($request->institution_id == 'other') {
+                $rules['other_institution_name'] = 'required';
             }
 
             $validator = Validator::make($request->all(), $rules, $messages);
@@ -58,11 +64,22 @@ class ProfileController extends Controller
                 $data['image'] = $this->file_service->fileUpload($data['image'], 'profile', 'profile/image');
             }
             DB::beginTransaction();
+            if ($request->institution_id == 'other') {
+                unset($data['institution_id']);
+            }
 
+            // dd($data);
             $userData->userDetail->update($data);
             $userData->update([
                 'is_profile_updated' => 1
             ]);
+
+            if ($request->institution_id == 'other') {
+                UserInstitution::create([
+                    'user_id' => $userData->id,
+                    'institution_name' => $request->other_institution_name
+                ]);
+            }
             DB::commit();
 
             session()->forget('show_profile_update_modal');
@@ -71,6 +88,7 @@ class ProfileController extends Controller
                 'message' => 'You have successfully updated profile.'
             ]);
         } catch (\Throwable $th) {
+            dd($th);
             DB::rollBack();
             return response()->json([
                 'type' => 'error',

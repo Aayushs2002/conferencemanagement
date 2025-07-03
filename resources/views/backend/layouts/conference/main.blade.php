@@ -332,7 +332,7 @@
     <script>
         $(document).ready(function() {
 
-            $(".integerValue").on("keydown", function(event) {
+            $(".integerValue").on("keydown", function(event) { 
                 // Allow backspace, delete, tab, escape, and enter keys
                 if (event.keyCode == 46 || event.keyCode == 8 || event.keyCode == 9 || event.keyCode ==
                     27 || event

@@ -249,7 +249,6 @@
                                         href="#profilePIll" role="tab" aria-controls="profilePIll"
                                         aria-selected="false"><i class="nav-icon i-Home1 mr-1"></i>Account Details</a>
                                 </li>
-
                             </ul>
                             <div class="tab-content mt-4" id="myPillTabContent">
                                 <div class="tab-pane fade show active" id="homePIll" role="tabpanel"
@@ -351,13 +350,19 @@
                                 </div>
                                 <div class="tab-pane fade" id="profilePIll" role="tabpanel"
                                     aria-labelledby="profile-icon-pill">
-                                    Etsy mixtape wayfarers, ethical wes anderson tofu before they sold out mcsweeney's
-                                    organic
-                                    lomo
-                                    retro fanny pack lo-fi farm-to-table readymade. Messenger bag gentrify pitchfork
-                                    tattooed
-                                    craft
-                                    beer, iphone skateboard locavore.
+                                    <input type="hidden" name="international_id" id="international_id"
+                                        value="{{ $internationalPayment ? $internationalPayment->id : '' }}">
+                                    <div class="mb-6">
+                                        <textarea class="form-control ckeditor" id="bank_detail" name="bank_detail" rows="5" cols="30">{{ !empty(old('bank_detail')) ? old('bank_detail') : $internationalPayment->bank_detail }}</textarea>
+                                        <div class="text-danger" id="bankDetailError"></div>
+                                        @error('bank_detail')
+                                            <p class="text-danger">{{ $message }}</p>
+                                        @enderror
+                                    </div>
+                                    <div class="col-md-12" style="display: flex; justify-content: end;">
+                                        <button type="submit" class="btn btn-primary submitData"
+                                            id="submitData">{{ $internationalPayment ? 'Update' : 'Save' }}</button>
+                                    </div>
                                 </div>
 
                             </div>
@@ -446,7 +451,6 @@
                 } else if (activeSection === 'international') {
                     activeTab = $('#currentInternationalTab').val();
                 }
-
                 console.log('Submitting - Section:', activeSection, 'Tab:', activeTab);
 
                 if (activeSection === 'national') {
@@ -547,6 +551,17 @@
                             isValid = false;
                             $('#pacoSigningPublicKeyError').text('PacoSigningPublicKey is required.');
                         }
+                    } else if (activeTab === 'account_details') {
+                        if (CKEDITOR.instances['bank_detail']) {
+                            CKEDITOR.instances['bank_detail'].updateElement();
+                        }
+
+                        let bankDetailId = $('#bank_detail').val().trim();
+                        console.log(bankDetailId);
+                        if (!bankDetailId) {
+                            isValid = false;
+                            $('#bankDetailError').text('Bank Detail is required.');
+                        }
                     }
                 }
 
@@ -575,6 +590,8 @@
                         paco_encryption_public_key: $('#paco_encryption_public_key').val(),
                         merchant_decryption_private_key: $('#merchant_decryption_private_key').val(),
                         paco_signing_public_key: $('#paco_signing_public_key').val(),
+                        //bank_detail 
+                        bank_detail: $('#bank_detail').val(),
                         // IDs for updates
                         id: $('#id').val(),
                         international_id: $('#international_id').val(),

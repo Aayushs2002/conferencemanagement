@@ -79,6 +79,7 @@
                 <div class="row my-4">
                     <div class="col-12 text-end">
                         <a href="{{ route('submission.index', [$society, $conference]) }}" class="btn btn-danger">Reset</a>
+                        <button type="submit" id="ExportBtn" class="btn btn-success">Export Word</button>
                         <button type="submit" id="filterBtn" class="btn btn-primary">Filter</button>
                     </div>
                 </div>
@@ -442,6 +443,23 @@
                 toggleFilterButton();
             });
 
+
+            var form = $('#filterForm');
+
+            $('#ExportBtn').on('click', function(e) {
+                e.preventDefault();
+                form.attr('action',
+                    '{{ route('submission.export.word', [$society, $conference]) }}'
+                );
+                form.submit();
+            });
+
+            $('#filterBtn').on('click', function(e) {
+                e.preventDefault();
+                form.attr('action',
+                    '{{ route('submission.index', [$society, $conference]) }}');
+                form.submit();
+            });
         });
     </script>
 @endsection

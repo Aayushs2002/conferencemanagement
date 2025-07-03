@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Backend\Conference;
 
 use App\Exports\ConferenceRegistrationExport;
 use App\Http\Controllers\Controller;
+use App\Mail\Conference\ExceptionalRegistrationMail;
+use App\Mail\Conference\RegistrationMail;
 use App\Models\Conference\AccompanyPerson;
 use App\Models\Conference\Attendance;
 use App\Models\Conference\ConferenceRegistration;
@@ -13,7 +15,7 @@ use App\Models\Conference\PassSetting;
 use App\Models\ConferenceMemberTypeNameTag;
 use App\Models\User;
 use App\Models\User\ConferenceUserPassDesignation;
-use App\Models\User\MemberType; 
+use App\Models\User\MemberType;
 use App\Models\User\NamePrefix;
 use App\Models\User\Society;
 use App\Models\User\UserDetail;
@@ -23,6 +25,7 @@ use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 use Maatwebsite\Excel\Facades\Excel;
 
 class ConferenceRegistrationController extends Controller
@@ -174,15 +177,15 @@ class ConferenceRegistrationController extends Controller
 
             // for values end
 
-            // $user = User::whereId($validated['user_id'])->first();
-            // $mailData = [
-            //     'namePrefix'  => $user->namePrefix->prefix ?? null,
-            //     'conference_theme' => conference_detail()->conference_theme,
-            //     'name' => $user->fullName($user),
-            //     'email' => $user->email,
-            // ];
+            $user = User::whereId($validated['user_id'])->first();
+            $mailData = [
+                'namePrefix'  => $user->userDetail->prefix ?? null,
+                'conference_theme' => $conference->conference_theme,
+                'name' => $user->fullName($user),
+                'email' => $user->email,
+            ];
 
-            // Mail::to($user->email)->send(new RegistrationByUserMail($mailData));
+            Mail::to($user->email)->send(new ExceptionalRegistrationMail($mailData));
 
             DB::beginTransaction();
             // insert table-1
@@ -306,7 +309,7 @@ class ConferenceRegistrationController extends Controller
         return view('backend.conference.conference-registration.registration-or-invitation', compact('prefixesAll', 'society', 'conference'));
     }
 
-    public function registrationOrInvitationSubmit(Request $request)
+    public function registrationOrInvitationSubmit(Request $request, $society, $conference)
     {
         try {
             // dd($request->all());
@@ -370,7 +373,7 @@ class ConferenceRegistrationController extends Controller
             } else {
                 $validated['total_attendee'] = $validated['additional_guests'] + 1;
             }
-            $validated['conference_id'] = conference_detail()->id;
+            $validated['conference_id'] = $conference->id;
             $validated['token'] = random_word(60);
             $validated['verified_status'] = 1;
             $validated['payment_type'] = 6;
@@ -380,17 +383,17 @@ class ConferenceRegistrationController extends Controller
             }
             // for values end
 
-            // $middleName = !empty($validated['m_name']) ? $validated['m_name'] . ' ' : '';
-            // $namePrefix = DB::table('name_prefixes')->whereId($validated['name_prefix_id'])->first()->prefix;
-            // $data = [
-            //     'namePrefix' => $namePrefix,
-            //     'name' => $validated['f_name'] . ' ' . $middleName . $validated['l_name'],
-            //     'email' => $validated['email'],
-            //     'conference_theme' => conference_detail()->conference_theme,
-            //     'password' => $password,
-            //     'invitationType' => 1
-            // ];
-            // Mail::to($validated['email'])->send(new RegistrationMail($data));
+            $middleName = !empty($validated['m_name']) ? $validated['m_name'] . ' ' : '';
+            $namePrefix = DB::table('name_prefixes')->whereId($validated['name_prefix_id'])->first()->prefix;
+            $data = [
+                'namePrefix' => $namePrefix,
+                'name' => $validated['f_name'] . ' ' . $middleName . $validated['l_name'],
+                'email' => $validated['email'],
+                'conference_theme' => $conference->conference_theme,
+                'password' => $password,
+                'invitationType' => 1
+            ];
+            Mail::to($validated['email'])->send(new RegistrationMail($data));
 
             if ($request->has('invited_guest')) {
                 $validated['is_invited'] = 1;

@@ -5,9 +5,11 @@ namespace App\Http\Controllers\Backend\Submission;
 use App\Http\Controllers\Controller;
 use App\Models\Conference\SubmissionCategoryMajorTrack;
 use Illuminate\Http\Request;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
 class SubmissionCategoryMajorTrackContoller extends Controller
 {
+    use AuthorizesRequests;
     public function index($society, $conference)
     {
         // $conferenceDetail = conference_detail();
@@ -15,7 +17,6 @@ class SubmissionCategoryMajorTrackContoller extends Controller
         // if (empty($conferenceDetail)) {
         //     return redirect()->route('dashboard');
         // }
-
         $submissionCategoryMajortracks = SubmissionCategoryMajorTrack::where(['conference_id' => $conference->id, 'status' => 1])->get();
         return view('backend.submission.submission-category-majortrack.index', compact('submissionCategoryMajortracks', 'society', 'conference'));
     }
@@ -44,6 +45,8 @@ class SubmissionCategoryMajorTrackContoller extends Controller
 
     public function edit($society, $conference, SubmissionCategoryMajorTrack $submissionCategoryMajortrack)
     {
+        $this->authorize('edit', $submissionCategoryMajortrack);
+
         return view('backend.submission.submission-category-majortrack.create', compact('submissionCategoryMajortrack', 'society', 'conference'));
     }
 

@@ -12,7 +12,7 @@
                         <div class="col-12 col-md-6">
                             <label for="institution_id" class="form-label">Institution Name <code>*</code></label>
                             <select class="form-select" name="institution_id" id="institution_id" required>
-                                <option value="" hidden>-- Select Institution Name --</option>
+                                <option value="" hidden>-- Select Institution Name --</option> 
                                 @foreach ($institutions as $institution)
                                     <option value="{{ $institution->id }}" @selected(old('institution_id') == $institution->id)>
                                         {{ $institution->name }}</option>
@@ -28,7 +28,7 @@
                             <label for="other_institution_name" class="form-label">Other Institution Name</label>
                             <input type="text" class="form-control" name="other_institution_name"
                                 id="other_institution_name" placeholder="Enter Institution Name"
-                                value="{{ old('other_institution_name') }}">
+                                value="{{ old('other_institution_name') }}" >
                             @error('other_institution_name')
                                 <p class="text-danger">{{ $message }}</p>
                             @enderror

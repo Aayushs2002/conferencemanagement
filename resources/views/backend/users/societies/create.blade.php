@@ -16,7 +16,7 @@
 
                     @isset($society)
                         @method('patch')
-                    @endisset
+                    @endisset 
                     <div class="row">
                         <div class="mb-6 col-md-6">
                             <label class="form-label" for="society-name">Society Name <code>*</code></label>

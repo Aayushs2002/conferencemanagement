@@ -36,7 +36,6 @@ class PaymentSettingController extends Controller
 
     public function store(Request $request, $society)
     {
-        // dd($request->all());
         $section = $request->input('section');
         $activeTab = $request->input('active_tab');
 
@@ -143,6 +142,22 @@ class PaymentSettingController extends Controller
                 }
 
                 $message = empty($validated['international_id']) ? 'Successfully inserted Himalayan Bank payment.' : 'Successfully updated Himalayan Bank payment';
+            } else if ($activeTab === 'account_details') {
+                $validated = $request->validate([
+                    'bank_detail' => 'required',
+                    'international_id' => 'nullable'
+                ]);
+                if (empty($validated['international_id'])) {
+                    $validated['society_id'] = $society->id;
+                    $validated['payment_type'] = 'account_details';
+                    // dd($validated);
+                    $submitData = InternationalPayment::create($validated);
+                } else {
+                    $internationalPayment = InternationalPayment::whereId($validated['international_id'])->first();
+                    $submitData = $internationalPayment->update($validated);
+                }
+
+                $message = empty($validated['international_id']) ? 'Successfully inserted Accout Detail.' : 'Successfully updated Account Detail';
             }
 
             if (!$submitData) {

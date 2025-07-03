@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('pass_settings', function (Blueprint $table) {
             $table->id();
             $table->bigInteger('conference_id')->nullable();
-            $table->string('image')->nullable();
+            $table->string('image')->nullable(); 
             $table->time('lunch_start_time')->nullable();
             $table->time('lunch_end_time')->nullable();
             $table->time('dinner_start_time')->nullable();

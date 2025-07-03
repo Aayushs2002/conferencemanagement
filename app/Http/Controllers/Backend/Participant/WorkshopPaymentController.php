@@ -9,6 +9,7 @@ use App\Models\Payment\NationalPayment;
 use App\Models\Workshop\Workshop;
 use App\Models\Workshop\WorkshopRegistration;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Http;
 
 class WorkshopPaymentController extends Controller
 {
@@ -65,31 +66,369 @@ class WorkshopPaymentController extends Controller
     }
 
 
-    public function internationalPayment($id, $price)
+    public function moco(Request $request, $society, $conference, $workshop)
     {
         $data = [
-            'workshop_id' => $id,
-            'amount' => $price,
+            'id' => $workshop->id,
+            'price' => $request->amount,
             'payment_type' => 2
+        ];
+        session(['workshopPayment' => $data]);
+
+        // if (is_past($conference->regular_registration_deadline)) {
+        //     return response()->json([
+        //         'status' => 'error',
+        //         'message' => 'Conference Registration date has ended.'
+        //     ], 500);
+        // }
+
+        $paymentSetting = NationalPayment::where('society_id', $conference->society_id)->select('moco_merchant_id', 'moco_outlet_id', 'moco_terminal_id', 'moco_shared_key')->first();
+        // MoCo API Configuration
+        $mid = $paymentSetting->moco_merchant_id;
+        $oid = $paymentSetting->moco_outlet_id;
+        $tid = $paymentSetting->moco_terminal_id;
+        $amount = $request->amount;
+        // $amount = 1;
+        // dd($amount);
+        $referenceNumber = uniqid();
+        $timestamp = now()->utc()->format('Y-m-d H:i:s');
+        $sharedSecretKey = $paymentSetting->moco_shared_key;
+
+
+        $hashData = $mid . $oid . $tid . $timestamp . $referenceNumber . $amount;
+        $hash = hash_hmac('sha256', $hashData, $sharedSecretKey);
+
+        $requestData = [
+            "mid" => $mid,
+            "oid" => $oid,
+            "tid" => $tid,
+            "amount" => $amount,
+            "referenceNumber" => $referenceNumber,
+            "timestamp" => $timestamp,
+            "format" => "image",
+            "hash" => $hash
+        ];
+
+        // dd($requestData);
+        try {
+            $response = Http::timeout(30)
+                ->post('https://mpi.moco.com.np/transaction/qr', $requestData);
+
+            if ($response->successful()) {
+                $responseBody = $response->body();
+                $contentType = $response->header('Content-Type');
+
+                $qrData = null;
+                $responseData = null;
+
+                if (strpos($contentType, 'application/json') !== false || strpos($contentType, 'text/json') !== false) {
+                    $responseData = $response->json();
+
+                    if ($responseData) {
+                        if (isset($responseData['qr'])) {
+                            $qrData = $responseData['qr'];
+                        } elseif (isset($responseData['image'])) {
+                            $qrData = $responseData['image'];
+                        } elseif (isset($responseData['data'])) {
+                            $qrData = $responseData['data'];
+                        } elseif (isset($responseData['qrCode'])) {
+                            $qrData = $responseData['qrCode'];
+                        } elseif (isset($responseData['qr_code'])) {
+                            $qrData = $responseData['qr_code'];
+                        }
+                    }
+                } elseif (strpos($contentType, 'image/') !== false) {
+                    $qrData = 'data:' . $contentType . ';base64,' . base64_encode($responseBody);
+                    $responseData = ['type' => 'image', 'format' => $contentType];
+                } elseif (base64_decode($responseBody, true) !== false && strlen($responseBody) > 100) {
+                    $qrData = 'data:image/png;base64,' . $responseBody;
+                    $responseData = ['type' => 'base64_image'];
+                } else {
+                    $qrData = $responseBody;
+                    $responseData = ['type' => 'raw_data', 'content_type' => $contentType];
+                }
+
+                return response()->json([
+                    'status' => 'success',
+                    'data' => [
+                        'referenceNumber' => $referenceNumber,
+                        'amount' => $amount,
+                        'timestamp' => $timestamp,
+                        'qr_data' => $qrData,
+                        'response_info' => $responseData,
+                        'content_type' => $contentType
+                    ]
+                ]);
+            } else {
+
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Failed to generate QR code',
+                    'error_code' => $response->status()
+                ], $response->status());
+            }
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Unable to connect to payment gateway'
+            ], 500);
+        }
+    }
+
+    public function mocoCheckStatus(Request $request, $society, $conference)
+    {
+        // dd($request);
+        $paymentSetting = NationalPayment::where('society_id', $conference->society_id)->select('moco_merchant_id', 'moco_outlet_id', 'moco_terminal_id', 'moco_shared_key')->first();
+
+        $mid = $paymentSetting->moco_merchant_id;
+        $oid = $paymentSetting->moco_outlet_id;
+        $tid = $paymentSetting->moco_terminal_id;
+
+        $referenceNumber = $request->reference_number;
+        // $referenceNumber = '685b90bb5a193';
+        $timestamp = now('UTC')->format('Y-m-d H:i:s');
+        $localTxnDate = now('UTC')->format('Y-m-d');
+
+        $sharedKey = $paymentSetting->moco_shared_key;
+        $hash = hash_hmac('sha256', $mid . $oid . $tid . $timestamp . $referenceNumber, $sharedKey);
+
+        $queryParams = [
+            'mid' => $mid,
+            'oid' => $oid,
+            'tid' => $tid,
+            'referenceNumber' => $referenceNumber,
+            'localTxnDate' => $localTxnDate,
+            'timestamp' => $timestamp,
+            'hash' => $hash
+        ];
+
+        // dd($queryParams);
+        $response = Http::get('https://mpi.moco.com.np/transaction/status', $queryParams);
+        // dd($response->json(), $response->status());
+        return response()->json($response->json(), $response->status());
+        // return response()->json([
+        //     'status' => 'success',
+        //     'message' => 'Transaction completed successfully',
+        //     'txnStatus' => 'success',
+        //     'txnID' => 'test12345',
+        //     'referenceNumber' => $request->reference_number
+        // ]);
+    }
+
+    public function mocoSuccess(Request $request, $society, $conference)
+    {
+        $mocoPayment = session()->get('workshopPayment');
+        // dd($mocoPayment);
+        $transactionId = $request->txnID;
+        // dd($transactionId);
+        $amount = $mocoPayment['price'];
+        $sessionData = session()->get('workshopPayment');
+        $workshop = Workshop::whereId($sessionData['id'])->first();
+        $paymetType = $sessionData['payment_type'];
+        return view('backend.participant.workshop-registration.payment-success', compact('transactionId', 'amount', 'society', 'conference', 'workshop', 'paymetType'));
+    }
+
+
+    public function esewa(Request $request, $society, $conference, $workshop)
+    {
+        $data = [
+            'id' => $workshop->id,
+            'price' => $request->price,
+            'payment_type' => 3
         ];
 
         session(['workshopPayment' => $data]);
-        $user  = auth()->user();
-        $society_id = $user->userDetail->society_id;
+        $paymentSetting = NationalPayment::where('society_id', $conference->society_id)->select('esewa_product_code', 'esewa_secret_key')->first();
+        $transaction_uuid = uniqid();
+        $amount = $request->price;
+        $total_amount = $amount;
+        $product_code = $paymentSetting->esewa_product_code;
+        $secretKey = $paymentSetting->esewa_secret_key;
 
-        $paymentSetting = InternationalPayment::where('user_id', $society_id)->first();
-        // $form = '<form id="paymentForm" action="https://merchant.omwaytechnologies.com/payment_request.php" method="GET">
-        $form = '<form id="paymentForm" action="http://merchant.conference.san.org.np/payment_request.php" method="GET">
+        $message = "total_amount={$total_amount},transaction_uuid={$transaction_uuid},product_code={$product_code}";
+        $s = hash_hmac('sha256', $message, $secretKey, true);
+        $signature = base64_encode($s);
+
+        $form = '
+        <html>
+        <head><title>Redirecting to eSewa...</title></head>
+        <body onload="document.forms[\'esewaPaymentForm\'].submit();">
+            <form id="esewaPaymentForm" action="https://rc-epay.esewa.com.np/api/epay/main/v2/form" method="POST">
+                <input type="hidden" name="amount" value="' . $amount . '">
+                <input type="hidden" name="tax_amount" value="0">
+                <input type="hidden" name="total_amount" value="' . $total_amount . '">
+                <input type="hidden" name="transaction_uuid" value="' . $transaction_uuid . '">
+                <input type="hidden" name="product_code" value="' . $product_code . '">
+                <input type="hidden" name="product_service_charge" value="0">
+                <input type="hidden" name="product_delivery_charge" value="0">
+                <input type="hidden" name="success_url" value="' . route('my-society.conference.workshop-registration.esewaSuccess', [$society, $conference]) . '">
+                <input type="hidden" name="failure_url" value="' . route('my-society.conference.workshop-registration.esewaError', [$society, $conference]) . '">
+                <input type="hidden" name="signed_field_names" value="total_amount,transaction_uuid,product_code">
+                <input type="hidden" name="signature" value="' . $signature . '">
+            </form>
+        </body>
+        </html>
+    ';
+        return response($form);
+    }
+
+    public function esewaSuccess(Request $request, $society, $conference)
+    {
+        $data = base64_decode($request->data);
+        $data = json_decode($data, true);
+        // dd($data);
+        // dd($conference);
+        if ($data['status'] == 'COMPLETE') {
+            $transactionId = $data['transaction_code'];
+            // dd($transactionId);
+            $amount = (int)$data['total_amount'];
+            $sessionData = session()->get('workshopPayment');
+            $workshop = Workshop::whereId($sessionData['id'])->first();
+            $paymetType = $sessionData['payment_type'];
+            // dd($amount);
+            return view('backend.participant.workshop-registration.payment-success', compact('transactionId', 'amount', 'society', 'conference', 'workshop', 'paymetType'));
+        } else {
+            return redirect()->route('my-society.conference.workshop.index', [$society, $conference])->with('delete', 'Payment process has been failed or cancelled, please try again.');
+        }
+    }
+
+    public function esewaError(Request $request, $society, $conference)
+    {
+        return redirect()->route('my-society.conference.workshop.index', [$society, $conference])->with('delete', 'Payment process has been failed or cancelled, please try again.');
+    }
+
+
+    public function khalti(Request $request, $society, $conference, $workshop)
+    {
+        $data = [
+            'id' => $workshop->id,
+            'price' => $request->price,
+            'payment_type' => 4
+        ];
+        session(['workshopPayment' => $data]);
+        $paymentSetting = NationalPayment::where('society_id', $conference->society_id)->select('khalti_live_secret_key')->first();
+        $amount = $request->price;
+        $customer_name = current_user()->f_name . ' ' . current_user()->m_name . ' ' . current_user()->l_name;
+        $customer_email = current_user()->email;
+        $customer_phone = current_user()->userDetail->phone;
+        $configs = [
+            "return_url" => route('my-society.conference.workshop-registration.khaltiSuccess', [$society, $conference]),
+            "website_url" => config('app.url'),
+            "amount" =>  $amount * 100,
+            "purchase_order_id" => uniqid(),
+            "purchase_order_name" => $conference->conference_name,
+            "customer_info" => [
+                "name" => $customer_name,
+                "email" => $customer_email,
+                "phone" => $customer_phone
+            ]
+        ];
+
+        $json_configs = json_encode($configs);
+
+        $curl = curl_init();
+        curl_setopt_array(
+            $curl,
+            array(
+                CURLOPT_URL => 'https://dev.khalti.com/api/v2/epayment/initiate/',
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_ENCODING => '',
+                CURLOPT_MAXREDIRS => 10,
+                CURLOPT_TIMEOUT => 0,
+                CURLOPT_FOLLOWLOCATION => true,
+                CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+                CURLOPT_CUSTOMREQUEST => 'POST',
+                CURLOPT_POSTFIELDS => $json_configs,
+                CURLOPT_HTTPHEADER => array(
+                    // 'Authorization: Key live_secret_key_68791341fdd94846a146f0457ff7b455',
+                    'Authorization: Key ' . $paymentSetting->khalti_live_secret_key,
+                    'Content-Type: application/json',
+                ),
+            )
+        );
+        $response = curl_exec($curl);
+
+        curl_close($curl);
+
+        if ($response) {
+            $data = json_decode($response);
+            return redirect($data->payment_url);
+        }
+    }
+
+    public function khaltiSuccess(Request $request, $society, $conference)
+    {
+        $data = $request->all();
+        if ($data['status'] == 'Completed') {
+            $transactionId = $data['transaction_id'];
+            $amount = (int)($data['total_amount'] / 100);
+            $sessionData = session()->get('workshopPayment');
+            $workshop = Workshop::whereId($sessionData['id'])->first();
+            $paymetType = $sessionData['payment_type'];
+            return view('backend.participant.workshop-registration.payment-success', compact('transactionId', 'amount', 'society', 'conference', 'workshop', 'paymetType'));
+        } else {
+            return redirect()->route('my-society.conference.workshop.index', [$society, $conference])->with('delete', 'Payment process has been failed or cancelled, please try again.');
+        }
+    }
+
+
+
+    // public function internationalPayment(Request $request, $society, $conference, $workshop)
+    // {
+
+    //     $data = [
+    //         'id' => $workshop->id,
+    //         'price' => $request->price,
+    //         'payment_type' => 5
+    //     ];
+    //     session(['workshopPayment' => $data]);
+    //     $paymentSetting = InternationalPayment::where('society_id', $society->id)->first();
+    //     // $form = '<form id="paymentForm" action="https://merchant.omwaytechnologies.com/payment_request.php" method="GET">
+    //     $form = '<form id="paymentForm" action="http://merchant.conference.san.org.np/payment_request.php" method="GET">
+    //                 <input type="hidden" name="formID" value="92921030145569">
+    //                 <input type="hidden" name="api_key" value="' . $paymentSetting->api_key . '">
+    //                 <input type="hidden" name="merchant_id" value="' . $paymentSetting->merchant_key . '">
+    //                 <input type="hidden" name="input_currency" value="USD">
+    //                 <input type="hidden" name="input_amount" value="' . $request->price . '">
+    //                 <input type="hidden" name="input_3d" value="Y">
+    //                 <input type="hidden" name="success_url" value="' . route('workshop-registration.internationalPaymentResultSuccessProcess') . '">
+    //                 <input type="hidden" name="fail_url" value="' . route('workshop-registration.internationalPaymentResultFail') . '">
+    //                 <input type="hidden" name="cancel_url" value="' . route('workshop-registration.internationalPaymentResultCancel') . '">
+    //                 <input type="hidden" name="backend_url" value="' . route('workshop-registration.internationalPaymentResultBackend') . '">
+    //                 <input type="hidden" name="simple_spc" value="92921030145569">
+    //             </form>
+    //             <script type="text/javascript">document.getElementById("paymentForm").submit();</script>';
+    //     return $form;
+    // }
+
+    public function internationalPayment(Request $request, $society, $conference, $workshop)
+    {
+
+
+        $data = [
+            'id' => $workshop->id,
+            'price' => $request->price,
+            'payment_type' => 5
+        ];
+        session(['workshopPayment' => $data]);
+
+        $paymentSetting = InternationalPayment::where('society_id', $society->id)->first();
+        $form = '<form id="paymentForm" action="http://localhost/hbldemo/payment_request.php" method="POST">
                     <input type="hidden" name="formID" value="92921030145569">
                     <input type="hidden" name="api_key" value="' . $paymentSetting->api_key . '">
                     <input type="hidden" name="merchant_id" value="' . $paymentSetting->merchant_key . '">
+                    <input type="hidden" name="AccessToken" value="' . $paymentSetting->access_token . '">
+                    <input type="hidden" name="MerchantSigningPrivateKey" value="' . $paymentSetting->merchant_signing_private_key . '">
+                    <input type="hidden" name="PacoEncryptionPublicKey" value="' . $paymentSetting->paco_encryption_public_key . '">
+                    <input type="hidden" name="MerchantDecryptionPrivateKey" value="' . $paymentSetting->merchant_decryption_private_key . '">
+                    <input type="hidden" name="PacoSigningPublicKey" value="' . $paymentSetting->paco_signing_public_key . '">
                     <input type="hidden" name="input_currency" value="USD">
-                    <input type="hidden" name="input_amount" value="' . $price . '">
+                    <input type="hidden" name="input_amount" value="' . $request->price . '"> 
                     <input type="hidden" name="input_3d" value="Y">
-                    <input type="hidden" name="success_url" value="' . route('workshop-registration.internationalPaymentResultSuccessProcess') . '">
-                    <input type="hidden" name="fail_url" value="' . route('workshop-registration.internationalPaymentResultFail') . '">
-                    <input type="hidden" name="cancel_url" value="' . route('workshop-registration.internationalPaymentResultCancel') . '">
-                    <input type="hidden" name="backend_url" value="' . route('workshop-registration.internationalPaymentResultBackend') . '">
+                     <input type="hidden" name="success_url" value="' . route('my-society.conference.workshop-registration.internationalPaymentResultSuccessProcess', [$society, $conference]) . '">
+                     <input type="hidden" name="fail_url" value="' . route('my-society.conference.workshop-registration.internationalPaymentResultFail', [$society, $conference]) . '">
+                    <input type="hidden" name="cancel_url" value="' . route('my-society.conference.workshop-registration.internationalPaymentResultCancel', [$society, $conference]) . '">
+                    <input type="hidden" name="backend_url" value="' . route('my-society.conference.workshop-registration.internationalPaymentResultBackend', [$society, $conference]) . '">
                     <input type="hidden" name="simple_spc" value="92921030145569">
                 </form>
                 <script type="text/javascript">document.getElementById("paymentForm").submit();</script>';
@@ -103,7 +442,7 @@ class WorkshopPaymentController extends Controller
         return redirect($inquiry);
     }
 
-    public function internationalPaymentResultSuccess(Request $request)
+    public function internationalPaymentResultSuccess(Request $request, $society, $conference)
     {
         $data = $request->query('data');
 
@@ -115,35 +454,51 @@ class WorkshopPaymentController extends Controller
         $sessionData = session()->get('workshopPayment');
         $workshop = Workshop::whereSlug($sessionData['id'])->first();
         $amount = $sessionData['amount'];
-        return view('payment.workshop-payment-success', compact('transactionId', 'amount', 'workshop'));
+        return view('backend.participant.workshop-registration.payment-success', compact('transactionId', 'amount', 'workshop'));
     }
 
 
 
-    public function internationalPaymentResultCancel(Request $request)
+    public function internationalPaymentResultCancel(Request $request, $society, $conference)
     {
         $checkPayment = 'cancelled';
-        $workshops = Workshop::where(['approved_status' => 1, 'status' => 1])->whereNot('user_id', auth()->user()->id)->get();
-        $registrations = WorkshopRegistration::where(['user_id' => auth()->user()->id, 'status' => 1])->get();
-        return view('workshops.registrations.show', compact('registrations', 'workshops', 'checkPayment'));
+        $workshops = Workshop::where(['conference_id' => $conference->id, 'status' => 1])->get();
+        $registrations = WorkshopRegistration::where([
+            'user_id' => current_user()->id,
+            'status' => 1
+        ])->whereIn('workshop_id', $workshops->pluck('id'))->get();
+        $national_payemnt_setting = NationalPayment::where('society_id', $conference->society_id)->first();
+        $international_payemnt_setting = InternationalPayment::where('society_id', $conference->society_id)->first();
+        $societyUser = current_user()->societies->where('id', $conference->society_id)->first();
+        return view('backend.participant.workshop-registration.index', compact('registrations', 'workshops', 'checkPayment', 'conference', 'society','societyUser'));
     }
 
-    public function internationalPaymentResultBackend()
+    public function internationalPaymentResultBackend($society, $conference)
     {
         $checkPayment = 'terminated';
-        $latestConference = Conference::latestConference();
-        $workshops = Workshop::where(['conference_id' => $latestConference->id, 'approved_status' => 1, 'status' => 1])->whereNot('user_id', auth()->user()->id)->get();
-        $registrations = WorkshopRegistration::where(['user_id' => auth()->user()->id, 'status' => 1])->get();
-        return view('workshops.registrations.show', compact('registrations', 'workshops', 'checkPayment'));
+        $workshops = Workshop::where(['conference_id' => $conference->id, 'status' => 1])->get();
+        $registrations = WorkshopRegistration::where([
+            'user_id' => current_user()->id,
+            'status' => 1
+        ])->whereIn('workshop_id', $workshops->pluck('id'))->get();
+        $national_payemnt_setting = NationalPayment::where('society_id', $conference->society_id)->first();
+        $international_payemnt_setting = InternationalPayment::where('society_id', $conference->society_id)->first();
+        $societyUser = current_user()->societies->where('id', $conference->society_id)->first();
+        return view('backend.participant.workshop-registration.index', compact('registrations', 'workshops', 'checkPayment', 'conference', 'society','societyUser'));
     }
 
-    public function internationalPaymentResultFail(Request $request)
+    public function internationalPaymentResultFail(Request $request, $society, $conference)
     {
         $checkPayment = 'failed';
-        $latestConference = Conference::latestConference();
-        $workshops = Workshop::where(['conference_id' => $latestConference->id, 'approved_status' => 1, 'status' => 1])->whereNot('user_id', auth()->user()->id)->get();
-        $registrations = WorkshopRegistration::where(['user_id' => auth()->user()->id, 'status' => 1])->get();
-        return view('workshops.registrations.show', compact('registrations', 'workshops', 'checkPayment'));
+        $workshops = Workshop::where(['conference_id' => $conference->id, 'status' => 1])->get();
+        $registrations = WorkshopRegistration::where([
+            'user_id' => current_user()->id,
+            'status' => 1
+        ])->whereIn('workshop_id', $workshops->pluck('id'))->get();
+        $national_payemnt_setting = NationalPayment::where('society_id', $conference->society_id)->first();
+        $international_payemnt_setting = InternationalPayment::where('society_id', $conference->society_id)->first();
+        $societyUser = current_user()->societies->where('id', $conference->society_id)->first();
+        return view('backend.participant.workshop-registration.index', compact('registrations', 'workshops', 'checkPayment', 'conference', 'society','societyUser'));
         // $transactionId = $request->orderNo;
         // return view('backend.workshops.registrations.international-payment-success', compact('transactionId'));
     }

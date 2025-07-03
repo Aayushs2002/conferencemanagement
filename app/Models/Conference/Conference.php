@@ -3,6 +3,7 @@
 namespace App\Models\Conference;
 
 use App\Models\SubmissionSetting;
+use App\Models\User\Society;
 use Illuminate\Database\Eloquent\Model;
 use Vinkla\Hashids\Facades\Hashids;
 
@@ -37,6 +38,11 @@ class Conference extends Model
         return static::findOrFail($id);
     }
 
+    public function society()
+    {
+        return $this->belongsTo(Society::class);
+    }
+
     public function ConferenceVenueDetail()
     {
         return $this->hasOne(ConferenceVenueDetail::class, 'conference_id', 'id');
@@ -46,7 +52,7 @@ class Conference extends Model
     {
         return $this->hasOne(ConferenceOrganizer::class, 'conference_id', 'id');
     }
-    
+
     public function submissionSetting()
     {
         return $this->hasOne(SubmissionSetting::class);

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Backend\User;
 
 use App\Http\Controllers\Controller;
+use App\Mail\Conference\RegistrationMail;
 use App\Models\Conference\Conference;
 use App\Models\Conference\ConferenceRegistration;
 use App\Models\Conference\Expert;
@@ -16,6 +17,7 @@ use App\Models\Workshop\WorkshopRegistration;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 
 class SignupUserController extends Controller
 {
@@ -100,15 +102,15 @@ class SignupUserController extends Controller
             $validated['total_attendee'] = 1;
             $validated['meal_type'] = 2;
 
-            // $user = User::whereId($validated['user_id'])->first();
-            // $middleName = !empty($user->m_name) ? $user->m_name . ' ' : '';
-            // $data = [
-            //     'namePrefix' => $user->namePrefix->prefix,
-            //     'name' => $user->f_name . ' ' . $middleName . $user->l_name,
-            //     'conference_theme' => conference_detail()->conference_theme,
-            //     'invitationType' => 2
-            // ];
-            // Mail::to($user->email)->send(new RegistrationMail($data));
+            $user = User::whereId($validated['user_id'])->first();
+            $middleName = !empty($user->m_name) ? $user->m_name . ' ' : '';
+            $data = [
+                'namePrefix' => $user->userDetail->namePrefix->prefix,
+                'name' => $user->f_name . ' ' . $middleName . $user->l_name,
+                'conference_theme' => $conference->conference_theme,
+                'invitationType' => 2
+            ];
+            Mail::to($user->email)->send(new RegistrationMail($data));
 
             ConferenceRegistration::create($validated);
 

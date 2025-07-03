@@ -24,10 +24,11 @@
                      <a href="{{ route('dashboard') }}" class="btn btn-sm btn-danger">Go Back To Super Admin Panel</a>
                  @endif
                  @if (!empty(conference_detail()) && current_user()->type == 2)
-                     <a href="{{ route('society.dashboard',1) }}" class="btn btn-sm btn-danger">Go Back To Main Panel</a>
+                     <a href="{{ route('society.dashboard', 1) }}" class="btn btn-sm btn-danger">Go Back To Main
+                         Panel</a>
                  @endif
 
-                 <li class="nav-item dropdown-language dropdown">
+                 {{-- <li class="nav-item dropdown-language dropdown">
                      <a class="nav-link dropdown-toggle hide-arrow btn btn-icon btn-text-secondary rounded-pill"
                          href="javascript:void(0);" data-bs-toggle="dropdown">
                          <i class="icon-base ti tabler-language icon-22px text-heading"></i>
@@ -58,7 +59,7 @@
                              </a>
                          </li>
                      </ul>
-                 </li>
+                 </li> --}}
                  <!--/ Language -->
 
                  <!-- Style Switcher -->
@@ -95,7 +96,7 @@
                  <!-- / Style Switcher-->
 
                  <!-- Quick links  -->
-                 <li class="nav-item dropdown-shortcuts navbar-dropdown dropdown">
+                 {{-- <li class="nav-item dropdown-shortcuts navbar-dropdown dropdown">
                      <a class="nav-link dropdown-toggle hide-arrow btn btn-icon btn-text-secondary rounded-pill"
                          href="javascript:void(0);" data-bs-toggle="dropdown" data-bs-auto-close="outside"
                          aria-expanded="false">
@@ -181,11 +182,11 @@
                              </div>
                          </div>
                      </div>
-                 </li>
+                 </li> --}}
                  <!-- Quick links -->
 
                  <!-- Notification -->
-                 <li class="nav-item dropdown-notifications navbar-dropdown dropdown me-3 me-xl-2">
+                 {{-- <li class="nav-item dropdown-notifications navbar-dropdown dropdown me-3 me-xl-2">
                      <a class="nav-link dropdown-toggle hide-arrow btn btn-icon btn-text-secondary rounded-pill"
                          href="javascript:void(0);" data-bs-toggle="dropdown" data-bs-auto-close="outside"
                          aria-expanded="false">
@@ -420,7 +421,7 @@
                              </div>
                          </li>
                      </ul>
-                 </li>
+                 </li> --}}
                  <!--/ Notification -->
 
                  <!-- User -->
@@ -428,22 +429,22 @@
                      <a class="nav-link dropdown-toggle hide-arrow p-0" href="javascript:void(0);"
                          data-bs-toggle="dropdown">
                          <div class="avatar avatar-online">
-                             <img src="{{ asset('backend/assets/img/avatars/1.png') }}" alt class="rounded-circle" />
+                             <img src="{{ asset('default-image/avatar.png') }}" alt class="rounded-circle" />
                          </div>
                      </a>
                      <ul class="dropdown-menu dropdown-menu-end">
                          <li>
-                             <a class="dropdown-item mt-0" href="pages-account-settings-account.html">
+                             <a class="dropdown-item mt-0" href="#">
                                  <div class="d-flex align-items-center">
                                      <div class="flex-shrink-0 me-2">
                                          <div class="avatar avatar-online">
-                                             <img src="{{ asset('backend/assets/img/avatars/1.png') }}" alt
+                                             <img src="{{ asset('default-image/avatar.png') }}" alt
                                                  class="rounded-circle" />
                                          </div>
                                      </div>
                                      <div class="flex-grow-1">
-                                         <h6 class="mb-0">John Doe</h6>
-                                         <small class="text-body-secondary">Admin</small>
+                                         <h6 class="mb-0">{{ current_user()->fullName(current_user()) }}</h6>
+                                         {{-- <small class="text-body-secondary">Admin</small> --}}
                                      </div>
                                  </div>
                              </a>
@@ -452,42 +453,22 @@
                              <div class="dropdown-divider my-1 mx-n2"></div>
                          </li>
                          <li>
-                             <a class="dropdown-item" href="pages-profile-user.html">
+                             <a class="dropdown-item" href="#">
                                  <i class="icon-base ti tabler-user me-3 icon-md"></i><span class="align-middle">My
                                      Profile</span>
                              </a>
                          </li>
                          <li>
-                             <a class="dropdown-item" href="pages-account-settings-account.html">
+                             <a class="dropdown-item" href="#">
                                  <i class="icon-base ti tabler-settings me-3 icon-md"></i><span
                                      class="align-middle">Settings</span>
                              </a>
                          </li>
-                         <li>
-                             <a class="dropdown-item" href="pages-account-settings-billing.html">
-                                 <span class="d-flex align-items-center align-middle">
-                                     <i class="flex-shrink-0 icon-base ti tabler-file-dollar me-3 icon-md"></i><span
-                                         class="flex-grow-1 align-middle">Billing</span>
-                                     <span
-                                         class="flex-shrink-0 badge bg-danger d-flex align-items-center justify-content-center">4</span>
-                                 </span>
-                             </a>
-                         </li>
+
                          <li>
                              <div class="dropdown-divider my-1 mx-n2"></div>
                          </li>
-                         <li>
-                             <a class="dropdown-item" href="pages-pricing.html">
-                                 <i class="icon-base ti tabler-currency-dollar me-3 icon-md"></i><span
-                                     class="align-middle">Pricing</span>
-                             </a>
-                         </li>
-                         <li>
-                             <a class="dropdown-item" href="pages-faq.html">
-                                 <i class="icon-base ti tabler-question-mark me-3 icon-md"></i><span
-                                     class="align-middle">FAQ</span>
-                             </a>
-                         </li>
+
                          <li>
                              <form method="POST" action="{{ route('logout') }}">
                                  @csrf

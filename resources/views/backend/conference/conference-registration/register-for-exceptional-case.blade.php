@@ -10,7 +10,7 @@
                 Registered in exceptional case</h4>
             <div class="card-body">
                 <form class="needs-validation"
-                    action="{{ route('conference.conference-registration.registerForExceptionalCaseSubmit', ['society', 'conference']) }}"
+                    action="{{ route('conference.conference-registration.registerForExceptionalCaseSubmit', [$society, $conference]) }}"
                     id="registrationForm" method="POST" enctype="multipart/form-data" novalidate>
                     @csrf
                     <div class="row">
@@ -101,7 +101,7 @@
                             <label for="payment_voucher">Payment Voucher <code>(Only JPG/PNG/PDF) (Max: 250
                                     KB)</code></label>
                             <input type="file" class="form-control @error('payment_voucher') is-invalid @enderror"
-                                name="payment_voucher" id="image2" />
+                                name="payment_voucher" id="image2" /> 
                             @error('payment_voucher')
                                 <p class="text-danger">{{ $message }}</p>
                             @enderror

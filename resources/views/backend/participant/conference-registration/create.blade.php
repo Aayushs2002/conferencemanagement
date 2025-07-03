@@ -48,7 +48,7 @@
                                    <div class="text-end mt-4">
                                        <button type="submit" id="chooseRegistrantButton"
                                            class="btn btn-primary mt-3">Submit</button>
-                                       <a href="{{route('conference.openConferencePortal',[$society,$conference])}}"
+                                       <a href="{{ route('conference.openConferencePortal', [$society, $conference]) }}"
                                            class="btn btn-danger mt-3">Cancel</a>
                                    </div>
                                </div>
@@ -108,6 +108,22 @@
                                    <div class="position-absolute" style="bottom: 40px; right: 20px;">
                                        <input class="form-check-input" type="radio" name="paymentMode"
                                            value="dollarCard" id="dollarCardRadio" style="transform: scale(2);">
+                                   </div>
+                               </label>
+                           </div>
+                       </div>
+                       <div class="col-md-3">
+                           <div class="card mb-4 position-relative">
+                               <label for="bankTranserRadio">
+                                   <h4 class="text-center mt-2" style="color: blue">Bank Transfer</h4>
+                                   <p style="padding-left: 10%;">We Accept</p>
+                                   <div class="text-center pb-2">
+                                       <img src="{{ asset('default-image/bankTransfer.jpg') }}" style="width: 70%;"
+                                           alt="dollar card logo">
+                                   </div>
+                                   <div class="position-absolute" style="bottom: 40px; right: 20px;">
+                                       <input class="form-check-input" type="radio" name="paymentMode"
+                                           value="bankTransfer" id="bankTranserRadio" style="transform: scale(2);">
                                    </div>
                                </label>
                            </div>
@@ -208,6 +224,15 @@
                                @if (current_user()->userDetail->country_id == 125)
                                    <h3><code>(For Registration Via khalti)</code><br>Payment Through Khalti</h3>
                                    <img src="{{ asset('default-image/khalti-logo.png') }}" height="40"><br>
+                               @endif
+                           </div>
+                           <div class="bankTransferProcessingDiv">
+                               @if (current_user()->userDetail->country_id != 125)
+                                   <h5><code>(For Registration Via Bank Transer)</code><br>Payment Through Bank Transfer
+                                   </h5>
+                                   <img src="{{ asset('default-image/bankTransfer.jpg') }}" height="40"><br>
+                                   <p>
+                                       {!! $international_payemnt_setting->bank_detail !!}
                                    </p>
                                @endif
                            </div>
@@ -441,10 +466,65 @@
                                                    <p class="text-danger">{{ $message }}</p>
                                                @enderror
                                            </div>
-                                           <div class="col-md-12">
+                                           <div class="col-md-12 text-end">
                                                <button type="submit" id="submitButtonInternationalPayment"
                                                    class="btn btn-primary" disabled>Pay Now
                                                    {{ current_user()->userDetail->country->country_name == 'India' ? 'Via Dollar Card' : '' }}</button>
+                                           </div>
+                                       </div>
+                                   </form>
+                               </div>
+                               <div class="bankTransferProcessingDiv">
+
+                                   <form action="{{ route('my-society.conference.store', [$society, $conference]) }}"
+                                       method="POST" enctype="multipart/form-data" id="bankTranferForm">
+                                       @csrf
+                                       <div class="row">
+                                           <div class="col-md-6 form-group mb-3">
+                                               <label for="transaction_id">Transaction ID/Bill No/Reference Code
+                                                   <code>*</code></label>
+                                               <input type="text"
+                                                   class="form-control @error('transaction_id') is-invalid @enderror"
+                                                   name="transaction_id" id="transaction_id"
+                                                   value="{{ old('transaction_id') }}"
+                                                   placeholder="Enter transaction id or bill number" required />
+                                               @error('transaction_id')
+                                                   <p class="text-danger">{{ $message }}</p>
+                                               @enderror
+                                           </div>
+                                           <div class="col-md-6 form-group mb-3">
+                                               <label for="payment_voucher">Payment Voucher <code>(Only JPG/PNG/PDF)
+                                                   </code></label>
+                                               <input type="file"
+                                                   class="form-control @error('payment_voucher') is-invalid @enderror"
+                                                   name="payment_voucher" id="image2" />
+                                               @error('payment_voucher')
+                                                   <p class="text-danger">{{ $message }}</p>
+                                               @enderror
+                                               <div class="row" id="imgPreview2"></div>
+                                           </div>
+                                           <input type="hidden" name="registrant_type"
+                                               id="registrant_type_bank_transfer">
+                                           <input type="hidden" name="accompany_person" id="accompany_person">
+                                           <input type="hidden" name="payment_type" value="6">
+
+                                           <div class="col-md-12 form-group mb-3" hidden>
+                                               <label for="amount">Amount
+                                                   <code>* (Click on "Calculate Price" to get amount
+                                                       value)</code></label>
+                                               <input type="text"
+                                                   class="form-control @error('amount') is-invalid @enderror amount"
+                                                   name="amount" id="amount"
+                                                   value="{{ isset($conference_registration) ? $conference_registration->amount : old('amount') }}"
+                                                   placeholder="Enter amount" readonly />
+                                               @error('amount')
+                                                   <p class="text-danger">{{ $message }}</p>
+                                               @enderror
+                                           </div>
+                                           <div class="col-md-12 text-end">
+                                               <button type="submit" id="submitButtonBankTransfer"
+                                                   class="btn btn-primary" disabled>Submit
+                                               </button>
                                            </div>
                                        </div>
                                    </form>
@@ -494,11 +574,31 @@
            </div>
        </div>
    </div>
-
-
 @endsection
 @section('scripts')
+   @if ($checkPayment == 'failed')
+       <script>
+           $(document).ready(function() {
+               notyf.error("Your payment has been failed.");
+           });
+       </script>
+   @endif
 
+   @if ($checkPayment == 'cancelled')
+       <script>
+           $(document).ready(function() {
+               notyf.error("Your payment has been cancelled.");
+           });
+       </script>
+   @endif
+
+   @if ($checkPayment == 'terminated')
+       <script>
+           $(document).ready(function() {
+               notyf.error("Your payment has been terminated.");
+           });
+       </script>
+   @endif
    @if ($errors->any())
        @foreach ($errors->all() as $error)
            <script>
@@ -538,7 +638,6 @@
                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                }
            });
-
            $("#total_attendee").on("keydown", function(event) {
                // Allow backspace, delete, tab, escape, and enter keys
                if (event.keyCode == 46 || event.keyCode == 8 || event.keyCode == 9 || event.keyCode ==
@@ -555,9 +654,7 @@
                    event.preventDefault();
                }
            });
-
            var totalPrice = 0;
-
            $("#calculatePrice").click(function(e) {
                var selectedPaymentMode = $('input[name="paymentMode"]:checked').val();
                e.preventDefault();
@@ -632,8 +729,10 @@
                                '</tr>');
                        }
                        if (delegate == 2 && checkCountry == 'India' && selectedPaymentMode == 'fonePay') {
+                           $("#submitFonePay").attr('disabled', false);
+
                            var indianFonePayUrl =
-                               '';
+                               '{{ route('convertUsdToInr') }}';
                            var currencyData = {
                                'usd': preTotalPrice,
                                'paymentMode': selectedPaymentMode
@@ -660,27 +759,22 @@
                                        '</tr>');
                                }
                            });
-
                        }
                    }
-
                    if (delegate == 2) {
 
                        totalPrice = totalPrice.toFixed(2)
                    }
-
                    calculatedData.append('<tr>' +
                        '<td></td>' +
                        '<td>Total</td>' +
                        '<td>' + totalAttendee + '</td>' +
                        '<td>' + currencyCondition + totalPrice + '</td>' +
                        '</tr>');
-
-
                }
-
                $(".amount").val(totalPrice);
                $("#submitButtonInternationalPayment").attr('disabled', false);
+               $("#submitButtonBankTransfer").attr('disabled', false);
                $("#submitFonePay").attr('disabled', false);
                $("#submitMoco").attr('disabled', false);
                $("#submitKhalti").attr('disabled', false);
@@ -735,6 +829,7 @@
                    $('#registrant_type_moco').val('1');
                    $('#registrant_type_esewa').val('1');
                    $('#registrant_type_khalti').val('1');
+                   $('#registrant_type_bank_transfer').val('1');
                } else {
                    var data = new FormData($('#chooseRegistratantType')[0]);
                    $.ajaxSetup({
@@ -768,6 +863,8 @@
                                $("#openModal").modal('hide');
                                $('#registrant_type').val('2');
                                $("#registrant_type").trigger("change");
+                               $('#registrant_type_bank_transfer').val('2');
+                               $("#registrant_type").trigger("change");
                                $('#registrant_type_fonepay').val('2');
                                $("#registrant_type_fonepay").trigger("change");
                                $('#registrant_type_esewa').val('2');
@@ -779,6 +876,18 @@
                            }
                        }
                    });
+               }
+           });
+
+           var checkCountrs = '{{ auth()->user()->userDetail->country->country_name }}';
+           $('input[name="paymentMode"]').on('change', function() {
+               var paymentMode = $(this).val();
+               if (paymentMode == 'fonePay' && checkCountrs == 'India') {
+                   $("#submitFonePay").attr('disabled', true);
+               } else if (paymentMode == 'bankTransfer' && checkCountrs == 'India') {
+                   $("#submitButtonBankTransfer").attr('disabled', true);
+               } else if (paymentMode == 'dollarCard' && checkCountrs == 'India') {
+                   $("#submitButtonInternationalPayment").attr('disabled', true);
                }
            });
 
@@ -794,6 +903,12 @@
                $("#internationalPaymentForm").submit();
            });
 
+           $("#submitButtonBankTransfer").click(function(e) {
+               e.preventDefault();
+               $(this).attr('disabled', true);
+               $("#bankTranferForm").submit();
+           });
+
 
            $('input[name="paymentMode"]').change(function() {
                var selectedValue = $(this).val();
@@ -804,6 +919,7 @@
                $(".mocoProcessingDiv").attr('hidden', true);
                $(".esewaProcessingDiv").attr('hidden', true);
                $(".khaltiProcessingDiv").attr('hidden', true);
+               $(".bankTransferProcessingDiv").attr('hidden', true);
                if (selectedValue == "sbiBank") {
                    $(".sbiProcessingDiv").attr('hidden', false);
                } else if (selectedValue == "fonePay") {
@@ -816,6 +932,8 @@
                    $(".esewaProcessingDiv").attr('hidden', false);
                } else if (selectedValue == "khalti") {
                    $(".khaltiProcessingDiv").attr('hidden', false);
+               } else if (selectedValue == "bankTransfer") {
+                   $(".bankTransferProcessingDiv").attr('hidden', false);
                }
            });
 
@@ -902,7 +1020,6 @@
                }
            });
 
-
            function startPaymentStatusCheck() {
                paymentCheckInterval = setInterval(checkPaymentStatus, 30000);
            }
@@ -965,6 +1082,47 @@
                if (paymentCheckInterval) {
                    clearInterval(paymentCheckInterval);
                }
+           });
+
+           $('#bankTranferForm').on('submit', function(e) {
+               e.preventDefault();
+
+               let form = $('#bankTranferForm')[0];
+               let formData = new FormData(form);
+
+               $('#submitButtonBankTransfer').prop('disabled', true).text('Submitting...');
+
+               $.ajax({
+                   url: $(this).attr('action'),
+                   type: 'POST',
+                   data: formData,
+                   contentType: false,
+                   processData: false,
+                   success: function(response) {
+                       notyf.success('Conference Registered successfully!');
+
+                       setTimeout(function() {
+                           window.location.href =
+                               '{{ route('my-society.conference.index', [$society, $conference]) }}';
+                       }, 1500);
+                   },
+                   error: function(xhr) {
+                       $('#submitButtonBankTransfer').prop('disabled', false).text('Submit');
+
+                       if (xhr.status === 422) {
+                           let errors = xhr.responseJSON.errors;
+                           $('.text-danger').remove();
+                           for (let key in errors) {
+                               let input = $('[name="' + key + '"]');
+                               input.addClass('is-invalid');
+                               input.after('<p class="text-danger">' + errors[key][0] +
+                                   '</p>');
+                           }
+                       } else {
+                           notyf.error('An error occurred. Please try again.');
+                       }
+                   }
+               });
            });
        });
    </script>

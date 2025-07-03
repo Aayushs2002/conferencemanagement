@@ -26,6 +26,85 @@
            }
        </style>
    @endsection
+   @if ($submissionSetting?->abstract_guidelines)
+       <div class="modal fade" id="openAbstractGuidelineModal" tabindex="-1" role="dialog"
+           aria-labelledby="exampleModalCenterTitleDuideline" aria-hidden="true">
+           <div class="modal-dialog modal-lg modal-simple modal-pricing">
+               <div class="modal-content" id="modalContent">
+                   <div class="modal-body">
+                       <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                       <h4 class="text-center mb-4">Abstract Submission Guidelines</h4>
+                       {!! $submissionSetting->abstract_guidelines !!}
+                   </div>
+               </div>
+           </div>
+       </div>
+   @endif
+   {{-- @dd($submissions->where('user_id', current_user()->id)->where('request_status', 1)->where('presentation_type', 1)->isNotEmpty()) --}}
+   {{-- @dd($submissions) --}}
+   @if ($submissions->where('user_id', current_user()->id)->where('request_status', 1)->where('presentation_type', 2)->isNotEmpty() && $submissionSetting->oral_guidelines)
+       {{-- @dd('da') --}}
+       <div class="modal fade" id="openOralGuidelineModal" tabindex="-1" role="dialog"
+           aria-labelledby="exampleModalCenterTitleDuideline" aria-hidden="true">
+           <div class="modal-dialog modal-lg modal-simple modal-pricing">
+               <div class="modal-content" id="modalContent">
+                   <div class="modal-body">
+                       <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                       <h4 class="text-center mb-4">Oral Presentation Guidelines</h4>
+                       {!! $submissionSetting->oral_guidelines !!}
+                   </div>
+               </div>
+           </div>
+       </div>
+   @endif
+   @if ($submissions->where('user_id', current_user()->id)->where('request_status', 1)->where('presentation_type', 1)->isNotEmpty() && $submissionSetting->poster_guidelines)
+       <div class="modal fade" id="openPosterGuidelineModal" tabindex="-1" role="dialog"
+           aria-labelledby="exampleModalCenterTitleDuideline" aria-hidden="true">
+           <div class="modal-dialog modal-lg modal-simple modal-pricing">
+               <div class="modal-content" id="modalContent">
+                   <div class="modal-body">
+                       <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                       <h4 class="text-center mb-4">Poster Presentation Guidelines</h4>
+                       {!! $submissionSetting->poster_guidelines !!}
+                   </div>
+               </div>
+           </div>
+       </div>
+   @endif
+
+   @if (
+       $submissions->where('expert_id', current_user()->id)->where('presentation_type', 1)->isNotEmpty() &&
+           $submissionSetting->poster_reviewer_guide)
+       <div class="modal fade" id="openExpertPosterGuidelineModal" tabindex="-1" role="dialog"
+           aria-labelledby="exampleModalCenterTitleDuideline" aria-hidden="true">
+           <div class="modal-dialog modal-lg modal-simple modal-pricing">
+               <div class="modal-content" id="modalContent">
+                   <div class="modal-body">
+                       <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                       <h4 class="text-center mb-4">Poster Reviewer Guidelines</h4>
+                       {!! $submissionSetting->poster_reviewer_guide !!}
+                   </div>
+               </div>
+           </div>
+       </div>
+   @endif
+   @if (
+       $submissions->where('expert_id', current_user()->id)->where('presentation_type', 2)->isNotEmpty() &&
+           $submissionSetting->oral_reviewer_guide)
+       <div class="modal fade" id="openExpertOralGuidelineModal" tabindex="-1" role="dialog"
+           aria-labelledby="exampleModalCenterTitleDuideline" aria-hidden="true">
+           <div class="modal-dialog modal-lg modal-simple modal-pricing">
+               <div class="modal-content" id="modalContent">
+                   <div class="modal-body">
+                       <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                       <h4 class="text-center mb-4">Oral Reviewer Guidelines</h4>
+                       {!! $submissionSetting->oral_reviewer_guide !!}
+                   </div>
+               </div>
+           </div>
+       </div>
+   @endif
+
    <div class="card mb-6">
 
        <div class="card-datatable table-responsive pt-0">
@@ -229,8 +308,29 @@
                });
            });
 
+           $('#openAbstractGuidelineModal').modal('show');
+           $('#openExpertOralGuidelineModal').modal('show');
+           $('#openExpertPosterGuidelineModal').modal('show');
 
+           var shouldShowFirstModal =
+               {{ $submissions->where('user_id', current_user()->id)->where('request_status', 1)->where('presentation_type', 1)->isNotEmpty() ? 'true' : 'false' }};
 
+           var shouldShowSecondModal =
+               {{ $submissions->where('user_id', current_user()->id)->where('request_status', 1)->where('presentation_type', 2)->isNotEmpty() ? 'true' : 'false' }};
+
+           if (shouldShowFirstModal) {
+               $('#openPosterGuidelineModal').modal('show');
+           }
+
+           $('#openPosterGuidelineModal').on('hidden.bs.modal', function() {
+               if (shouldShowSecondModal) {
+                   $('#openOralGuidelineModal').modal('show');
+               }
+           });
+
+           if (shouldShowSecondModal && !shouldShowFirstModal) {
+               $('#openOralGuidelineModal').modal('show');
+           }
        });
    </script>
 @endsection

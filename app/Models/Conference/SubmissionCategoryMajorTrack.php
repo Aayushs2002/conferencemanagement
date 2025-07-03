@@ -13,4 +13,9 @@ class SubmissionCategoryMajorTrack extends Model
         'major_areas',
         'status'
     ];
+
+    public function conference()
+    {
+       return $this->belongsTo(Conference::class);
+    }
 }

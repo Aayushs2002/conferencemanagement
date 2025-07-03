@@ -131,26 +131,31 @@
                                             data-bs-toggle="modal" data-bs-target="#pricingModal">
                                             <i class="icon-base ti tabler-eye me-1"></i> View
                                         </a>
-
-                                        @if (empty($user->conferenceRegistration->where('conference_id', $conference->id)->first()))
-                                            <a class="dropdown-item inviteForConference" data-id="{{ $user->id }}"
+                                        @if (auth()->user()->hasConferencePermissionBlade(getConference(request()->segment(4)), 'Invite For Conference'))
+                                            @if (empty($user->conferenceRegistration->where('conference_id', $conference->id)->first()))
+                                                <a class="dropdown-item inviteForConference" data-id="{{ $user->id }}"
+                                                    data-bs-toggle="modal" data-bs-target="#pricingModal">
+                                                    <i class="icon-base ti tabler-pointer me-1"></i> Invite For Conference
+                                                </a>
+                                            @endif
+                                        @endif
+                                        @if (auth()->user()->hasConferencePermissionBlade(getConference(request()->segment(4)), 'Pass Designation'))
+                                            <a class="dropdown-item passDesgination" data-id="{{ $user->id }}"
                                                 data-bs-toggle="modal" data-bs-target="#pricingModal">
-                                                <i class="icon-base ti tabler-pointer me-1"></i> Invite For Conference
+                                                <i class="icon-base ti tabler-id-badge-2 me-1"></i> Pass Designation
                                             </a>
                                         @endif
-
-                                        <a class="dropdown-item passDesgination" data-id="{{ $user->id }}"
-                                            data-bs-toggle="modal" data-bs-target="#pricingModal">
-                                            <i class="icon-base ti tabler-id-badge-2 me-1"></i> Pass Designation
-                                        </a>
-
-                                        <a class="dropdown-item mergeUser" data-id="{{ $user->id }}"
-                                            data-bs-toggle="modal" data-bs-target="#pricingModal">
-                                            <i class="icon-base ti tabler-user me-1"></i> Merge User
-                                        </a>
-                                        <a class="dropdown-item resetPassword" data-id="{{ $user->id }}">
-                                            <i class="icon-base ti tabler-restore me-1"></i>Reset Password
-                                        </a>
+                                        @if (auth()->user()->hasConferencePermissionBlade(getConference(request()->segment(4)), 'Merge User'))
+                                            <a class="dropdown-item mergeUser" data-id="{{ $user->id }}"
+                                                data-bs-toggle="modal" data-bs-target="#pricingModal">
+                                                <i class="icon-base ti tabler-user me-1"></i> Merge User
+                                            </a>
+                                        @endif
+                                        @if (auth()->user()->hasConferencePermissionBlade(getConference(request()->segment(4)), 'Reset Password'))
+                                            <a class="dropdown-item resetPassword" data-id="{{ $user->id }}">
+                                                <i class="icon-base ti tabler-restore me-1"></i>Reset Password
+                                            </a>
+                                        @endif
                                     </div>
                                 </div>
                             </td>
