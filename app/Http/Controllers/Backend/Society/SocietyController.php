@@ -73,20 +73,12 @@ class SocietyController extends Controller
             $user->societies()->attach($society->id);
 
             //create role society admin role for this society
-            $role = Role::where('name', 'society admin')->where('society_id', $society->id)->first();
+            $role = Role::where('name', 'society admin')->first();
             if (!$role) {
-                // $role = Role::create([
-                //     'name' => 'society admin',
-                //     'guard_name' => 'web',
-                //     'society_id' => $society->id
-                // ]);
-                $role = new Role([
-                    "name" => 'society admin',
-                    "guard_name" => "web",
-                    "society_id" => $society->id
+                $role = Role::create([
+                    'name' => 'society admin',
+                    'guard_name' => 'web',
                 ]);
-
-                $role->saveQuietly();
                 $role->givePermissionTo(Permission::all());
                 $user->assignRole($role);
             }

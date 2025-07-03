@@ -29,7 +29,6 @@ class ConferenceController extends Controller
 
     public function index($society)
     {
-
         // if (!empty(session()->get('conferenceDetail'))) {
         //     session()->forget('conferenceDetail');
         // }

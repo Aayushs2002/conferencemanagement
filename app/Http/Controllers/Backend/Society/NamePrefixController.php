@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\backend\Society;
+namespace App\Http\Controllers\Backend\Society;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Society\NamePrefixRequest;

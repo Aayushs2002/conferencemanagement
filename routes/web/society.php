@@ -6,7 +6,7 @@ use App\Http\Controllers\Backend\Society\DepartmentController;
 use App\Http\Controllers\Backend\Society\DesignationController;
 use App\Http\Controllers\Backend\Society\InstitutionController;
 use App\Http\Controllers\Backend\Society\MemberTypeController;
-use App\Http\Controllers\backend\Society\NamePrefixController;
+use App\Http\Controllers\Backend\Society\NamePrefixController;
 use App\Http\Controllers\Backend\Society\SocietyController;
 use Illuminate\Support\Facades\Route;
 
