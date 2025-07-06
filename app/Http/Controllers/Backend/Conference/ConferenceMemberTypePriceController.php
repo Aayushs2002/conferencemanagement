@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\backend\Conference;
+namespace App\Http\Controllers\Backend\Conference;
 
 use App\Http\Controllers\Controller;
 use App\Models\Conference\Conference;

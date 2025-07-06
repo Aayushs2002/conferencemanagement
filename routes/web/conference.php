@@ -5,7 +5,7 @@ use App\Http\Controllers\Backend\Committee\CommitteeDesignationController;
 use App\Http\Controllers\Backend\Committee\CommitteeMemberController;
 use App\Http\Controllers\Backend\Conference\ConferenceCertificateController;
 use App\Http\Controllers\Backend\Conference\ConferenceController;
-use App\Http\Controllers\backend\Conference\ConferenceMemberTypePriceController;
+use App\Http\Controllers\Backend\Conference\ConferenceMemberTypePriceController;
 use App\Http\Controllers\Backend\Conference\ConferenceRegistrationController;
 use App\Http\Controllers\Backend\Conference\PassSettingController;
 use App\Http\Controllers\Backend\Dashboard\ConferenceDashboardController;
