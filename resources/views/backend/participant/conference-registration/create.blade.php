@@ -653,9 +653,9 @@
                } else {
                    event.preventDefault();
                }
-           });
+           }); 
            var totalPrice = 0;
-           $("#calculatePrice").click(function(e) {
+           $("#calculatePrice").click(function(e) { 
                var selectedPaymentMode = $('input[name="paymentMode"]:checked').val();
                e.preventDefault();
                var registrationPrice = '{{ $amount }}';
@@ -671,7 +671,7 @@
                    var totalPrice = registrationPrice;
                }
                var memberType = '{{ @$memberTypePrice->memberType->type }}';
-               if (registrationPrice == '' || guestPrice == '') {
+               if (registrationPrice == '') {
                    notyf.error("Price has not been updated by admin.");
                } else {
                    $("#priceTable").attr('hidden', false);

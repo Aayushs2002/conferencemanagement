@@ -42,6 +42,7 @@ class ConferenceRegistrationController extends Controller
                 $amount = !empty($memberTypePrice->regular_amount) ? $memberTypePrice->regular_amount : '';
             }
         }
+        // dd($amount);
         $national_payemnt_setting = NationalPayment::where('society_id', $conference->society_id)->first();
         $international_payemnt_setting = InternationalPayment::where('society_id', $conference->society_id)->first();
 
@@ -51,7 +52,6 @@ class ConferenceRegistrationController extends Controller
     public function store(Request $request, $society, $conference)
     {
         try {
-
             if (is_past($conference->regular_registration_deadline)) {
                 return redirect()->back()->with('delete', 'Registration deadline has been ended.');
             } else {
