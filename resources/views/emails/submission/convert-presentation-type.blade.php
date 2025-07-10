@@ -39,7 +39,8 @@
     <br>
     <div>
         <p>Best Regards,</p>
-        {{-- <p>NHRC, Summit Team</p> --}}
+        <p>SAFOGCON 2025</p>
+
         {{-- <p>Email: <a href="mailto:summit@nhrc.gov.np">summit@nhrc.gov.np</a></p> --}}
     </div>
 </body>

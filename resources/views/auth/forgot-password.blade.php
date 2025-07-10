@@ -31,7 +31,7 @@
         <a href="" class="app-brand-link">
             <a href="#" class="app-brand-link">
 
-                <img src="{{ asset('default-image/omway.png') }}" style="height: 60px;">
+                <img src="{{ asset('default-image/NESOG.png') }}" style="height: 60px;">
             </a>
         </a>
     </div>

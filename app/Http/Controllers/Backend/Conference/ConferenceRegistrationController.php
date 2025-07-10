@@ -22,7 +22,7 @@ use App\Models\User\UserDetail;
 use App\Models\User\UserSociety;
 use App\Services\File\FileService;
 use Exception;
-use Illuminate\Http\Request;
+use Illuminate\Http\Request; 
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;

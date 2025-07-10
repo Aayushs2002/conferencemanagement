@@ -56,13 +56,13 @@ class PaymentContoller extends Controller
     {
         // dd($conference);
         if ($request->RC == 'failed' || $request->RC == 'cancel') {
-            return redirect()->route('my-society.conference.create',[$society, $conference])->with('delete', 'Payment process has been failed or cancelled, please try again.');
+            return redirect()->route('my-society.conference.create', [$society, $conference])->with('delete', 'Payment process has been failed or cancelled, please try again.');
         } else {
-        $transactionId = $request->UID;
-        $amount = $request->P_AMT;
-        $national_payemnt_setting = NationalPayment::where('society_id', $conference->society_id)->first();
-        $international_payemnt_setting = InternationalPayment::where('society_id', $conference->society_id)->first();
-        return view('backend.participant.conference-registration.payment-success', compact('transactionId', 'amount', 'society', 'conference', 'national_payemnt_setting', 'international_payemnt_setting'));
+            $transactionId = $request->UID;
+            $amount = $request->P_AMT;
+            $national_payemnt_setting = NationalPayment::where('society_id', $conference->society_id)->first();
+            $international_payemnt_setting = InternationalPayment::where('society_id', $conference->society_id)->first();
+            return view('backend.participant.conference-registration.payment-success', compact('transactionId', 'amount', 'society', 'conference', 'national_payemnt_setting', 'international_payemnt_setting'));
         }
     }
 
@@ -379,45 +379,15 @@ class PaymentContoller extends Controller
     //     return $form;
     // }
 
-    public function internationalPayment(Request $request, $society, $conference)
-    {
-        if (is_past($conference->regular_registration_deadline)) {
-            return redirect()->back()->with('delete', 'Conference Regisration date has ended.');
-        }
-        session(['onlinePayment' => $request->all()]);
-
-        $paymentSetting = InternationalPayment::where('society_id', $society->id)->first();
-        $form = '<form id="paymentForm" action="https://localhost/hbldemo/payment_request.php" method="POST">
-                    <input type="hidden" name="formID" value="92921030145569">
-                    <input type="hidden" name="api_key" value="' . $paymentSetting->api_key . '">
-                    <input type="hidden" name="merchant_id" value="' . $paymentSetting->merchant_key . '">
-                    <input type="hidden" name="AccessToken" value="' . $paymentSetting->access_token . '">
-                    <input type="hidden" name="MerchantSigningPrivateKey" value="' . $paymentSetting->merchant_signing_private_key . '">
-                    <input type="hidden" name="PacoEncryptionPublicKey" value="' . $paymentSetting->paco_encryption_public_key . '">
-                    <input type="hidden" name="MerchantDecryptionPrivateKey" value="' . $paymentSetting->merchant_decryption_private_key . '">
-                    <input type="hidden" name="PacoSigningPublicKey" value="' . $paymentSetting->paco_signing_public_key . '">
-                    <input type="hidden" name="input_currency" value="USD">
-                    <input type="hidden" name="input_amount" value="' . $request->amount . '"> 
-                    <input type="hidden" name="input_3d" value="Y">
-                     <input type="hidden" name="success_url" value="' . route('my-society.conference.internationalPaymentResultSuccessProcess', [$society, $conference]) . '">
-                     <input type="hidden" name="fail_url" value="' . route('my-society.conference.internationalPaymentResultFail', [$society, $conference]) . '">
-                    <input type="hidden" name="cancel_url" value="' . route('my-society.conference.internationalPaymentResultCancel', [$society, $conference]) . '">
-                    <input type="hidden" name="backend_url" value="' . route('my-society.conference.internationalPaymentResultBackend', [$society, $conference]) . '">
-                    <input type="hidden" name="simple_spc" value="92921030145569">
-                </form>
-                <script type="text/javascript">document.getElementById("paymentForm").submit();</script>';
-        return $form;
-    }
     // public function internationalPayment(Request $request, $society, $conference)
     // {
-    //     // dd($request->all()); 
     //     if (is_past($conference->regular_registration_deadline)) {
     //         return redirect()->back()->with('delete', 'Conference Regisration date has ended.');
     //     }
     //     session(['onlinePayment' => $request->all()]);
 
     //     $paymentSetting = InternationalPayment::where('society_id', $society->id)->first();
-    //     $form = '<form id="paymentForm" action="http://merchant.nepadvisor.com/payment_request.php" method="GET">
+    //     $form = '<form id="paymentForm" action="https://localhost/hbldemo/payment_request.php" method="POST">
     //                 <input type="hidden" name="formID" value="92921030145569">
     //                 <input type="hidden" name="api_key" value="' . $paymentSetting->api_key . '">
     //                 <input type="hidden" name="merchant_id" value="' . $paymentSetting->merchant_key . '">
@@ -438,11 +408,38 @@ class PaymentContoller extends Controller
     //             <script type="text/javascript">document.getElementById("paymentForm").submit();</script>';
     //     return $form;
     // }
+    public function internationalPayment(Request $request, $society, $conference)
+    {
+        if (is_past($conference->regular_registration_deadline)) {
+            return redirect()->back()->with('delete', 'Conference Regisration date has ended.');
+        }
+        session(['onlinePayment' => $request->all()]);
+
+        // $paymentSetting = InternationalPayment::where('society_id', $society->id)->first();
+        $form = '<form id="paymentForm" action="https://merchant.conference.nesog.org.np/payment_request.php" method="GET">
+                    <input type="hidden" name="formID" value="92921030145569">
+                    <input type="hidden" name="api_key" value="de94032bd3aa4d86929a99fc56ec21e8">
+                    <input type="hidden" name="merchant_id" value="9104238068">
+                    <input type="hidden" name="input_currency" value="USD">
+                    <input type="hidden" name="input_amount" value="' . $request->amount . '">
+                    <input type="hidden" name="input_3d" value="Y">
+                   <input type="hidden" name="success_url" value="' . route('my-society.conference.internationalPaymentResultSuccessProcess', [$society, $conference]) . '">
+                     <input type="hidden" name="fail_url" value="' . route('my-society.conference.internationalPaymentResultFail', [$society, $conference]) . '">
+                    <input type="hidden" name="cancel_url" value="' . route('my-society.conference.internationalPaymentResultCancel', [$society, $conference]) . '">
+                    <input type="hidden" name="backend_url" value="' . route('my-society.conference.internationalPaymentResultBackend', [$society, $conference]) . '">
+                    <input type="hidden" name="simple_spc" value="92921030145569">
+                </form>
+                <script type="text/javascript">document.getElementById("paymentForm").submit();</script>';
+        return $form;
+    }
+
 
     public function internationalPaymentResultSuccessProcess(Request $request, $society, $conference)
     {
         $orderNo  = $request->orderNo;
-        $inquiry = 'https://merchant.omwaytechnologies.com/inquiry_request.php?orderno=' . $orderNo;
+        // $inquiry = 'https://merchant.omwaytechnologies.com/inquiry_request.php?orderno=' . $orderNo;
+        $inquiry = 'https://merchant.conference.nesog.org.np/inquiry_request.php?orderno=' . $orderNo;
+
         return redirect($inquiry);
     }
 

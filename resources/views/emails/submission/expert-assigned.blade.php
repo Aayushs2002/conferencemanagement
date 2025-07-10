@@ -40,7 +40,8 @@
     <br>
     <div>
         <p>Best Regards,</p>
-        {{-- <p>NHRC Summit 2025</p> --}} 
+                <p>SAFOGCON 2025</p>
+
     </div>
 </body>
 

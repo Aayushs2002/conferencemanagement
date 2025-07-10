@@ -47,22 +47,21 @@ class WorkshopPaymentController extends Controller
                     <input type="hidden" name="PRN" value="' . $PRN . '">
                 </form>
                 <script type="text/javascript">document.getElementById("paymentForm").submit();</script>';
-
         return $form;
     }
 
     public function fonePaySuccess(Request $request, $society, $conference)
     {
-        // if ($request->RC == 'failed' || $request->RC == 'cancel') {
-        //     return redirect()->route('my-society.conference.workshop.index', $conference)->with('delete', 'Payment process has been failed or cancelled, please try again.');
-        // } else {
+        if ($request->RC == 'failed' || $request->RC == 'cancel') {
+            return redirect()->route('my-society.conference.workshop.index', $conference)->with('delete', 'Payment process has been failed or cancelled, please try again.');
+        } else {
         $transactionId = $request->UID;
         $amount = $request->P_AMT;
         $sessionData = session()->get('workshopPayment');
         $workshop = Workshop::whereId($sessionData['id'])->first();
         $paymetType = $sessionData['payment_type'];
         return view('backend.participant.workshop-registration.payment-success', compact('transactionId', 'amount', 'workshop', 'society', 'conference', 'paymetType'));
-        // }
+        }
     }
 
 
@@ -373,8 +372,11 @@ class WorkshopPaymentController extends Controller
 
 
 
+
+
     // public function internationalPayment(Request $request, $society, $conference, $workshop)
     // {
+
 
     //     $data = [
     //         'id' => $workshop->id,
@@ -382,25 +384,29 @@ class WorkshopPaymentController extends Controller
     //         'payment_type' => 5
     //     ];
     //     session(['workshopPayment' => $data]);
+
     //     $paymentSetting = InternationalPayment::where('society_id', $society->id)->first();
-    //     // $form = '<form id="paymentForm" action="https://merchant.omwaytechnologies.com/payment_request.php" method="GET">
-    //     $form = '<form id="paymentForm" action="http://merchant.conference.san.org.np/payment_request.php" method="GET">
+    //     $form = '<form id="paymentForm" action="http://localhost/hbldemo/payment_request.php" method="POST">
     //                 <input type="hidden" name="formID" value="92921030145569">
     //                 <input type="hidden" name="api_key" value="' . $paymentSetting->api_key . '">
     //                 <input type="hidden" name="merchant_id" value="' . $paymentSetting->merchant_key . '">
+    //                 <input type="hidden" name="AccessToken" value="' . $paymentSetting->access_token . '">
+    //                 <input type="hidden" name="MerchantSigningPrivateKey" value="' . $paymentSetting->merchant_signing_private_key . '">
+    //                 <input type="hidden" name="PacoEncryptionPublicKey" value="' . $paymentSetting->paco_encryption_public_key . '">
+    //                 <input type="hidden" name="MerchantDecryptionPrivateKey" value="' . $paymentSetting->merchant_decryption_private_key . '">
+    //                 <input type="hidden" name="PacoSigningPublicKey" value="' . $paymentSetting->paco_signing_public_key . '">
     //                 <input type="hidden" name="input_currency" value="USD">
-    //                 <input type="hidden" name="input_amount" value="' . $request->price . '">
+    //                 <input type="hidden" name="input_amount" value="' . $request->price . '"> 
     //                 <input type="hidden" name="input_3d" value="Y">
-    //                 <input type="hidden" name="success_url" value="' . route('workshop-registration.internationalPaymentResultSuccessProcess') . '">
-    //                 <input type="hidden" name="fail_url" value="' . route('workshop-registration.internationalPaymentResultFail') . '">
-    //                 <input type="hidden" name="cancel_url" value="' . route('workshop-registration.internationalPaymentResultCancel') . '">
-    //                 <input type="hidden" name="backend_url" value="' . route('workshop-registration.internationalPaymentResultBackend') . '">
+    //                  <input type="hidden" name="success_url" value="' . route('my-society.conference.workshop-registration.internationalPaymentResultSuccessProcess', [$society, $conference]) . '">
+    //                  <input type="hidden" name="fail_url" value="' . route('my-society.conference.workshop-registration.internationalPaymentResultFail', [$society, $conference]) . '">
+    //                 <input type="hidden" name="cancel_url" value="' . route('my-society.conference.workshop-registration.internationalPaymentResultCancel', [$society, $conference]) . '">
+    //                 <input type="hidden" name="backend_url" value="' . route('my-society.conference.workshop-registration.internationalPaymentResultBackend', [$society, $conference]) . '">
     //                 <input type="hidden" name="simple_spc" value="92921030145569">
     //             </form>
     //             <script type="text/javascript">document.getElementById("paymentForm").submit();</script>';
     //     return $form;
     // }
-
     public function internationalPayment(Request $request, $society, $conference, $workshop)
     {
 
@@ -412,33 +418,30 @@ class WorkshopPaymentController extends Controller
         ];
         session(['workshopPayment' => $data]);
 
-        $paymentSetting = InternationalPayment::where('society_id', $society->id)->first();
-        $form = '<form id="paymentForm" action="http://localhost/hbldemo/payment_request.php" method="POST">
+        // $paymentSetting = InternationalPayment::where('society_id', $society->id)->first();
+        $form = '<form id="paymentForm" action="https://merchant.conference.nesog.org.np/payment_request.php" method="GET">
                     <input type="hidden" name="formID" value="92921030145569">
-                    <input type="hidden" name="api_key" value="' . $paymentSetting->api_key . '">
-                    <input type="hidden" name="merchant_id" value="' . $paymentSetting->merchant_key . '">
-                    <input type="hidden" name="AccessToken" value="' . $paymentSetting->access_token . '">
-                    <input type="hidden" name="MerchantSigningPrivateKey" value="' . $paymentSetting->merchant_signing_private_key . '">
-                    <input type="hidden" name="PacoEncryptionPublicKey" value="' . $paymentSetting->paco_encryption_public_key . '">
-                    <input type="hidden" name="MerchantDecryptionPrivateKey" value="' . $paymentSetting->merchant_decryption_private_key . '">
-                    <input type="hidden" name="PacoSigningPublicKey" value="' . $paymentSetting->paco_signing_public_key . '">
+                    <input type="hidden" name="api_key" value="de94032bd3aa4d86929a99fc56ec21e8">
+                    <input type="hidden" name="merchant_id" value="9104238068">
                     <input type="hidden" name="input_currency" value="USD">
-                    <input type="hidden" name="input_amount" value="' . $request->price . '"> 
+                    <input type="hidden" name="input_amount" value="' . $request->price . '">
                     <input type="hidden" name="input_3d" value="Y">
-                     <input type="hidden" name="success_url" value="' . route('my-society.conference.workshop-registration.internationalPaymentResultSuccessProcess', [$society, $conference]) . '">
+                   <input type="hidden" name="success_url" value="' . route('my-society.conference.workshop-registration.internationalPaymentResultSuccessProcess', [$society, $conference]) . '">
                      <input type="hidden" name="fail_url" value="' . route('my-society.conference.workshop-registration.internationalPaymentResultFail', [$society, $conference]) . '">
                     <input type="hidden" name="cancel_url" value="' . route('my-society.conference.workshop-registration.internationalPaymentResultCancel', [$society, $conference]) . '">
                     <input type="hidden" name="backend_url" value="' . route('my-society.conference.workshop-registration.internationalPaymentResultBackend', [$society, $conference]) . '">
                     <input type="hidden" name="simple_spc" value="92921030145569">
                 </form>
                 <script type="text/javascript">document.getElementById("paymentForm").submit();</script>';
+
         return $form;
     }
 
     public function internationalPaymentResultSuccessProcess(Request $request)
     {
         $orderNo  = $request->orderNo;
-        $inquiry = 'https://merchant.omwaytechnologies.com/inquiry_request_workshop.php?orderno=' . $orderNo;
+        // $inquiry = 'https://merchant.omwaytechnologies.com/inquiry_request_workshop.php?orderno=' . $orderNo;
+        $inquiry = 'https://merchant.conference.nesog.org.np/inquiry_request_workshop.php?orderno=' . $orderNo;
         return redirect($inquiry);
     }
 
@@ -470,7 +473,7 @@ class WorkshopPaymentController extends Controller
         $national_payemnt_setting = NationalPayment::where('society_id', $conference->society_id)->first();
         $international_payemnt_setting = InternationalPayment::where('society_id', $conference->society_id)->first();
         $societyUser = current_user()->societies->where('id', $conference->society_id)->first();
-        return view('backend.participant.workshop-registration.index', compact('registrations', 'workshops', 'checkPayment', 'conference', 'society','societyUser'));
+        return view('backend.participant.workshop-registration.index', compact('registrations', 'workshops', 'checkPayment', 'conference', 'society', 'societyUser'));
     }
 
     public function internationalPaymentResultBackend($society, $conference)
@@ -484,7 +487,7 @@ class WorkshopPaymentController extends Controller
         $national_payemnt_setting = NationalPayment::where('society_id', $conference->society_id)->first();
         $international_payemnt_setting = InternationalPayment::where('society_id', $conference->society_id)->first();
         $societyUser = current_user()->societies->where('id', $conference->society_id)->first();
-        return view('backend.participant.workshop-registration.index', compact('registrations', 'workshops', 'checkPayment', 'conference', 'society','societyUser'));
+        return view('backend.participant.workshop-registration.index', compact('registrations', 'workshops', 'checkPayment', 'conference', 'society', 'societyUser'));
     }
 
     public function internationalPaymentResultFail(Request $request, $society, $conference)
@@ -498,7 +501,7 @@ class WorkshopPaymentController extends Controller
         $national_payemnt_setting = NationalPayment::where('society_id', $conference->society_id)->first();
         $international_payemnt_setting = InternationalPayment::where('society_id', $conference->society_id)->first();
         $societyUser = current_user()->societies->where('id', $conference->society_id)->first();
-        return view('backend.participant.workshop-registration.index', compact('registrations', 'workshops', 'checkPayment', 'conference', 'society','societyUser'));
+        return view('backend.participant.workshop-registration.index', compact('registrations', 'workshops', 'checkPayment', 'conference', 'society', 'societyUser'));
         // $transactionId = $request->orderNo;
         // return view('backend.workshops.registrations.international-payment-success', compact('transactionId'));
     }

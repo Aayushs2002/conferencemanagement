@@ -240,7 +240,7 @@
                     @forelse ($joinedSocities as $society)
                         <div class="society-item">
                             <a href="{{ route('my-society.conference', $society) }}" class="society-link">
-                                <i class="fas fa-graduation-cap me-2"></i>
+                          
                                 {{ $society->abbreviation }}
                             </a>
                         </div>

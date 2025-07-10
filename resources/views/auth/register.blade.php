@@ -377,11 +377,10 @@
     <div class="app-brand justify-content-center mb-6">
         <a href="#" class="app-brand-link">
 
-            <img src="{{ asset('default-image/omway.png') }}" style="height: 60px;">
+            <img src="{{ asset('default-image/NESOG.png') }}" style="height: 60px;">
         </a>
     </div>
     <!-- /Logo -->
-      <h4 class="mb-1">Welcome to Conflyze! 👋</h4>
     <p class="mb-6">Please sign-up to your account and start the registration</p>
 
     <form id="formAuthentication" class="mb-6" method="POST" action="{{ route('register') }}">
@@ -519,7 +518,7 @@
 
     <p class="text-center">
         <span>Already have an account?</span>
-        <a href="{{route('login')}}">
+        <a href="{{ route('login') }}">
             <span>Sign in instead</span>
         </a>
     </p>

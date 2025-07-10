@@ -37,10 +37,10 @@ class DashboardController extends Controller
 
     public function getMemberType(Request $request)
     {
+        // dd($request);
         try {
             $user = current_user();
             $society_id = $request->society_id;
-
             if (!$society_id) {
                 return response()->json(['type' => 'error', 'message' => 'Society ID is required.', 'data' => []]);
             }
@@ -57,6 +57,7 @@ class DashboardController extends Controller
                     'society_id' => $society_id,
                     'status' => 1
                 ])->get();
+                // dd($types);
             }
 
             return response()->json([

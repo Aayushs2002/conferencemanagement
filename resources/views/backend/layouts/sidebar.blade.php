@@ -25,7 +25,7 @@
                     <img src="{{ asset('storage/society/logo/' . current_user()->societies->value('logo')) }}"
                         height="65">
                 @else
-                    <img src="{{ asset('default-image/logo.png') }}" height="65">
+                    <img src="{{ asset('default-image/NESOG.png') }}" height="65">
                 @endif
             </span>
         </a>

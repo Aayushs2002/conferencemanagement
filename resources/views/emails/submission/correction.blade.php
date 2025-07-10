@@ -19,7 +19,8 @@
     <div>
         <p>Best Regards,</p>
         <p>Scientific committee</p>
-        {{-- <p>SANCON-ASPA 2025</p> --}}
+               <p>SAFOGCON 2025</p>
+
     </div>
 </body>
 </html>

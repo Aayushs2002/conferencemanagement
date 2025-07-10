@@ -24,7 +24,9 @@
     <br>
     <div>
         <p>Best Regards,</p>
-        <p>{{ $data['societyName'] }} Team</p>
+        <p>
+        <p>SAFOGCON 2025</p>
+        </p>
         <p>{{ $data['societyEmail'] }}</p>
     </div>
 </body>
