@@ -33,7 +33,7 @@
                                     </li>
                                     <li><a class="dropdown-item" href="#" onclick="window.print()">Print</a></li>
                                 </ul>
-                            </div>
+                            </div> 
                             <a href="{{ route('society.create') }}" class="btn btn-primary" tabindex="0">
                                 <i class="icon-base ti tabler-plus icon-xs me-sm-1"></i>
                                 <span class="d-none d-sm-inline-block">Add New</span>

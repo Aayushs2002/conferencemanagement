@@ -20,7 +20,7 @@ class WorkshopRegistrationController extends Controller
         // dd(current_user()->id);
         $checkPayment = null;
 
-        $workshops = Workshop::where([
+        $workshops = Workshop::where([ 
             'conference_id' => $conference->id,
             'status' => 1
         ])->get();

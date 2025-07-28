@@ -21,7 +21,8 @@
     <br>
     <div>
         <p>Best Regards,</p>
-        <p>SAFOGCON 2025</p>
+        <p>{{ $data['conference_name'] }}</p>
+
     </div>
 </body>
 

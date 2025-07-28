@@ -7,6 +7,7 @@ use App\Http\Controllers\Backend\Conference\ConferenceCertificateController;
 use App\Http\Controllers\Backend\Conference\ConferenceController;
 use App\Http\Controllers\Backend\Conference\ConferenceMemberTypePriceController;
 use App\Http\Controllers\Backend\Conference\ConferenceRegistrationController;
+use App\Http\Controllers\Backend\Conference\ConferenceSettingController;
 use App\Http\Controllers\Backend\Conference\PassSettingController;
 use App\Http\Controllers\Backend\Dashboard\ConferenceDashboardController;
 use App\Http\Controllers\Backend\Download\DownloadController;
@@ -32,7 +33,7 @@ use App\Http\Controllers\Backend\Workshop\WorkshopTrainer\WorkshopTrainerControl
 use App\Models\Sponsor\Sponsor;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', 'check.subdomain'])->group(function () {
 
     //conference dashboard
     Route::controller(ConferenceDashboardController::class)->name('dashboard.')->group(function () {
@@ -59,6 +60,8 @@ Route::middleware('auth')->group(function () {
     Route::post('/conference/price-submit', [ConferenceMemberTypePriceController::class, 'priceSubmit'])->name('conference.priceSubmit');
     //conference member type price route ended
 
+    Route::post('conference-setting', [ConferenceSettingController::class, 'conferenceSetting'])->name('conference.setting');
+    Route::post('conference-setting-submit', [ConferenceSettingController::class, 'conferenceSettingSubmit'])->name('conference.setting.submit');
 
     Route::controller(ConferenceRegistrationController::class)->name('conference.conference-registration.')->middleware('auto.conf.permission')->prefix('/society/{society}/conference/{conference}/conference-registration')->group(function () {
         Route::get('/registrant', 'index')->name('index');
@@ -69,10 +72,14 @@ Route::middleware('auth')->group(function () {
         Route::post('/add-person-submit', 'addPersonSubmit')->name('addPersonSubmit');
         Route::post('/convert-registrant-type', 'convertRegistrantType')->name('convertRegistrantType');
         Route::post('/convert-registrant-type-submit', 'convertRegistrantTypeSubmit')->name('convertRegistrantTypesubmit');
+        Route::post('/verify-registrant', 'verifyForm')->name('verifyForm');
+        Route::post('/verify-registrant-submit', 'verifyRegistrant')->name('verifyRegistrant');
         Route::get('/registration-or-invitation', 'registrationOrInvitation')->name('registrationOrInvitation');
         Route::post('/registration-or-invitation-submit', 'registrationOrInvitationSubmit')->name('registrationOrInvitationSubmit');
         Route::get('/exportExcel',  'excelExport')->name('excelExport');
         Route::get('/generate-individual-pass/{conferenceRegistration}', 'generateIndividualPass')->name('generateIndividualPass');
+        Route::get('/download-voucher/{conferenceRegistration}', 'downloadVoucher')->name('downloadVoucher');
+        Route::delete('/registrant/destroy/{registrant}', 'destroy')->name('registrant.destroy');
     });
 
     Route::controller(ConferenceRegistrationController::class)->name('conference.conference-registration.')->group(function () {
@@ -125,6 +132,7 @@ Route::middleware('auth')->group(function () {
         Route::post('send-mail-submit', 'sendMailSubmit')->name('sendMailSubmit');
         Route::get('/get-users', 'getUsersByTypeAndPresentation')->name('get.users');
         Route::get('/export-word', 'exportWord')->name('export.word');
+        Route::delete('/submission/destroy/{submission}', 'destroy')->name('submission.destroy');
     });
 
     Route::prefix('/society/{society}/conference/{conference}')->group(function () {

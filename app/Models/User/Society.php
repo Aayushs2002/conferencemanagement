@@ -17,6 +17,7 @@ class Society extends Model
         'contact_person',
         'contact_person_phone',
         'contact_person_email',
+        'sub_domain_name',
         'description',
         'logo',
         'token',

@@ -9,12 +9,15 @@ use App\Mail\Submission\ExpertForwardMail;
 use App\Mail\Submission\SubmissionAcceptMail;
 use App\Mail\Submission\SubmissionCorrectionMail;
 use App\Mail\Submission\SubmissionRejectMail;
+use App\Models\Conference\Author;
 use App\Models\Conference\Expert;
 use App\Models\Conference\Submission;
 use App\Models\Conference\SubmissionCategoryMajorTrack;
 use App\Models\Conference\SubmissionDiscussion;
+use App\Models\Conference\SubmissionRating;
 use App\Models\SubmissionSetting;
 use App\Models\User;
+use App\Services\File\FileService;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\Request;
@@ -23,6 +26,8 @@ use Illuminate\Support\Facades\Mail;
 
 class SubmissionController extends Controller
 {
+    public function __construct(protected FileService $file_service) {}
+
     public function index(Request $request, $society, $conference)
     {
         // $conferenceDetail = conference_detail();
@@ -203,6 +208,32 @@ class SubmissionController extends Controller
 
         return view('backend.submission.submission.view-score', compact('submission'));
     }
+    public function destroy($society, $conference, Submission $submission)
+    {
+
+        DB::beginTransaction();
+        try {
+            if ($submission->image) {
+                $this->file_service->deleteFile($submission->image, 'participant/submission/image');
+            }
+
+            Author::where('submission_id', $submission->id)->delete();
+
+            SubmissionRating::where('submission_id', $submission->id)->delete();
+
+            SubmissionDiscussion::where('submission_id', $submission->id)->delete();
+
+            $submission->delete();
+
+            DB::commit();
+
+            return redirect()->back()->with('status', 'Submission Successfully Deleted.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->back()->with('delete', 'Internal Server Error.');
+        }
+    }
+
 
     public function sendMail($society, $conference)
     {

@@ -13,7 +13,7 @@
                    Presentation Submission</h4>
                <div class="card-body">
                    <form class="needs-validation"
-                       action="{{ isset($submission) ? route('my-society.conference.submission.update', [$society, $conference, $submission]) : route('my-society.conference.submission.store',  [$society, $conference]) }}"
+                       action="{{ isset($submission) ? route('my-society.conference.submission.update', [$society, $conference, $submission]) : route('my-society.conference.submission.store', [$society, $conference]) }}"
                        method="POST" enctype="multipart/form-data" novalidate>
                        @csrf
 
@@ -122,25 +122,27 @@
                                    <p class="text-danger">{{ $message }}</p>
                                @enderror
                            </div>
-
-                           <div class="mb-6 col-md-6">
-                               <label class="form-label" for="image">Image/Diagram <code>(optional)</code></label>
-                               <input type="file" class="form-control" name="image" id="image"
-                                   value="{{ !empty(old('image')) ? old('image') : @$submission->image }}" />
-                               <div class="row" id="imgPreview">
-                                   @if (isset($submission))
-                                       <div class="col-3 mt-2">
-                                           <a href="{{ asset('storage/participant/submission/image/' . $submission->image) }}"
-                                               target="_blank"><img
-                                                   src="{{ asset('storage/participant/submission/image/' . $submission->image) }}"
-                                                   class="img-fluid" alt="image"></a>
-                                       </div>
-                                   @endif
+                           @if ($setting->attachment_name)
+                               <div class="mb-6 col-md-6">
+                                   <label class="form-label" for="image">{{ $setting->attachment_name }}
+                                       <code>(optional)</code></label>
+                                   <input type="file" class="form-control" name="image" id="image"
+                                       value="{{ !empty(old('image')) ? old('image') : @$submission->image }}" />
+                                   <div class="row" id="imgPreview">
+                                       @if (isset($submission))
+                                           <div class="col-3 mt-2">
+                                               <a href="{{ asset('storage/participant/submission/image/' . $submission->image) }}"
+                                                   target="_blank"><img
+                                                       src="{{ asset('storage/participant/submission/image/' . $submission->image) }}"
+                                                       class="img-fluid" alt="image"></a>
+                                           </div>
+                                       @endif
+                                   </div>
+                                   @error('image')
+                                       <p class="text-danger">{{ $message }}</p>
+                                   @enderror
                                </div>
-                               @error('image')
-                                   <p class="text-danger">{{ $message }}</p>
-                               @enderror
-                           </div>
+                           @endif
 
 
                            <div class="row">

@@ -21,7 +21,7 @@ class SubmissionSettingController extends Controller
         $conference = Conference::where(['id' => $conference->id, 'status' => 1])->first();
         // dd($conference);
         return view('backend.submission.submission-setting.index', compact('conference', 'society'));
-    }
+    } 
 
     public function store(Request $request)
     {
@@ -38,6 +38,7 @@ class SubmissionSettingController extends Controller
                 'poster_guidelines' => 'nullable',
                 'oral_reviewer_guide' => 'nullable',
                 'poster_reviewer_guide' => 'nullable',
+                'attachment_name' => 'nullable'
             ]);
 
             $message = empty($validated['id']) ? 'Successfully inserted submission setting.' : 'Successfully updated submission setting';

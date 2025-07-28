@@ -37,8 +37,9 @@ class SubmissionCategoryMajorTrackContoller extends Controller
             ]);
             $validated['conference_id'] = $conference->id;
             SubmissionCategoryMajorTrack::create($validated);
-            return redirect()->route('submission.category-majortrack.index', $society, $conference)->with('status', 'Submission Category/Major Track Created Successfully');
+            return redirect()->route('submission.category-majortrack.index', [$society, $conference])->with('status', 'Submission Category/Major Track Created Successfully');
         } catch (\Exception $e) {
+            // dd($e);
             return redirect()->back()->with('delete', 'Internal Server Error');
         }
     }

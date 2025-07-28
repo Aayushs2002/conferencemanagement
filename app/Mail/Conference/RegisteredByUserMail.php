@@ -52,15 +52,15 @@ class RegisteredByUserMail extends Mailable
      */
     public function attachments(): array
     {
-        return [];
-        // $pdf = Pdf::loadView('emails.conference.payment-voucher', ['data' => $this->data])
-        //     ->setPaper('legal', 'potrait');
-        // $pdfPath = storage_path('app/public/registration.pdf');
-        // $pdf->save($pdfPath);
-        // return [
-        //     Attachment::fromPath($pdfPath)
-        //         ->as('PaymentVoucher.pdf')
-        //         ->withMime('application/pdf'),
-        // ];
+        // return [];
+        $pdf = Pdf::loadView('emails.conference.payment-voucher', ['data' => $this->data])
+            ->setPaper('legal', 'potrait');
+        $pdfPath = storage_path('app/public/registration.pdf');
+        $pdf->save($pdfPath);
+        return [
+            Attachment::fromPath($pdfPath)
+                ->as('PaymentVoucher.pdf')
+                ->withMime('application/pdf'),
+        ];
     }
 }

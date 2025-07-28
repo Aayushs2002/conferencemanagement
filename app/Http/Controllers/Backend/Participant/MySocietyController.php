@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Backend\Participant;
 use App\Http\Controllers\Controller;
 use App\Models\Conference\Conference;
 use App\Models\User;
-use App\Models\User\UserSociety;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
@@ -53,11 +52,6 @@ class MySocietyController extends Controller
                 ], 422);
             }
 
-            // UserSociety::create([
-            //     'user_id' => current_user()->id,
-            //     'society_id' => $request->society_id,
-            //     'member_type_id' => $request->member_type_id
-            // ]);
             $user = User::whereId(current_user()->id)->first();
             $user->societies()->attach($request->society_id, [
                 'member_type_id' => $request->member_type_id,

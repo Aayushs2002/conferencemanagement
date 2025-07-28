@@ -32,11 +32,11 @@
             border-spacing: 0;
         }
 
-        .header {
-            background-color: #eeb6b9;
+        /* .header {
+            background-color: $data['primaryColor'];
             border-radius: 10px;
             text-align: center;
-        }
+        } */
 
         .header td {
             padding: 20px;
@@ -138,14 +138,20 @@
 </head>
 
 <body>
+    {{-- @dd(asset('storage/society/logo/'. $data['societyLogo'])) --}}
+    {{-- @dd($data) --}}
     <div class="receipt">
-        <table class="header">
+        <table class="header"
+            style="background-color: {{ $data['primaryColor'] ?? '#eeb6b9' }}; opacity:0.9; border-radius: 10px; text-align: center;">
+
             <tr>
-                <td rowspan="1"><img src="" alt="Logo" class="logo" /></td>
-                <td>
-                    <h2 style="margin-bottom: 10px;">Society Name</h2>
-                    <p class="address">Address</p>
-                    <p class="contact">Phone: , Email: </p>
+                <td rowspan="1"><img src="{{ public_path('storage/society/logo/' . $data['societyLogo']) }}"
+                        alt="Logo" class="logo" />
+                </td>
+                <td style="color:white;">
+                    <h2 style="margin-bottom: 10px;">{{ $data['societyName'] }}</h2>
+                    <p class="address">{{ $data['societyAddress'] }}</p>
+                    <p class="contact">Phone: {{ $data['societyPhone'] }}, Email: {{ $data['email'] }}</p>
                 </td>
             </tr>
         </table>
@@ -157,7 +163,7 @@
         <div class="info-container">
             <table class="info-header">
                 <tr>
-                    <td><strong>Purpose:</strong> Conference Registration</td>
+                    <td><strong>Purpose:</strong> {{ $data['conference_name'] }} Conference Registration</td>
                     <td>
                         <p style="text-align: right;"><strong>Date:</strong> {{ $data['date'] }}</p>
                     </td>
@@ -169,7 +175,7 @@
                         <td><span>Receipt No:</span></td>
 
                         <td colspan="4">
-                            <p style="text-align: right;">
+                            <p style="text-align: right;"> 
                                 {{ $data['transactionId'] }}
                             </p>
                         </td>
@@ -194,7 +200,9 @@
                                 <p style="text-align: right;">{{ $data['country'] == 125 ? 'Rs.' : 'USD' }}
                                     {{ $data['amountInWord'] }}</p>
                             @else
-                                <p style="text-align: right;">{{ $data['paymentType'] == 'FonePay' ? 'Rs.' : 'USD' }}
+                                <p style="text-align: right;">
+                                    {{-- {{ $data['paymentType'] == 'FonePay' ? 'Rs.' : 'USD' }} --}}
+                                    {{ $data['country'] == 125 ? 'Rs.' : 'USD' }}
                                     {{ $data['amountInWord'] }}</p>
                             @endif
                         </td>
@@ -212,7 +220,7 @@
                     @if (isset($data['country']))
                         {{ $data['country'] == 125 ? 'Rs.' : 'USD' }} {{ $data['amount'] }}
                     @else
-                        {{ $data['paymentType'] == 'FonePay' ? 'Rs.' : 'USD' }} {{ $data['amount'] }}
+                        {{ $data['country'] == 125 ? 'Rs.' : 'USD' }} {{ $data['amount'] }}
                     @endif
                 </div>
             </div>
@@ -221,11 +229,12 @@
                 <tr>
                     <td class="designation-section">
                         <p>
-                            <img class="signature" src=""><br>
+                            <img class="signature"
+                                src="{{ public_path('storage/conference/voucher/signature/' . $data['signature']) }}"><br>
                         <p style="text-align: center;">
-                            {{-- Dr. Rupesh Gami <br />
-                            SANCON-ASPA 2025 <br />
-                            Registration Committee Chair --}}
+                            {{ $data['signatureName'] }} <br />
+                            {{ $data['conference_name'] }} <br />
+                            Registration Committee Chair
                         </p>
                         </p>
                     </td>

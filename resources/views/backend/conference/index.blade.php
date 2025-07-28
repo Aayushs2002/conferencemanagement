@@ -72,6 +72,10 @@
                                         <a href="#" class="dropdown-item priceForm" data-id="{{ $conference->id }}"
                                             data-bs-toggle="modal" data-bs-target="#pricingModal"><i
                                                 class="icon-base ti tabler-cash me-1"></i>Registration Price</a>
+                                        <a href="#" class="dropdown-item conferenceSetting"
+                                            data-id="{{ $conference->id }}" data-bs-toggle="modal"
+                                            data-bs-target="#pricingModal"><i
+                                                class="icon-base ti tabler-cash me-1"></i>Conference Setting</a>
                                         {{-- <hr> --}}
                                         {{-- <form action="{{ route('conference.destroy', $conference->id) }}" method="POST">
                                             @method('delete')
@@ -93,7 +97,7 @@
 
             </table>
         </div>
-        <div class="modal fade" id="pricingModal" tabindex="-1" aria-hidden="true"> 
+        <div class="modal fade" id="pricingModal" tabindex="-1" aria-hidden="true">
             <div class="modal-dialog modal-xl modal-simple modal-pricing">
                 <div class="modal-content" id="modalContent">
                 </div>
@@ -138,6 +142,29 @@
                 e.preventDefault();
                 $(".modal-dialog").addClass('custom-modal-width');
                 var url = '{{ route('conference.priceForm') }}';
+                var _token = '{{ csrf_token() }}';
+                var id = $(this).data('id');
+                $('#modalContent').html(`
+                    <div class="modal-body text-center">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                `);
+                var data = {
+                    _token: _token,
+                    id: id
+                };
+                $.post(url, data, function(response) {
+                    setTimeout(function() {
+                        $('#modalContent').html(response);
+                    }, 1000);
+                });
+            });
+            $(document).on("click", ".conferenceSetting", function(e) {
+                e.preventDefault();
+                $(".modal-dialog").addClass('custom-modal-width');
+                var url = '{{ route('conference.setting') }}';
                 var _token = '{{ csrf_token() }}';
                 var id = $(this).data('id');
                 $('#modalContent').html(`

@@ -246,6 +246,18 @@
                                             data-bs-toggle="modal" data-bs-target="#pricingModal"><i
                                                 class="icon-base ti tabler-eye me-1"></i>
                                             View</a>
+
+                                        @if (is_super_admin())
+                                            <hr>
+                                            <form
+                                                action="{{ route('submission.submission.destroy', [$society, $conference, $submission]) }}"
+                                                method="POST">
+                                                @method('delete')
+                                                @csrf
+                                                <a class="dropdown-item text-danger delete" href="javascript:void(0);"><i
+                                                        class="icon-base ti tabler-trash me-1"></i> Delete</a>
+                                            </form>
+                                        @endif
                                     </div>
                                     @if (auth()->user()->hasConferencePermissionBlade($conference, 'View Author'))
                                         @if ($submission->authors->isNotEmpty())

@@ -28,7 +28,6 @@ class SignupUserController extends Controller
         $society = Society::with(['users' => function ($query) use ($conferenceId) {
             $query->where('type', 3)
                 ->orderByDesc('id')
-                // Eager load relations on users with constraints where needed
                 ->with([
                     'conferenceRegistration' => function ($q) use ($conferenceId) {
                         $q->where('conference_id', $conferenceId);
@@ -44,7 +43,7 @@ class SignupUserController extends Controller
         ])->first();
 
         $users = $society ? $society->users : collect();
-
+        // dd($users);
         return view('backend.users.signup-user.index', compact('users', 'society', 'conference'));
     }
 
@@ -91,8 +90,6 @@ class SignupUserController extends Controller
                 'registrant_type' => 'required',
                 'certificate_required' => 'required'
             ]);
-
-
             $validated['user_id'] = $request->user_id;
             $validated['conference_id'] = $conference->id;
             $validated['token'] = random_word(60);
@@ -108,7 +105,9 @@ class SignupUserController extends Controller
                 'namePrefix' => $user->userDetail->namePrefix->prefix,
                 'name' => $user->f_name . ' ' . $middleName . $user->l_name,
                 'conference_theme' => $conference->conference_theme,
-                'invitationType' => 2
+                'conference_name' => $conference->conference_name,
+                'invitationType' => 2,
+                'amount' => null
             ];
             Mail::to($user->email)->send(new RegistrationMail($data));
 

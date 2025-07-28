@@ -58,6 +58,16 @@
                                     <p class="text-danger">{{ $message }}</p>
                                 @enderror
                             </div>
+                            <div class="col-md-4 form-group mb-3">
+                                <label for="attachment_name">Attachment Document Name</code></label>
+                                <input type="text"
+                                    class="form-control @error('attachment_name') is-invalid @enderror attachment_name"
+                                    name="attachment_name" id="attachment_name"
+                                    value="{{ !empty($conference->submissionSetting) ? $conference->submissionSetting->attachment_name : '' }}" />
+                                @error('attachment_name')
+                                    <p class="text-danger">{{ $message }}</p>
+                                @enderror
+                            </div>
                             <div class="col-md-12 form-group mb-3">
                                 <label for="abstract_guidelines">Abstract Submission Guidelines </label>
                                 <textarea name="abstract_guidelines" class="form-control ckeditor @error('abstract_guidelines') is-invalid @enderror"

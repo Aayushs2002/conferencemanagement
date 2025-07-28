@@ -6,8 +6,10 @@ namespace App\Models;
 
 use App\Models\Conference\ConferenceRegistration;
 use App\Models\Conference\Submission;
+use App\Models\User\Institution;
 use App\Models\User\Society;
 use App\Models\User\UserDetail;
+use App\Models\User\UserInstitution;
 use App\Models\User\UserSociety;
 use App\Models\Workshop\WorkshopRegistration;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -74,6 +76,11 @@ class User extends Authenticatable
     public function userDetail()
     {
         return $this->hasOne(UserDetail::class);
+    }
+
+    public function institution()
+    {
+        return $this->hasOne(UserInstitution::class, 'id', 'user_id');
     }
 
     public function societies()

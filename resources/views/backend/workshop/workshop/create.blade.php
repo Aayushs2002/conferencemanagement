@@ -13,14 +13,14 @@
                 Workshop</h4>
             <div class="card-body">
                 <form class="needs-validation"
-                    action="{{ isset($workshop) ? route('workshop.update', [$society, $conference, $workshop->id]) : route('workshop.store', [$society, $conference]) }}"
+                    action="{{ isset($workshop) ? route('workshop.update', [$society, $conference, $workshop]) : route('workshop.store', [$society, $conference]) }}"
                     method="POST" enctype="multipart/form-data" novalidate>
                     @csrf
 
                     @isset($workshop)
                         @method('patch')
                     @endisset
-                    <div class="row g-6">
+                    <div class="row g-6"> 
                         <div class="col-12">
                             <h6>1. Workshop Details</h6>
                             <hr class="mt-0" style="height:1px;border:none;color:#333;background-color:#333;" />
@@ -250,7 +250,7 @@
                         </div>
 
 
-                        <div class="mb-6 col-md-5">
+                        {{-- <div class="mb-6 col-md-5">
                             <label class="form-label" for="photo">Photo <code> (Only JPG/PNG) (Max:
                                     250
                                     KB)</code></label>
@@ -264,12 +264,12 @@
                                                 src="{{ asset('storage/workshop/chairperson/photo/' . $workshop->WorkshopChairPersonDetail->photo) }}"
                                                 class="img-fluid" alt="image"></a>
                                     </div>
-                                @endif
+                                @endif 
                             </div>
                             @error('photo')
                                 <p class="text-danger">{{ $message }}</p>
                             @enderror
-                        </div>
+                        </div> --}}
 
                         <div class="mb-6">
                             <label class="form-label" for="short_cv">Short Cv <code>*</code></label>

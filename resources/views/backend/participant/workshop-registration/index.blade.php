@@ -501,7 +501,7 @@
                                form.attr('action',
                                    '{{ route('my-society.conference.workshop-registration.fonePay', ['SOCIETY', 'CONFERENCE', 'WORKSHOP']) }}'
                                    .replace("WORKSHOP", '{{ $hashedWorkshop }}')
-                                   .replace("CONFERENCE", '{{ $hashedConference }}')
+                                   .replace("CONFERENCE", '{{ $hashedConference }}') 
                                    .replace("SOCIETY", '{{ $hashedSociety }}')
                                );
                            } else {

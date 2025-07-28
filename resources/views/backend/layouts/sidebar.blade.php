@@ -21,9 +21,14 @@
             </span>
             <span class="app-brand-text demo menu-text fw-bold ms-3">Vuexy</span> --}}
             <span class="d-flex justify-content-center" style="width: 200px">
-                @if (current_user()->type == 2 && current_user()->societies->value('logo'))
-                    <img src="{{ asset('storage/society/logo/' . current_user()->societies->value('logo')) }}"
-                        height="65">
+                {{-- @if (current_user()->type == 2 && current_user()->societies->value('logo'))
+                        <img src="{{ asset('storage/society/logo/' . current_user()->societies->value('logo')) }}"
+                            height="65">
+                    @else
+                        <img src="{{ asset('default-image/NESOG.png') }}" height="65">
+                    @endif --}}
+                @if (isset($societyDomainDetail))
+                    <img src="{{ asset('storage/society/logo/' . $societyDomainDetail->logo) }}" height="65">
                 @else
                     <img src="{{ asset('default-image/NESOG.png') }}" height="65">
                 @endif
@@ -93,6 +98,12 @@
                 <a href="{{ route('permission.index') }}" class="menu-link ">
                     <i class="menu-icon icon-base ti tabler-circle-letter-p"></i>
                     <div data-i18n="Permission">Permission</div>
+                </a>
+            </li>
+            <li class="menu-item {{ request()->segment(1) == 'user' ? 'active' : '' }}">
+                <a href="{{ route('user.index') }}" class="menu-link ">
+                    <i class="menu-icon icon-base ti tabler-circle-letter-u"></i>
+                    <div data-i18n="User">User</div>
                 </a>
             </li>
         @endif

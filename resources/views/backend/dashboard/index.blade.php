@@ -2,262 +2,248 @@
 @section('content')
     @if (current_user()->type == 3)
         <style>
+            .societies-container {
+                max-width: 1200px;
+                margin: 0 auto;
+            }
+
+            .section-title {
+                text-align: center;
+                margin-bottom: 40px;
+                color: #2c3e50;
+                font-weight: 600;
+            }
+
             .society-card {
-                background: rgba(255, 255, 255, 0.95);
-                backdrop-filter: blur(10px);
-                border-radius: 20px;
-                border: 1px solid rgba(255, 255, 255, 0.2);
-                box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
-                transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+                background: #ffffff;
+                border-radius: 16px;
+                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+                border: 1px solid rgba(0, 0, 0, 0.05);
+                transition: all 0.3s ease;
                 overflow: hidden;
-                position: relative;
-            }
-
-            .society-card::before {
-                content: '';
-                position: absolute;
-                top: 0;
-                left: 0;
-                right: 0;
-                height: 4px;
-                background: linear-gradient(90deg, #667eea, #764ba2, #f093fb);
-                background-size: 200% 100%;
-                animation: gradientShift 3s ease infinite;
-            }
-
-            @keyframes gradientShift {
-
-                0%,
-                100% {
-                    background-position: 0% 50%;
-                }
-
-                50% {
-                    background-position: 100% 50%;
-                }
+                height: 280px;
+                display: flex;
+                flex-direction: column;
+                margin-bottom: 24px;
             }
 
             .society-card:hover {
-                transform: translateY(-10px) scale(1.02);
-                box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+                transform: translateY(-8px);
+                box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
             }
 
-            .card-header-custom {
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                color: white;
-                padding: 25px;
+            .society-card-link {
+                text-decoration: none;
+                color: inherit;
+                height: 100%;
+                display: flex;
+                flex-direction: column;
+            }
+
+            .society-logo-container {
+                padding: 32px 24px 20px 24px;
                 text-align: center;
+                flex-grow: 1;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+            }
+
+            .society-logo {
+                width: 80px;
+                height: 80px;
+                border-radius: 12px;
+                object-fit: cover;
+                border: 2px solid #f0f0f0;
+                margin-bottom: 16px;
+            }
+
+            .society-name {
+                font-weight: 600;
+                color: #2c3e50;
+                font-size: 1.1rem;
+                text-align: center;
+                margin: 0;
+            }
+
+            .society-description {
+                color: #6c757d;
+                font-size: 0.9rem;
+                text-align: center;
+                margin-top: 8px;
+                line-height: 1.4;
+            }
+
+            .society-footer {
+                padding: 16px 24px;
+                background: #f8f9fa;
+                border-top: 1px solid #e9ecef;
+                text-align: center;
+            }
+
+            .society-status {
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
+                font-size: 0.85rem;
+                color: #28a745;
+                font-weight: 500;
+            }
+
+            .society-status i {
+                font-size: 0.75rem;
+            }
+
+            /* Join Society Card - Dotted Design */
+            .join-society-card {
+                background: #ffffff;
+                border: 2px dashed #5865f2;
+                border-radius: 16px;
+                height: 280px;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+                text-align: center;
+                transition: all 0.3s ease;
+                cursor: pointer;
+                margin-bottom: 24px;
                 position: relative;
                 overflow: hidden;
             }
 
-            .card-header-custom::before {
-                content: '';
-                position: absolute;
-                top: -50%;
-                left: -50%;
-                width: 200%;
-                height: 200%;
-                background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
-                animation: shimmer 4s ease-in-out infinite;
+            .join-society-card:hover {
+                transform: translateY(-8px);
+                box-shadow: 0 12px 40px rgba(88, 101, 242, 0.15);
+                border-color: #4752c4;
+                background: rgba(88, 101, 242, 0.02);
             }
 
-            @keyframes shimmer {
-
-                0%,
-                100% {
-                    transform: rotate(0deg);
-                }
-
-                50% {
-                    transform: rotate(180deg);
-                }
-            }
-
-            .card-title-custom {
-                font-size: 1.5rem;
-                font-weight: 700;
-                margin: 0;
+            .join-icon {
+                width: 60px;
+                height: 60px;
+                background: rgba(88, 101, 242, 0.1);
+                border-radius: 50%;
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                gap: 10px;
-                position: relative;
-                z-index: 1;
-            }
-
-            .society-list {
-                max-height: 300px;
-                overflow-y: auto;
-                scrollbar-width: thin;
-                scrollbar-color: #667eea rgba(0, 0, 0, 0.1);
-            }
-
-            .society-list::-webkit-scrollbar {
-                width: 6px;
-            }
-
-            .society-list::-webkit-scrollbar-track {
-                background: rgba(0, 0, 0, 0.05);
-            }
-
-            .society-list::-webkit-scrollbar-thumb {
-                background: linear-gradient(135deg, #667eea, #764ba2);
-                border-radius: 10px;
-            }
-
-            .society-item {
-                border: none !important;
-                padding: 15px 25px;
-                margin: 5px 15px;
-                border-radius: 12px;
+                margin-bottom: 16px;
                 transition: all 0.3s ease;
-                background: rgba(102, 126, 234, 0.05);
-                position: relative;
-                overflow: hidden;
             }
 
-            .society-item::before {
-                content: '';
-                position: absolute;
-                top: 0;
-                left: -100%;
-                width: 100%;
-                height: 100%;
-                background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
-                transition: left 0.5s ease;
+            .join-society-card:hover .join-icon {
+                background: #5865f2;
+                transform: scale(1.1);
             }
 
-            .society-item:hover::before {
-                left: 100%;
-            }
-
-            .society-item:hover {
-                background: linear-gradient(135deg, #667eea, #764ba2);
-                color: white;
-                transform: translateX(5px);
-                box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
-            }
-
-            .society-link {
-                text-decoration: none;
-                color: inherit;
-                display: block;
-                font-weight: 600;
-                position: relative;
-                z-index: 1;
-            }
-
-            .join-button {
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                border: none;
-                color: white;
-                padding: 15px 30px;
-                border-radius: 50px;
-                font-weight: 600;
-                text-decoration: none;
-                display: inline-flex;
-                align-items: center;
-                gap: 10px;
+            .join-icon i {
+                font-size: 1.5rem;
+                color: #5865f2;
                 transition: all 0.3s ease;
-                position: relative;
-                overflow: hidden;
-                box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
             }
 
-            .join-button::before {
-                content: '';
-                position: absolute;
-                top: 0;
-                left: -100%;
-                width: 100%;
-                height: 100%;
-                background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-                transition: left 0.5s ease;
-            }
-
-            .join-button:hover::before {
-                left: 100%;
-            }
-
-            .join-button:hover {
-                transform: translateY(-2px);
-                box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+            .join-society-card:hover .join-icon i {
                 color: white;
             }
 
-            .join-button i {
-                transition: transform 0.3s ease;
+            .join-title {
+                font-weight: 600;
+                color: #2c3e50;
+                font-size: 1.1rem;
+                margin-bottom: 8px;
             }
 
-            .join-button:hover i {
-                transform: rotate(360deg);
+            .join-subtitle {
+                color: #6c757d;
+                font-size: 0.9rem;
+                line-height: 1.4;
+                max-width: 200px;
             }
 
-            .card-footer-custom {
-                padding: 25px;
-                text-align: center;
-                background: rgba(255, 255, 255, 0.5);
-                backdrop-filter: blur(5px);
-            }
-
+            /* Empty State */
             .empty-state {
                 text-align: center;
-                padding: 40px 20px;
-                color: #666;
+                padding: 60px 20px;
+                color: #6c757d;
+                grid-column: 1 / -1;
             }
 
             .empty-state i {
                 font-size: 3rem;
-                color: #667eea;
-                margin-bottom: 15px;
+                color: #dee2e6;
+                margin-bottom: 20px;
+                display: block;
             }
 
-            .badge-count {
-                background: linear-gradient(135deg, #ff6b6b, #ff8e8e);
-                color: white;
-                border-radius: 20px;
-                padding: 5px 12px;
-                font-size: 0.8rem;
-                font-weight: 600;
-                margin-left: 10px;
+            .empty-state h5 {
+                color: #2c3e50;
+                margin-bottom: 12px;
+            }
+
+            .empty-state p {
+                margin: 0;
+                font-size: 0.9rem;
+            }
+
+            /* Responsive Grid */
+            .societies-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+                gap: 24px;
+                margin-bottom: 40px;
+            }
+
+            @media (max-width: 768px) {
+                .societies-grid {
+                    grid-template-columns: 1fr;
+                    gap: 16px;
+                }
+
+                .society-card {
+                    height: 240px;
+                }
+
+                .join-society-card {
+                    height: 240px;
+                }
             }
         </style>
 
-        <div class="col-md-6 col-lg-4">
-            <div class="card society-card">
-                <div class="card-header-custom">
-                    <h5 class="card-title-custom text-white">
-                        <i class="fas fa-users"></i>
-                        Joined Societies
-                        @if (count($joinedSocities) > 0)
-                            <span class="badge-count">{{ count($joinedSocities) }}</span>
-                        @endif
-                    </h5>
-                </div>
+        <div class="societies-container">
+            <h2 class="section-title">My Societies</h2>
 
-                <div class="society-list">
-                    @forelse ($joinedSocities as $society)
-                        <div class="society-item">
-                            <a href="{{ route('my-society.conference', $society) }}" class="society-link">
-                          
-                                {{ $society->abbreviation }}
-                            </a>
-                        </div>
-                    @empty
-                        <div class="empty-state">
-                            <i class="fas fa-users-slash"></i>
-                            <p>No societies joined yet</p>
-                        </div>
-                    @endforelse
-                </div>
+            <div class="societies-grid">
+                @foreach ($joinedSocities as $society)
+                    <!-- Society Card -->
+                    <div class="society-card">
+                        <a href="{{ route('my-society.conference', $society) }}" class="society-card-link">
+                            <div class="society-logo-container">
+                                <img src="{{ asset('storage/society/logo/' . $society->logo) }}" class="society-logo"
+                                    alt="{{ $society->abbreviation }} Logo">
+                                <h5 class="society-name">{{ $society->abbreviation }}</h5>
+                                @if ($society->name)
+                                    <p class="society-description">{{ $society->name }}</p>
+                                @endif
+                            </div>
+                            <div class="society-footer">
+                                <span class="society-status">
+                                    <i class="ti tabler-eye"></i>
+                                    View Society
+                                </span>
+                            </div>
+                        </a>
+                    </div>
+                @endforeach
 
-                <div class="card-footer-custom">
-                    <a href="javascript:void(0)" class="join-button joinSociety" data-bs-toggle="modal"
-                        data-bs-target="#JoinSociety">
-                        <i class="fas fa-plus"></i>
-                        Join New Society
-                    </a>
+
+                <!-- Join New Society Card -->
+                <div class="join-society-card joinSociety" data-bs-toggle="modal" data-bs-target="#JoinSociety">
+                    <div class="join-icon">
+                        <i class="ti tabler-plus"></i>
+                    </div>
+                    <h5 class="join-title">Join New Society</h5>
+                    <p class="join-subtitle">Discover and join societies that match your interests and goals.</p>
                 </div>
             </div>
         </div>

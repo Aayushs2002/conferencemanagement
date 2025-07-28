@@ -10,6 +10,7 @@ use App\Models\Conference\AccompanyPerson;
 use App\Models\Conference\Attendance;
 use App\Models\Conference\ConferenceRegistration;
 use App\Models\Conference\ConferenceRegistrationKit;
+use App\Models\Conference\ConferenceSetting;
 use App\Models\Conference\Meal;
 use App\Models\Conference\PassSetting;
 use App\Models\ConferenceMemberTypeNameTag;
@@ -22,11 +23,12 @@ use App\Models\User\UserDetail;
 use App\Models\User\UserSociety;
 use App\Services\File\FileService;
 use Exception;
-use Illuminate\Http\Request; 
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Maatwebsite\Excel\Facades\Excel;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class ConferenceRegistrationController extends Controller
 {
@@ -169,6 +171,7 @@ class ConferenceRegistrationController extends Controller
             $validated['token'] = random_word(60);
             $validated['verified_status'] = 1;
             $validated['payment_type'] = 6;
+            $date = \Carbon\Carbon::now()->format('F j, Y');
 
             if (!empty($validated['payment_voucher'])) {
 
@@ -176,13 +179,29 @@ class ConferenceRegistrationController extends Controller
             }
 
             // for values end
+            $conferenceSetting = ConferenceSetting::where('conference_id', $conference->id)->first();
 
             $user = User::whereId($validated['user_id'])->first();
             $mailData = [
                 'namePrefix'  => $user->userDetail->prefix ?? null,
                 'conference_theme' => $conference->conference_theme,
+                'conference_name' => $conference->conference_name,
                 'name' => $user->fullName($user),
                 'email' => $user->email,
+                'paymentType' => 'Online Payment',
+                'transactionId' => $validated['transaction_id'],
+                'amount' => $validated['amount'],
+                'amountInWord' => numberToWord($validated['amount']),
+                'date' => $date,
+                'societyName' => $society->users->where('type', 2)->first()->f_name,
+                'societyLogo' => $society->logo,
+                'societyPhone' => $society->phone,
+                'societyEmail' => $society->users->where('type', 2)->first()->email,
+                'societyAddress' => $society->address,
+                'primaryColor' => $conference->primary_color,
+                'country' => $user->userDetail->country_id,
+                'signatureName' => $conferenceSetting->name,
+                'signature' => $conferenceSetting->signature
             ];
 
             Mail::to($user->email)->send(new ExceptionalRegistrationMail($mailData));
@@ -299,6 +318,56 @@ class ConferenceRegistrationController extends Controller
         return response()->json(['type' => $type, 'message' => $message]);
     }
 
+    public function verifyForm($society, $conference, Request $request)
+    {
+        $registration = ConferenceRegistration::whereId($request->id)->first();
+        return view('backend.conference.conference-registration.verify', compact('registration', 'society', 'conference'));
+    }
+
+    public function verifyRegistrant(Request $request, $society, $conference, ConferenceRegistration $conference_registration)
+    {
+        try {
+            $rules = [
+                'verified_status' => 'required',
+            ];
+
+            if ($request->verified_status == 2) {
+                $rules['remarks'] = 'required';
+            }
+            $validated = $request->validate($rules);
+
+            $conference_registration = ConferenceRegistration::whereId($request->id)->first();
+            $data = [
+                'name' => $conference_registration->user->fullName($conference_registration->user),
+                'namePrefix' => $conference_registration->user->userDetail->namePrefix->prefix,
+                'conference_theme' => $conference_registration->conference->conference_theme,
+                'registrant_type' => $conference_registration->registrant_type,
+            ];
+
+            if ($request->verified_status == 1) {
+                // Mail::to($conference_registration->user->email)->send(new RegistrantAcceptMail($data));
+
+                $conference_registration->update($validated);
+            } else {
+                $data['remarks'] = $validated['remarks'];
+                // Mail::to($conference_registration->user->email)->send(new RegistrantRejectMail($data));
+
+                $conference_registration->update($validated);
+            }
+
+            $type = 'success';
+            if ($conference_registration->registrant_type == 1) {
+                $message = "Attendee Updated Successfully";
+            } else {
+                $message = "Presenter Updated Successfully";
+            }
+        } catch (Exception $e) {
+            $type = 'error';
+            $message = $e->getMessage();
+        }
+        return response()->json(['type' => $type, 'message' => $message]);
+    }
+
     public function registrationOrInvitation($society, $conference)
     {
         // $conferenceDetail = conference_detail();
@@ -314,7 +383,7 @@ class ConferenceRegistrationController extends Controller
         try {
             // dd($request->all());
             $checkUser = User::whereEmail($request->email)->first();
-            $conferenceRegistration = ConferenceRegistration::where(['conference_id' => conference_detail()->id, 'user_id' => $checkUser?->id, 'status' => 1])->first();
+            $conferenceRegistration = ConferenceRegistration::where(['conference_id' => $conference->id, 'user_id' => $checkUser?->id, 'status' => 1])->first();
             if ($conferenceRegistration) {
                 return redirect()->back()->withInput()->with('delete', 'User already registered for conference.');
             }
@@ -377,10 +446,13 @@ class ConferenceRegistrationController extends Controller
             $validated['token'] = random_word(60);
             $validated['verified_status'] = 1;
             $validated['payment_type'] = 6;
+            $date = \Carbon\Carbon::now()->format('F j, Y');
 
             if (!empty($validated['payment_voucher'])) {
                 $validated['payment_voucher'] = $this->file_service->fileUpload($validated['payment_voucher'], 'payment_voucher', 'conference/payment-voucher');
             }
+            $conferenceSetting = ConferenceSetting::where('conference_id', $conference->id)->first();
+
             // for values end
 
             $middleName = !empty($validated['m_name']) ? $validated['m_name'] . ' ' : '';
@@ -389,8 +461,23 @@ class ConferenceRegistrationController extends Controller
                 'namePrefix' => $namePrefix,
                 'name' => $validated['f_name'] . ' ' . $middleName . $validated['l_name'],
                 'email' => $validated['email'],
-                'conference_theme' => $conference->conference_theme,
                 'password' => $password,
+                'conference_theme' => $conference->conference_theme,
+                'conference_name' => $conference->conference_name,
+                'paymentType' => 'Online Payment',
+                'transactionId' => $validated['transaction_id'],
+                'amount' => $validated['amount'],
+                'amountInWord' => numberToWord($validated['amount']),
+                'date' => $date,
+                'societyName' => $society->users->where('type', 2)->first()->f_name,
+                'societyLogo' => $society->logo,
+                'societyPhone' => $society->phone,
+                'societyEmail' => $society->users->where('type', 2)->first()->email,
+                'societyAddress' => $society->address,
+                'primaryColor' => $conference->primary_color,
+                'country' => $validated['country_id'],
+                'signatureName' => $conferenceSetting->name,
+                'signature' => $conferenceSetting->signature,
                 'invitationType' => 1
             ];
             Mail::to($validated['email'])->send(new RegistrationMail($data));
@@ -402,15 +489,16 @@ class ConferenceRegistrationController extends Controller
             unset($validated['delegate']);
             DB::beginTransaction();
             // insert table-1
+            $validated['type'] = 3;
             $storeUser = User::create($validated);
 
             $validated['user_id'] = $storeUser->id;
 
             // insert table-2
             UserDetail::create($validated);
-            $societyId = current_user()->societies->value('id');
+            // $societyId = current_user()->societies->value('id');
             //insert table-3
-            $storeUser->societies()->attach($societyId, [
+            $storeUser->societies()->attach($society->id, [
                 'member_type_id' => $validated['member_type_id'],
             ]);
 
@@ -433,6 +521,7 @@ class ConferenceRegistrationController extends Controller
 
             return redirect()->back()->with('status', 'Successfully registered.');
         } catch (Exception $e) {
+            DB::rollBack();
             throw $e;
         }
     }
@@ -500,6 +589,41 @@ class ConferenceRegistrationController extends Controller
         }
         return view('backend.conference.conference-registration.individual-pass', compact('participant', 'passSetting', 'designation'));
     }
+
+    public function downloadVoucher($society, $conference, ConferenceRegistration $conferenceRegistration)
+    {
+        $user = User::where('id', $conferenceRegistration->user_id)->first();
+        $date = \Carbon\Carbon::now()->format('F j, Y');
+        $conferenceSetting = ConferenceSetting::where('conference_id', $conference->id)->first();
+
+        $data = [
+            'namePrefix'      => $user->userDetail->prefix ?? null,
+            'conference_theme' => $conference->conference_theme,
+            'conference_name' => $conference->conference_name,
+            'name'            => $user->fullName($user),
+            'email'           => $user->email,
+            'paymentType'     => 'Online Payment',
+            'transactionId'   => $conferenceRegistration->transaction_id,
+            'amount'          => $conferenceRegistration->amount,
+            'amountInWord'    => numberToWord($conferenceRegistration->amount),
+            'date'            => $date,
+            'societyName'     => $society->users->where('type', 2)->first()->f_name,
+            'societyLogo'     => $society->logo,
+            'societyPhone'    => $society->phone,
+            'societyEmail'    => $society->users->where('type', 2)->first()->email,
+            'societyAddress'  => $society->address,
+            'primaryColor'    => $conference->primary_color,
+            'country'         => $user->userDetail->country_id,
+            'signatureName'   => $conferenceSetting->name,
+            'signature'       => $conferenceSetting->signature
+        ];
+
+        $pdf = Pdf::loadView('emails.conference.payment-voucher', ['data' => $data])
+            ->setPaper('legal', 'portrait');
+
+        return $pdf->download('payment-voucher.pdf');
+    }
+
 
     public function participantProfile($token)
     {
@@ -614,6 +738,20 @@ class ConferenceRegistrationController extends Controller
                 'success' => false,
                 'error' => $e->getMessage()
             ], 500);
+        }
+    }
+
+    public function destroy($society, $conference, ConferenceRegistration $registrant)
+    {
+        // dd($registrant);
+        try {
+            if ($registrant->payment_voucher) {
+                $this->file_service->deleteFile($registrant->payment_voucher, 'conference/payment-voucher');
+            }
+            $registrant->delete();
+            return redirect()->back()->with('status', 'Registrant Successfully Deleted.');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('delete', 'Internal Server Error.');
         }
     }
 }

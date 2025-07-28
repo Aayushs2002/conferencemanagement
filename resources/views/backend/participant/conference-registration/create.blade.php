@@ -67,15 +67,103 @@
            </h3>
        </div>
        <div class="separator-breadcrumb border-top mb-4"></div>
-       <h5 class="text-danger text-center" id="paymentGuide">Please calculate price first for payment.</h5>
-       <div class="col-md-12">
+
+       <!-- Price Calculation Section -->
+       <div class="col-md-12 mb-4">
+           <div class="card">
+               <div class="card-body">
+                   <h4>Conference Registration Details</h4>
+                   <form id="registrationForm" enctype="multipart/form-data">
+                       @csrf
+                       @isset($conference_registration)
+                           @method('patch')
+                       @endisset
+                       <div class="row mb-4">
+                           {{-- <div class="col-md-4 form-group mb-3">
+                               <label for="add_on">Add On</label>
+                               <select name="add_on" id="add_on"
+                                   class="form-control @error('add_on') is-invalid @enderror">
+                                   <option value="">-- Select Add On --</option>
+                                   <option value="1" @selected(old('add_on') == 1)>Gala Dinner</option>
+                               </select>
+                           </div> --}}
+                           <div class="col-md-5 form-group mb-3">
+                               <label for="total_attendee">Accompany Person</label>
+                               {{-- <code>(Excluding You)</code> --}}
+                               <select name="total_attendee" id="total_attendee"
+                                   class="form-control @error('total_attendee') is-invalid @enderror">
+                                   @if (!isset($conference_registration))
+                                       <option value="">-- Select Number Of Guests --</option>
+                                       <option value="0" @selected(old('total_attendee') == 0)>0</option>
+                                       <option value="1" @selected(old('total_attendee') == 1)>1</option>
+                                       <option value="2" @selected(old('total_attendee') == 2)>2</option>
+                                       <option value="3" @selected(old('total_attendee') == 3)>3</option>
+                                       <option value="4" @selected(old('total_attendee') == 4)>4</option>
+                                       <option value="5" @selected(old('total_attendee') == 5)>5</option>
+                                   @else
+                                       @if ($conference_registration->total_attendee == 1)
+                                           <option value="">-- Select Number Of Guests --</option>
+                                           <option value="1">1</option>
+                                           <option value="2">2</option>
+                                           <option value="3">3</option>
+                                           <option value="4">4</option>
+                                           <option value="5">5</option>
+                                       @else
+                                           <option value="">-- Select Number Of Guests --</option>
+                                           <option value="1" @selected($conference_registration->total_attendee - 1 == 1)>1</option>
+                                           <option value="2" @selected($conference_registration->total_attendee - 1 == 2)>2</option>
+                                           <option value="3" @selected($conference_registration->total_attendee - 1 == 3)>3</option>
+                                           <option value="4" @selected($conference_registration->total_attendee - 1 == 4)>4</option>
+                                           <option value="5" @selected($conference_registration->total_attendee - 1 == 5)>5</option>
+                                       @endif
+                                   @endif
+                               </select>
+                               @error('total_attendee')
+                                   <p class="text-danger">{{ $message }}</p>
+                               @enderror
+                           </div>
+                           <div class="col-md-3 form-group mt-4">
+                               <button type="button" id="calculatePrice" class="btn btn-primary"
+                                   {{ empty($conference) ? 'disabled' : '' }}>Calculate Price</button>
+                           </div>
+                       </div>
+
+                       <!-- Price Table -->
+                       <div class="row">
+                           <div class="col-md-12">
+                               <div id="priceTable" hidden>
+                                   <h4>Calculated Price: </h4>
+                                   <table class="table table-bordered">
+                                       <thead>
+                                           <tr>
+                                               <th>#</th>
+                                               <th>Type</th>
+                                               <th>No. of Persons</th>
+                                               <th>Total</th>
+                                           </tr>
+                                       </thead>
+                                       <tbody id="calculatedData">
+                                       </tbody>
+                                   </table>
+                               </div>
+                           </div>
+                       </div>
+
+                       <!-- Accompanying Persons Detail Section -->
+                       <div class="row" id="accompanyPersonsDetail"></div>
+                   </form>
+               </div>
+           </div>
+       </div>
+
+       <!-- Payment Methods Section - Only show after price calculation -->
+       <div class="col-md-12" id="paymentSection" style="display: none;">
+           <h5 class="text-success text-center mb-3" id="paymentGuide">Please select your preferred payment method
+               below.</h5>
            <div>
                <h4>Modes of Payment:</h4>
                <div class="row">
-
-                   @if (
-                       (current_user()->userDetail->country_id == 125 || current_user()->userDetail->country->country_name == 'India') &&
-                           $national_payemnt_setting?->profile_id)
+                   @if (current_user()->userDetail->country_id == 125 && $national_payemnt_setting?->profile_id)
                        <div class="col-md-3">
                            <div class="card mb-4 position-relative border-2">
                                <label for="fonePayRadio">
@@ -96,38 +184,43 @@
                        </div>
                    @endif
                    @if (current_user()->userDetail->country_id != 125)
-                       <div class="col-md-3">
-                           <div class="card mb-4 position-relative">
-                               <label for="dollarCardRadio">
-                                   <h4 class="text-center mt-2" style="color: blue">Dollar Card</h4>
-                                   <p style="padding-left: 10%;">We Accept</p>
-                                   <div class="text-center">
-                                       <img src="{{ asset('default-image/dollar-card.png') }}" style="width: 70%;"
-                                           alt="dollar card logo">
-                                   </div>
-                                   <div class="position-absolute" style="bottom: 40px; right: 20px;">
-                                       <input class="form-check-input" type="radio" name="paymentMode"
-                                           value="dollarCard" id="dollarCardRadio" style="transform: scale(2);">
-                                   </div>
-                               </label>
+                       @if (!in_array(current_user()->userDetail->country_id, [78, 134, 165]))
+                           <div class="col-md-3">
+                               <div class="card mb-4 position-relative">
+                                   <label for="dollarCardRadio">
+                                       <h4 class="text-center mt-2" style="color: blue">Dollar Card</h4>
+                                       <p style="padding-left: 10%;">We Accept</p>
+                                       <div class="text-center">
+                                           <img src="{{ asset('default-image/dollar-card.png') }}" style="width: 70%;"
+                                               alt="dollar card logo">
+                                       </div>
+                                       <div class="position-absolute" style="bottom: 40px; right: 20px;">
+                                           <input class="form-check-input" type="radio" name="paymentMode"
+                                               value="dollarCard" id="dollarCardRadio" style="transform: scale(2);">
+                                       </div>
+                                   </label>
+                               </div>
                            </div>
-                       </div>
-                       <div class="col-md-3">
-                           <div class="card mb-4 position-relative">
-                               <label for="bankTranserRadio">
-                                   <h4 class="text-center mt-2" style="color: blue">Bank Transfer</h4>
-                                   <p style="padding-left: 10%;">We Accept</p>
-                                   <div class="text-center pb-2">
-                                       <img src="{{ asset('default-image/bankTransfer.jpg') }}" style="width: 70%;"
-                                           alt="dollar card logo">
-                                   </div>
-                                   <div class="position-absolute" style="bottom: 40px; right: 20px;">
-                                       <input class="form-check-input" type="radio" name="paymentMode"
-                                           value="bankTransfer" id="bankTranserRadio" style="transform: scale(2);">
-                                   </div>
-                               </label>
+                       @endif
+                       @if (in_array(current_user()->userDetail->country_id, [78, 134, 165]))
+                           <div class="col-md-3">
+                               <div class="card mb-4 position-relative">
+                                   <label for="bankTranserRadio">
+                                       <h4 class="text-center mt-2" style="color: blue">Bank Transfer</h4>
+                                       <p style="padding-left: 10%;">We Accept</p>
+                                       <div class="text-center pb-2">
+                                           <img src="{{ asset('default-image/bankTransfer.jpg') }}"
+                                               style="width: 70%;" alt="dollar card logo">
+                                       </div>
+                                       <div class="position-absolute" style="bottom: 40px; right: 20px;">
+                                           <input class="form-check-input" type="radio" name="paymentMode"
+                                               value="bankTransfer" id="bankTranserRadio"
+                                               style="transform: scale(2);">
+                                       </div>
+                                   </label>
+                               </div>
                            </div>
-                       </div>
+                       @endif
                    @endif
 
                    @if (current_user()->userDetail->country_id == 125)
@@ -171,8 +264,8 @@
                                    <label for="khaltiRadio">
                                        <h4 class="text-center mt-2" style="color: blue">Khalti Payment</h4>
                                        <div class="text-center">
-                                           <img src="{{ asset('default-image/khalti-logo.png') }}" style="width: 50%;"
-                                               alt="khalti logo">
+                                           <img src="{{ asset('default-image/khalti-logo.png') }}"
+                                               style="width: 50%;" alt="khalti logo">
                                        </div>
                                        <div class="position-absolute" style="bottom: 40px; right: 20px;">
                                            <input class="form-check-input" type="radio" name="paymentMode"
@@ -185,11 +278,13 @@
                    @endif
                </div>
            </div>
-           <div class="row" id="processingDiv" {{ !old() ? 'hidden' : '' }}>
+
+           <!-- Payment Processing Section -->
+           <div class="row" id="processingDiv" style="display: none;">
                <div class="col-md-4 mt-4">
-                   <div class="card mb-4 border-2">
+                   <div class=" mb-4 border-2">
                        <div class="card-body">
-                           <div class="fonePayProcessingDiv">
+                           {{-- <div class="fonePayProcessingDiv">
                                @if (current_user()->userDetail->country_id == 125 || current_user()->userDetail->country->country_name == 'India')
                                    <h3><code>(For Registration Via Online QR Scan)</code><br>Payment Through QR Scan
                                    </h3>
@@ -225,7 +320,7 @@
                                    <h3><code>(For Registration Via khalti)</code><br>Payment Through Khalti</h3>
                                    <img src="{{ asset('default-image/khalti-logo.png') }}" height="40"><br>
                                @endif
-                           </div>
+                           </div> --}}
                            <div class="bankTransferProcessingDiv">
                                @if (current_user()->userDetail->country_id != 125)
                                    <h5><code>(For Registration Via Bank Transer)</code><br>Payment Through Bank Transfer
@@ -240,79 +335,10 @@
                    </div>
                </div>
                <div class="col-md-7">
-                   <div class="card mb-4">
+                   <div class=" mb-4">
                        <div class="card-body">
-                           <form {{-- action="{{ isset($conference_registration) ? route('conference-registration.update', $conference_registration->id) : route('conference-registration.store') }}" --}} method="POST" id="registrationForm"
-                               enctype="multipart/form-data">
-                               @csrf
-                               @isset($conference_registration)
-                                   @method('patch')
-                               @endisset
-                               <div class="row mb-4">
-                                   <div class="col-md-5 form-group mb-3">
-                                       <label for="total_attendee">Accompany Person <code>(Excluding
-                                               You)</code></label>
-                                       <select name="total_attendee" id="total_attendee"
-                                           class="form-control @error('total_attendee') is-invalid @enderror">
-                                           @if (!isset($conference_registration))
-                                               <option value="">-- Select Number Of Guests --</option>
-                                               <option value="1" @selected(old('total_attendee') == 1)>1</option>
-                                               <option value="2" @selected(old('total_attendee') == 2)>2</option>
-                                               <option value="3" @selected(old('total_attendee') == 3)>3</option>
-                                               <option value="4" @selected(old('total_attendee') == 4)>4</option>
-                                               <option value="5" @selected(old('total_attendee') == 5)>5</option>
-                                           @else
-                                               @if ($conference_registration->total_attendee == 1)
-                                                   <option value="">-- Select Number Of Guests --</option>
-                                                   <option value="1">1</option>
-                                                   <option value="2">2</option>
-                                                   <option value="3">3</option>
-                                                   <option value="4">4</option>
-                                                   <option value="5">5</option>
-                                               @else
-                                                   <option value="">-- Select Number Of Guests --</option>
-                                                   <option value="1" @selected($conference_registration->total_attendee - 1 == 1)>1</option>
-                                                   <option value="2" @selected($conference_registration->total_attendee - 1 == 2)>2</option>
-                                                   <option value="3" @selected($conference_registration->total_attendee - 1 == 3)>3</option>
-                                                   <option value="4" @selected($conference_registration->total_attendee - 1 == 4)>4</option>
-                                                   <option value="5" @selected($conference_registration->total_attendee - 1 == 5)>5</option>
-                                               @endif
-                                           @endif
-                                       </select>
-                                       @error('total_attendee')
-                                           <p class="text-danger">{{ $message }}</p>
-                                       @enderror
-                                   </div>
-                                   <div class="col-md-3 form-group mt-4">
-                                       <button id="calculatePrice" class="btn btn-primary"
-                                           {{ empty($conference) ? 'disabled' : '' }}>Calculate Price</button>
-                                   </div>
-                               </div>
-                               <div class="row">
-                                   <div class="col-md-12">
-                                       <div id="priceTable" hidden>
-                                           <h4>Calculated Price: </h4>
-                                           <table class="table table-bordered">
-                                               <thead>
-                                                   <tr>
-                                                       <th>#</th>
-                                                       <th>Type</th>
-                                                       <th>No. of Persons</th>
-                                                       <th>Total</th>
-                                                   </tr>
-                                               </thead>
-                                               <tbody id="calculatedData">
-                                               </tbody>
-                                           </table>
-                                       </div>
-                                       <hr style="border-top: 3px solid red;">
-                                   </div>
-
-                               </div>
-                           </form>
                            @if (current_user()->userDetail->country_id == 125 || current_user()->userDetail->country->country_name == 'India')
                                <div class="fonePayProcessingDiv">
-
                                    <form
                                        action="{{ route('my-society.conference.fonepay', [$society, $conference]) }}"
                                        method="POST" enctype="multipart/form-data" id="fonePayForm">
@@ -334,7 +360,7 @@
                                                    <p class="text-danger">{{ $message }}</p>
                                                @enderror
                                            </div>
-                                           <div class="col-md-12 text-end">
+                                           <div class="col-md-12">
                                                <button type="submit" id="submitFonePay"
                                                    class="btn btn-primary {{ current_user()->userDetail->country->country_name == 'India' ? 'mb-1' : '' }}"
                                                    disabled>Pay Now Via QR Scan</button>
@@ -345,7 +371,6 @@
                            @endif
                            @if (current_user()->userDetail->country_id == 125)
                                <div class="esewaProcessingDiv">
-
                                    <form action="{{ route('my-society.conference.esewa', [$society, $conference]) }}"
                                        method="POST" enctype="multipart/form-data" id="esewaForm">
                                        @csrf
@@ -367,7 +392,7 @@
                                                    <p class="text-danger">{{ $message }}</p>
                                                @enderror
                                            </div>
-                                           <div class="col-md-12 text-end">
+                                           <div class="col-md-12 ">
                                                <button type="submit" id="submitEsewa" class="btn btn-primary"
                                                    disabled>Pay Now Via Esewa</button>
                                            </div>
@@ -377,7 +402,6 @@
                            @endif
                            @if (current_user()->userDetail->country_id == 125)
                                <div class="khaltiProcessingDiv">
-
                                    <form action="{{ route('my-society.conference.khalti', [$society, $conference]) }}"
                                        method="POST" enctype="multipart/form-data" id="khaltiForm">
                                        @csrf
@@ -398,7 +422,7 @@
                                                    <p class="text-danger">{{ $message }}</p>
                                                @enderror
                                            </div>
-                                           <div class="col-md-12 text-end">
+                                           <div class="col-md-12 ">
                                                <button type="submit" id="submitKhalti" class="btn btn-primary"
                                                    disabled>Pay Now Via Khalti</button>
                                            </div>
@@ -430,7 +454,7 @@
                                                        <p class="text-danger">{{ $message }}</p>
                                                    @enderror
                                                </div>
-                                               <div class="col-md-12 text-end">
+                                               <div class="col-md-12 ">
                                                    <button type="submit" id="submitMoco" class="btn btn-primary"
                                                        disabled>
                                                        <span class="spinner-border spinner-border-sm d-none"
@@ -445,7 +469,6 @@
                            </div>
                            @if (current_user()->userDetail->country_id != 125)
                                <div class="dollarCardProcessingDiv">
-
                                    <form
                                        action="{{ route('my-society.conference.internationalPayment', [$society, $conference]) }}"
                                        method="POST" enctype="multipart/form-data" id="internationalPaymentForm">
@@ -466,7 +489,7 @@
                                                    <p class="text-danger">{{ $message }}</p>
                                                @enderror
                                            </div>
-                                           <div class="col-md-12 text-end">
+                                           <div class="col-md-12 ">
                                                <button type="submit" id="submitButtonInternationalPayment"
                                                    class="btn btn-primary" disabled>Pay Now
                                                    {{ current_user()->userDetail->country->country_name == 'India' ? 'Via Dollar Card' : '' }}</button>
@@ -475,7 +498,6 @@
                                    </form>
                                </div>
                                <div class="bankTransferProcessingDiv">
-
                                    <form action="{{ route('my-society.conference.store', [$society, $conference]) }}"
                                        method="POST" enctype="multipart/form-data" id="bankTranferForm">
                                        @csrf
@@ -511,7 +533,7 @@
                                            <div class="col-md-12 form-group mb-3" hidden>
                                                <label for="amount">Amount
                                                    <code>* (Click on "Calculate Price" to get amount
-                                                       value)</code></label>
+                                                       value)</code></label> 
                                                <input type="text"
                                                    class="form-control @error('amount') is-invalid @enderror amount"
                                                    name="amount" id="amount"
@@ -521,7 +543,7 @@
                                                    <p class="text-danger">{{ $message }}</p>
                                                @enderror
                                            </div>
-                                           <div class="col-md-12 text-end">
+                                           <div class="col-md-12">
                                                <button type="submit" id="submitButtonBankTransfer"
                                                    class="btn btn-primary" disabled>Submit
                                                </button>
@@ -544,8 +566,6 @@
            <div class="modal-content">
                <div class="modal-header ">
                    <h5 class="modal-title" id="mocoQrModalLabel">Scan QR Code to Pay</h5>
-                   {{-- <button type="button" class="btn-close text-white" data-bs-dismiss="modal"
-                       aria-label="Close"></button> --}}
                </div>
                <div class="modal-body text-center">
                    <div id="mocoQrCode" class="mb-3"></div>
@@ -638,6 +658,7 @@
                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                }
            });
+
            $("#total_attendee").on("keydown", function(event) {
                // Allow backspace, delete, tab, escape, and enter keys
                if (event.keyCode == 46 || event.keyCode == 8 || event.keyCode == 9 || event.keyCode ==
@@ -653,134 +674,247 @@
                } else {
                    event.preventDefault();
                }
-           }); 
+           });
+
            var totalPrice = 0;
-           $("#calculatePrice").click(function(e) { 
-               var selectedPaymentMode = $('input[name="paymentMode"]:checked').val();
+           var calculatedAmount = 0;
+           var isPriceCalculated = false;
+
+           // Modified Calculate Price function - removed payment mode dependency
+           $("#calculatePrice").click(function(e) {
                e.preventDefault();
+
                var registrationPrice = '{{ $amount }}';
                var checkCountry = '{{ auth()->user()->userDetail->country->country_name }}';
                var guestPrice = '{{ @$memberTypePrice->guest_amount }}';
                var additionalGuest = $("#total_attendee").val();
+               var addOn = $('#add_on').val();
                var calculatedData = $("#calculatedData");
                var delegate = '{{ @$memberTypePrice->memberType->delegate }}';
                var currencyCondition = (delegate == 1 ? 'Rs. ' : '$ ');
+
+               let addOnPrice;
+               if (delegate == 1 && addOn == 1) {
+                   addOnPrice = 3000;
+               } else if (delegate == 2 && addOn == 1) {
+                   addOnPrice = 50;
+               } else {
+                   addOnPrice = 0;
+               }
+
                if (delegate == 2) {
                    var preTotalPrice = registrationPrice;
                } else {
                    var totalPrice = registrationPrice;
                }
+
                var memberType = '{{ @$memberTypePrice->memberType->type }}';
+
                if (registrationPrice == '') {
                    notyf.error("Price has not been updated by admin.");
-               } else {
-                   $("#priceTable").attr('hidden', false);
-                   calculatedData.empty();
-                   calculatedData.append('<tr>' +
-                       '<td>1</td>' +
-                       '<td>' + memberType + '</td>' +
-                       '<td>1</td>' +
-                       '<td>' + currencyCondition + registrationPrice + '</td>' +
-                       '</tr>');
-                   if (additionalGuest > 0) {
-                       var guestsTotalPrice = additionalGuest * guestPrice;
-                       if (delegate == 2) {
-                           preTotalPrice = parseInt(registrationPrice) + parseInt(guestsTotalPrice);
-                       } else {
-                           totalPrice = parseInt(registrationPrice) + parseInt(guestsTotalPrice);
-                       }
-                       if (delegate == 2) {
-                           var additionalCharge = preTotalPrice * 0.035;
-                           totalPrice = parseInt(preTotalPrice) + additionalCharge;
-                       }
-                       if (delegate == 2) {
-                           calculatedData.append('<tr>' +
-                               '<td>2</td>' +
-                               '<td>Additional Guests</td>' +
-                               '<td>' + additionalGuest + '</td>' +
-                               '<td>' + currencyCondition + guestsTotalPrice + '</td>' +
-                               '</tr>' +
-                               '<tr>' +
-                               '<td>3</td>' +
-                               '<td>Service Charge</td>' +
-                               '<td></td>' +
-                               '<td>' + currencyCondition + additionalCharge.toFixed(2) + '</td>' +
-                               '</tr>');
-                       } else {
-                           calculatedData.append('<tr>' +
-                               '<td>2</td>' +
-                               '<td>Additional Guests</td>' +
-                               '<td>' + additionalGuest + '</td>' +
-                               '<td>' + currencyCondition + guestsTotalPrice + '</td>' +
-                               '</tr>' +
-                               '<tr>');
-                       }
-                       var totalAttendee = parseInt(additionalGuest) + 1;
-                   } else {
-                       var totalAttendee = 1;
-                       if (delegate == 2 && selectedPaymentMode != 'fonePay') {
-                           var additionalCharge = preTotalPrice * 0.035;
-                           totalPrice = parseInt(preTotalPrice) + additionalCharge;
-                           calculatedData.append('<tr>' +
-                               '<td>2</td>' +
-                               '<td>Service Charge</td>' +
-                               '<td></td>' +
-                               '<td>' + currencyCondition + additionalCharge.toFixed(2) + '</td>' +
-                               '</tr>');
-                       }
-                       if (delegate == 2 && checkCountry == 'India' && selectedPaymentMode == 'fonePay') {
-                           $("#submitFonePay").attr('disabled', false);
-
-                           var indianFonePayUrl =
-                               '{{ route('convertUsdToInr') }}';
-                           var currencyData = {
-                               'usd': preTotalPrice,
-                               'paymentMode': selectedPaymentMode
-                           };
-                           $.post(indianFonePayUrl, currencyData, function(response) {
-                               console.log(response);
-                               $("#fonePayAmount").val(response.amount);
-                               if (response.type == 'success') {
-                                   inrAmount = response.amount;
-                                   calculatedData.append('<tr>' +
-                                       '<td></td>' +
-                                       '<td>Total</td>' +
-                                       '<td>' + totalAttendee + '</td>' +
-                                       '<td> INR ' + inrAmount + '</td>' +
-                                       '</tr>');
-                                   $("#submitFonePay").attr('disabled', false);
-                               } else {
-                                   notyf.error(response.message);
-                                   calculatedData.append('<tr>' +
-                                       '<td></td>' +
-                                       '<td>Total</td>' +
-                                       '<td>' + totalAttendee + '</td>' +
-                                       '<td> INR ' + totalPrice + '</td>' +
-                                       '</tr>');
-                               }
-                           });
-                       }
-                   }
-                   if (delegate == 2) {
-
-                       totalPrice = totalPrice.toFixed(2)
-                   }
-                   calculatedData.append('<tr>' +
-                       '<td></td>' +
-                       '<td>Total</td>' +
-                       '<td>' + totalAttendee + '</td>' +
-                       '<td>' + currencyCondition + totalPrice + '</td>' +
-                       '</tr>');
+                   return;
                }
+
+               $("#priceTable").attr('hidden', false);
+               calculatedData.empty();
+
+               calculatedData.append('<tr>' +
+                   '<td>1</td>' +
+                   '<td>' + memberType + '</td>' +
+                   '<td>1</td>' +
+                   '<td>' + currencyCondition + registrationPrice + '</td>' +
+                   '</tr>');
+
+               if (additionalGuest > 0) {
+                   var guestsTotalPrice = additionalGuest * guestPrice;
+                   var addOnToralPrice = addOnPrice * additionalGuest + addOnPrice;
+
+                   if (delegate == 2) {
+                       preTotalPrice = parseInt(registrationPrice) + parseInt(guestsTotalPrice) + parseInt(
+                           addOnToralPrice);
+                   } else {
+                       totalPrice = parseInt(registrationPrice) + parseInt(guestsTotalPrice) + parseInt(
+                           addOnToralPrice);
+                   }
+
+                   if (delegate == 2) {
+                       var additionalCharge = preTotalPrice * 0.035;
+                       totalPrice = parseInt(preTotalPrice) + additionalCharge;
+                   }
+
+                   calculatedData.append(
+                       '<tr>' +
+                       '<td>2</td>' +
+                       '<td>Additional Guests</td>' +
+                       '<td>' + additionalGuest + '</td>' +
+                       '<td>' + currencyCondition + guestsTotalPrice + '</td>' +
+                       '</tr>'
+                   );
+
+                   if (addOn == 1) {
+                       calculatedData.append(
+                           '<tr>' +
+                           '<td>3</td>' +
+                           '<td>Add On: GalaDinner</td>' +
+                           '<td>' + (parseInt(additionalGuest) + 1) + '</td>' +
+                           '<td>' + currencyCondition + addOnToralPrice + '</td>' +
+                           '</tr>'
+                       );
+                   }
+
+                   if (delegate == 2) {
+                       calculatedData.append(
+                           '<tr>' +
+                           '<td>' + (addOn == 1 ? '4' : '3') + '</td>' +
+                           '<td>Service Charge</td>' +
+                           '<td></td>' +
+                           '<td>' + currencyCondition + additionalCharge.toFixed(2) + '</td>' +
+                           '</tr>'
+                       );
+                   }
+
+                   var totalAttendee = parseInt(additionalGuest) + 1;
+               } else {
+                   var totalAttendee = 1;
+
+                   if (delegate == 2) {
+                       var additionalCharge = preTotalPrice * 0.035;
+                       totalPrice = parseInt(preTotalPrice) + additionalCharge + addOnPrice;
+
+                       if (addOn == 1) {
+                           calculatedData.append(
+                               '<tr>' +
+                               '<td>2</td>' +
+                               '<td>Add On: GalaDinner</td>' +
+                               '<td>1</td>' +
+                               '<td>' + currencyCondition + addOnPrice + '</td>' +
+                               '</tr>'
+                           );
+                       }
+
+                       calculatedData.append(
+                           '<tr>' +
+                           '<td>' + (addOn == 1 ? '3' : '2') + '</td>' +
+                           '<td>Service Charge</td>' +
+                           '<td></td>' +
+                           '<td>' + currencyCondition + additionalCharge.toFixed(2) + '</td>' +
+                           '</tr>'
+                       );
+                   } else if (delegate == 1 && addOn == 1) {
+                       totalPrice = parseInt(totalPrice) + addOnPrice;
+                       calculatedData.append(
+                           '<tr>' +
+                           '<td>2</td>' +
+                           '<td>Add On: GalaDinner</td>' +
+                           '<td>1</td>' +
+                           '<td>' + currencyCondition + addOnPrice + '</td>' +
+                           '</tr>'
+                       );
+                   }
+               }
+
+               if (delegate == 2) {
+                   totalPrice = totalPrice.toFixed(2);
+               }
+
+               calculatedData.append('<tr>' +
+                   '<td></td>' +
+                   '<td><strong>Total</strong></td>' +
+                   '<td><strong>' + totalAttendee + '</strong></td>' +
+                   '<td><strong>' + currencyCondition + totalPrice + '</strong></td>' +
+                   '</tr>');
+
+               // Store calculated values
+               calculatedAmount = totalPrice;
+               isPriceCalculated = true;
+
+               // Update all amount fields
                $(".amount").val(totalPrice);
-               $("#submitButtonInternationalPayment").attr('disabled', false);
-               $("#submitButtonBankTransfer").attr('disabled', false);
-               $("#submitFonePay").attr('disabled', false);
-               $("#submitMoco").attr('disabled', false);
-               $("#submitKhalti").attr('disabled', false);
-               $("#submitEsewa").attr('disabled', false);
+
+               // Show payment section after calculation
+               $("#paymentSection").show();
+
+               // Show success message
+               notyf.success('Price calculated successfully! Please select your payment method below.');
+
+               // Scroll to payment section
+               $('html, body').animate({
+                   scrollTop: $("#paymentSection").offset().top
+               }, 1000);
            });
 
+           // Payment method selection handler
+           $('input[name="paymentMode"]').change(function() {
+               if (!isPriceCalculated) {
+                   notyf.error('Please calculate the price first before selecting payment method.');
+                   $(this).prop('checked', false);
+                   return;
+               }
+
+               var selectedValue = $(this).val();
+               var checkCountry = '{{ auth()->user()->userDetail->country->country_name }}';
+               var delegate = '{{ @$memberTypePrice->memberType->delegate }}';
+
+               $("#processingDiv").show();
+
+               // Hide all processing divs
+               $(".sbiProcessingDiv").hide();
+               $(".dollarCardProcessingDiv").hide();
+               $(".fonePayProcessingDiv").hide();
+               $(".mocoProcessingDiv").hide();
+               $(".esewaProcessingDiv").hide();
+               $(".khaltiProcessingDiv").hide();
+               $(".bankTransferProcessingDiv").hide();
+
+               // Show selected payment method processing div
+               if (selectedValue == "sbiBank") {
+                   $(".sbiProcessingDiv").show();
+               } else if (selectedValue == "fonePay") {
+                   $(".fonePayProcessingDiv").show();
+
+                   // Handle India FonePay conversion
+                   if (delegate == 2 && checkCountry == 'India') {
+                       var indianFonePayUrl = '{{ route('convertUsdToInr') }}';
+                       var currencyData = {
+                           'usd': calculatedAmount,
+                           'paymentMode': selectedValue
+                       };
+
+                       $.post(indianFonePayUrl, currencyData, function(response) {
+                           if (response.type == 'success') {
+                               $("#fonePayAmount").val(response.amount);
+                               $("#submitFonePay").attr('disabled', false);
+
+                               // Update the total in price table for INR
+                               $("#calculatedData tr:last-child td:last-child").html(
+                                   '<strong>INR ' + response.amount + '</strong>');
+                           } else {
+                               notyf.error(response.message);
+                               $("#submitFonePay").attr('disabled', false);
+                           }
+                       });
+                   } else {
+                       $("#submitFonePay").attr('disabled', false);
+                   }
+               } else if (selectedValue == "dollarCard") {
+                   $(".dollarCardProcessingDiv").show();
+                   $("#submitButtonInternationalPayment").attr('disabled', false);
+               } else if (selectedValue == "moco") {
+                   $(".mocoProcessingDiv").show();
+                   $("#submitMoco").attr('disabled', false);
+               } else if (selectedValue == "esewa") {
+                   $(".esewaProcessingDiv").show();
+                   $("#submitEsewa").attr('disabled', false);
+               } else if (selectedValue == "khalti") {
+                   $(".khaltiProcessingDiv").show();
+                   $("#submitKhalti").attr('disabled', false);
+               } else if (selectedValue == "bankTransfer") {
+                   $(".bankTransferProcessingDiv").show();
+                   $("#submitButtonBankTransfer").attr('disabled', false);
+               }
+           });
+
+           // Registrant type change handler
            $("#registrant_type").change(function(e) {
                e.preventDefault();
                if ($(this).val() == 2) {
@@ -792,34 +926,63 @@
            });
            $("#registrant_type").trigger("change");
 
+           // Accompanying persons handler
            $("#total_attendee").change(function(e) {
                $("#accompanyPersonsDetail").empty();
                var totalAccompanyPersons = $(this).val();
                $("#accompany_person").val(totalAccompanyPersons);
-               if (totalAccompanyPersons >= 1) {
-                   var title =
-                       '<div class="col-md-12 mt-3"><h3 class="text-danger">Accompanying Person Details:</h3><h5 class="text-danger">Note: All names are reuired</h5></div>';
-                   $("#accompanyPersonsDetail").append(title);
-                   for (let index = 0; index < totalAccompanyPersons; index++) {
-                       var oldValue = personsValue[index] || '';
-                       var errorMessage = errorMessages['person_name.' + index] ? errorMessages[
-                           'person_name.' + index][0] : '';;
-                       var htmlCode = '<div class="col-md-7 form-group mb-3">' +
-                           '<label for="person_name">Name <code>*</code></label>' +
-                           '<input type="text" class="form-control" name="person_name[]" value="' +
-                           oldValue + '" placeholder="Enter accompany person name" required/>' +
-                           '<p class="text-danger">' + errorMessage + '</p>' +
-                           '</div>';
 
-                       $("#accompanyPersonsDetail").append(htmlCode);
-                   }
+               // Update all accompany_person fields
+               $("#accompany_person_moco").val(totalAccompanyPersons);
+
+               //    if (totalAccompanyPersons >= 1) {
+               //        var title =
+               //            '<div class="col-md-12 mt-3"><h3 class="text-danger">Accompanying Person Details:</h3><h5 class="text-danger">Note: All names are required</h5></div>';
+               //        $("#accompanyPersonsDetail").append(title);
+
+               //        for (let index = 0; index < totalAccompanyPersons; index++) {
+               //            var oldValue = personsValue[index] || '';
+               //            var errorMessage = errorMessages['person_name.' + index] ? errorMessages[
+               //                'person_name.' + index][0] : '';
+               //            var htmlCode = '<div class="col-md-7 form-group mb-3">' +
+               //                '<label for="person_name">Name <code>*</code></label>' +
+               //                '<input type="text" class="form-control" name="person_name[]" value="' +
+               //                oldValue + '" placeholder="Enter accompany person name" required/>' +
+               //                '<p class="text-danger">' + errorMessage + '</p>' +
+               //                '</div>';
+               //            $("#accompanyPersonsDetail").append(htmlCode);
+               //        }
+               //    }
+
+               // Reset price calculation when attendee count changes
+               if (isPriceCalculated) {
+                   $("#priceTable").attr('hidden', true);
+                   $("#paymentSection").hide();
+                   $("#processingDiv").hide();
+                   isPriceCalculated = false;
+                   $('input[name="paymentMode"]').prop('checked', false);
+                   notyf.info('Please recalculate the price due to changes in attendee count.');
                }
            });
            $("#total_attendee").trigger("change");
 
+           // Add-on change handler
+           $("#add_on").change(function() {
+               if (isPriceCalculated) {
+                   $("#priceTable").attr('hidden', true);
+                   $("#paymentSection").hide();
+                   $("#processingDiv").hide();
+                   isPriceCalculated = false;
+                   $('input[name="paymentMode"]').prop('checked', false);
+                   notyf.info('Please recalculate the price due to changes in add-on selection.');
+               }
+           });
+
+           // Registrant type selection modal handler
            $("#chooseRegistrantButton").on('click', function(e) {
                e.preventDefault();
                var registrantValue = $("#registrantType").val();
+
                if (registrantValue == '') {
                    notyf.error('Select one value to continue.');
                } else if (registrantValue == 1) {
@@ -864,84 +1027,72 @@
                                $('#registrant_type').val('2');
                                $("#registrant_type").trigger("change");
                                $('#registrant_type_bank_transfer').val('2');
-                               $("#registrant_type").trigger("change");
                                $('#registrant_type_fonepay').val('2');
-                               $("#registrant_type_fonepay").trigger("change");
                                $('#registrant_type_esewa').val('2');
-                               $("#registrant_type_esewa").trigger("change");
                                $('#registrant_type_khalti').val('2');
-                               $("#registrant_type_khalti").trigger("change");
                                $('#registrant_type_moco').val('2');
-                               $("#registrant_type_moco").trigger("change");
                            }
                        }
                    });
                }
            });
 
-           var checkCountrs = '{{ auth()->user()->userDetail->country->country_name }}';
-           $('input[name="paymentMode"]').on('change', function() {
-               var paymentMode = $(this).val();
-               if (paymentMode == 'fonePay' && checkCountrs == 'India') {
-                   $("#submitFonePay").attr('disabled', true);
-               } else if (paymentMode == 'bankTransfer' && checkCountrs == 'India') {
-                   $("#submitButtonBankTransfer").attr('disabled', true);
-               } else if (paymentMode == 'dollarCard' && checkCountrs == 'India') {
-                   $("#submitButtonInternationalPayment").attr('disabled', true);
-               }
-           });
-
-           $("#submitButton").click(function(e) {
-               e.preventDefault();
-               $(this).attr('disabled', true);
-               $("#registrationForm").submit();
-           });
-
+           // Form submission handlers
            $("#submitButtonInternationalPayment").click(function(e) {
                e.preventDefault();
+               if (!isPriceCalculated) {
+                   notyf.error('Please calculate the price first.');
+                   return;
+               }
                $(this).attr('disabled', true);
                $("#internationalPaymentForm").submit();
            });
 
            $("#submitButtonBankTransfer").click(function(e) {
                e.preventDefault();
+               if (!isPriceCalculated) {
+                   notyf.error('Please calculate the price first.');
+                   return;
+               }
                $(this).attr('disabled', true);
                $("#bankTranferForm").submit();
            });
 
-
-           $('input[name="paymentMode"]').change(function() {
-               var selectedValue = $(this).val();
-               $("#processingDiv").attr('hidden', false);
-               $(".sbiProcessingDiv").attr('hidden', true);
-               $(".dollarCardProcessingDiv").attr('hidden', true);
-               $(".fonePayProcessingDiv").attr('hidden', true);
-               $(".mocoProcessingDiv").attr('hidden', true);
-               $(".esewaProcessingDiv").attr('hidden', true);
-               $(".khaltiProcessingDiv").attr('hidden', true);
-               $(".bankTransferProcessingDiv").attr('hidden', true);
-               if (selectedValue == "sbiBank") {
-                   $(".sbiProcessingDiv").attr('hidden', false);
-               } else if (selectedValue == "fonePay") {
-                   $(".fonePayProcessingDiv").attr('hidden', false);
-               } else if (selectedValue == "dollarCard") {
-                   $(".dollarCardProcessingDiv").attr('hidden', false);
-               } else if (selectedValue == "moco") {
-                   $(".mocoProcessingDiv").attr('hidden', false);
-               } else if (selectedValue == "esewa") {
-                   $(".esewaProcessingDiv").attr('hidden', false);
-               } else if (selectedValue == "khalti") {
-                   $(".khaltiProcessingDiv").attr('hidden', false);
-               } else if (selectedValue == "bankTransfer") {
-                   $(".bankTransferProcessingDiv").attr('hidden', false);
+           $("#submitFonePay").click(function(e) {
+               if (!isPriceCalculated) {
+                   e.preventDefault();
+                   notyf.error('Please calculate the price first.');
+                   return;
                }
            });
 
+           $("#submitEsewa").click(function(e) {
+               if (!isPriceCalculated) {
+                   e.preventDefault();
+                   notyf.error('Please calculate the price first.');
+                   return;
+               }
+           });
+
+           $("#submitKhalti").click(function(e) {
+               if (!isPriceCalculated) {
+                   e.preventDefault();
+                   notyf.error('Please calculate the price first.');
+                   return;
+               }
+           });
+
+           // MoCo payment handling
            let paymentCheckInterval;
            let mocoReferenceNumber = null;
 
            $("#mocoForm").on('submit', function(e) {
                e.preventDefault();
+
+               if (!isPriceCalculated) {
+                   notyf.error('Please calculate the price first.');
+                   return;
+               }
 
                const submitButton = $("#submitMoco");
                const spinner = submitButton.find('.spinner-border');
@@ -1009,7 +1160,6 @@
 
            $("#mocoCancelPayment").on('click', function(e) {
                e.preventDefault();
-
                const userConfirmed = confirm('Are you sure you want to cancel this payment?');
                if (userConfirmed === true) {
                    cancelPayment();
@@ -1040,7 +1190,6 @@
                    },
                    dataType: 'json',
                    success: function(response) {
-                       console.log(response);
                        if (response.txnStatus === 'success') {
                            $("#mocoPayStatus").removeClass('bg-warning bg-danger').addClass(
                                'bg-success').text('Completed');
@@ -1053,7 +1202,6 @@
                                window.location.href =
                                    `${baseUrl}?txnID=${encodeURIComponent(response.txnID)}`;
                            }, 2000);
-
                        } else if (response.txnStatus === 'failed') {
                            $("#mocoPayStatus").removeClass('bg-warning bg-success').addClass(
                                'bg-danger').text('Failed');
@@ -1084,6 +1232,7 @@
                }
            });
 
+           // Bank transfer form submission
            $('#bankTranferForm').on('submit', function(e) {
                e.preventDefault();
 
@@ -1100,7 +1249,6 @@
                    processData: false,
                    success: function(response) {
                        notyf.success('Conference Registered successfully!');
-
                        setTimeout(function() {
                            window.location.href =
                                '{{ route('my-society.conference.index', [$society, $conference]) }}';
@@ -1108,7 +1256,6 @@
                    },
                    error: function(xhr) {
                        $('#submitButtonBankTransfer').prop('disabled', false).text('Submit');
-
                        if (xhr.status === 422) {
                            let errors = xhr.responseJSON.errors;
                            $('.text-danger').remove();

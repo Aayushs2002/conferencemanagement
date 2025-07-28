@@ -7,10 +7,12 @@ use App\Mail\Conference\RegisteredByUserMail;
 use App\Models\Conference\AccompanyPerson;
 use App\Models\Conference\ConferenceMemberTypePrice;
 use App\Models\Conference\ConferenceRegistration;
+use App\Models\Conference\ConferenceSetting;
 use App\Models\Conference\Submission;
 use App\Models\Payment\InternationalPayment;
 use App\Models\Payment\NationalPayment;
 use App\Models\User\UserSociety;
+use App\Models\Workshop\Workshop;
 use App\Services\File\FileService;
 use Exception;
 use Illuminate\Http\Request;
@@ -19,7 +21,7 @@ use Illuminate\Support\Facades\DB;
 
 class ConferenceRegistrationController extends Controller
 {
-    public function __construct(protected FileService $file_service) {} 
+    public function __construct(protected FileService $file_service) {}
 
     public function index($society, $conference)
     {
@@ -45,36 +47,93 @@ class ConferenceRegistrationController extends Controller
         // dd($amount);
         $national_payemnt_setting = NationalPayment::where('society_id', $conference->society_id)->first();
         $international_payemnt_setting = InternationalPayment::where('society_id', $conference->society_id)->first();
+        $workshops = Workshop::where([
+            'conference_id' => $conference->id,
+            'status' => 1
+        ])->get();
+        return view('backend.participant.conference-registration.create', compact('conference', 'amount', 'memberTypePrice', 'society', 'national_payemnt_setting', 'international_payemnt_setting', 'checkPayment', 'workshops'));
+    }
 
-        return view('backend.participant.conference-registration.create', compact('conference', 'amount', 'memberTypePrice', 'society', 'national_payemnt_setting', 'international_payemnt_setting', 'checkPayment'));
+    public function getWorkshopPricing(Request $request)
+    {
+        // dd($request->all());
+        try {
+            $workshopId = $request->workshop_id;
+            $memberTypeId = $request->member_type_id;
+
+            if (!$workshopId || !$memberTypeId) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Workshop ID and Member Type ID are required'
+                ]);
+            }
+
+            // Fetch workshop details
+            $workshop = DB::table('workshops')->where('id', $workshopId)->first();
+
+            if (!$workshop) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Workshop not found'
+                ]);
+            }
+
+            // Fetch workshop pricing
+            $workshopPricing = DB::table('workshop_registration_prices')
+                ->where('workshop_id', $workshopId)
+                ->where('member_type_id', $memberTypeId)
+                ->first();
+
+            if (!$workshopPricing) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Workshop pricing not found for this member type'
+                ]);
+            }
+
+            return response()->json([
+                'success' => true,
+                'workshop_name' => $workshop->workshop_title,
+                'main_price' => $workshopPricing->price,
+                'workshop_id' => $workshopId,
+                'member_type_id' => $memberTypeId
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error fetching workshop pricing: ' . $e->getMessage()
+            ]);
+        }
     }
 
     public function store(Request $request, $society, $conference)
     {
+        // dd($request->all());
+        $rules = [
+            'accompany_person' => 'nullable|numeric',
+            'registrant_type' => 'required',
+            'amount' => 'required',
+            'payment_type' => 'required',
+            'payment_voucher' => 'required|mimes:jpg,png,pdf',
+            'transaction_id' => 'required|unique:conference_registrations,transaction_id'
+        ];
+
+        $message = [
+            'transaction_id.unique' => 'Transaction/Reference Id already exist.',
+        ];
+
+        $validated = $request->validate($rules, $message);
         try {
             if (is_past($conference->regular_registration_deadline)) {
                 return redirect()->back()->with('delete', 'Registration deadline has been ended.');
             } else {
                 $checkDuplicateRegistration = ConferenceRegistration::where(['user_id' => current_user()->id, 'conference_id' => $conference->id, 'status' => 1])->first();
                 if (empty($checkDuplicateRegistration)) {
-                    $rules = [
-                        'accompany_person' => 'nullable|numeric',
-                        'registrant_type' => 'required',
-                        'amount' => 'required',
-                        'payment_type' => 'required',
-                        'payment_voucher' => 'required|mimes:jpg,png,pdf',
-                        'transaction_id' => 'required|unique:conference_registrations,transaction_id'
-                    ];
 
-                    $message = [
-                        'transaction_id.unique' => 'Transaction/Reference Id already exist.',
-                    ];
-
-                    $validated = $request->validate($rules, $message);
 
                     $authUser = current_user();
                     $validated['user_id'] = $authUser->id;
-                    $validated['verified_status'] = 1;
+                    $validated['verified_status'] = $validated['payment_type'] == 6 ? 0 : 1;
                     $validated['conference_id'] = $conference->id;
                     $validated['total_attendee'] = empty($request->accompany_person) ? 1 : $request->accompany_person + 1;
                     $validated['token'] = random_word(60);
@@ -111,19 +170,32 @@ class ConferenceRegistrationController extends Controller
 
                     DB::beginTransaction();
 
-                    ConferenceRegistration::create($validated);
+                    $conferenceRegistration = ConferenceRegistration::create($validated);
 
 
                     DB::commit();
                     request()->session()->forget('onlinePayment');
-                    return redirect()->route('my-society.conference.index', [$society, $conference])->with('status', 'Successfully registered to conference.');
+                    return response()->json([
+                        'success' => true,
+                        'message' => 'Registration completed successfully!',
+                        'registration_id' => $conferenceRegistration->id
+                    ]);
+                    // return redirect()->route('my-society.conference.index', [$society, $conference])->with('status', 'Successfully registered to conference.');
                 } else {
-                    return redirect()->back()->with('delete', 'Registration already done for current conference.');
+                    // return redirect()->back()->with('delete', 'Registration already done for current conference.');
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Registration already done for current conference.'
+                    ], 500);
                 }
             }
         } catch (Exception $e) {
+            // dd($e);
             DB::rollBack();
-            throw $e;
+            return response()->json([
+                'success' => false,
+                'message' => 'Registration failed: ' . $e->getMessage()
+            ], 500);
         }
     }
 
@@ -150,6 +222,8 @@ class ConferenceRegistrationController extends Controller
                 return redirect()->back()->with('delete', 'Registration deadline has been ended.');
             } else {
                 $checkDuplicateRegistration = ConferenceRegistration::where(['user_id' => current_user()->id, 'conference_id' => $conference->id, 'status' => 1])->first();
+                $conferenceSetting = ConferenceSetting::where('conference_id', $conference->id)->first();
+                // dd($conferenceSetting);
                 if (empty($checkDuplicateRegistration)) {
                     $rules = [
                         'accompany_person' => 'nullable|numeric',
@@ -188,14 +262,24 @@ class ConferenceRegistrationController extends Controller
 
                     $mailData = [
                         'conference_theme' => $conference->conference_theme,
+                        'conference_name' => $conference->conference_name,
                         'name' => $authUser->fullName($authUser),
                         'namePrefix' => $authUser->userDetail->namePrefix->prefix,
                         'email' => $authUser->email,
                         'paymentType' => $paymentType,
                         'transactionId' => $validated['transaction_id'],
-                        'amount' => $validated['amount'],
+                        'amount' => $validated['amount'], 
                         'amountInWord' => numberToWord($validated['amount']),
-                        'date' => $date
+                        'date' => $date,
+                        'societyName' => $society->users->where('type', 2)->first()->f_name,
+                        'societyLogo' => $society->logo,
+                        'societyPhone' => $society->phone,
+                        'societyEmail' => $society->users->where('type', 2)->first()->email,
+                        'societyAddress' => $society->address,
+                        'primaryColor' => $conference->primary_color,
+                        'country' => $authUser->userDetail->country_id,
+                        'signatureName' => $conferenceSetting->name,
+                        'signature' => $conferenceSetting->signature
                     ];
 
                     Mail::to($authUser->email)->send(new RegisteredByUserMail($mailData));
@@ -213,6 +297,7 @@ class ConferenceRegistrationController extends Controller
                 }
             }
         } catch (Exception $e) {
+            // dd($e);
             DB::rollBack();
             throw $e;
         }

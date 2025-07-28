@@ -41,6 +41,7 @@ class AddSocietyRequest extends FormRequest
             'phone' => $phoneRule,
             'logo' => $logoRule,
             'description' => 'nullable',
+            'sub_domain_name' => 'required|regex:/^[a-zA-Z0-9\s]+$/'
         ];
     }
 

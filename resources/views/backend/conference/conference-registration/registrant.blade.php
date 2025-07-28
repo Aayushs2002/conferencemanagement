@@ -15,7 +15,7 @@
                         class="form-control @error('registrant_type') is-invalid @enderror">
                         <option value="">-- Select Registrant Type --</option>
                         <option {{ request()->registrant_type == 1 ? 'selected' : '' }} value="1">
-                            Attendee 
+                            Attendee
                         </option>
                         <option {{ request()->registrant_type == 2 ? 'selected' : '' }} value="2">
                             Speaker
@@ -56,7 +56,7 @@
                             Esewa
                         </option>
                         <option {{ request()->payment_type == 4 ? 'selected' : '' }} value="4">
-                            Khalti 
+                            Khalti
                         </option>
                         <option {{ request()->payment_type == 5 ? 'selected' : '' }} value="5">
                             Card Payment
@@ -175,19 +175,19 @@
                                     Khalti
                                 @elseif ($registrant->payment_type == 5)
                                     Card Payment
-                                @elseif (!empty($registrant->payment_voucher) && $registrant->payment_type == 3)
+                                @elseif (!empty($registrant->payment_voucher) && $registrant->payment_type == 6)
                                     {{-- @dd($registrant->payment_voucher) --}}
                                     @php
                                         $explodeFileName = explode('.', $registrant->payment_voucher);
                                     @endphp
                                     @if ($explodeFileName[1] == 'pdf')
-                                        <a href="{{ asset('storage/conference/registration/payment-voucher/' . $registrant->payment_voucher) }}"
+                                        <a href="{{ asset('storage/conference/payment-voucher/' . $registrant->payment_voucher) }}"
                                             target="_blank"><img src="{{ asset('default-image/pdf.png') }}"
                                                 alt="voucher" height="50" width="40"></a>
                                     @else
-                                        <a href="{{ asset('storage/conference/registration/payment-voucher/' . $registrant->payment_voucher) }}"
+                                        <a href="{{ asset('storage/conference/payment-voucher/' . $registrant->payment_voucher) }}"
                                             target="_blank"><img
-                                                src="{{ asset('storage/conference/registration/payment-voucher/' . $registrant->payment_voucher) }}"
+                                                src="{{ asset('storage/conference/payment-voucher/' . $registrant->payment_voucher) }}"
                                                 alt="voucher" height="50" width="40"></a>
                                     @endif
                                 @else
@@ -229,8 +229,8 @@
                                     <span class="badge bg-danger">Rejected</span>
                                 @else
                                     <a href="" class="verifyRegistrant" data-id="{{ $registrant->id }}"
-                                        data-toggle="modal" data-target="#openModal" title="Verify Registrant"><span
-                                            class="badge bg-warning">Unverified</span></a>
+                                        data-bs-toggle="modal" data-bs-target="#pricingModal"
+                                        title="Verify Registrant"><span class="badge bg-warning">Unverified</span></a>
                                 @endif
                             </td>
 
@@ -258,6 +258,20 @@
                                         <a class="dropdown-item"
                                             href="{{ route('conference.conference-registration.generateIndividualPass', [$society, $conference, $registrant->id]) }}"><i
                                                 class="icon-base ti tabler-ticket me-1"></i> Generate Pass</a>
+                                        <a class="dropdown-item"
+                                            href="{{ route('conference.conference-registration.downloadVoucher', [$society, $conference, $registrant->id]) }}"><i
+                                                class="icon-base ti tabler-ticket me-1"></i> Downlaod Payment Voucher</a>
+                                        @if (is_super_admin())
+                                            <hr>
+                                            <form
+                                                action="{{ route('conference.conference-registration.registrant.destroy', [$society, $conference, $registrant->id]) }}"
+                                                method="POST">
+                                                @method('delete')
+                                                @csrf
+                                                <a class="dropdown-item text-danger delete" href="javascript:void(0);"><i
+                                                        class="icon-base ti tabler-trash me-1"></i> Delete</a>
+                                            </form>
+                                        @endif
                                     </div>
 
                                 </div>
@@ -307,6 +321,20 @@
                 });
             });
 
+            $(document).on("click", ".verifyRegistrant", function(e) {
+                e.preventDefault();
+                var url =
+                    '{{ route('conference.conference-registration.verifyForm', [$society, $conference]) }}';
+                var _token = '{{ csrf_token() }}';
+                var id = $(this).data('id');
+                var data = {
+                    _token: _token,
+                    id: id
+                };
+                $.post(url, data, function(response) {
+                    $('#modalContent').html(response);
+                });
+            });
             $(document).on("click", ".convertRegistrantType", function(e) {
                 e.preventDefault();
                 var url =

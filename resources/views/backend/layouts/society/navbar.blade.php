@@ -8,14 +8,14 @@
 
          <div class="navbar-nav-right d-flex align-items-center justify-content-end" id="navbar-collapse">
              <!-- Search -->
-             <div class="navbar-nav align-items-center">
+             {{-- <div class="navbar-nav align-items-center">
                  <div class="nav-item navbar-search-wrapper px-md-0 px-2 mb-0">
                      <a class="nav-item nav-link search-toggler d-flex align-items-center px-0"
                          href="javascript:void(0);">
                          <span class="d-inline-block text-body-secondary fw-normal" id="autocomplete"></span>
                      </a>
                  </div>
-             </div>
+             </div> --}}
 
              <!-- /Search -->
              <div class="navbar-nav flex-row align-items-center ms-md-auto">
@@ -428,7 +428,12 @@
                      <a class="nav-link dropdown-toggle hide-arrow p-0" href="javascript:void(0);"
                          data-bs-toggle="dropdown">
                          <div class="avatar avatar-online">
-                             <img src="{{ asset('default-image/avatar.png') }}" alt class="rounded-circle" />
+                             @if (current_user()->userDetail?->image)
+                                 <img src="{{ asset('storage/profile/image/' . current_user()->userDetail?->image) }}"
+                                     alt class="rounded-circle" />
+                             @else
+                                 <img src="{{ asset('default-image/avatar.png') }}" alt class="rounded-circle" />
+                             @endif
                          </div>
                      </a>
                      <ul class="dropdown-menu dropdown-menu-end">
@@ -437,8 +442,13 @@
                                  <div class="d-flex align-items-center">
                                      <div class="flex-shrink-0 me-2">
                                          <div class="avatar avatar-online">
-                                             <img src="{{ asset('default-image/avatar.png') }}" alt
-                                                 class="rounded-circle" />
+                                             @if (current_user()->userDetail?->image)
+                                                 <img src="{{ asset('storage/profile/image/' . current_user()->userDetail?->image) }}"
+                                                     alt class="rounded-circle" />
+                                             @else
+                                                 <img src="{{ asset('default-image/avatar.png') }}" alt
+                                                     class="rounded-circle" />
+                                             @endif
                                          </div>
                                      </div>
                                      <div class="flex-grow-1">

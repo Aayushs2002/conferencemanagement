@@ -10,7 +10,7 @@ use App\Http\Controllers\Backend\Society\NamePrefixController;
 use App\Http\Controllers\Backend\Society\SocietyController;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', 'check.subdomain'])->group(function () {
     //society controller start    
     Route::resource('/society', SocietyController::class)->middleware('check.superadmin')->except('show');
     Route::get('/society/{society}/dashboard', [SocietyController::class, 'dashboard'])->name('society.dashboard');
@@ -40,7 +40,7 @@ Route::middleware('auth')->group(function () {
     Route::resource('/department', DepartmentController::class)->middleware('check.superadmin')->except('show');
     //name department ended
 
- 
+
     //payment setting controller stared
     Route::prefix('/society/{society}')->middleware('check.societyadmin')->group(function () {
         Route::controller(PaymentSettingController::class)->prefix('/payment')->name('payment.')->group(function () {

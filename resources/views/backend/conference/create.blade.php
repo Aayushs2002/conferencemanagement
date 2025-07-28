@@ -367,7 +367,7 @@
 @endsection
 @section('scripts')
     <script>
-        $(document).ready(function() {
+        $(document).ready(function() { 
             const startInput = document.querySelector('#start_date');
             const endInput = document.querySelector('#end_date');
             const earlyBirdInput = document.querySelector('#early_bird_registration_deadline');

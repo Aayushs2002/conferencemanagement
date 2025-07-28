@@ -35,7 +35,7 @@ class SubmissionController extends Controller
                     ->where('expert_id', current_user()->id);
             })
             ->get();
-            // dd($submissions,current_user());    
+        // dd($submissions,current_user());    
         $submissionSetting = SubmissionSetting::where('conference_id', $conference->id)->first();
         // dd($submissionSetting);
         return view('backend.participant.submission.index', compact('conference', 'submissions', 'society', 'submissionSetting'));
@@ -45,7 +45,7 @@ class SubmissionController extends Controller
     {
 
         $setting = SubmissionSetting::where('conference_id', $conference->id)
-            ->select('abstract_word_limit', 'key_word_limit', 'deadline')
+            ->select('abstract_word_limit', 'key_word_limit', 'deadline', 'attachment_name')
             ->first();
         if (!$setting) {
             return redirect()->back()->with('delete', 'Submission settings not found.');
@@ -64,7 +64,6 @@ class SubmissionController extends Controller
             $validated = $request->all();
             // dd($validated);
             $setting = SubmissionSetting::where('conference_id', $conference->id)->select('abstract_word_limit', 'key_word_limit')->first();
-            // dd('ad');
             if (!empty($validated['keywords']) && !empty($setting->key_word_limit)) {
                 $keywordsCount = count(explode(',', $request->keywords));
                 // dd($validated['keywords']);
@@ -85,7 +84,9 @@ class SubmissionController extends Controller
             if (!empty($validated['image'])) {
                 $validated['image'] = $this->file_service->fileUpload($validated['image'], 'diagram', 'participant/submission/image');
             }
-            $authUser = User::whereId(current_user())->first();
+            // dd('ad');
+            $authUser = User::whereId(current_user()->id)->first();
+            // dd($authUser);
             $validated['user_id'] = current_user()->id;
             $validated['conference_id'] = $conference->id;
             $validated['submitted_date'] = now();
@@ -112,10 +113,12 @@ class SubmissionController extends Controller
                 'societyName' => $society->abbreviation,
                 'conferenceDate' => $conferenceDate
             ];
+            // dd(current_user()->fullName(current_user()));
             Mail::to($authUser->email)->send(new SubmissionSubmittedToUserMail($userMailData));
             DB::beginTransaction();
             // dd(current_user()->userDetail->phone);
             $submission = Submission::create($validated);
+            // dd('da');
             $validated['submission_id'] = $submission->id;
             $validated['name'] = current_user()->fullName(current_user());
             $validated['email'] = current_user()->email;
@@ -145,7 +148,7 @@ class SubmissionController extends Controller
     public function edit($society, $conference, $submission)
     {
         $setting = SubmissionSetting::where('conference_id', $conference->id)
-            ->select('abstract_word_limit', 'key_word_limit', 'deadline')
+            ->select('abstract_word_limit', 'key_word_limit', 'deadline', 'attachment_name')
             ->first();
         if (!$setting) {
             return redirect()->back()->with('delete', 'Submission settings not found.');

@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\AutoCheckConferencePermission;
+use App\Http\Middleware\DetectSubdomain;
 use App\Http\Middleware\SocietyAdminPermission;
 use App\Http\Middleware\SuperAdminPermission;
 use Illuminate\Foundation\Application;
@@ -14,13 +15,14 @@ return Application::configure(basePath: dirname(__DIR__))
         api: __DIR__ . '/../routes/api.php',
         commands: __DIR__ . '/../routes/console.php',
         health: '/up',
-       
+
     )
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->alias([
             'auto.conf.permission' => AutoCheckConferencePermission::class,
             'check.superadmin' => SuperAdminPermission::class,
             'check.societyadmin' => SocietyAdminPermission::class,
+            'check.subdomain' => DetectSubdomain::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

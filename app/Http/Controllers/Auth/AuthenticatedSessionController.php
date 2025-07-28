@@ -14,9 +14,11 @@ class AuthenticatedSessionController extends Controller
     /**
      * Display the login view.
      */
-    public function create(): View
+    public function create(Request $request): View
     {
-        return view('auth.login');
+        // dd($request->attributes->get('society'));
+        $society = $request->attributes->get('societyDomainDetail');
+        return view('auth.login', compact('society'));
     }
 
     /**
@@ -24,6 +26,8 @@ class AuthenticatedSessionController extends Controller
      */
     public function store(LoginRequest $request): RedirectResponse
     {
+        // $society = $request->attributes->get('society');
+
         $request->authenticate();
 
         $request->session()->regenerate();

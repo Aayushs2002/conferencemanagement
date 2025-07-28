@@ -16,7 +16,7 @@
 
                     @isset($society)
                         @method('patch')
-                    @endisset 
+                    @endisset
                     <div class="row">
                         <div class="mb-6 col-md-6">
                             <label class="form-label" for="society-name">Society Name <code>*</code></label>
@@ -139,6 +139,21 @@
                                 <p class="text-danger">{{ $message }}</p>
                             @enderror
                         </div>
+
+                        <div class="mb-6 col-md-6">
+                            <label class="form-label" for="sub_domain_name">Sub Domain Name
+                                <code>(prefix)*</code></label>
+                            <input type="text" id="sub_domain_name"
+                                value="{{ !empty(old('sub_domain_name')) ? old('sub_domain_name') : @$society->sub_domain_name }}"
+                                name="sub_domain_name" class="form-control" placeholder="Enter Sub Domain Name"
+                                required />
+                            <div class="valid-feedback">Looks good!</div>
+                            <div class="invalid-feedback">Please enter a sub domain name</div>
+                            @error('sub_domain_name')
+                                <p class="text-danger">{{ $message }}</p>
+                            @enderror
+                        </div>
+
 
                         <div class="mb-6">
                             <label class="form-label" for="description">Description</label>

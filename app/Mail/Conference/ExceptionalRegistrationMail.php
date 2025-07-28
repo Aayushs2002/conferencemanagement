@@ -8,6 +8,8 @@ use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Mail\Mailables\Attachment;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class ExceptionalRegistrationMail extends Mailable
 {
@@ -51,6 +53,14 @@ class ExceptionalRegistrationMail extends Mailable
      */
     public function attachments(): array
     {
-        return [];
+        $pdf = Pdf::loadView('emails.conference.payment-voucher', ['data' => $this->data])
+            ->setPaper('legal', 'potrait');
+        $pdfPath = storage_path('app/public/registration.pdf');
+        $pdf->save($pdfPath);
+        return [
+            Attachment::fromPath($pdfPath)
+                ->as('PaymentVoucher.pdf')
+                ->withMime('application/pdf'),
+        ];
     }
 }

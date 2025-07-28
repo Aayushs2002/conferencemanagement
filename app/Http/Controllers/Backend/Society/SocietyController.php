@@ -51,7 +51,7 @@ class SocietyController extends Controller
             $req = $request->all();
             $req['password'] = hash_password('password');
             $req['type'] = 2;
-            $req['slug'] = slugify($req['society_name']);
+            $req['slug'] = slugify($req['society_name']); 
             $req['f_name'] = $req['society_name'];
             $req['token'] = random_word(60);
             unset($req['society_name']);
@@ -85,8 +85,7 @@ class SocietyController extends Controller
             DB::commit();
             return redirect()->route('society.index')->with('status', 'Society Added Successfully');
         } catch (Exception $e) {
-            dd($e);
-
+            // dd($e);
             DB::rollBack();
             return redirect()->back()->with('delete', 'Internal Server Error');
             // throw $e;

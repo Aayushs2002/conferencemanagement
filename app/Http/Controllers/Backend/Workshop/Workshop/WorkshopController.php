@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Backend\Workshop\Workshop;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\conference\WorkshopRequest;
+use App\Http\Requests\Conference\WorkshopRequest;
 use App\Models\User\Society;
 use App\Models\Workshop\Workshop;
 use App\Models\Workshop\WorkshopChairPersonDetail;
@@ -156,6 +156,7 @@ class WorkshopController extends Controller
             DB::commit();
             return redirect()->route('workshop.index', [$society, $conference])->with('status', 'Workshop Updated Successfully');
         } catch (\Throwable $th) {
+            DB::rollBack();
             return redirect()->back()->withInput()->with('delete', 'Internal Server Error');
         }
     }

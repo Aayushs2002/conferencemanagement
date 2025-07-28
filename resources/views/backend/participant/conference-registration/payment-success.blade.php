@@ -40,7 +40,7 @@
                        <div class="card mb-4">
                            @php
                                $onlinePayment = session()->get('onlinePayment');
-                               // dd($onlinePayment);
+                            //    dd($onlinePayment);
                            @endphp
                            {{-- @dd($transactionId) --}}
                            <div class="card-body">

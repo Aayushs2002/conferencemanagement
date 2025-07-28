@@ -354,7 +354,7 @@
                     title: "Are you sure to reset password of this member?",
                     icon: 'question',
                     showCancelButton: true,
-                    confirmButtonText: 'Yes, Assign!'
+                    confirmButtonText: 'Yes, Reset it!'
                 }).then((result) => {
                     if (result.isConfirmed) {
                         var userId = $(this).data('id');

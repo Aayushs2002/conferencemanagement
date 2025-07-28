@@ -43,6 +43,7 @@ class RegisteredUserController extends Controller
                     'name_prefix_id' => 'required',
                     'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:' . User::class],
                     'password' => ['required', 'confirmed', Rules\Password::defaults()],
+                    'website' => ['nullable', 'max:0'], 
                 ],
                 [
                     'gender.required' => 'Gender is required',
@@ -50,8 +51,10 @@ class RegisteredUserController extends Controller
                     'name_prefix_id.required' => 'Name Prefix is required'
                 ]
             );
+            if ($request->filled('website')) {
+                abort(403, 'Spam detected.');
+            }
             DB::beginTransaction();
-
             $user = User::create([
                 'f_name' => $request->f_name,
                 'm_name' => $request->m_name,

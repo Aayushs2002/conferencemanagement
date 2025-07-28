@@ -2,7 +2,7 @@
 ******************************************************************************* */
 /* (C) */
 .authentication-wrapper {
-  --bs-auth-basic-inner-max-width: 460px;
+  --bs-auth-basic-inner-max-width: 850px;
   display: flex;
   flex-basis: 100%;
   inline-size: 100%;

@@ -3,6 +3,7 @@
 use App\Http\Controllers\Backend\Accommodation\HotelController;
 use App\Http\Controllers\Backend\Ckeditor\CkeditorController;
 use App\Http\Controllers\Backend\Dashboard\DashboardController;
+use App\Http\Controllers\Backend\User\UserController;
 use App\Http\Controllers\Backend\UserManagement\PermissionController;
 use App\Http\Controllers\CommonController;
 use App\Http\Controllers\ProfileController;
@@ -21,13 +22,13 @@ Route::get('/', function () {
     return redirect()->route('login');
 });
 //dashboard route
-Route::middleware('auth', 'verified')->group(function () {
+Route::middleware('auth', 'verified', 'check.subdomain')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::post('/join-society', [DashboardController::class, 'joinSociety'])->name('joinSociety');
     Route::get('/get-society-member-type', [DashboardController::class, 'getMemberType'])->name('getMemberType');
 });
 
-Route::middleware('auth')->group(function () {
+Route::middleware('auth', 'check.subdomain')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
@@ -47,4 +48,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/hotel/change-status/{hotel}', [HotelController::class, 'changeStatus'])->name('hotel.changeStatus');
 
     Route::resource('/permission', PermissionController::class)->middleware('check.superadmin');
+    Route::get('user', [UserController::class, 'index'])->name('user.index');
+    Route::post('user/show', [UserController::class, 'show'])->name('user.show');
+    Route::delete('user/delete/{user}', [UserController::class, 'destroy'])->name('user.destroy');
+    Route::post('user/join-society', [UserController::class, 'joinSociety'])->name('user.join-society');
+    Route::post('user/join-society-submit', [UserController::class, 'joinSocietySubmit'])->name('user.joinSocietySubmit');
 });

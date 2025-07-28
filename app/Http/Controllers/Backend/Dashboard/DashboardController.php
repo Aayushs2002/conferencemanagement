@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Backend\Dashboard;
 
 use App\Http\Controllers\Controller;
+use App\Models\User;
 use App\Models\User\Department;
 use App\Models\User\Designation;
 use App\Models\User\Institution;
@@ -38,8 +39,14 @@ class DashboardController extends Controller
     public function getMemberType(Request $request)
     {
         // dd($request);
+        // dd(current_user());
         try {
-            $user = current_user();
+            if (current_user()->type == 1) {
+                $user = User::where('id', $request->user_id)->first();
+            } else {
+                $user = current_user();
+            }
+
             $society_id = $request->society_id;
             if (!$society_id) {
                 return response()->json(['type' => 'error', 'message' => 'Society ID is required.', 'data' => []]);

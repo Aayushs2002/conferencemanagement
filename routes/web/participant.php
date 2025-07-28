@@ -10,7 +10,7 @@ use App\Http\Controllers\Backend\Participant\WorkshopPaymentController;
 use App\Http\Controllers\Backend\Participant\WorkshopRegistrationController;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', 'check.subdomain'])->group(function () {
 
     Route::controller(MySocietyController::class)->group(function () {
         Route::get('/my-society', 'index')->name('my-society.index');
@@ -29,6 +29,9 @@ Route::middleware('auth')->group(function () {
         Route::post('/online-payment-submit', 'onlinePaymentSubmit')->name('submit');
         Route::patch('/update-conference-registation', 'updateRegistration')->name('updateRegistration');
     });
+
+    Route::get('/get-workshop-pricing', [ConferenceRegistrationController::class, 'getWorkshopPricing'])
+        ->name('getWorkshopPricing');
 
     Route::controller(PaymentContoller::class)->prefix('/my-society/{society}/conference/{conference}')->name('my-society.conference.')->group(function () {
         //fonepay route

@@ -17,6 +17,7 @@ class SubmissionSetting extends Model
         'poster_guidelines',
         'oral_reviewer_guide',
         'poster_reviewer_guide',
+        'attachment_name',
         'status'
     ];
 }
