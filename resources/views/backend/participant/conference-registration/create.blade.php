@@ -202,7 +202,7 @@
                                </div>
                            </div>
                        @endif
-                       @if (in_array(current_user()->userDetail->country_id, [78, 134, 165]))
+                       @if (in_array(current_user()->userDetail->country_id, [78, 134, 165])) 
                            <div class="col-md-3">
                                <div class="card mb-4 position-relative">
                                    <label for="bankTranserRadio">

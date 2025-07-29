@@ -44,7 +44,7 @@
                                            (current_user()->userDetail->country_id == 125 || current_user()->userDetail->country->country_name == 'India') &&
                                                $national_payemnt_setting?->profile_id)
                                            <div class="col-md-3">
-                                               <div class="card mb-4 pb-4 position-relative">
+                                               <div class="card mb-4 position-relative">
                                                    <label for="fonePayRadio">
                                                        <h5 class="text-center mt-2" style="color: blue">Online QR Scan
                                                        </h5>
@@ -65,7 +65,7 @@
                                            </div>
                                        @endif
                                        @if (current_user()->userDetail->country_id == 125)
-                                           @if ($national_payemnt_setting?->moco_merchant_id) 
+                                           @if ($national_payemnt_setting?->moco_merchant_id)
                                                <div class="col-md-3">
                                                    <div class="card mb-4 pb-4 position-relative border-2">
                                                        <label for="mocoRadio">
@@ -529,7 +529,7 @@
                        $('#mocoButtonDiv').attr('hidden', false);
                        $('#submitPaymentMode').attr('disabled', false);
                        priceText =
-                           `<h3>Price: Rs. ${workshopPrice}</h3>`;
+                           `<h3>Price: $ ${workshopPrice}</h3>`;
                    } else if (selectedPaymentMode === "esewa") {
                        $('#price').val(workshopPrice);
                        $('#submitPaymentMode').attr('disabled', false);
@@ -542,7 +542,7 @@
                            .replace("SOCIETY", '{{ $hashedSociety }}')
                        );
                        priceText =
-                           `<h3>Price: Rs. ${workshopPrice}</h3>`;
+                           `<h3>Price: $ ${workshopPrice}</h3>`;
                    } else if (selectedPaymentMode === "khalti") {
                        $('#price').val(workshopPrice);
                        $('#submitPaymentMode').attr('disabled', false);
@@ -555,7 +555,7 @@
                            .replace("SOCIETY", '{{ $hashedSociety }}')
                        );
                        priceText =
-                           `<h3>Price: Rs. ${workshopPrice}</h3>`;
+                           `<h3>Price: $ ${workshopPrice}</h3>`;
                    } else if (selectedPaymentMode === "nationalFonepay") {
                        $('#price').val(workshopPrice);
                        $('#submitPaymentMode').attr('disabled', false);
@@ -568,7 +568,7 @@
                            .replace("SOCIETY", '{{ $hashedSociety }}')
                        );
                        priceText =
-                           `<h3>Price: Rs. ${workshopPrice}</h3>`;
+                           `<h3>Price: $ ${workshopPrice}</h3>`;
                    }
 
                    $("#priceDisplay").html(priceText);
