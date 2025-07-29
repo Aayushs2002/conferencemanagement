@@ -1020,7 +1020,7 @@
                                notyf.error('Submit your presentation');
                                setTimeout(function() {
                                    window.location.href =
-                                       '{{ route('my-society.conference.submission.create', [$society, $conference]) }}';
+                                       '{{ route('my-society.conference.submission.index', [$society, $conference]) }}';
                                }, 1000);
                            } else {
                                $("#openModal").modal('hide');
