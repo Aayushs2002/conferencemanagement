@@ -10,7 +10,7 @@ use App\Http\Controllers\Backend\Society\NamePrefixController;
 use App\Http\Controllers\Backend\Society\SocietyController;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware(['auth', 'check.subdomain'])->group(function () {
+Route::middleware('auth')->group(function () {
     //society controller start    
     Route::resource('/society', SocietyController::class)->middleware('check.superadmin')->except('show');
     Route::get('/society/{society}/dashboard', [SocietyController::class, 'dashboard'])->name('society.dashboard');

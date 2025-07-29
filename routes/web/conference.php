@@ -33,7 +33,7 @@ use App\Http\Controllers\Backend\Workshop\WorkshopTrainer\WorkshopTrainerControl
 use App\Models\Sponsor\Sponsor;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware(['auth', 'check.subdomain'])->group(function () {
+Route::middleware('auth')->group(function () {
 
     //conference dashboard
     Route::controller(ConferenceDashboardController::class)->name('dashboard.')->group(function () {

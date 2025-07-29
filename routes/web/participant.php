@@ -10,7 +10,7 @@ use App\Http\Controllers\Backend\Participant\WorkshopPaymentController;
 use App\Http\Controllers\Backend\Participant\WorkshopRegistrationController;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware(['auth', 'check.subdomain'])->group(function () {
+Route::middleware('auth')->group(function () {
 
     Route::controller(MySocietyController::class)->group(function () {
         Route::get('/my-society', 'index')->name('my-society.index');
