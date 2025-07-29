@@ -129,7 +129,7 @@
                     @foreach ($submissions as $submission)
                         <tr>
                             <th scope="row">{{ $loop->iteration }}</th>
-                            <td>{{ $submission->presenter->fullName($submission->presenter) }}</td>
+                            <td>{{ $submission->presenter?->fullName($submission->presenter) }}</td>
 
                             <td> {{ $submission->article_type == 1 ? 'Original' : 'Review' }}
                             </td>
