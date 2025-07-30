@@ -9,18 +9,22 @@ use App\Models\Payment\NationalPayment;
 use App\Models\User\UserSociety;
 use App\Models\Workshop\Workshop;
 use App\Models\Workshop\WorkshopRegistration;
+use App\Services\File\FileService;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 
 class WorkshopRegistrationController extends Controller
 {
+
+    public function __construct(protected FileService $file_service) {}
+
     public function index($society, $conference)
     {
         // dd(current_user()->id);
         $checkPayment = null;
 
-        $workshops = Workshop::where([ 
+        $workshops = Workshop::where([
             'conference_id' => $conference->id,
             'status' => 1
         ])->get();
@@ -76,6 +80,49 @@ class WorkshopRegistrationController extends Controller
         } catch (Exception $e) {
             dd($e);
             return redirect()->back()->with('delete', 'Error while registering for workshop.');
+        }
+    }
+
+    public function store(Request $request, $society, $conference, $workshop)
+    {
+        // dd($workshop);
+        // dd($request->all());
+        $rules = [
+            'transaction_id' => 'required|unique:workshop_registrations,transaction_id',
+            'payment_voucher' => 'required',
+            'price' => 'required'
+        ];
+
+        $validated = $request->validate($rules);
+        try {
+            $rules = [
+                'transaction_id' => 'required|unique:workshop_registrations,transaction_id',
+                'payment_voucher' => 'required',
+                'price' => 'required'
+            ];
+
+            $validated = $request->validate($rules);
+            $validated['payment_type'] = 6;
+            $validated['user_id'] = current_user()->id;
+            $validated['token'] = random_word(60);
+            $validated['verified_status'] = 0;
+            $validated['workshop_id'] = $workshop->id;
+            $validated['amount'] = $request->price;
+            if (!empty($validated['payment_voucher'])) {
+                $validated['payment_voucher'] = $this->file_service->fileUpload($validated['payment_voucher'], 'payment_voucher', 'workshop/payment-voucher');
+            }
+
+            $workshopRegistration = WorkshopRegistration::create($validated);
+            return response()->json([
+                'success' => true,
+                'message' => 'Registration completed successfully!',
+                'registration_id' => $workshopRegistration->id
+            ]);
+        } catch (Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Registration failed: ' . $e->getMessage()
+            ], 500);
         }
     }
 

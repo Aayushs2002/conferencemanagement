@@ -18,7 +18,7 @@ class ConferenceMemberTypePriceController extends Controller
         $condition = "WHERE conference_id = " . $conference->id;
         $sql = "SELECT
                     MT.id,
-                    MT.type,
+                    MT.type, 
                     MT.delegate,
                     MTP.price_id,
                     MTP.conference_id,

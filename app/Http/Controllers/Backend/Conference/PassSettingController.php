@@ -15,7 +15,7 @@ use Illuminate\Support\Facades\DB;
 class PassSettingController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Display a listing of the resource. 
      */
     public function __construct(protected FileService $file_service) {}
 

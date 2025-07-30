@@ -87,6 +87,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/workshop-registration/submit-data', 'submitData')->name('submitData');
         Route::post('/workshop-registration/meal', 'meal')->name('meal');
         Route::post('/workshop-registration/mealSubmit', 'submitMealPreference')->name('submitMealPreference');
+        Route::post('/workshop-registration/store/{workshop}', 'store')->name('store');
     });
 
     //workshopt payment controller

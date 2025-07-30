@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Backend\Participant;
 use App\Http\Controllers\Controller;
 use App\Mail\Conference\RegisteredByUserMail;
 use App\Models\Conference\AccompanyPerson;
+use App\Models\Conference\ConferenceAddon;
 use App\Models\Conference\ConferenceMemberTypePrice;
 use App\Models\Conference\ConferenceRegistration;
 use App\Models\Conference\ConferenceSetting;
@@ -51,7 +52,8 @@ class ConferenceRegistrationController extends Controller
             'conference_id' => $conference->id,
             'status' => 1
         ])->get();
-        return view('backend.participant.conference-registration.create', compact('conference', 'amount', 'memberTypePrice', 'society', 'national_payemnt_setting', 'international_payemnt_setting', 'checkPayment', 'workshops'));
+        $conferenceAddons = ConferenceAddon::where(['conference_id' => $conference->id, 'status' => 1])->get();
+        return view('backend.participant.conference-registration.create', compact('conference', 'amount', 'memberTypePrice', 'society', 'national_payemnt_setting', 'international_payemnt_setting', 'checkPayment', 'workshops', 'conferenceAddons'));
     }
 
     public function getWorkshopPricing(Request $request)
@@ -268,7 +270,7 @@ class ConferenceRegistrationController extends Controller
                         'email' => $authUser->email,
                         'paymentType' => $paymentType,
                         'transactionId' => $validated['transaction_id'],
-                        'amount' => $validated['amount'], 
+                        'amount' => $validated['amount'],
                         'amountInWord' => numberToWord($validated['amount']),
                         'date' => $date,
                         'societyName' => $society->users->where('type', 2)->first()->f_name,

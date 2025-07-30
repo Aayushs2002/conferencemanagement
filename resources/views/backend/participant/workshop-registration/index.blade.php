@@ -40,11 +40,9 @@
                                    <input type="hidden" value="" name="price" id="price">
                                    <input type="hidden" value="" name="payment_type" id="payment_type">
                                    <div class="row">
-                                       @if (
-                                           (current_user()->userDetail->country_id == 125 || current_user()->userDetail->country->country_name == 'India') &&
-                                               $national_payemnt_setting?->profile_id)
+                                       @if (current_user()->userDetail->country_id == 125 && $national_payemnt_setting?->profile_id)
                                            <div class="col-md-3">
-                                               <div class="card mb-4 position-relative">
+                                               <div class="card mb-4 pb-4 position-relative">
                                                    <label for="fonePayRadio">
                                                        <h5 class="text-center mt-2" style="color: blue">Online QR Scan
                                                        </h5>
@@ -127,28 +125,118 @@
                                            @endif
                                        @endif
                                        @if (current_user()->userDetail->country_id != 125)
-                                           <div class="col-md-3">
-                                               <div class="card mb-4 position-relative">
-                                                   <label for="dollarCardRadio">
-                                                       <h5 class="text-center mt-2" style="color: blue">Dollar Card</h5>
-                                                       <p style="padding-left: 10%;">We Accept</p>
-                                                       <div class="text-center">
-                                                           <img src="{{ asset('default-image/dollar-card.png') }}"
-                                                               style="width: 50%;" alt="dollar card logo">
-                                                       </div>
-                                                       <div class="position-absolute" style="bottom: 40px; right: 20px;">
-                                                           <input class="form-check-input" type="radio"
-                                                               name="paymentMode" value="dollarCard" id="dollarCardRadio"
-                                                               style="transform: scale(2);">
-                                                       </div>
-                                                   </label>
+                                           @if (!in_array(current_user()->userDetail->country_id, [78, 134, 165]))
+                                               <div class="col-md-3">
+                                                   <div class="card mb-4 position-relative">
+                                                       <label for="dollarCardRadio">
+                                                           <h5 class="text-center mt-2" style="color: blue">Dollar Card
+                                                           </h5>
+                                                           <p style="padding-left: 10%;">We Accept</p>
+                                                           <div class="text-center">
+                                                               <img src="{{ asset('default-image/dollar-card.png') }}"
+                                                                   style="width: 50%;" alt="dollar card logo">
+                                                           </div>
+                                                           <div class="position-absolute"
+                                                               style="bottom: 40px; right: 20px;">
+                                                               <input class="form-check-input" type="radio"
+                                                                   name="paymentMode" value="dollarCard"
+                                                                   id="dollarCardRadio" style="transform: scale(2);">
+                                                           </div>
+                                                       </label>
+                                                   </div>
                                                </div>
-                                           </div>
+                                           @endif
+                                           @if (in_array(current_user()->userDetail->country_id, [78, 134, 165]))
+                                               <div class="col-md-3">
+                                                   <div class="card mb-4 position-relative">
+                                                       <label for="bankTranserRadio">
+                                                           <h4 class="text-center mt-2" style="color: blue">Bank Transfer
+                                                           </h4>
+                                                           <p style="padding-left: 10%;">We Accept</p>
+                                                           <div class="text-center pb-2">
+                                                               <img src="{{ asset('default-image/bankTransfer.jpg') }}"
+                                                                   style="width: 70%;" alt="dollar card logo">
+                                                           </div>
+                                                           <div class="position-absolute"
+                                                               style="bottom: 40px; right: 20px;">
+                                                               <input class="form-check-input" type="radio"
+                                                                   name="paymentMode" value="bankTransfer"
+                                                                   id="bankTranserRadio" style="transform: scale(2);">
+                                                           </div>
+                                                       </label>
+                                                   </div>
+                                               </div>
+                                           @endif
                                        @endif
                                        <div class="" id="priceDisplay"
                                            style="display: flex; justify-content: end;">
                                        </div>
+                                       <div class="bankTransferProcessingDiv" id="bankTransferProcessingDiv"
+                                           style="display:none;">
+                                           <div class="d-flex justify-content-center my-6">
+                                               <div class="card p-4">
+                                                   <h5><code>(For Registration Via Bank Transer)</code><br>Payment Through
+                                                       Bank
+                                                       Transfer
+                                                   </h5>
+                                                   <img src="{{ asset('default-image/bankTransfer.jpg') }}"
+                                                       height="40"><br>
+                                                   <p>
+                                                       {!! $international_payemnt_setting?->bank_detail !!}
+                                                   </p>
+                                               </div>
+                                           </div>
 
+                                           <div class="row">
+                                               <div class="col-md-6 form-group mb-3">
+                                                   <label for="transaction_id">Transaction ID/Bill No/Reference Code
+                                                       <code>*</code></label>
+                                                   <input type="text"
+                                                       class="form-control @error('transaction_id') is-invalid @enderror"
+                                                       name="transaction_id" id="transaction_id"
+                                                       value="{{ old('transaction_id') }}"
+                                                       placeholder="Enter transaction id or bill number"  />
+                                                   @error('transaction_id')
+                                                       <p class="text-danger">{{ $message }}</p>
+                                                   @enderror
+                                               </div>
+                                               <div class="col-md-6 form-group mb-3">
+                                                   <label for="payment_voucher">Payment Voucher <code>(Only
+                                                           JPG/PNG/PDF)
+                                                       </code></label>
+                                                   <input type="file"
+                                                       class="form-control @error('payment_voucher') is-invalid @enderror"
+                                                       name="payment_voucher" id="image2" />
+                                                   @error('payment_voucher')
+                                                       <p class="text-danger">{{ $message }}</p>
+                                                   @enderror
+                                                   <div class="row" id="imgPreview2"></div>
+                                               </div>
+                                               <input type="hidden" name="registrant_type"
+                                                   id="registrant_type_bank_transfer">
+                                               <input type="hidden" name="accompany_person" id="accompany_person">
+                                               {{-- <input type="hidden" name="payment_type" value="6"> --}}
+
+                                               <div class="col-md-12 form-group mb-3" hidden>
+                                                   <label for="amount">Amount
+                                                       <code>* (Click on "Calculate Price" to get amount
+                                                           value)</code></label>
+                                                   <input type="text"
+                                                       class="form-control @error('amount') is-invalid @enderror amount"
+                                                       name="amount" id="amount"
+                                                       value="{{ isset($conference_registration) ? $conference_registration->amount : old('amount') }}"
+                                                       placeholder="Enter amount" readonly />
+                                                   @error('amount')
+                                                       <p class="text-danger">{{ $message }}</p>
+                                                   @enderror
+                                               </div>
+                                               <div class="col-md-12">
+                                                   <button type="submit" id="submitButtonBankTransfer"
+                                                       class="btn btn-primary">Submit
+                                                   </button>
+                                               </div>
+                                           </div>
+                                       </div>
                                    </div>
                                    <div class="" id="otherPaymentMode">
 
@@ -275,39 +363,12 @@
                                        @endif
                                    @endif
                                    @if (empty($checkRegistration) && $appliedQuota <= $totalQuota)
-                                       {{-- @if (current_user()->userDetail->country->country_name == 'Nepal')
-                                           <form
-                                               action="{{ route('my-society.conference.workshop-registration.fonePay', [$society, $conference, $w_item]) }}"
-                                               method="POST">
-                                               @csrf
-                                               <input type="hidden" name="price"
-                                                   value="{{ !empty($price->price) ? $price->price : 0 }}">
-                                               <button type="submit" class="btn btn-primary btn-sm mt-4"
-                                                   {{ empty($price->price) ? 'disabled' : '' }}>
-                                                   Register This Workshop
-                                               </button>
-                                           </form>
-                                       @endif --}}
-
-                                       {{-- @if (current_user()->userDetail->country->country_name == 'India') --}}
                                        <button data-workshop="{{ $hashedWorkshop }}"
                                            data-price="{{ $price->price ?? 0 }}"
                                            class="btn btn-primary btn-sm register-button"
                                            {{ empty($price->price) ? 'disabled' : '' }}>
                                            Register This Workshop
                                        </button>
-                                       {{-- @endif --}}
-
-                                       {{-- @if (@$userDetail->memberType->delegate == 2 && current_user()->userDetail->country->country_name != 'India')
-                                           <a
-                                               href="{{ route('workshop-registration.internationalPayment', [$w_item->slug, !empty($price->price) ? $price->price : 0, $conference]) }}">
-
-                                               <button class="btn btn-primary btn-sm"
-                                                   {{ empty($price->price) ? 'disabled' : '' }}>
-                                                   Register This Workshop
-                                               </button>
-                                           </a>
-                                       @endif --}}
                                    @endif
                                </div>
                            </div>
@@ -359,18 +420,18 @@
                                        Khalti
                                    @elseif ($registration->payment_type == 5)
                                        Card Payment
-                                   @elseif (!empty($registration->payment_voucher) && $registration->payment_type == 3)
+                                   @elseif (!empty($registration->payment_voucher) && $registration->payment_type == 6)
                                        @php
                                            $extension = explode('.', $registration->payment_voucher);
                                        @endphp
                                        @if ($extension[1] == 'pdf')
-                                           <a href="{{ asset('storage/workshop/registration/payment-voucher/' . $registration->payment_voucher) }}"
+                                           <a href="{{ asset('storage/workshop/payment-voucher/' . $registration->payment_voucher) }}"
                                                target="_blank"><img src="{{ asset('default-images/pdf.png') }}"
                                                    height="60" alt="voucher"></a>
                                        @else
-                                           <a href="{{ asset('storage/workshop/registration/payment-voucher/' . $registration->payment_voucher) }}"
+                                           <a href="{{ asset('storage/workshop/payment-voucher/' . $registration->payment_voucher) }}"
                                                target="_blank"><img
-                                                   src="{{ asset('storage/workshop/registration/payment-voucher/' . $registration->payment_voucher) }}"
+                                                   src="{{ asset('storage/workshop/payment-voucher/' . $registration->payment_voucher) }}"
                                                    height="60" alt="voucher"></a>
                                        @endif
                                    @endif
@@ -468,7 +529,7 @@
                var workshopSlug;
                var priceText = "";
                $('.register-button').click(function() {
-
+                   $("#priceDisplay").html('');
                    $("#pricingModal").modal('show');
                    workshopSlug = $(this).data("workshop");
                    workshopPrice = $(this).data("price");
@@ -480,6 +541,7 @@
                    $('#submitPaymentMode').attr('disabled', true);
                    $('#otherPaymentMode').attr('hidden', false);
                    $('#mocoButtonDiv').attr('hidden', true);
+                   $('#bankTransferProcessingDiv').hide();
 
                    var form = $('#chooseRegistratantType')
                    if (selectedPaymentMode === "indiaFonePay") {
@@ -501,7 +563,7 @@
                                form.attr('action',
                                    '{{ route('my-society.conference.workshop-registration.fonePay', ['SOCIETY', 'CONFERENCE', 'WORKSHOP']) }}'
                                    .replace("WORKSHOP", '{{ $hashedWorkshop }}')
-                                   .replace("CONFERENCE", '{{ $hashedConference }}') 
+                                   .replace("CONFERENCE", '{{ $hashedConference }}')
                                    .replace("SOCIETY", '{{ $hashedSociety }}')
                                );
                            } else {
@@ -514,6 +576,7 @@
                        $('#submitPaymentMode').attr('disabled', false);
                        $('#otherPaymentMode').attr('hidden', false);
                        $('#mocoButtonDiv').attr('hidden', true);
+                       $('#bankTransferProcessingDiv').hide();
                        form.attr('action',
                            '{{ route('my-society.conference.workshop-registration.internationalPayment', ['SOCIETY', 'CONFERENCE', 'WORKSHOP']) }}'
                            .replace("WORKSHOP", '{{ $hashedWorkshop }}')
@@ -528,13 +591,15 @@
                        $('#otherPaymentMode').attr('hidden', true);
                        $('#mocoButtonDiv').attr('hidden', false);
                        $('#submitPaymentMode').attr('disabled', false);
+                       $('#bankTransferProcessingDiv').hide();
                        priceText =
-                           `<h3>Price: $ ${workshopPrice}</h3>`;
+                           `<h3>Price: Rs. ${workshopPrice}</h3>`;
                    } else if (selectedPaymentMode === "esewa") {
                        $('#price').val(workshopPrice);
                        $('#submitPaymentMode').attr('disabled', false);
                        $('#otherPaymentMode').attr('hidden', false);
                        $('#mocoButtonDiv').attr('hidden', true);
+                       $('#bankTransferProcessingDiv').hide();
                        form.attr('action',
                            '{{ route('my-society.conference.workshop-registration.esewa', ['SOCIETY', 'CONFERENCE', 'WORKSHOP']) }}'
                            .replace("WORKSHOP", '{{ $hashedWorkshop }}')
@@ -542,12 +607,13 @@
                            .replace("SOCIETY", '{{ $hashedSociety }}')
                        );
                        priceText =
-                           `<h3>Price: $ ${workshopPrice}</h3>`;
+                           `<h3>Price: Rs. ${workshopPrice}</h3>`;
                    } else if (selectedPaymentMode === "khalti") {
                        $('#price').val(workshopPrice);
                        $('#submitPaymentMode').attr('disabled', false);
                        $('#otherPaymentMode').attr('hidden', false);
                        $('#mocoButtonDiv').attr('hidden', true);
+                       $('#bankTransferProcessingDiv').hide();
                        form.attr('action',
                            '{{ route('my-society.conference.workshop-registration.khalti', ['SOCIETY', 'CONFERENCE', 'WORKSHOP']) }}'
                            .replace("WORKSHOP", '{{ $hashedWorkshop }}')
@@ -555,9 +621,10 @@
                            .replace("SOCIETY", '{{ $hashedSociety }}')
                        );
                        priceText =
-                           `<h3>Price: $ ${workshopPrice}</h3>`;
+                           `<h3>Price: Rs. ${workshopPrice}</h3>`;
                    } else if (selectedPaymentMode === "nationalFonepay") {
                        $('#price').val(workshopPrice);
+                       $('#bankTransferProcessingDiv').hide();
                        $('#submitPaymentMode').attr('disabled', false);
                        $('#otherPaymentMode').attr('hidden', false);
                        $('#mocoButtonDiv').attr('hidden', true);
@@ -567,6 +634,14 @@
                            .replace("CONFERENCE", '{{ $hashedConference }}')
                            .replace("SOCIETY", '{{ $hashedSociety }}')
                        );
+                       priceText =
+                           `<h3>Price: Rs. ${workshopPrice}</h3>`;
+                   } else if (selectedPaymentMode == "bankTransfer") {
+                       $('#price').val(workshopPrice);
+                       $('#bankTransferProcessingDiv').show();
+                       $('#submitPaymentMode').attr('disabled', true);
+                       $('#otherPaymentMode').attr('hidden', true);
+                       $('#mocoButtonDiv').attr('hidden', true);
                        priceText =
                            `<h3>Price: $ ${workshopPrice}</h3>`;
                    }
@@ -743,6 +818,44 @@
                    e.preventDefault();
                    $(this).attr('disabled', true);
                    $("#submitFormData").submit();
+               });
+
+               $("#submitButtonBankTransfer").click(function(e) {
+                   e.preventDefault();
+                   let form = $('#chooseRegistratantType')[0];
+                   let formData = new FormData(form);
+                   console.log(form)
+                   $('#submitButtonBankTransfer').prop('disabled', true).text('Submitting...');
+
+                   $.ajax({
+                       url: "{{ route('my-society.conference.workshop.store', [$society, $conference, $hashedWorkshop]) }}",
+                       type: 'POST',
+                       data: formData,
+                       contentType: false,
+                       processData: false,
+                       success: function(response) {
+                           notyf.success('Workshop Registered successfully!');
+                           setTimeout(function() {
+                               window.location.href =
+                                   '{{ route('my-society.conference.workshop.index', [$society, $conference]) }}';
+                           }, 1500);
+                       },
+                       error: function(xhr) {
+                           $('#submitButtonBankTransfer').prop('disabled', false).text('Submit');
+                           if (xhr.status === 422) {
+                               let errors = xhr.responseJSON.errors;
+                               $('.text-danger').remove();
+                               for (let key in errors) {
+                                   let input = $('[name="' + key + '"]');
+                                   input.addClass('is-invalid');
+                                   input.after('<p class="text-danger">' + errors[key][0] +
+                                       '</p>');
+                               }
+                           } else {
+                               notyf.error('An error occurred. Please try again.');
+                           }
+                       }
+                   });
                });
 
                // Assuming #pricingModal is the ID of the pricing modal

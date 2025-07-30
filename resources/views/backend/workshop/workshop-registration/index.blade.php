@@ -50,8 +50,14 @@
                                 @if ($registration->payment_type == 1)
                                     Fone-Pay
                                 @elseif ($registration->payment_type == 2)
+                                    Moco
+                                @elseif ($registration->payment_type == 3)
+                                    Esewa
+                                @elseif ($registration->payment_type == 4)
+                                    Khalti
+                                @elseif ($registration->payment_type == 5)
                                     Card Payment
-                                @elseif (!empty($registration->payment_voucher) && $registration->payment_type == 3)
+                                @elseif (!empty($registration->payment_voucher) && $registration->payment_type == 6)
                                     @php
                                         $extension = explode('.', $registration->payment_voucher);
                                     @endphp
