@@ -8,7 +8,10 @@ use App\Mail\Conference\ExceptionalRegistrationMail;
 use App\Mail\Conference\RegistrationMail;
 use App\Models\Conference\AccompanyPerson;
 use App\Models\Conference\Attendance;
+use App\Models\Conference\ConferenceAddon;
+use App\Models\Conference\ConferenceMemberTypePrice;
 use App\Models\Conference\ConferenceRegistration;
+use App\Models\Conference\ConferenceRegistration_addon;
 use App\Models\Conference\ConferenceRegistrationKit;
 use App\Models\Conference\ConferenceSetting;
 use App\Models\Conference\Meal;
@@ -21,6 +24,7 @@ use App\Models\User\NamePrefix;
 use App\Models\User\Society;
 use App\Models\User\UserDetail;
 use App\Models\User\UserSociety;
+use App\Models\Workshop\WorkshopRegistration;
 use App\Services\File\FileService;
 use Exception;
 use Illuminate\Http\Request;
@@ -125,14 +129,16 @@ class ConferenceRegistrationController extends Controller
             'id' => $conference->society_id,
             'status' => 1
         ])->first();
+        $conferenceAddons = ConferenceAddon::where('conference_id', $conference->id)->get();
         $users = $society ? $society->users : collect();
 
 
-        return view('backend.conference.conference-registration.register-for-exceptional-case', compact('users', 'society', 'conference'));
+        return view('backend.conference.conference-registration.register-for-exceptional-case', compact('users', 'society', 'conference', 'conferenceAddons'));
     }
 
     public function registerForExceptionalCaseSubmit(Request $request, $society, $conference)
     {
+        // dd($request->all());
         try {
             $rules = [
                 'user_id' => 'required',
@@ -187,6 +193,7 @@ class ConferenceRegistrationController extends Controller
                 'conference_theme' => $conference->conference_theme,
                 'conference_name' => $conference->conference_name,
                 'name' => $user->fullName($user),
+                'namePrefix' => $user->userDetail->namePrefix?->prefix,
                 'email' => $user->email,
                 'paymentType' => 'Online Payment',
                 'transactionId' => $validated['transaction_id'],
@@ -201,7 +208,12 @@ class ConferenceRegistrationController extends Controller
                 'primaryColor' => $conference->primary_color,
                 'country' => $user->userDetail->country_id,
                 'signatureName' => $conferenceSetting->name,
-                'signature' => $conferenceSetting->signature
+                'signature' => $conferenceSetting->signature,
+                'conferenceAmount' => $validated['amount'],
+                'addons'           => [],
+                'workshop'         => null,
+                'accompany' => null,
+                'serviceCharge' =>  null
             ];
 
             Mail::to($user->email)->send(new ExceptionalRegistrationMail($mailData));
@@ -222,10 +234,23 @@ class ConferenceRegistrationController extends Controller
                 }
                 AccompanyPerson::insert($insertArray);
             }
+            if ($request->conference_addon_id) {
+                foreach ($request->conference_addon_id as $addon_id) {
+                    $addon = ConferenceAddon::where('id', $request->conference_addon_id)->first();
+                    // dd($addon);
+                    ConferenceRegistration_addon::create([
+                        'conference_registration_id' => $registration->id,
+                        'conference_addon_id' => $addon_id,
+                        'amount' => $user->userDetail->country_id == 125 ? $addon->addon_national_amount : $addon->addon_international_amount,
+                    ]);
+                }
+            }
+
             DB::commit();
 
             return redirect()->back()->with('status', 'Successfully registered.');
         } catch (Exception $e) {
+            DB::rollBack();
             throw $e;
         }
     }
@@ -375,7 +400,9 @@ class ConferenceRegistrationController extends Controller
         //     return redirect()->route('dashboard');
         // }
         $prefixesAll = NamePrefix::whereStatus(1)->get();
-        return view('backend.conference.conference-registration.registration-or-invitation', compact('prefixesAll', 'society', 'conference'));
+        $conferenceAddons = ConferenceAddon::where('conference_id', $conference->id)->get();
+
+        return view('backend.conference.conference-registration.registration-or-invitation', compact('prefixesAll', 'society', 'conference','conferenceAddons'));
     }
 
     public function registrationOrInvitationSubmit(Request $request, $society, $conference)
@@ -478,6 +505,11 @@ class ConferenceRegistrationController extends Controller
                 'country' => $validated['country_id'],
                 'signatureName' => $conferenceSetting->name,
                 'signature' => $conferenceSetting->signature,
+                'conferenceAmount' => $validated['amount'],
+                'addons'           => [],
+                'workshop'         => null,
+                'accompany' => null,
+                'serviceCharge' =>  null,
                 'invitationType' => 1
             ];
             Mail::to($validated['email'])->send(new RegistrationMail($data));
@@ -516,6 +548,17 @@ class ConferenceRegistrationController extends Controller
                     $insertArray[] = $array;
                 }
                 AccompanyPerson::insert($insertArray);
+            }
+            if ($request->conference_addon_id) {
+                foreach ($request->conference_addon_id as $addon_id) {
+                    $addon = ConferenceAddon::where('id', $request->conference_addon_id)->first();
+                    // dd($addon);
+                    ConferenceRegistration_addon::create([
+                        'conference_registration_id' => $registration->id,
+                        'conference_addon_id' => $addon_id,
+                        'amount' => $storeUser->userDetail->country_id == 125 ? $addon->addon_national_amount : $addon->addon_international_amount,
+                    ]);
+                }
             }
             DB::commit();
 
@@ -592,15 +635,63 @@ class ConferenceRegistrationController extends Controller
 
     public function downloadVoucher($society, $conference, ConferenceRegistration $conferenceRegistration)
     {
+        // dd($conferenceRegistration);
         $user = User::where('id', $conferenceRegistration->user_id)->first();
         $date = \Carbon\Carbon::now()->format('F j, Y');
         $conferenceSetting = ConferenceSetting::where('conference_id', $conference->id)->first();
+        $conferenceRegistrationAddons = ConferenceRegistration_addon::where('conference_registration_id', $conferenceRegistration->id)->get();
+        $workshopRegistraion = WorkshopRegistration::where(['user_id' => $conferenceRegistration->user_id, 'transaction_id' => $conferenceRegistration->transaction_id])->first();
+        // dd($workshopRegistraion);
+        $membetType = $user->societies->where('id', $conference->society_id)->first()?->pivot?->memberType;
+        $memberTypePrice = ConferenceMemberTypePrice::where(['conference_id' => $conference->id, 'member_type_id' => $membetType->id])->first();
+        //conference amount
+        $conferenceAmount = '';
+        if (!empty($conference)) {
+            $createdAt = strtotime($conferenceRegistration->created_at);
+            $today = strtotime(date('Y-m-d'));
+
+            $earlyBirdDeadline = strtotime($conference->early_bird_registration_deadline);
+            $regularDeadline = strtotime($conference->regular_registration_deadline);
+
+            if ($earlyBirdDeadline >= $today && $earlyBirdDeadline >= $createdAt) {
+                $conferenceAmount = !empty($memberTypePrice->early_bird_amount) ? $memberTypePrice->early_bird_amount : '';
+            } elseif ($regularDeadline >= $today && $regularDeadline >= $createdAt) {
+                $conferenceAmount = !empty($memberTypePrice->regular_amount) ? $memberTypePrice->regular_amount : '';
+            }
+        }
+
+
+        $addonsData = [];
+        foreach ($conferenceRegistrationAddons as $addon) {
+            $addonsData[] = [
+                'name' => $addon->ConferenceAddon->addon_name,
+                'amount' => $addon->amount,
+            ];
+        }
+        // dd($addonsData->toArray());
+        $workshopData = null;
+        if ($workshopRegistraion) {
+            $workshopData = [
+                'name' => $workshopRegistraion->workshop->workshop_title,
+                'amount' => $workshopRegistraion->amount
+            ];
+        }
+
+        $serviceCharge =  $user->userDetail->country_id != 125 ? $conferenceRegistration->amount * 0.035 : null;
+        $accompanyData = null;
+        if ($conferenceRegistration->total_attendee > 1) {
+            $accompanyData = [
+                'accompany_person' => $conferenceRegistration->total_attendee - 1,
+                'amount' => $memberTypePrice->guest_amount
+            ];
+        }
 
         $data = [
             'namePrefix'      => $user->userDetail->prefix ?? null,
             'conference_theme' => $conference->conference_theme,
             'conference_name' => $conference->conference_name,
             'name'            => $user->fullName($user),
+            'namePrefix' => $user->userDetail->namePrefix->prefix,
             'email'           => $user->email,
             'paymentType'     => 'Online Payment',
             'transactionId'   => $conferenceRegistration->transaction_id,
@@ -615,7 +706,12 @@ class ConferenceRegistrationController extends Controller
             'primaryColor'    => $conference->primary_color,
             'country'         => $user->userDetail->country_id,
             'signatureName'   => $conferenceSetting->name,
-            'signature'       => $conferenceSetting->signature
+            'signature'       => $conferenceSetting->signature,
+            'conferenceAmount' => $conferenceAmount,
+            'addons'           => $addonsData,
+            'workshop'         => $workshopData,
+            'accompany' => $accompanyData,
+            'serviceCharge' => $serviceCharge
         ];
 
         $pdf = Pdf::loadView('emails.conference.payment-voucher', ['data' => $data])

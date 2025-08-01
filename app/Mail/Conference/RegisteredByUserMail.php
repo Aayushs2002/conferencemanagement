@@ -48,7 +48,7 @@ class RegisteredByUserMail extends Mailable
     /**
      * Get the attachments for the message.
      *
-     * @return array<int, \Illuminate\Mail\Mailables\Attachment>
+     * @return array<int, \Illuminate\Mail\Mailables\Attachment> 
      */
     public function attachments(): array
     {

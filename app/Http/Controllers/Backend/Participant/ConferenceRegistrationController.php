@@ -14,6 +14,7 @@ use App\Models\Payment\InternationalPayment;
 use App\Models\Payment\NationalPayment;
 use App\Models\User\UserSociety;
 use App\Models\Workshop\Workshop;
+use App\Models\Workshop\WorkshopRegistration;
 use App\Services\File\FileService;
 use Exception;
 use Illuminate\Http\Request;
@@ -34,7 +35,6 @@ class ConferenceRegistrationController extends Controller
     public function create($society, $conference)
     {
         $checkPayment = null;
-
         $membetType = current_user()->societies->where('id', $conference->society_id)->first()?->pivot?->memberType;
         $memberTypePrice = ConferenceMemberTypePrice::where(['conference_id' => $conference->id, 'member_type_id' => $membetType->id])->first();
         $amount = '';
@@ -130,9 +130,10 @@ class ConferenceRegistrationController extends Controller
                 return redirect()->back()->with('delete', 'Registration deadline has been ended.');
             } else {
                 $checkDuplicateRegistration = ConferenceRegistration::where(['user_id' => current_user()->id, 'conference_id' => $conference->id, 'status' => 1])->first();
+                $conferenceSetting = ConferenceSetting::where('conference_id', $conference->id)->first();
+                $membetType = current_user()->societies->where('id', $conference->society_id)->first()?->pivot?->memberType;
+                $memberTypePrice = ConferenceMemberTypePrice::where(['conference_id' => $conference->id, 'member_type_id' => $membetType->id])->first();
                 if (empty($checkDuplicateRegistration)) {
-
-
                     $authUser = current_user();
                     $validated['user_id'] = $authUser->id;
                     $validated['verified_status'] = $validated['payment_type'] == 6 ? 0 : 1;
@@ -140,39 +141,113 @@ class ConferenceRegistrationController extends Controller
                     $validated['total_attendee'] = empty($request->accompany_person) ? 1 : $request->accompany_person + 1;
                     $validated['token'] = random_word(60);
                     $date = \Carbon\Carbon::now()->format('F j, Y');
-
+                    // $onlinePayment = session()->get('onlinePayment');
+                    // dd($onlinePayment);
                     if (!empty($validated['payment_voucher'])) {
                         $validated['payment_voucher'] = $this->file_service->fileUpload($validated['payment_voucher'], 'payment_voucher', 'conference/payment-voucher');
                     }
-                    // if ($request->payment_type == 1) {
-                    //     $paymentType = 'FonePay';
-                    // } elseif ($request->payment_type == 2) {
-                    //     $paymentType = 'Moco';
-                    // } elseif ($request->payment_type == 3) {
-                    //     $paymentType = 'Esewa';
-                    // } elseif ($request->payment_type == 4) {
-                    //     $paymentType = 'Khalti';
-                    // } elseif ($request->payment_type == 5) {
-                    //     $paymentType = 'Card Payment';
-                    // }
+                    //conference amount
+                    $conferenceAmount = '';
+                    if (!empty($conference)) {
+                        if ($conference->early_bird_registration_deadline >= date('Y-m-d')) {
+                            $conferenceAmount = !empty($memberTypePrice->early_bird_amount) ? $memberTypePrice->early_bird_amount : '';
+                        } elseif ($conference->regular_registration_deadline >= date('Y-m-d')) {
+                            $conferenceAmount = !empty($memberTypePrice->regular_amount) ? $memberTypePrice->regular_amount : '';
+                        }
+                    }
 
-                    // $mailData = [
-                    //     'conference_theme' => $conference->conference_theme,
-                    //     'name' => $authUser->fullName($authUser),
-                    //     'namePrefix' => $authUser->userDetail->namePrefix->prefix,
-                    //     'email' => $authUser->email,
-                    //     'paymentType' => $paymentType,
-                    //     'transactionId' => $validated['transaction_id'],
-                    //     'amount' => $validated['amount'],
-                    //     'amountInWord' => numberToWord($validated['amount']),
-                    //     'date' => $date
-                    // ];
+                    $addonsData = [];
+                    if (!empty($request->selected_addons)) {
+                        $addons = explode(',', $request->selected_addons);
+                        foreach ($addons as $addon) {
+                            [$addonId, $amount] = explode(':', $addon);
+                            $addonDetail = ConferenceAddon::find($addonId); // Make sure model exists
+                            $addonsData[] = [
+                                'name'   => $addonDetail->addon_name ?? 'Addon ' . $addonId,
+                                'amount' => $amount
+                            ];
+                        }
+                    }
 
-                    // Mail::to($authUser->email)->send(new RegisteredByUserMail($mailData));
+                    $workshopData = null;
+                    if (!empty($request->workshop_id)) {
+                        $workshop = Workshop::find($request->workshop_id); // Make sure model exists
+                        $workshopData = [
+                            'name'   => $workshop->workshop_title ?? 'Workshop',
+                            'amount' => $request->workshop_amount
+                        ];
+                    }
+                    $accompanyData = null;
+                    if (!empty($request->accompany_person)) {
+                        $accompanyData = [
+                            'accompany_person' => $validated['accompany_person'],
+                            'amount'           => $memberTypePrice->guest_amount,
+                        ];
+                    }
+
+
+                    $mailData = [
+                        'conference_theme' => $conference->conference_theme,
+                        'conference_name'  => $conference->conference_name,
+                        'name' => $authUser->fullName($authUser), 
+                        'namePrefix' => $authUser->userDetail->namePrefix->prefix,
+                        'email' => $authUser->email,
+                        'paymentType' => 'Bank Transfer',
+                        'transactionId' => $validated['transaction_id'],
+                        'amount' => $validated['amount'],
+                        'amountInWord' => numberToWord($validated['amount']),
+                        'date' => $date,
+                        'societyName'      => $society->users->where('type', 2)->first()->f_name,
+                        'societyLogo'      => $society->logo,
+                        'societyPhone'     => $society->phone,
+                        'societyEmail'     => $society->users->where('type', 2)->first()->email,
+                        'societyAddress'   => $society->address,
+                        'primaryColor'     => $conference->primary_color,
+                        'country'          => $authUser->userDetail->country_id,
+                        'signatureName'    => $conferenceSetting->name,
+                        'signature'        => $conferenceSetting->signature,
+                        'conferenceAmount' => $conferenceAmount,
+                        'addons'           => $addonsData,
+                        'workshop'         => $workshopData,
+                        'accompany' => $accompanyData,
+                        'serviceCharge' => $authUser->userDetail->country_id != 125 ? $validated['amount'] * 0.035 : null
+                    ];
+
+                    Mail::to($authUser->email)->send(new RegisteredByUserMail($mailData));
 
                     DB::beginTransaction();
 
                     $conferenceRegistration = ConferenceRegistration::create($validated);
+                    if (!empty($request->selected_addons)) {
+                        $addons = explode(',', $request->selected_addons);
+                        $insertData = [];
+
+                        foreach ($addons as $addon) {
+                            [$addonId, $amount] = explode(':', $addon);
+                            $insertData[] = [
+                                'conference_registration_id' => $conferenceRegistration->id,
+                                'conference_addon_id'        => $addonId,
+                                'amount'                     => $amount,
+                                'created_at'                 => now(),
+                                'updated_at'                 => now(),
+                            ];
+                        }
+
+                        DB::table('conference_registration_addons')->insert($insertData);
+                    }
+
+                    // Create Workshop Registration
+                    if (!empty($request->workshop_id)) {
+                        WorkshopRegistration::create([
+                            'user_id'       => $authUser->id,
+                            'workshop_id'   => $request->workshop_id,
+                            'transaction_id' => $validated['transaction_id'],
+                            'payment_type'  => $validated['payment_type'],
+                            'amount'        => $request->workshop_amount,
+                            'token'         => random_word(60),
+                            'verified_status' => 1,
+                        ]);
+                    }
 
 
                     DB::commit();
@@ -219,91 +294,181 @@ class ConferenceRegistrationController extends Controller
     public function onlinePaymentSubmit(Request $request, $society, $conference)
     {
         try {
-
+            // Check if registration deadline passed
             if (is_past($conference->regular_registration_deadline)) {
-                return redirect()->back()->with('delete', 'Registration deadline has been ended.');
-            } else {
-                $checkDuplicateRegistration = ConferenceRegistration::where(['user_id' => current_user()->id, 'conference_id' => $conference->id, 'status' => 1])->first();
-                $conferenceSetting = ConferenceSetting::where('conference_id', $conference->id)->first();
-                // dd($conferenceSetting);
-                if (empty($checkDuplicateRegistration)) {
-                    $rules = [
-                        'accompany_person' => 'nullable|numeric',
-                        'registrant_type' => 'required',
-                        'amount' => 'required',
-                        'payment_type' => 'required',
-                        'transaction_id' => 'required|unique:conference_registrations,transaction_id'
-                    ];
+                return redirect()->back()->with('delete', 'Registration deadline has ended.');
+            }
 
-                    $message = [
-                        'transaction_id.unique' => 'Transaction/Reference Id already exist.',
-                        'person_name.*.required' => 'Each person name is required.',
-                    ];
+            // Check duplicate registration
+            $checkDuplicateRegistration = ConferenceRegistration::where([
+                'user_id'      => current_user()->id,
+                'conference_id' => $conference->id,
+                'status'       => 1
+            ])->first();
 
-                    $validated = $request->validate($rules, $message);
+            $conferenceSetting = ConferenceSetting::where('conference_id', $conference->id)->first();
+            $membetType = current_user()->societies->where('id', $conference->society_id)->first()?->pivot?->memberType;
+            $memberTypePrice = ConferenceMemberTypePrice::where(['conference_id' => $conference->id, 'member_type_id' => $membetType->id])->first();
+            if (!empty($checkDuplicateRegistration)) {
+                return redirect()->back()->with('delete', 'Registration already done for current conference.');
+            }
 
-                    $authUser = current_user();
-                    $validated['user_id'] = $authUser->id;
-                    $validated['verified_status'] = 1;
-                    $validated['conference_id'] = $conference->id;
-                    $validated['total_attendee'] = empty($request->accompany_person) ? 1 : $request->accompany_person + 1;
-                    $validated['token'] = random_word(60);
-                    $date = \Carbon\Carbon::now()->format('F j, Y');
+            // Validation rules
+            $rules = [
+                'accompany_person' => 'nullable|numeric',
+                'registrant_type'  => 'required',
+                'amount'           => 'required',
+                'payment_type'     => 'required',
+                'transaction_id'   => 'required|unique:conference_registrations,transaction_id'
+            ];
 
-                    if ($request->payment_type == 1) {
-                        $paymentType = 'FonePay';
-                    } elseif ($request->payment_type == 2) {
-                        $paymentType = 'Moco';
-                    } elseif ($request->payment_type == 3) {
-                        $paymentType = 'Esewa';
-                    } elseif ($request->payment_type == 4) {
-                        $paymentType = 'Khalti';
-                    } elseif ($request->payment_type == 5) {
-                        $paymentType = 'Card Payment';
-                    }
+            $message = [
+                'transaction_id.unique' => 'Transaction/Reference Id already exists.',
+                'person_name.*.required' => 'Each person name is required.',
+            ];
 
-                    $mailData = [
-                        'conference_theme' => $conference->conference_theme,
-                        'conference_name' => $conference->conference_name,
-                        'name' => $authUser->fullName($authUser),
-                        'namePrefix' => $authUser->userDetail->namePrefix->prefix,
-                        'email' => $authUser->email,
-                        'paymentType' => $paymentType,
-                        'transactionId' => $validated['transaction_id'],
-                        'amount' => $validated['amount'],
-                        'amountInWord' => numberToWord($validated['amount']),
-                        'date' => $date,
-                        'societyName' => $society->users->where('type', 2)->first()->f_name,
-                        'societyLogo' => $society->logo,
-                        'societyPhone' => $society->phone,
-                        'societyEmail' => $society->users->where('type', 2)->first()->email,
-                        'societyAddress' => $society->address,
-                        'primaryColor' => $conference->primary_color,
-                        'country' => $authUser->userDetail->country_id,
-                        'signatureName' => $conferenceSetting->name,
-                        'signature' => $conferenceSetting->signature
-                    ];
+            $validated = $request->validate($rules, $message);
 
-                    Mail::to($authUser->email)->send(new RegisteredByUserMail($mailData));
+            // Authenticated user
+            $authUser = current_user();
+            $validated['user_id']         = $authUser->id;
+            $validated['verified_status'] = 1;
+            $validated['conference_id']   = $conference->id;
+            $validated['total_attendee']  = empty($request->accompany_person) ? 1 : $request->accompany_person + 1;
+            $validated['token']           = random_word(60);
 
-                    DB::beginTransaction();
+            $date = \Carbon\Carbon::now()->format('F j, Y');
+            $onlinePayment = session()->get('onlinePayment');
 
-                    ConferenceRegistration::create($validated);
+            // --- Determine Payment Type ---
+            $paymentTypes = [
+                1 => 'FonePay',
+                2 => 'Moco',
+                3 => 'Esewa',
+                4 => 'Khalti',
+                5 => 'Card Payment'
+            ];
+            $paymentType = $paymentTypes[$request->payment_type] ?? 'Unknown';
 
-
-                    DB::commit();
-                    request()->session()->forget('onlinePayment');
-                    return redirect()->route('my-society.conference.index', [$society, $conference])->with('status', 'Successfully registered to conference.');
-                } else {
-                    return redirect()->back()->with('delete', 'Registration already done for current conference.');
+            //conference amount
+            $conferenceAmount = '';
+            if (!empty($conference)) {
+                if ($conference->early_bird_registration_deadline >= date('Y-m-d')) {
+                    $conferenceAmount = !empty($memberTypePrice->early_bird_amount) ? $memberTypePrice->early_bird_amount : '';
+                } elseif ($conference->regular_registration_deadline >= date('Y-m-d')) {
+                    $conferenceAmount = !empty($memberTypePrice->regular_amount) ? $memberTypePrice->regular_amount : '';
                 }
             }
+            // --- Collect Addons Info for Mail ---
+            $addonsData = [];
+            if (!empty($onlinePayment['selected_addons'])) {
+                $addons = explode(',', $onlinePayment['selected_addons']);
+                foreach ($addons as $addon) {
+                    [$addonId, $amount] = explode(':', $addon);
+                    $addonDetail = ConferenceAddon::find($addonId); // Make sure model exists
+                    $addonsData[] = [
+                        'name'   => $addonDetail->addon_name ?? 'Addon ' . $addonId,
+                        'amount' => $amount
+                    ];
+                }
+            }
+
+            // --- Collect Workshop Info for Mail ---
+            $workshopData = null;
+            if (!empty($onlinePayment['workshop_id'])) {
+                $workshop = Workshop::find($onlinePayment['workshop_id']); // Make sure model exists
+                $workshopData = [
+                    'name'   => $workshop->workshop_title ?? 'Workshop',
+                    'amount' => $onlinePayment['workshop_amount']
+                ];
+            }
+
+            $accompanyData = null;
+            if (!empty($request->accompany_person)) {
+                $accompanyData = [
+                    'accompany_person' => $validated['accompany_person'],
+                    'amount'           => $memberTypePrice->guest_amount,
+                ];
+            }
+            // --- Prepare Mail Data ---
+            $mailData = [
+                'conference_theme' => $conference->conference_theme,
+                'conference_name'  => $conference->conference_name,
+                'name'             => $authUser->fullName($authUser),
+                'namePrefix'       => $authUser->userDetail->namePrefix->prefix,
+                'email'            => $authUser->email,
+                'paymentType'      => $paymentType,
+                'transactionId'    => $validated['transaction_id'],
+                'amount'           => $validated['amount'],
+                'amountInWord'     => numberToWord($validated['amount']),
+                'date'             => $date,
+                'societyName'      => $society->users->where('type', 2)->first()->f_name,
+                'societyLogo'      => $society->logo,
+                'societyPhone'     => $society->phone,
+                'societyEmail'     => $society->users->where('type', 2)->first()->email,
+                'societyAddress'   => $society->address,
+                'primaryColor'     => $conference->primary_color,
+                'country'          => $authUser->userDetail->country_id,
+                'signatureName'    => $conferenceSetting->name,
+                'signature'        => $conferenceSetting->signature,
+                'conferenceAmount' => $conferenceAmount,
+                'addons'           => $addonsData,
+                'workshop'         => $workshopData,
+                'accompany' => $accompanyData
+            ];
+            // dd($mailData);
+            // Send Email
+            Mail::to($authUser->email)->send(new RegisteredByUserMail($mailData));
+
+            DB::beginTransaction();
+
+            // Create Conference Registration
+            $conference_registration = ConferenceRegistration::create($validated);
+
+            // Insert Addons
+            if (!empty($onlinePayment['selected_addons'])) {
+                $addons = explode(',', $onlinePayment['selected_addons']);
+                $insertData = [];
+
+                foreach ($addons as $addon) {
+                    [$addonId, $amount] = explode(':', $addon);
+                    $insertData[] = [
+                        'conference_registration_id' => $conference_registration->id,
+                        'conference_addon_id'        => $addonId,
+                        'amount'                     => $amount,
+                        'created_at'                 => now(),
+                        'updated_at'                 => now(),
+                    ];
+                }
+
+                DB::table('conference_registration_addons')->insert($insertData);
+            }
+
+            // Create Workshop Registration
+            if (!empty($onlinePayment['workshop_id'])) {
+                WorkshopRegistration::create([
+                    'user_id'       => $authUser->id,
+                    'workshop_id'   => $onlinePayment['workshop_id'],
+                    'transaction_id' => $validated['transaction_id'],
+                    'payment_type'  => $validated['payment_type'],
+                    'amount'        => $onlinePayment['workshop_amount'],
+                    'token'         => random_word(60),
+                    'verified_status' => 1,
+                ]);
+            }
+
+            DB::commit();
+            request()->session()->forget('onlinePayment');
+
+            return redirect()
+                ->route('my-society.conference.index', [$society, $conference])
+                ->with('status', 'Successfully registered to conference.');
         } catch (Exception $e) {
-            // dd($e);
             DB::rollBack();
             throw $e;
         }
     }
+
 
     public function updateRegistration(Request $request, $society, $conference)
     {

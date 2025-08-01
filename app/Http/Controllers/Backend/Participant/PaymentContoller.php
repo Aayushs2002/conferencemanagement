@@ -14,7 +14,7 @@ class PaymentContoller extends Controller
 {
     public function fonepay(Request $request, $society, $conference)
     {
-        dd($request->all(), $conference);
+        // dd($request->all(), $conference);
 
         if (is_past($conference->regular_registration_deadline)) {
             return redirect()->back()->with('delete', 'Conference Regisration date has ended.');
@@ -54,15 +54,15 @@ class PaymentContoller extends Controller
 
     public function fonePaySuccess(Request $request, $society, $conference)
     {
-        if ($request->RC == 'failed' || $request->RC == 'cancel') {
-            return redirect()->route('my-society.conference.create', [$society, $conference])->with('delete', 'Payment process has been failed or cancelled, please try again.');
-        } else {
+        // if ($request->RC == 'failed' || $request->RC == 'cancel') {
+        //     return redirect()->route('my-society.conference.create', [$society, $conference])->with('delete', 'Payment process has been failed or cancelled, please try again.');
+        // } else {
             $transactionId = $request->UID;
-            $amount = $request->P_AMT;
+            $amount = $request->P_AMT; 
             $national_payemnt_setting = NationalPayment::where('society_id', $conference->society_id)->first();
             $international_payemnt_setting = InternationalPayment::where('society_id', $conference->society_id)->first();
             return view('backend.participant.conference-registration.payment-success', compact('transactionId', 'amount', 'society', 'conference', 'national_payemnt_setting', 'international_payemnt_setting'));
-        }
+        // }
     }
 
     public function esewa(Request $request, $society, $conference)

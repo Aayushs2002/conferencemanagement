@@ -83,6 +83,20 @@
                             @enderror
                         </div>
                         <div class="col-md-4 form-group mb-3">
+                            <label for="meal_type">Add On</label>
+                            <select name="conference_addon_id[]" class="form-control select2" id="conference_addon_id"
+                                multiple>
+                                <option value="" hidden>-- Select Addon --</option>
+                                @foreach ($conferenceAddons as $addon)
+                                    <option value="{{ $addon->id }}">{{ $addon->addon_name }}</option>
+                                @endforeach
+                            </select>
+                            <div class="valid-feedback">Looks good!</div>
+                            @error('conference_addon_id')
+                                <p class="text-danger">{{ $message }}</p>
+                            @enderror
+                        </div>
+                        <div class="col-md-4 form-group mb-3">
                             <label for="additional_guests">Number Of Guests <code>(Excluding Registrant)</code></label>
                             <select name="additional_guests" id="additional_guests"
                                 class="form-control @error('additional_guests') is-invalid @enderror">
@@ -101,7 +115,7 @@
                             <label for="payment_voucher">Payment Voucher <code>(Only JPG/PNG/PDF) (Max: 250
                                     KB)</code></label>
                             <input type="file" class="form-control @error('payment_voucher') is-invalid @enderror"
-                                name="payment_voucher" id="image2" /> 
+                                name="payment_voucher" id="image2" />
                             @error('payment_voucher')
                                 <p class="text-danger">{{ $message }}</p>
                             @enderror

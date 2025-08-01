@@ -29,7 +29,7 @@
                </div>
            </div>
        </div>
-       <div class="main-content">
+       <div class="main-content" hidden>
            <div class="breadcrumb">
                <h3>Register Conference</h3>
            </div>
@@ -40,7 +40,7 @@
                        <div class="card mb-4">
                            @php
                                $onlinePayment = session()->get('onlinePayment');
-                            //    dd($onlinePayment);
+                               //    dd($onlinePayment);
                            @endphp
                            {{-- @dd($transactionId) --}}
                            <div class="card-body">
