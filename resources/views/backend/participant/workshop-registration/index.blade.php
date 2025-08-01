@@ -17,7 +17,7 @@
                100% {
                    opacity: 1;
                }
-           }
+           } 
 
            #meal {
                animation: blink 1s infinite;
@@ -195,7 +195,7 @@
                                                        class="form-control @error('transaction_id') is-invalid @enderror"
                                                        name="transaction_id" id="transaction_id"
                                                        value="{{ old('transaction_id') }}"
-                                                       placeholder="Enter transaction id or bill number"  />
+                                                       placeholder="Enter transaction id or bill number" />
                                                    @error('transaction_id')
                                                        <p class="text-danger">{{ $message }}</p>
                                                    @enderror
@@ -411,7 +411,7 @@
                                <td>{{ $registration->transaction_id }}</td>
                                <td>
                                    @if ($registration->payment_type == 1)
-                                       Fone-Pay
+                                       FonePay
                                    @elseif ($registration->payment_type == 2)
                                        Moco
                                    @elseif ($registration->payment_type == 3)
@@ -562,7 +562,7 @@
                                };
                                form.attr('action',
                                    '{{ route('my-society.conference.workshop-registration.fonePay', ['SOCIETY', 'CONFERENCE', 'WORKSHOP']) }}'
-                                   .replace("WORKSHOP", '{{ $hashedWorkshop }}')
+                                   .replace("WORKSHOP", workshopSlug)
                                    .replace("CONFERENCE", '{{ $hashedConference }}')
                                    .replace("SOCIETY", '{{ $hashedSociety }}')
                                );
@@ -579,7 +579,7 @@
                        $('#bankTransferProcessingDiv').hide();
                        form.attr('action',
                            '{{ route('my-society.conference.workshop-registration.internationalPayment', ['SOCIETY', 'CONFERENCE', 'WORKSHOP']) }}'
-                           .replace("WORKSHOP", '{{ $hashedWorkshop }}')
+                           .replace("WORKSHOP", workshopSlug)
                            .replace("CONFERENCE", '{{ $hashedConference }}')
                            .replace("SOCIETY", '{{ $hashedSociety }}')
                        );
@@ -602,7 +602,7 @@
                        $('#bankTransferProcessingDiv').hide();
                        form.attr('action',
                            '{{ route('my-society.conference.workshop-registration.esewa', ['SOCIETY', 'CONFERENCE', 'WORKSHOP']) }}'
-                           .replace("WORKSHOP", '{{ $hashedWorkshop }}')
+                           .replace("WORKSHOP", workshopSlug)
                            .replace("CONFERENCE", '{{ $hashedConference }}')
                            .replace("SOCIETY", '{{ $hashedSociety }}')
                        );
@@ -616,7 +616,7 @@
                        $('#bankTransferProcessingDiv').hide();
                        form.attr('action',
                            '{{ route('my-society.conference.workshop-registration.khalti', ['SOCIETY', 'CONFERENCE', 'WORKSHOP']) }}'
-                           .replace("WORKSHOP", '{{ $hashedWorkshop }}')
+                           .replace("WORKSHOP", workshopSlug)
                            .replace("CONFERENCE", '{{ $hashedConference }}')
                            .replace("SOCIETY", '{{ $hashedSociety }}')
                        );
@@ -628,9 +628,10 @@
                        $('#submitPaymentMode').attr('disabled', false);
                        $('#otherPaymentMode').attr('hidden', false);
                        $('#mocoButtonDiv').attr('hidden', true);
+
                        form.attr('action',
                            '{{ route('my-society.conference.workshop-registration.fonePay', ['SOCIETY', 'CONFERENCE', 'WORKSHOP']) }}'
-                           .replace("WORKSHOP", '{{ $hashedWorkshop }}')
+                           .replace("WORKSHOP", workshopSlug)
                            .replace("CONFERENCE", '{{ $hashedConference }}')
                            .replace("SOCIETY", '{{ $hashedSociety }}')
                        );
@@ -670,9 +671,10 @@
                        amount: workshopPrice,
                        _token: $('meta[name="csrf-token"]').attr('content')
                    };
-
+                   var mocoUrl =
+                       "{{ route('my-society.conference.workshop-registration.moco', [$society, $conference, 'WORKSHOP_SLUG']) }}";
                    $.ajax({
-                       url: "{{ route('my-society.conference.workshop-registration.moco', [$society, $conference, $hashedWorkshop ?? 'sa']) }}",
+                       url: mocoUrl.replace('WORKSHOP_SLUG', workshopSlug),
                        method: 'POST',
                        data: formData,
                        dataType: 'json',
@@ -826,9 +828,10 @@
                    let formData = new FormData(form);
                    console.log(form)
                    $('#submitButtonBankTransfer').prop('disabled', true).text('Submitting...');
-
+                   var storeWorkshopUrl =
+                       "{{ route('my-society.conference.workshop.store', [$society, $conference, 'WORKSHOP_SLUG']) }}";
                    $.ajax({
-                       url: "{{ route('my-society.conference.workshop.store', [$society, $conference, $hashedWorkshop]) }}",
+                       url: storeWorkshopUrl.replace('WORKSHOP_SLUG', workshopSlug),
                        type: 'POST',
                        data: formData,
                        contentType: false,

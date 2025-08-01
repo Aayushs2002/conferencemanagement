@@ -64,8 +64,8 @@ Route::middleware('auth')->group(function () {
     Route::post('conference-setting', [ConferenceSettingController::class, 'conferenceSetting'])->name('conference.setting');
     Route::post('conference-setting-submit', [ConferenceSettingController::class, 'conferenceSettingSubmit'])->name('conference.setting.submit');
 
-    Route::post('conference/add-on',[ConferenceAddonController::class,'addOn'])->name('conference.addon');
-    Route::post('conference/add-on-submit',[ConferenceAddonController::class,'addOnSubmit'])->name('conference.addon.submit');
+    Route::post('conference/add-on', [ConferenceAddonController::class, 'addOn'])->name('conference.addon');
+    Route::post('conference/add-on-submit', [ConferenceAddonController::class, 'addOnSubmit'])->name('conference.addon.submit');
 
     Route::controller(ConferenceRegistrationController::class)->name('conference.conference-registration.')->middleware('auto.conf.permission')->prefix('/society/{society}/conference/{conference}/conference-registration')->group(function () {
         Route::get('/registrant', 'index')->name('index');
@@ -207,6 +207,8 @@ Route::middleware('auth')->group(function () {
             Route::get('/register-for-new-user', 'registerForNewUser')->name('registerForNewUser');
             Route::post('/register-for-new-user-submit', 'registerForNewUserSubmit')->name('registerForNewUserSubmit');
             Route::get('/{workshop}', 'index')->name('index');
+            Route::post('/verify-form', 'verifyForm')->name('verifyForm');
+            Route::post('/verify', 'verify')->name('verify');
         });
 
 

@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Backend\Conference;
 use App\Exports\ConferenceRegistrationExport;
 use App\Http\Controllers\Controller;
 use App\Mail\Conference\ExceptionalRegistrationMail;
+use App\Mail\Conference\RegistrantAcceptMail;
+use App\Mail\Conference\RegistrantRejectMail;
 use App\Mail\Conference\RegistrationMail;
 use App\Models\Conference\AccompanyPerson;
 use App\Models\Conference\Attendance;
@@ -117,7 +119,7 @@ class ConferenceRegistrationController extends Controller
     public function registerForExceptionalCase($society, $conference)
     {
         // $conferenceDetail = conference_detail();
-        // if (empty($conferenceDetail)) {
+        // if (empty($conferenceDetail)) { 
         //     return redirect()->route('dashboard');
         // }
         $registeredUserIds = ConferenceRegistration::where('conference_id', $conference->id)->pluck('user_id');
@@ -184,7 +186,7 @@ class ConferenceRegistrationController extends Controller
                 $validated['payment_voucher'] = $this->file_service->fileUpload($validated['payment_voucher'], 'payment_voucher', 'conference/payment-voucher');
             }
 
-            // for values end
+            // for values end 
             $conferenceSetting = ConferenceSetting::where('conference_id', $conference->id)->first();
 
             $user = User::whereId($validated['user_id'])->first();
@@ -367,15 +369,16 @@ class ConferenceRegistrationController extends Controller
                 'namePrefix' => $conference_registration->user->userDetail->namePrefix->prefix,
                 'conference_theme' => $conference_registration->conference->conference_theme,
                 'registrant_type' => $conference_registration->registrant_type,
+                'conference_name' => $conference->conference_name,
             ];
 
             if ($request->verified_status == 1) {
-                // Mail::to($conference_registration->user->email)->send(new RegistrantAcceptMail($data));
+                Mail::to($conference_registration->user->email)->send(new RegistrantAcceptMail($data));
 
                 $conference_registration->update($validated);
             } else {
                 $data['remarks'] = $validated['remarks'];
-                // Mail::to($conference_registration->user->email)->send(new RegistrantRejectMail($data));
+                Mail::to($conference_registration->user->email)->send(new RegistrantRejectMail($data));
 
                 $conference_registration->update($validated);
             }
@@ -402,7 +405,7 @@ class ConferenceRegistrationController extends Controller
         $prefixesAll = NamePrefix::whereStatus(1)->get();
         $conferenceAddons = ConferenceAddon::where('conference_id', $conference->id)->get();
 
-        return view('backend.conference.conference-registration.registration-or-invitation', compact('prefixesAll', 'society', 'conference','conferenceAddons'));
+        return view('backend.conference.conference-registration.registration-or-invitation', compact('prefixesAll', 'society', 'conference', 'conferenceAddons'));
     }
 
     public function registrationOrInvitationSubmit(Request $request, $society, $conference)

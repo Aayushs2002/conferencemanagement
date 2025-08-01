@@ -29,8 +29,7 @@
             We have received your registration details and your selected payment method is
             <strong>{{ $data['paymentType'] }}</strong>.
             Your registration is currently <strong>pending verification</strong>.
-            Once your payment is reviewed and approved, you will receive a confirmation email
-            along with your registration details.
+            Once your payment is reviewed and approved, you will receive a confirmation email.
         </p>
     @else
         <p>

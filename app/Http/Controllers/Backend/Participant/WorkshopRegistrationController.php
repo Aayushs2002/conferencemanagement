@@ -3,7 +3,9 @@
 namespace App\Http\Controllers\Backend\Participant;
 
 use App\Http\Controllers\Controller;
+use App\Mail\Workshop\Registration\UserRegistrationMail;
 use App\Models\Conference\ConferenceMemberTypePrice;
+use App\Models\Conference\ConferenceSetting;
 use App\Models\Payment\InternationalPayment;
 use App\Models\Payment\NationalPayment;
 use App\Models\User\UserSociety;
@@ -12,6 +14,7 @@ use App\Models\Workshop\WorkshopRegistration;
 use App\Services\File\FileService;
 use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\ValidationException;
 
 class WorkshopRegistrationController extends Controller
@@ -62,31 +65,68 @@ class WorkshopRegistrationController extends Controller
 
             $validated = $request->validate($rules);
             // $validated['payment_voucher'] = 'Fone-Pay';
+            $authUser = current_user();
             $validated['user_id'] = current_user()->id;
             $validated['token'] = random_word(60);
             $validated['verified_status'] = 1;
-            // $workshop = Workshop::whereId($validated['workshop_id'])->first();
-            // $mailData = [
-            //     'receiverName' => $workshop->organizer->name,
-            //     'workshopTitle' => $workshop->title,
-            //     'senderName' => auth()->user()->name,
-            // ];
+            $date = \Carbon\Carbon::now()->format('F j, Y');
 
-            // Mail::to($workshop->contact_person_email)->send(new RegistrationMail($mailData));
+            $paymentTypes = [
+                1 => 'FonePay',
+                2 => 'Moco',
+                3 => 'Esewa',
+                4 => 'Khalti',
+                5 => 'Card Payment'
+            ];
+            $paymentType = $paymentTypes[$request->payment_type] ?? 'Unknown';
+            $workshop = Workshop::whereId($validated['workshop_id'])->first();
+            $conferenceSetting = ConferenceSetting::where('conference_id', $conference->id)->first();
+
+            $workshopData = null;
+            $workshopData = [
+                'name'   => $workshop->workshop_title ?? 'Workshop',
+                'amount' => $validated['amount']
+            ];
+            $mailData = [
+                'conference_theme' => $conference->conference_theme,
+                'conference_name'  => $conference->conference_name,
+                'name'             => $authUser->fullName($authUser),
+                'namePrefix'       => $authUser->userDetail->namePrefix->prefix,
+                'email'            => $authUser->email,
+                'paymentType'      => $paymentType,
+                'transactionId'    => $validated['transaction_id'],
+                'amount'           => $validated['amount'],
+                'amountInWord'     => numberToWord($validated['amount']),
+                'date'             => $date,
+                'societyName'      => $society->users->where('type', 2)->first()->f_name,
+                'societyLogo'      => $society->logo,
+                'societyPhone'     => $society->phone,
+                'societyEmail'     => $society->users->where('type', 2)->first()->email,
+                'societyAddress'   => $society->address,
+                'primaryColor'     => $conference->primary_color,
+                'country'          => $authUser->userDetail->country_id,
+                'signatureName'    => $conferenceSetting->name,
+                'signature'        => $conferenceSetting->signature,
+                'conferenceAmount' => null,
+                'addons'           => [],
+                'workshop'         => $workshopData,
+                'accompany' => null
+            ];
+
+            Mail::to($authUser->email)->send(new UserRegistrationMail($mailData));
 
             WorkshopRegistration::create($validated);
 
             return redirect()->route('my-society.conference.workshop.index', [$society, $conference])->with('status', 'Successfully registered for workshop.');
         } catch (Exception $e) {
-            dd($e);
+            // dd($e);
             return redirect()->back()->with('delete', 'Error while registering for workshop.');
         }
     }
 
     public function store(Request $request, $society, $conference, $workshop)
     {
-        // dd($workshop);
-        // dd($request->all());
+        // dd($request->all(),$workshop);
         $rules = [
             'transaction_id' => 'required|unique:workshop_registrations,transaction_id',
             'payment_voucher' => 'required',
@@ -100,14 +140,50 @@ class WorkshopRegistrationController extends Controller
                 'payment_voucher' => 'required',
                 'price' => 'required'
             ];
-
             $validated = $request->validate($rules);
+            $authUser = current_user();
             $validated['payment_type'] = 6;
             $validated['user_id'] = current_user()->id;
             $validated['token'] = random_word(60);
             $validated['verified_status'] = 0;
             $validated['workshop_id'] = $workshop->id;
             $validated['amount'] = $request->price;
+            $date = \Carbon\Carbon::now()->format('F j, Y');
+            // $workshop = Workshop::whereId($workshop->workshop_id)->first();
+            $conferenceSetting = ConferenceSetting::where('conference_id', $conference->id)->first();
+            $workshopData = null;
+            $workshopData = [
+                'name'   => $workshop->workshop_title ?? 'Workshop',
+                'amount' => $validated['amount']
+            ];
+
+            $mailData = [
+                'conference_theme' => $conference->conference_theme,
+                'conference_name'  => $conference->conference_name,
+                'name'             => $authUser->fullName($authUser),
+                'namePrefix'       => $authUser->userDetail->namePrefix->prefix,
+                'email'            => $authUser->email,
+                'paymentType'      => 'Bank Transfer',
+                'transactionId'    => $validated['transaction_id'],
+                'amount'           => $validated['amount'],
+                'amountInWord'     => numberToWord($validated['amount']),
+                'date'             => $date,
+                'societyName'      => $society->users->where('type', 2)->first()->f_name,
+                'societyLogo'      => $society->logo,
+                'societyPhone'     => $society->phone,
+                'societyEmail'     => $society->users->where('type', 2)->first()->email,
+                'societyAddress'   => $society->address,
+                'primaryColor'     => $conference->primary_color,
+                'country'          => $authUser->userDetail->country_id,
+                'signatureName'    => $conferenceSetting->name,
+                'signature'        => $conferenceSetting->signature,
+                'conferenceAmount' => null,
+                'addons'           => [],
+                'workshop'         => $workshopData,
+                'accompany' => null
+            ];
+            Mail::to($authUser->email)->send(new UserRegistrationMail($mailData));
+
             if (!empty($validated['payment_voucher'])) {
                 $validated['payment_voucher'] = $this->file_service->fileUpload($validated['payment_voucher'], 'payment_voucher', 'workshop/payment-voucher');
             }

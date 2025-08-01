@@ -48,10 +48,46 @@ class ConferenceRegistrationController extends Controller
         // dd($amount);
         $national_payemnt_setting = NationalPayment::where('society_id', $conference->society_id)->first();
         $international_payemnt_setting = InternationalPayment::where('society_id', $conference->society_id)->first();
-        $workshops = Workshop::where([
-            'conference_id' => $conference->id,
-            'status' => 1
-        ])->get();
+        $workshops = Workshop::with(['registrations' => function ($q) {
+            $q->where('status', 1);
+        }])
+            ->where([
+                'conference_id' => $conference->id,
+                'status' => 1
+            ])
+            ->get()
+            ->filter(function ($workshop) use ($membetType) {
+                $currentUserId = current_user()->id;
+
+                $checkRegistration = $workshop->registrations
+                    ->where('user_id', $currentUserId)
+                    ->first();
+
+                if (!empty($checkRegistration)) {
+                    return false;
+                }
+
+                $totalQuota = $workshop->no_of_participants;
+                $appliedQuota = $workshop->registrations->where('verified_status', 1)->count();
+
+                if ($appliedQuota >= $totalQuota) {
+                    return false;
+                }
+
+                $price = DB::table('workshop_registration_prices')
+                    ->where([
+                        'workshop_id' => $workshop->id,
+                        'member_type_id' => $membetType->id,
+                    ])
+                    ->first();
+
+                if (empty($price) || empty($price->price)) {
+                    return false;
+                }
+
+                return true;
+            });
+
         $conferenceAddons = ConferenceAddon::where(['conference_id' => $conference->id, 'status' => 1])->get();
         return view('backend.participant.conference-registration.create', compact('conference', 'amount', 'memberTypePrice', 'society', 'national_payemnt_setting', 'international_payemnt_setting', 'checkPayment', 'workshops', 'conferenceAddons'));
     }
@@ -189,7 +225,7 @@ class ConferenceRegistrationController extends Controller
                     $mailData = [
                         'conference_theme' => $conference->conference_theme,
                         'conference_name'  => $conference->conference_name,
-                        'name' => $authUser->fullName($authUser), 
+                        'name' => $authUser->fullName($authUser),
                         'namePrefix' => $authUser->userDetail->namePrefix->prefix,
                         'email' => $authUser->email,
                         'paymentType' => 'Bank Transfer',
@@ -244,11 +280,11 @@ class ConferenceRegistrationController extends Controller
                             'transaction_id' => $validated['transaction_id'],
                             'payment_type'  => $validated['payment_type'],
                             'amount'        => $request->workshop_amount,
+                            'payment_voucher' => $validated['payment_voucher'],
                             'token'         => random_word(60),
-                            'verified_status' => 1,
+                            'verified_status' => 0,
                         ]);
                     }
-
 
                     DB::commit();
                     request()->session()->forget('onlinePayment');

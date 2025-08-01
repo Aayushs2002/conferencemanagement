@@ -503,10 +503,12 @@
                 </tr>
             </thead>
             <tbody>
-                <tr>
-                    <td>Conference Registration Fee</td>
-                    <td>{{ $data['country'] == 125 ? 'Rs.' : '$' }}{{ $data['conferenceAmount'] }}</td>
-                </tr>
+                @if ($data['conferenceAmount'])
+                    <tr>
+                        <td>Conference Registration Fee</td>
+                        <td>{{ $data['country'] == 125 ? 'Rs.' : '$' }}{{ $data['conferenceAmount'] }}</td>
+                    </tr>
+                @endif
                 @if (!empty($data['accompany']))
                     <tr>
                         <td>Accompany Person X {{ $data['accompany']['accompany_person'] }}</td>
@@ -516,7 +518,7 @@
                 @endif
                 @if (!empty($data['addons']))
                     @foreach ($data['addons'] as $addon)
-                    {{-- @dd($addon) --}}
+                        {{-- @dd($addon) --}}
                         <tr>
                             <td>{{ $addon['name'] }} X
                                 {{ $data['accompany'] == null ? '1' : $data['accompany']['accompany_person'] + 1 }}

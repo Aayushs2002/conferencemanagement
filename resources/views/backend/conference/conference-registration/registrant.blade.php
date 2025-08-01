@@ -1,6 +1,6 @@
 @extends('backend.layouts.conference.main')
 
-@section('title')
+@section('title') 
     Registrant
 @endsection
 @section('content')

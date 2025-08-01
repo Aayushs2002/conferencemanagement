@@ -412,8 +412,7 @@
 
                             <!-- Calculate Button -->
                             <div class="text-center mb-4">
-                                <button type="button" id="calculatePrice" class="btn btn-primary btn-calculate btn-lg"
-                                    {{ empty($conference) ? 'disabled' : '' }}>
+                                <button type="button" id="calculatePrice" class="btn btn-primary btn-calculate btn-lg">
                                     <i class="fas fa-calculator"></i> Calculate Total Price
                                 </button>
                             </div>
@@ -614,11 +613,14 @@
                         <div id="processingDiv" style="display: none;">
                             <hr class="my-4">
                             <div class="row">
-                                <div class="col-md-4">
+                                <div class="col-md-4 paymentHeader mb-4">
                                     <div class="card border-info">
                                         <div class="card-header bg-info text-white">
                                             <h6 class="mb-0">
-                                                <i class="fas fa-info-circle"></i> Payment Information
+                                                <i class="fas fa-info-circle"></i>
+                                                <span class="text-white">
+                                                    Payment Information
+                                                </span>
                                             </h6>
                                         </div>
                                         <div class="card-body">
@@ -637,10 +639,13 @@
                                 </div>
 
                                 <div class="col-md-8">
-                                    <div class="card border-success">
-                                        <div class="card-header bg-success text-white">
+                                    <div class=" border-success">
+                                        <div class="card-header bg-success text-white paymentHeader" id="paymentHeader">
                                             <h6 class="mb-0">
-                                                <i class="fas fa-credit-card"></i> Complete Payment
+                                                <i class="fas fa-credit-card"></i>
+                                                <span class="text-white">
+                                                    Complete Payment
+                                                </span>
                                             </h6>
                                         </div>
                                         <div class="card-body">
@@ -664,7 +669,7 @@
                                                             id="fonePayAmount">
                                                         <input type="hidden" name="selected_addons"
                                                             id="selected_addons_fonepay">
-                                                        <div class="d-grid">
+                                                        <div class="d-grid d-flex justify-content-center">
                                                             <button type="submit" id="submitFonePay"
                                                                 class="btn btn-primary btn-lg" disabled>
                                                                 <i class="fas fa-qrcode"></i> Pay via QR Scan
@@ -693,7 +698,7 @@
                                                             id="esewaAmount">
                                                         <input type="hidden" name="selected_addons"
                                                             id="selected_addons_esewa">
-                                                        <div class="d-grid">
+                                                        <div class="d-grid d-flex justify-content-center">
                                                             <button type="submit" id="submitEsewa"
                                                                 class="btn btn-success btn-lg" disabled>
                                                                 <i class="fas fa-wallet"></i> Pay via eSewa
@@ -722,7 +727,7 @@
                                                             id="khaltiAmount">
                                                         <input type="hidden" name="selected_addons"
                                                             id="selected_addons_khalti">
-                                                        <div class="d-grid">
+                                                        <div class="d-grid d-flex justify-content-center">
                                                             <button type="submit" id="submitKhalti"
                                                                 class="btn btn-warning btn-lg" disabled>
                                                                 <i class="fas fa-mobile-alt"></i> Pay via Khalti
@@ -750,7 +755,7 @@
                                                         <input type="hidden" name="selected_addons"
                                                             id="selected_addons_moco">
 
-                                                        <div class="d-grid">
+                                                        <div class="d-grid d-flex justify-content-center">
                                                             <button type="submit" id="submitMoco"
                                                                 class="btn btn-info btn-lg" disabled>
                                                                 <span class="spinner-border spinner-border-sm d-none"
@@ -782,7 +787,7 @@
                                                         <input type="hidden" name="selected_addons"
                                                             id="selected_addons_international">
 
-                                                        <div class="d-grid">
+                                                        <div class="d-grid d-flex justify-content-center">
                                                             <button type="submit" id="submitButtonInternationalPayment"
                                                                 class="btn btn-primary btn-lg" disabled>
                                                                 <i class="fas fa-credit-card"></i> Pay via Card
@@ -798,7 +803,7 @@
                                                         method="POST" enctype="multipart/form-data"
                                                         id="bankTranferForm">
                                                         @csrf
-                                                        <div class="row">
+                                                        <div class="row my-4">
                                                             <div class="col-md-6 form-group mb-3">
                                                                 <label for="transaction_id" class="fw-bold">
                                                                     <i class="fas fa-receipt"></i> Transaction ID/Reference
@@ -837,7 +842,7 @@
                                                             id="bankAmount">
                                                         <input type="hidden" name="selected_addons"
                                                             id="selected_addons_bank">
-                                                        <div class="d-grid">
+                                                        <div class="d-grid d-flex justify-content-center">
                                                             <button type="submit" id="submitButtonBankTransfer"
                                                                 class="btn btn-success btn-lg" disabled>
                                                                 <i class="fas fa-university"></i> Submit Bank Transfer
@@ -1342,6 +1347,13 @@
                 }
 
                 const selectedValue = $(this).val();
+
+                if (selectedValue == 'bankTransfer') {
+                    $('.paymentHeader').show();
+                } else {
+                    $('.paymentHeader').hide();
+
+                }
                 const checkCountry = '{{ auth()->user()->userDetail->country->country_name }}';
                 const delegate = '{{ @$memberTypePrice->memberType->delegate }}';
 

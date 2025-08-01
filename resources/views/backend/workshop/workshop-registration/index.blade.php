@@ -79,13 +79,9 @@
                                 @elseif ($registration->verified_status == 2)
                                     <span class="badge bg-danger">Rejected</span>
                                 @else
-                                    @if ($registration->workshop->user_id == auth()->user()->id || auth()->user()->role == 2)
-                                        <a href="#" class="verifyRegistrant" data-id="{{ $registration->id }}"
-                                            data-toggle="modal" data-target="#openModal"><span
-                                                class="badge bg-warning">Unverified</span></a>
-                                    @else
-                                        <span class="badge bg-warning">Unverified</span>
-                                    @endif
+                                    <a href="#" class="verifyRegistrant" data-id="{{ $registration->id }}"
+                                        data-bs-toggle="modal" data-bs-target="#pricingModal"><span
+                                            class="badge bg-warning">Unverified</span></a>
                                 @endif
                             </td>
                             <td>{{ !empty($registration->remarks) ? $registration->remarks : '-' }}</td>
@@ -103,4 +99,26 @@
             </div>
         </div>
     </div>
+@endsection
+
+@section('scripts')
+    <script>
+        $(document).ready(function() {
+            $(document).on("click", ".verifyRegistrant", function(e) {
+                e.preventDefault();
+                $(".modal-dialog").removeClass('custom-modal-width');
+                var url =
+                '{{ route('workshop.workshop-registration.verifyForm', [$society, $conference]) }}';
+                var _token = '{{ csrf_token() }}';
+                var id = $(this).data('id');
+                var data = {
+                    _token: _token,
+                    id: id
+                };
+                $.post(url, data, function(response) {
+                    $('#modalContent').html(response);
+                });
+            });
+        });
+    </script>
 @endsection

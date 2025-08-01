@@ -3,6 +3,10 @@
 namespace App\Http\Controllers\Backend\Workshop\WorkshopRegistration;
 
 use App\Http\Controllers\Controller;
+use App\Mail\Workshop\Registration\AcceptMail;
+use App\Mail\Workshop\Registration\RegistrationByAdminMail;
+use App\Mail\Workshop\Registration\RejectMail;
+use App\Models\Conference\ConferenceSetting;
 use App\Models\Conference\PassSetting;
 use App\Models\User;
 use App\Models\User\Institution;
@@ -19,6 +23,7 @@ use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 
 class WorkshopRegistrationController extends Controller
 {
@@ -27,7 +32,51 @@ class WorkshopRegistrationController extends Controller
     public function index($society, $conference, $workshop)
     {
         $registrations = WorkshopRegistration::where(['workshop_id' => $workshop->id, 'registrant_type' => 1, 'status' => 1])->get();
-        return view('backend.workshop.workshop-registration.index', compact('registrations', 'workshop'));
+        return view('backend.workshop.workshop-registration.index', compact('registrations', 'workshop', 'society', 'conference'));
+    }
+
+    public function verifyForm($society, $conference, Request $request)
+    {
+        $registration = WorkshopRegistration::where('id', $request->id)->first();
+        return view('backend.workshop.workshop-registration.verify-registrant', compact('registration', 'society', 'conference'));
+    }
+
+    public function verify($society, $conference, Request $request)
+    {
+        try {
+            $rules = [
+                'verified_status' => 'required',
+            ];
+
+            if ($request->verified_status == 2) {
+                $rules['remarks'] = 'required';
+            }
+
+            $validated = $request->validate($rules);
+
+            $type = 'success';
+            $workshopRegistration = WorkshopRegistration::whereId($request->id)->first();
+
+            $mailData = [
+                'name' => $workshopRegistration->user->userDetail->namePrefix->prefix . ' ' . $workshopRegistration->user->fullName($workshopRegistration->user),
+                'workshopTitle' => $workshopRegistration->workshop->workshop_title,
+                'conference_name' => $conference->conference_name
+            ];
+
+            if ($request->verified_status == 1) {
+                Mail::to($workshopRegistration->user->email)->send(new AcceptMail($mailData));
+                $message = 'Registrant Accepted Successfully.';
+            } else {
+                $mailData['remarks'] = $validated['remarks'];
+                Mail::to($workshopRegistration->user->email)->send(new RejectMail($mailData));
+                $message = 'Registrant Rejected Successfully.';
+            }
+            $workshopRegistration->update($validated);
+        } catch (Exception $e) {
+            $type = 'error';
+            $message = $e->getMessage();
+        }
+        return response()->json(['type' => $type, 'message' => $message]);
     }
 
     public function registerForExceptionalCase($society, $conference)
@@ -66,15 +115,52 @@ class WorkshopRegistrationController extends Controller
             if (empty($checkUserRegistrationInWorkshop)) {
                 $validated['token'] = random_word(60);
                 $validated['verified_status'] = 1;
-                $validated['payment_type'] = 3;
+                $validated['payment_type'] = 6;
+                $date = \Carbon\Carbon::now()->format('F j, Y');
 
                 if (!empty($validated['payment_voucher'])) {
 
                     $validated['payment_voucher'] = $this->file_service->fileUpload($validated['payment_voucher'], 'payment_voucher', 'workshop/payment-voucher');
                 }
+                $user = User::whereId($request->user_id)->first();
+                $workshop = Workshop::whereId($validated['workshop_id'])->first();
+                $conferenceSetting = ConferenceSetting::where('conference_id', $conference->id)->first();
+
+                $workshopData = null;
+                $workshopData = [
+                    'name'   => $workshop->workshop_title ?? 'Workshop',
+                    'amount' => $validated['amount']
+                ];
+                $mailData = [
+                    'conference_theme' => $conference->conference_theme,
+                    'conference_name'  => $conference->conference_name,
+                    'name'             => $user->fullName($user),
+                    'namePrefix'       => $user->userDetail->namePrefix->prefix,
+                    'email'            => $user->email,
+                    'paymentType'      => 'Online Payment',
+                    'transactionId'    => $validated['transaction_id'],
+                    'amount'           => $validated['amount'],
+                    'amountInWord'     => numberToWord($validated['amount']),
+                    'date'             => $date,
+                    'societyName'      => $society->users->where('type', 2)->first()->f_name,
+                    'societyLogo'      => $society->logo,
+                    'societyPhone'     => $society->phone,
+                    'societyEmail'     => $society->users->where('type', 2)->first()->email,
+                    'societyAddress'   => $society->address,
+                    'primaryColor'     => $conference->primary_color,
+                    'country'          => $user->userDetail->country_id,
+                    'signatureName'    => $conferenceSetting->name,
+                    'signature'        => $conferenceSetting->signature,
+                    'conferenceAmount' => null,
+                    'addons'           => [],
+                    'workshop'         => $workshopData,
+                    'accompany' => null,
+                    'type' => 2,
+                ];
 
                 DB::beginTransaction();
 
+                Mail::to($user->email)->send(new RegistrationByAdminMail($mailData));
 
                 WorkshopRegistration::create($validated);
 
@@ -101,12 +187,13 @@ class WorkshopRegistrationController extends Controller
         return view('backend.workshop.workshop-registration.register-for-new-user', compact('workshops', 'prefixesAll', 'conference', 'society'));
     }
 
-    public function registerForNewUserSubmit(Request $request)
+    public function registerForNewUserSubmit($society, $conference, Request $request)
     {
         try {
             $checkUser = User::whereEmail($request->email)->first();
+            // dd($checkUser);
 
-            $workshop = WorkshopRegistration::where(['workshop_id' => $request->workshop_id, 'user_id' => $checkUser->id])->first();
+            $workshop = WorkshopRegistration::where(['workshop_id' => $request->workshop_id, 'user_id' => $checkUser?->id])->first();
             if ($workshop) {
                 return redirect()->back()->withInput()->with('delete', 'User already registered for this workshop.');
             }
@@ -139,8 +226,9 @@ class WorkshopRegistrationController extends Controller
 
             $validated['token'] = random_word(60);
             $validated['verified_status'] = 1;
-            $validated['payment_type'] = 3;
+            $validated['payment_type'] = 6;
             $validated['type'] = 3;
+            $date = \Carbon\Carbon::now()->format('F j, Y');
 
             if (!empty($validated['payment_voucher'])) {
                 $validated['payment_voucher'] = $this->file_service->fileUpload($validated['payment_voucher'], 'payment_voucher', 'workshop/payment-voucher');
@@ -161,6 +249,43 @@ class WorkshopRegistrationController extends Controller
             $storeUser->societies()->attach($societyId, [
                 'member_type_id' => $validated['member_type_id'],
             ]);
+
+            $workshop = Workshop::whereId($validated['workshop_id'])->first();
+            $conferenceSetting = ConferenceSetting::where('conference_id', $conference->id)->first();
+
+            $workshopData = null;
+            $workshopData = [
+                'name'   => $workshop->workshop_title ?? 'Workshop',
+                'amount' => $validated['amount']
+            ];
+            $namePrefix = DB::table('name_prefixes')->whereId($validated['name_prefix_id'])->first()->prefix;
+            $mailData = [
+                'conference_theme' => $conference->conference_theme,
+                'conference_name'  => $conference->conference_name,
+                'name' => $request->f_name . ' ' . $request->m_name . ' ' . $request->l_name,
+                'namePrefix'       => $namePrefix,
+                'email'            => $request->email,
+                'paymentType'      => 'Online Payment',
+                'transactionId'    => $validated['transaction_id'],
+                'amount'           => $validated['amount'],
+                'amountInWord'     => numberToWord($validated['amount']),
+                'date'             => $date,
+                'societyName'      => $society->users->where('type', 2)->first()->f_name,
+                'societyLogo'      => $society->logo,
+                'societyPhone'     => $society->phone,
+                'societyEmail'     => $society->users->where('type', 2)->first()->email,
+                'societyAddress'   => $society->address,
+                'primaryColor'     => $conference->primary_color,
+                'country'          => $request->country_id,
+                'signatureName'    => $conferenceSetting->name,
+                'signature'        => $conferenceSetting->signature,
+                'conferenceAmount' => null,
+                'addons'           => [],
+                'workshop'         => $workshopData,
+                'accompany' => null,
+                'type' => 1,
+            ];
+            Mail::to($request->email)->send(new RegistrationByAdminMail($mailData));
 
             // insert table-3
             WorkshopRegistration::create($validated);
