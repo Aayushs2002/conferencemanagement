@@ -32,6 +32,7 @@
                         <th scope="col">Payment Type/Payment Voucher</th>
                         <th scope="col">Verified Status</th>
                         <th scope="col">Remarks</th>
+                        <th scope="col">Action</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -85,6 +86,36 @@
                                 @endif
                             </td>
                             <td>{{ !empty($registration->remarks) ? $registration->remarks : '-' }}</td>
+                            <td>
+                                <div class="dropdown">
+                                    <button type="button" class="btn p-0 dropdown-toggle hide-arrow"
+                                        data-bs-toggle="dropdown">
+                                        <i class="icon-base ti tabler-dots-vertical"></i>
+                                    </button>
+                                    <div class="dropdown-menu">
+                                        {{-- @if (auth()->user()->hasConferencePermissionBlade(getConference(request()->segment(4)), 'Edit Workshop'))
+                                            <a class="dropdown-item"
+                                                href="{{ route('workshop.edit', [$society, $conference, $workshop]) }}"><i
+                                                    class="icon-base ti tabler-pencil me-1"></i> Edit</a>
+                                        @endif --}}
+                                        <a class="dropdown-item viewData" data-id="{{ $registration->id }}"
+                                            data-bs-toggle="modal" data-bs-target="#pricingModal"><i
+                                                class="icon-base ti tabler-eye me-1 "></i> View</a>
+                                        <a class="dropdown-item"
+                                            href="{{ route('workshop.workshop-registration.downloadVoucher', [$society, $conference, $registration->id]) }}"><i
+                                                class="icon-base ti tabler-ticket me-1"></i> Downlaod Payment Voucher</a>
+                                        {{-- <hr>
+                                        <form action="{{ route('workshop.destroy', [$society, $conference, $workshop->id]) }}"
+                                            method="POST">
+                                            @method('delete')
+                                            @csrf
+                                            <a class="dropdown-item text-danger delete" href="javascript:void(0);"><i
+                                                    class="icon-base ti tabler-trash me-1"></i> Delete</a>
+                                        </form> --}}
+                                    </div>
+
+                                </div>
+                            </td>
                             {{-- <td><a href="{{ route('workshop-registration.generateCertificate', $registration->id) }}" class="btn btn-info btn-sm mt-1" target="_blank"><i class="nav-icon i-File"></i> Generate</a></td> --}}
                         </tr>
                     @endforeach
@@ -108,7 +139,22 @@
                 e.preventDefault();
                 $(".modal-dialog").removeClass('custom-modal-width');
                 var url =
-                '{{ route('workshop.workshop-registration.verifyForm', [$society, $conference]) }}';
+                    '{{ route('workshop.workshop-registration.verifyForm', [$society, $conference]) }}';
+                var _token = '{{ csrf_token() }}';
+                var id = $(this).data('id');
+                var data = {
+                    _token: _token,
+                    id: id
+                };
+                $.post(url, data, function(response) {
+                    $('#modalContent').html(response);
+                });
+            });
+            $(document).on("click", ".viewData", function(e) {
+                e.preventDefault();
+                $(".modal-dialog").removeClass('custom-modal-width');
+                var url =
+                    '{{ route('workshop.workshop-registration.view', [$society, $conference]) }}';
                 var _token = '{{ csrf_token() }}';
                 var id = $(this).data('id');
                 var data = {

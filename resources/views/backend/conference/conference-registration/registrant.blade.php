@@ -203,7 +203,7 @@
                                 @elseif ($registrant->registrant_type == 3)
                                     Session Chair
                                 @elseif ($registrant->registrant_type == 4)
-                                    Special Guest
+                                    Special Guest 
                                 @endif
                                 @if ($registrant->is_invited == 1)
                                     <span title="Invited"

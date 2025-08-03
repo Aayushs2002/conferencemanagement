@@ -97,4 +97,9 @@ GROUP BY MT.id, MT.delegate, MT.type";
     {
         return $this->hasMany(Meal::class, 'conference_registration_id', 'id');
     }
+
+    public function addons()
+    {
+        return $this->hasMany(ConferenceRegistration_addon::class, 'conference_registration_id', 'id');
+    }
 }

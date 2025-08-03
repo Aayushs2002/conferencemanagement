@@ -40,7 +40,7 @@
     <br>
     <div>
         <p>Best Regards,</p>
-                <p>SAFOGCON 2025</p>
+        <p>SAFOGCON 2025</p>
 
     </div>
 </body>

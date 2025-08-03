@@ -19,6 +19,7 @@ use App\Models\Workshop\WorkshopAttendance;
 use App\Models\Workshop\WorkshopPassSetting;
 use App\Models\Workshop\WorkshopRegistration;
 use App\Services\File\FileService;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -33,6 +34,12 @@ class WorkshopRegistrationController extends Controller
     {
         $registrations = WorkshopRegistration::where(['workshop_id' => $workshop->id, 'registrant_type' => 1, 'status' => 1])->get();
         return view('backend.workshop.workshop-registration.index', compact('registrations', 'workshop', 'society', 'conference'));
+    }
+
+    public function view($society, $conference, Request $request)
+    {
+        $registrant = WorkshopRegistration::where('id', $request->id)->first();
+        return view('backend.workshop.workshop-registration.view', compact('registrant'));
     }
 
     public function verifyForm($society, $conference, Request $request)
@@ -326,5 +333,58 @@ class WorkshopRegistrationController extends Controller
         } catch (Exception $e) {
             throw $e;
         }
+    }
+
+    public function downloadVoucher($society, $conference, WorkshopRegistration $workshopRegistration)
+    {
+        // dd($conferenceRegistration);
+        $user = User::where('id', $workshopRegistration->user_id)->first();
+        $date = \Carbon\Carbon::now()->format('F j, Y');
+        $conferenceSetting = ConferenceSetting::where('conference_id', $conference->id)->first();
+
+
+
+        // dd($addonsData->toArray());
+        $workshopData = null;
+        if ($workshopRegistration) {
+            $workshopData = [
+                'name' => $workshopRegistration->workshop->workshop_title,
+                'amount' => $workshopRegistration->amount
+            ];
+        }
+
+
+        $data = [
+            'namePrefix'      => $user->userDetail->prefix ?? null,
+            'conference_theme' => $conference->conference_theme,
+            'conference_name' => $conference->conference_name,
+            'name'            => $user->fullName($user),
+            'namePrefix' => $user->userDetail->namePrefix->prefix,
+            'email'           => $user->email,
+            'paymentType'     => 'Online Payment',
+            'transactionId'   => $workshopRegistration->transaction_id,
+            'amount'          => $workshopRegistration->amount,
+            'amountInWord'    => numberToWord($workshopRegistration->amount),
+            'date'            => $date,
+            'societyName'     => $society->users->where('type', 2)->first()->f_name,
+            'societyLogo'     => $society->logo,
+            'societyPhone'    => $society->phone,
+            'societyEmail'    => $society->users->where('type', 2)->first()->email,
+            'societyAddress'  => $society->address,
+            'primaryColor'    => $conference->primary_color,
+            'country'         => $user->userDetail->country_id,
+            'signatureName'   => $conferenceSetting->name,
+            'signature'       => $conferenceSetting->signature,
+            'conferenceAmount' => null,
+            'addons'           => [],
+            'workshop'         => $workshopData,
+            'accompany' => null,
+            'serviceCharge' => null
+        ];
+
+        $pdf = Pdf::loadView('emails.conference.payment-voucher', ['data' => $data])
+            ->setPaper('legal', 'portrait');
+
+        return $pdf->download('payment-voucher.pdf');
     }
 }

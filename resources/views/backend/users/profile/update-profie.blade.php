@@ -9,13 +9,17 @@
                 </div>
                 <form class="needs-validation" enctype="multipart/form-data">
                     <div class="row g-6">
-                        <div class="col-12 col-md-6">
+
+                        {{-- Institution Name --}}
+                        <div class="col-12 col-md-6" id="institutionWrapper"
+                            @if (current_user()->userDetail->country_id != 125) style="display: none;" @endif>
                             <label for="institution_id" class="form-label">Institution Name <code>*</code></label>
                             <select class="form-select" name="institution_id" id="institution_id" required>
-                                <option value="" hidden>-- Select Institution Name --</option> 
+                                <option value="" hidden>-- Select Institution Name --</option>
                                 @foreach ($institutions as $institution)
                                     <option value="{{ $institution->id }}" @selected(old('institution_id') == $institution->id)>
-                                        {{ $institution->name }}</option>
+                                        {{ $institution->name }}
+                                    </option>
                                 @endforeach
                                 <option value="other" @selected(old('institution_id') == 'other')>Others</option>
                             </select>
@@ -24,23 +28,34 @@
                             @enderror
                         </div>
 
-                        <div class="col-12 col-md-6" id="otherInstitutionWrapper" style="display: none;">
-                            <label for="other_institution_name" class="form-label">Other Institution Name</label>
+                        {{-- Other Institution Name --}}
+                        <div class="col-12 col-md-6" id="otherInstitutionWrapper"
+                            @if (current_user()->userDetail->country_id != 125) style="display: block;" @else style="display: none;" @endif>
+                            <label for="other_institution_name" class="form-label">
+                                @if (current_user()->userDetail->country_id != 125)
+                                    Institution Name
+                                @else
+                                    Other Institution Name
+                                @endif
+                                <code>*</code>
+                            </label>
                             <input type="text" class="form-control" name="other_institution_name"
                                 id="other_institution_name" placeholder="Enter Institution Name"
-                                value="{{ old('other_institution_name') }}" >
+                                value="{{ old('other_institution_name') }}">
                             @error('other_institution_name')
                                 <p class="text-danger">{{ $message }}</p>
                             @enderror
                         </div>
 
+                        {{-- Designation --}}
                         <div class="col-12 col-md-6">
                             <label for="designation_id" class="form-label">Designation <code>*</code></label>
                             <select class="form-select" name="designation_id" id="designation_id" required>
                                 <option value="" hidden>-- Select Designation --</option>
                                 @foreach ($designations as $designation)
                                     <option value="{{ $designation->id }}" @selected(old('designation_id') == $designation->id)>
-                                        {{ $designation->designation }}</option>
+                                        {{ $designation->designation }}
+                                    </option>
                                 @endforeach
                             </select>
                             @error('designation_id')
@@ -48,13 +63,15 @@
                             @enderror
                         </div>
 
+                        {{-- Department --}}
                         <div class="col-12 col-md-6">
                             <label for="department_id" class="form-label">Department <code>*</code></label>
                             <select class="form-select" name="department_id" id="department_id" required>
                                 <option value="" hidden>-- Select Department --</option>
                                 @foreach ($departments as $department)
                                     <option value="{{ $department->id }}" @selected(old('department_id') == $department->id)>
-                                        {{ $department->name }}</option>
+                                        {{ $department->name }}
+                                    </option>
                                 @endforeach
                             </select>
                             @error('department_id')
@@ -62,6 +79,7 @@
                             @enderror
                         </div>
 
+                        {{-- Institution Address --}}
                         <div class="col-12 col-md-6">
                             <label class="form-label" for="institute_address">Institution Address<code>*</code></label>
                             <input type="text" id="institute_address" name="institute_address" class="form-control"
@@ -72,6 +90,7 @@
                             @enderror
                         </div>
 
+                        {{-- Medical Council Number --}}
                         @if (
                             (current_user()->userDetail->name_prefix_id == 1 || current_user()->userDetail->name_prefix_id == 3) &&
                                 current_user()->userDetail->country_id == 125)
@@ -87,6 +106,7 @@
                             </div>
                         @endif
 
+                        {{-- Photo Upload --}}
                         <div class="col-12 col-md-6">
                             <label class="form-label" for="image">Photo <code>*(Passport Sized Image)</code></label>
                             <input type="file" id="image" name="image" required class="form-control" />
@@ -113,13 +133,19 @@
 
         const institutionSelect = document.getElementById('institution_id');
         const otherInstitutionWrapper = document.getElementById('otherInstitutionWrapper');
+        const institutionWrapper = document.getElementById('institutionWrapper');
 
-        function toggleOtherInstitution() {
-            otherInstitutionWrapper.style.display = institutionSelect.value === 'other' ? 'block' : 'none';
-        }
-
-        institutionSelect.addEventListener('change', toggleOtherInstitution);
-        toggleOtherInstitution();
+        @if (current_user()->userDetail->country_id == 125)
+            function toggleOtherInstitution() {
+                otherInstitutionWrapper.style.display = institutionSelect.value === 'other' ? 'block' : 'none';
+            }
+            institutionSelect.addEventListener('change', toggleOtherInstitution);
+            toggleOtherInstitution();
+        @else
+            if (institutionSelect) institutionSelect.value = 'other';
+            if (institutionWrapper) institutionWrapper.style.display = 'none';
+            if (otherInstitutionWrapper) otherInstitutionWrapper.style.display = 'block';
+        @endif
 
         const form = document.querySelector('form.needs-validation');
 

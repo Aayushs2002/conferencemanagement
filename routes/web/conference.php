@@ -209,6 +209,8 @@ Route::middleware('auth')->group(function () {
             Route::get('/{workshop}', 'index')->name('index');
             Route::post('/verify-form', 'verifyForm')->name('verifyForm');
             Route::post('/verify', 'verify')->name('verify');
+            Route::get('/download-voucher/{workshopRegistration}', 'downloadVoucher')->name('downloadVoucher');
+            Route::post('/view', 'view')->name('view');
         });
 
 

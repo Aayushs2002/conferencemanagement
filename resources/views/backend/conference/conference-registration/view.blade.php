@@ -40,6 +40,19 @@
                 <span>{{ $memberType->type }}</span>
             </div>
             <div class="col-md-4 mb-4">
+                <p class="text-primary mb-1"><i class="i-ID-2 text-14 mr-1"></i>Addon</p>
+                @foreach ($registrant->addons as $addon)
+                    <span>
+                        {{ $addon->ConferenceAddon->addon_name }}
+                    </span>
+                @endforeach
+
+            </div>
+            <div class="col-md-4 mb-4">
+                <p class="text-primary mb-1"><i class="i-ID-2 text-14 mr-1"></i>Total Amount</p>
+                <span>{{ $registrant->amount }}</span>
+            </div>
+            <div class="col-md-4 mb-4">
                 <p class="text-primary mb-1"><i class="i-ID-2 text-14 mr-1"></i>Council Number</p>
                 <span>{{ $registrant->user->userDetail->council_number }}</span>
             </div>

@@ -1468,7 +1468,7 @@
                                 notyf.error('Please submit your presentation first.');
                                 setTimeout(function() {
                                     window.location.href =
-                                        '{{ route('my-society.conference.submission.create', [$society, $conference]) }}';
+                                        '{{ route('my-society.conference.submission.index', [$society, $conference]) }}';
                                 }, 1500);
                             } else {
                                 $("#openModal").modal('hide');

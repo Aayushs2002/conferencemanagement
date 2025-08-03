@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Backend\User;
 
 use App\Http\Controllers\Controller;
 use App\Mail\Conference\RegistrationMail;
+use App\Mail\User\ResetPasswordMail;
 use App\Models\Conference\Conference;
 use App\Models\Conference\ConferenceRegistration;
 use App\Models\Conference\Expert;
@@ -270,26 +271,26 @@ class SignupUserController extends Controller
         return response()->json(['type' => $type, 'message' => $message]);
     }
 
-    public function resetPassword(Request $request)
+    public function resetPassword($society, $conference, Request $request)
     {
-        // dd($request->all());
         try {
             $type = 'success';
             $message = 'Password has been reset successfully.';
-            $admin = User::whereId($request->userId)->first();
+            $user = User::whereId($request->userId)->first();
 
             $generatedPassword = random_word(8);
             $hashedPassword = hash_password($generatedPassword);
 
             $data = [
-                'receiverName' => $admin->name,
-                'loginEmail' => $admin->email,
+                'receiverName' => $user->fullName($user),
+                'loginEmail' => $user->email,
                 'generatedPassword' => $generatedPassword,
+                'conference_name' => $conference->conference_name
             ];
 
-            // Mail::to($admin->email)->send(new ResetPasswordMail($data));
+            Mail::to($user->email)->send(new ResetPasswordMail($data));
 
-            $admin->update(['password' => $hashedPassword]);
+            $user->update(['password' => $hashedPassword]);
         } catch (Exception $e) {
             $type = 'error';
             $message = $e->getMessage();

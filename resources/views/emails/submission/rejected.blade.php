@@ -24,7 +24,7 @@
     <div>
         <p>Best Regards,</p>
         <p>Scientific committee</p>
-               <p>SAFOGCON 2025</p>
+        <p>SAFOGCON 2025</p>
 
     </div>
 </body>

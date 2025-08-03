@@ -148,7 +148,7 @@
                            <div class="row">
                                <div class="col-12 text-end">
                                    <button type="submit"
-                                       class="btn btn-primary">{{ isset($society) ? 'Update' : 'Submit' }}</button>
+                                       class="btn btn-primary">{{ isset($submission) ? 'Update' : 'Submit' }}</button>
                                </div>
                            </div>
                        </div>
