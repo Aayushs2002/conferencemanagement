@@ -3,7 +3,7 @@ name: Deploy Laravel to VPS
 on:
   push:
     branches:
-      - main # Or your production branch
+      - master # Or your production branch
 
 jobs:
   deploy:
