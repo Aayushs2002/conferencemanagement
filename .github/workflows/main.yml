@@ -14,28 +14,22 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # 2. Setup PHP
-      - name: Setup PHP
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: '8.3'
-          extensions: mbstring, bcmath, curl
-
-      # 3. Install Composer dependencies
-      - name: Install dependencies
-        run: composer install --no-dev --optimize-autoloader
-
-      # 4. Upload files to VPS
+      # 2. Upload files to VPS (excluding unnecessary files)
       - name: Deploy to VPS
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
-          source: "."
+          source: |
+            ./*
+            !.git/
+            !.github/
+            !node_modules/
+            !tests/
           target: "/var/www/conferencemanagement"
 
-      # 5. Run Artisan commands on VPS
+      # 3. Run Artisan & Server Commands on VPS
       - name: Run Artisan commands
         uses: appleboy/ssh-action@v0.1.10
         with:
@@ -44,12 +38,12 @@ jobs:
           key: ${{ secrets.VPS_SSH_KEY }}
           script: |
             cd /var/www/conferencemanagement
-            COMPOSER_ALLOW_SUPERUSER=1 composer install --no-dev --optimize-autoloader
+            sudo -u www-data composer install --no-dev --optimize-autoloader
             php artisan migrate --force
             php artisan config:cache
             php artisan route:cache
             php artisan view:cache
             sudo chown -R www-data:www-data storage bootstrap/cache
             sudo chmod -R 775 storage bootstrap/cache
-            sudo systemctl restart php8.3-fpm
+            sudo systemctl reload php8.3-fpm
             sudo systemctl reload apache2
