@@ -3,105 +3,53 @@ name: Deploy Laravel to VPS
 on:
   push:
     branches:
-      - master # Change to your production branch if different
+      - master # Or your production branch
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
-      # 1️⃣ Checkout repository
+      # 1. Checkout repository
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # 2️⃣ Setup PHP for Composer
+      # 2. Setup PHP
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: "8.3"
+          php-version: '8.3'
           extensions: mbstring, bcmath, curl
 
-      # 3️⃣ Install dependencies (without dev)
+      # 3. Install Composer dependencies
       - name: Install dependencies
         run: composer install --no-dev --optimize-autoloader
 
-      # 4️⃣ Create deploy package
-      - name: Prepare deployment package
-        run: |
-          zip -r deploy.zip . \
-            -x "*.git*" \
-            -x "*.github*" \
-            -x "node_modules/*" \
-            -x "tests/*" \
-            -x "storage/logs/*"
-
-      # 5️⃣ Upload package to VPS
-      - name: Upload to VPS
+      # 4. Upload files to VPS
+      - name: Deploy to VPS
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
-          source: "deploy.zip"
+          source: "."
           target: "/var/www/conferencemanagement"
 
-      # 6️⃣ Deploy on VPS
-      - name: Deploy on VPS
+      # 5. Run Artisan commands on VPS
+      - name: Run Artisan commands
         uses: appleboy/ssh-action@v0.1.10
         with:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
           script: |
-            set -e
-
-            # Ensure unzip is available
-            if ! command -v unzip &> /dev/null; then
-              echo "Installing unzip..."
-              sudo apt-get update -y
-              sudo apt-get install -y unzip
-            fi
-
-            APP_DIR="/var/www/conferencemanagement"
-            RELEASES_DIR="$APP_DIR/releases"
-            CURRENT_DIR="$APP_DIR/current"
-            TIMESTAMP=$(date +%Y%m%d%H%M%S)
-            RELEASE_DIR="$RELEASES_DIR/$TIMESTAMP"
-
-            # Create necessary directories
-            mkdir -p $RELEASES_DIR
-            mkdir -p $APP_DIR/storage
-
-            # Unzip new release
-            mkdir -p $RELEASE_DIR
-            mv $APP_DIR/deploy.zip $RELEASE_DIR/
-            cd $RELEASE_DIR
-            unzip deploy.zip
-            rm deploy.zip
-
-            # Link storage & .env
-            ln -sfn $APP_DIR/storage storage
-            if [ -f $APP_DIR/.env ]; then
-              ln -sfn $APP_DIR/.env .env
-            fi
-
-            # Run Laravel optimizations
+            cd /var/www/conferencemanagement
             COMPOSER_ALLOW_SUPERUSER=1 composer install --no-dev --optimize-autoloader
             php artisan migrate --force
             php artisan config:cache
             php artisan route:cache
             php artisan view:cache
-
-            # Set permissions
-            sudo chown -R www-data:www-data $APP_DIR/storage $RELEASE_DIR/bootstrap/cache
-            sudo chmod -R 775 $APP_DIR/storage $RELEASE_DIR/bootstrap/cache
-
-            # Point current symlink to new release
-            ln -sfn $RELEASE_DIR $CURRENT_DIR
-
-            # Restart PHP and Apache
+            sudo chown -R www-data:www-data storage bootstrap/cache
+            sudo chmod -R 775 storage bootstrap/cache
             sudo systemctl restart php8.3-fpm
             sudo systemctl reload apache2
-
-            echo "✅ Deployment completed: $TIMESTAMP"
-
