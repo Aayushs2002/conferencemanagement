@@ -55,6 +55,13 @@ jobs:
           script: |
             set -e
 
+            # Ensure unzip is available
+            if ! command -v unzip &> /dev/null; then
+              echo "Installing unzip..."
+              sudo apt-get update -y
+              sudo apt-get install -y unzip
+            fi
+
             APP_DIR="/var/www/conferencemanagement"
             RELEASES_DIR="$APP_DIR/releases"
             CURRENT_DIR="$APP_DIR/current"
@@ -97,3 +104,4 @@ jobs:
             sudo systemctl reload apache2
 
             echo "✅ Deployment completed: $TIMESTAMP"
+
