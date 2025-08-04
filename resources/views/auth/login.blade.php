@@ -69,7 +69,7 @@
         <div class="row">
             <div class="col-md-6">
                 <div class="mb-6 form-control-validation">
-                    <label for="email" class="form-label">Email/Username</label>
+                    <label for="email" class="form-label">Email</label>
                     <input type="text" class="form-control" id="email" name="email"
                         placeholder="Enter your email" autofocus />
                     @error('email')
