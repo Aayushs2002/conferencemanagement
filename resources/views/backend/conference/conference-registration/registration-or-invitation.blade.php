@@ -30,7 +30,7 @@
                                     <option value="{{ $prefix->id }}" @selected(old('name_prefix_id') == $prefix->id)>
                                         {{ $prefix->prefix }}</option>
                                 @endforeach
-                            </select>
+                            </select> 
                             @error('name_prefix_id')
                                 <p class="text-danger">{{ $message }}</p>
                             @enderror

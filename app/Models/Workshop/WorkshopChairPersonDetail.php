@@ -2,6 +2,7 @@
 
 namespace App\Models\Workshop;
 
+use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 
 class WorkshopChairPersonDetail extends Model
@@ -12,4 +13,9 @@ class WorkshopChairPersonDetail extends Model
         'photo',
         'short_cv'
     ];
+
+    public function chairPerson()
+    {
+        return $this->belongsTo(User::class, 'chairperson_id');
+    }
 }

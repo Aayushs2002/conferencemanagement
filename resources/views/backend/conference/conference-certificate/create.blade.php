@@ -16,7 +16,7 @@
                             class="btn btn-outline-light btn-sm me-3 ">
                             <i class="ti tabler-arrow-narrow-left me-1"></i>Back
                         </a>
-                        <div>
+                        <div> 
                             <h4 class="mb-0 fw-bold text-white">
                                 <i class="ti tabler-certificate me-2"></i>
                                 {{ isset($conference_certificate) ? 'Edit' : 'Create' }} Certificate Settings

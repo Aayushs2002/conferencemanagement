@@ -18,21 +18,23 @@
                     </div>
                 </div>
             </div>
-            <div class="col-lg-3 col-sm-6">
-                <div class="card">
-                    <div class="card-body">
-                        <div class="d-flex align-items-center mb-2">
-                            <div class="avatar me-4">
-                                <span class="avatar-initial rounded bg-label-warning"><i
-                                        class="icon-base ti tabler-alert-triangle icon-28px"></i></span>
+            @if (current_user()->type != 3)
+                <div class="col-lg-3 col-sm-6">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center mb-2">
+                                <div class="avatar me-4">
+                                    <span class="avatar-initial rounded bg-label-warning"><i
+                                            class="icon-base ti tabler-alert-triangle icon-28px"></i></span>
+                                </div>
+                                <h4 class="mb-0">{{ $typeCount }}</h4>
                             </div>
-                            <h4 class="mb-0">{{ $typeCount }}</h4>
-                        </div>
-                        <p class="mb-1">Total Member Type</p>
+                            <p class="mb-1">Total Member Type</p>
 
+                        </div>
                     </div>
                 </div>
-            </div>
+            @endif
             <!--/ Orders by Countries -->
 
             <!-- On route vehicles Table -->

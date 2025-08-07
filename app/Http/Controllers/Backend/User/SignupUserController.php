@@ -5,14 +5,18 @@ namespace App\Http\Controllers\Backend\User;
 use App\Http\Controllers\Controller;
 use App\Mail\Conference\RegistrationMail;
 use App\Mail\User\ResetPasswordMail;
+use App\Mail\User\UserCreatedMail;
 use App\Models\Conference\Conference;
 use App\Models\Conference\ConferenceRegistration;
 use App\Models\Conference\Expert;
 use App\Models\Conference\Submission;
+use App\Models\LoginHistory;
 use App\Models\User;
 use App\Models\User\ConferenceUserPassDesignation;
+use App\Models\User\MemberType;
 use App\Models\User\NamePrefix;
 use App\Models\User\Society;
+use App\Models\User\UserDetail;
 use App\Models\Workshop\Workshop;
 use App\Models\Workshop\WorkshopRegistration;
 use Exception;
@@ -110,13 +114,15 @@ class SignupUserController extends Controller
                 'invitationType' => 2,
                 'amount' => null
             ];
+            DB::beginTransaction();
             Mail::to($user->email)->send(new RegistrationMail($data));
-
             ConferenceRegistration::create($validated);
-
+            logActivity($conference->id, 'Invited Conference',  $user->f_name . ' ' . $middleName . $user->l_name . ' is registered to conference');
+            DB::commit();
             $type = 'success';
             $message = "User invited successfully for conference.";
         } catch (Exception $e) {
+            DB::rollBack();
             $type = 'error';
             $message = $e->getMessage();
         }
@@ -160,7 +166,7 @@ class SignupUserController extends Controller
             $user->update($validated);
             $user->userDetail->update($validated);
 
-            $user->societies()->updateExistingPivot(current_user()->societies->value('id'), [
+            $user->societies()->updateExistingPivot($society->id, [
                 'member_type_id' => $validated['member_type_id'],
             ]);
 
@@ -297,5 +303,74 @@ class SignupUserController extends Controller
         }
 
         return response(['type' => $type, 'message' => $message]);
+    }
+
+    public function loginHistory($society, $conference, Request $request)
+    {
+        $user = User::where('id', $request->id)->first();
+        $histories = LoginHistory::where('user_id', $user->id)->get();
+        return view('backend.users.signup-user.login-history', compact('histories', 'user'));
+    }
+
+    public function addUserForm($society, $conference)
+    {
+        $memberTypes = MemberType::where(['society_id' => $society->id, 'status' => 1])->get();
+        return view('backend.users.signup-user.add-user', compact('society', 'conference'));
+    }
+
+
+    public function addUserSubmit(Request $request, $society, $conference)
+    {
+        $validated = $request->validate([
+            'gender' => 'required',
+            'f_name' => 'required|string|max:255',
+            'm_name' => 'nullable|string|max:255',
+            'l_name' => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email',
+            'phone' => 'required|unique:user_details,phone',
+            'country_id' => 'required',
+            'name_prefix_id' => 'required',
+            'member_type_id' => 'required'
+        ]);
+        try {
+
+            DB::beginTransaction();
+
+            // Generate password
+            $password = random_word(8);
+
+            // Create User
+            $user = User::create([
+                'f_name' => $validated['f_name'],
+                'm_name' => $validated['m_name'] ?? null,
+                'l_name' => $validated['l_name'],
+                'email' => $validated['email'],
+                'password' => hash_password($password),
+                'type' => 3,
+
+            ]);
+
+            // Create User Detail
+            UserDetail::create([
+                'user_id' => $user->id,
+                'phone' => $validated['phone'],
+                'country_id' => $validated['country_id'],
+                'name_prefix_id' => $validated['name_prefix_id'],
+                'gender' => $validated['gender'],
+
+            ]);
+
+            $user->societies()->attach($society->id, [
+                'member_type_id' => $validated['member_type_id'],
+            ]);
+            Mail::to($user->email)->send(new UserCreatedMail($user->email, $password));
+            DB::commit();
+
+            return response()->json(['type' => 'success', 'message' => 'User added successfully.']);
+        } catch (Exception $e) {
+            // dd($e);
+            DB::rollBack();
+            return response()->json(['type' => 'error', 'message' => $e->getMessage()]);
+        }
     }
 }

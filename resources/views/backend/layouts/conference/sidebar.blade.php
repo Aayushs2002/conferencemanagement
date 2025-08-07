@@ -134,7 +134,7 @@
                 <ul class="menu-sub">
                     @if (auth()->user()->hasConferencePermissionBlade($conference, 'View Submission'))
                         <li
-                            class="menu-item {{ request()->segment(5) == 'submission' &&request()->segment(6) == '' && request()->segment(1) != 'my-society' ? 'active' : '' }}">
+                            class="menu-item {{ request()->segment(5) == 'submission' && request()->segment(6) == '' && request()->segment(1) != 'my-society' ? 'active' : '' }}">
                             <a href="{{ route('submission.index', [request()->segment(2), request()->segment(4)]) }}"
                                 class="menu-link">
                                 <div data-i18n="Submission">Submission</div>
@@ -403,6 +403,15 @@
                     class="menu-link ">
                     <i class="menu-icon icon-base ti tabler-building-skyscraper"></i>
                     <div data-i18n="Accomodation">Accomodation</div>
+                </a>
+            </li>
+        @endif
+        @if (auth()->user()->hasConferencePermissionBlade($conference, 'Log Report'))
+            <li class="menu-item {{ request()->segment(5) == 'activity-log' ? 'active' : '' }}">
+                <a href="{{ route('activity-log.index', [request()->segment(2), request()->segment(4)]) }}"
+                    class="menu-link ">
+                    <i class="menu-icon icon-base ti tabler-report"></i>
+                    <div data-i18n="Log Report">Log Report</div>
                 </a>
             </li>
         @endif

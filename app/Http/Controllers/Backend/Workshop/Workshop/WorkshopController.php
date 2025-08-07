@@ -104,6 +104,12 @@ class WorkshopController extends Controller
         //
     }
 
+    public function view($society, $conference, Request $request)
+    {
+        $workshop = Workshop::where('id', $request->id)->first();
+        return view('backend.workshop.workshop.view', compact('workshop'));
+    }
+
     /**
      * Show the form for editing the specified resource.
      */

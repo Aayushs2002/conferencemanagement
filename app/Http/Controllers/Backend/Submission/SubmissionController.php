@@ -73,9 +73,6 @@ class SubmissionController extends Controller
 
     public function expertForwardForm(Request $request, $society, $conference)
     {
-
-
-
         $setting = SubmissionSetting::where('conference_id', $conference->id)->select('abstract_word_limit', 'key_word_limit')->first();
 
         $submission = Submission::whereId($request->id)->first();
@@ -109,14 +106,18 @@ class SubmissionController extends Controller
                     'namePrefix' => $expert->userDetail->prefix,
                     'topic' => $submission->title
                 ];
+                DB::beginTransaction();
 
                 Mail::to($expert->email)->send(new ExpertForwardMail($mailData));
                 $validated['review_status'] = 0;
                 $submission->update($validated);
+                logActivity($submission->conference_id, 'Assign Expert', $expert->fullName($expert) . 'is assign as a expert to ' . $submission->title);
+                DB::commit();
             }
         } catch (Exception $e) {
             $type = 'error';
             $message = $e->getMessage();
+            DB::rollBack();
         }
         return response()->json(['type' => $type, 'message' => $message]);
     }
@@ -170,6 +171,13 @@ class SubmissionController extends Controller
             $validated['submission_id'] = $request->id;
             $validated['sender_id'] = current_user()->id;
             SubmissionDiscussion::create($validated);
+            logActivity(
+                $submission->conference_id,
+                'Change Request Status',
+                $submission->title . ' status change to ' . (
+                    $request->request_status == 1 ? 'Accepted' : ($request->request_status == 2 ? 'Correction' : ($request->request_status == 3 ? 'Rejected' : 'Unknown'))
+                )
+            );
 
             DB::commit();
             return response()->json(['message' => $message]);
@@ -187,19 +195,37 @@ class SubmissionController extends Controller
 
     public function convertPresentationTypeRequest($society, $conference, $id)
     {
-        $submission = Submission::whereId($id)->first();
+        // dd($id);
+        try {
+            //code...
+            $submission = Submission::whereId($id)->first();
 
 
-        $mailData['presenter_name'] = $submission->presenter->fullName($submission->presenter);
-        $mailData['topic'] = $submission->title;
-        $mailData['presentation_type'] = $submission->presentation_type;
-        $mailData['namePrefix'] = $submission->presenter->userDetail->namePrefix->prefix;
-        $mailData['conferenceTheme'] = $conference->conference_theme;
+            $mailData['presenter_name'] = $submission->presenter->fullName($submission->presenter);
+            $mailData['topic'] = $submission->title;
+            $mailData['presentation_type'] = $submission->presentation_type;
+            $mailData['namePrefix'] = $submission->presenter->userDetail->namePrefix->prefix;
+            $mailData['conferenceTheme'] = $conference->conference_theme;
+            DB::beginTransaction();
 
-        Mail::to($submission->presenter->email)->send(new ConvertPresentationTypeMail($mailData));
-        $submission->update(['presentation_type_change' => 0]);
-        // $submission->update(['presentation_type' => $newValue]);
-        return redirect()->back()->with('status', 'Presentation type changed successfully.');
+            Mail::to($submission->presenter->email)->send(new ConvertPresentationTypeMail($mailData));
+            $submission->update(['presentation_type_change' => 0]);
+            logActivity(
+                $submission->conference_id,
+                'Convert Presentation Type',
+                $submission->title . ' presentation type convert request is sent from ' .
+                    ($submission->presentation_type == 1 ? 'Poster' : 'Oral')
+            );
+            DB::commit();
+
+
+            // $submission->update(['presentation_type' => $newValue]);
+            return redirect()->back()->with('status', 'Presentation type changed successfully.');
+        } catch (Exception $e) {
+            DB::rollBack();
+            return redirect()->back()->with('delete', 'Something went wrong.');
+            //throw $th;
+        }
     }
 
     public function viewScore(Request $request)

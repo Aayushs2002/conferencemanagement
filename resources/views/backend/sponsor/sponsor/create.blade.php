@@ -88,17 +88,19 @@
                             @enderror
                             <div class="row" id="imgPreview2">
                                 @if (isset($sponsor))
-                                    @php
-                                        $extension = explode('.', $sponsor->flyers_ads);
-                                    @endphp
-                                    @if ($extension[1] == 'pdf')
-                                        <img src="{{ asset('default-image/pdf.png') }}" alt="flyers_ads"
-                                            style="height: 60px; width: 70px">
-                                    @else
-                                        <div class="col-3 mt-2">
-                                            <img src="{{ asset('storage/sponsor/ads/' . $sponsor->flyers_ads) }}"
-                                                class="img-fluid">
-                                        </div>
+                                    @if ($sponsor->flyers_ads)
+                                        @php
+                                            $extension = explode('.', $sponsor->flyers_ads);
+                                        @endphp
+                                        @if ($extension[1] == 'pdf')
+                                            <img src="{{ asset('default-image/pdf.png') }}" alt="flyers_ads"
+                                                style="height: 60px; width: 70px">
+                                        @else
+                                            <div class="col-3 mt-2">
+                                                <img src="{{ asset('storage/sponsor/ads/' . $sponsor->flyers_ads) }}"
+                                                    class="img-fluid">
+                                            </div>
+                                        @endif
                                     @endif
                                 @endif
                             </div>

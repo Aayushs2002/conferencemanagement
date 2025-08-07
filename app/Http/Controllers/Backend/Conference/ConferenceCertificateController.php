@@ -154,15 +154,16 @@ class ConferenceCertificateController extends Controller
         //
     }
 
-    public function deleteImage(ConferenceCertificate $conference_certificate, $signature)
+    public function deleteImage(ConferenceCertificate $conferenceCertificate, $signature)
     {
-        dd('da');
-        $this->file_service->deleteFile($signature, 'hotel/images');
+        // dd($conferenceCertificate, $signature);
+        // dd('da');
+        $this->file_service->deleteFile($signature, 'conference/conference/certificate/signature/');
 
-        $images = $conference_certificate->signature;
+        $images = $conferenceCertificate->signature;
 
-        if (count($conference_certificate->signature) == 1) {
-            $conference_certificate->update(['signature' => null]);
+        if (count($conferenceCertificate->signature) == 1) {
+            $conferenceCertificate->update(['signature' => null]);
         } else {
             foreach ($images as $key => $value) {
                 if ($value['fileName'] == $signature) {
@@ -171,7 +172,7 @@ class ConferenceCertificateController extends Controller
                 }
             }
             $images = array_values($images);
-            $conference_certificate->update(['signature' => $images]);
+            $conferenceCertificate->update(['signature' => $images]);
         }
 
         return redirect()->back()->with('delete', 'Image Deleted Successfully');

@@ -247,6 +247,7 @@ class ConferenceRegistrationController extends Controller
                     ]);
                 }
             }
+            logActivity($conference->id, 'Registered Conference', $user->fullName($user) . ' is registered to conference');
 
             DB::commit();
 
@@ -563,6 +564,7 @@ class ConferenceRegistrationController extends Controller
                     ]);
                 }
             }
+            logActivity($conference->id, $request->has('invited_guest') ? 'Invited Conference' : 'Registered Conference', $validated['f_name'] . ' ' . $middleName . $validated['l_name'] . ' is registered to conference');
             DB::commit();
 
             return redirect()->back()->with('status', 'Successfully registered.');

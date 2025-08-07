@@ -5,7 +5,7 @@
                 Name:
                 {{ $user->fullName($user) }})</span></h5>
         <form id="verifyForm">
-            @csrf
+            @csrf 
             @php
                 $userSociety = $user->societies->first();
                 $memberType = $userSociety?->pivot?->memberType;

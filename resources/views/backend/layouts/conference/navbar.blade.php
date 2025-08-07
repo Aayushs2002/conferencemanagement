@@ -3,19 +3,22 @@
          <div class="layout-menu-toggle navbar-nav align-items-xl-center me-3 me-xl-0 d-xl-none">
              <a class="nav-item nav-link px-0 me-xl-6" href="javascript:void(0)">
                  <i class="icon-base ti tabler-menu-2 icon-md"></i>
-             </a>
+             </a> 
          </div>
 
          <div class="navbar-nav-right d-flex align-items-center justify-content-end" id="navbar-collapse">
              <!-- Search -->
-             {{-- <div class="navbar-nav align-items-center">
+             <div class="navbar-nav align-items-center">
                  <div class="nav-item navbar-search-wrapper px-md-0 px-2 mb-0">
-                     <a class="nav-item nav-link search-toggler d-flex align-items-center px-0"
+                     {{-- <a class="nav-item nav-link search-toggler d-flex align-items-center px-0"
                          href="javascript:void(0);">
                          <span class="d-inline-block text-body-secondary fw-normal" id="autocomplete"></span>
-                     </a>
+                     </a> --}}
+                     <div class="mt-4">
+                         <x-breadcrumb :items="conference_generate_breadcrumbs(request()->segment(2), request()->segment(4))" />
+                     </div>
                  </div>
-             </div> --}}
+             </div>
              <div class="navbar-nav flex-row align-items-center ms-md-auto">
                  <h6 class="text-danger">
                      {{ getConference(request()->segment(4))->conference_name }}</h6>

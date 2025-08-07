@@ -869,11 +869,19 @@
             <div class="modal-content registration-card">
                 <div class="modal-header bg-info text-white">
                     <h5 class="modal-title" id="mocoQrModalLabel">
-                        <i class="fas fa-qrcode"></i> Scan QR Code to Pay
+                        <i class="ti tabler-qrcode text-white"></i>
+                        <span class="text-white">
+                            Scan QR Code to Pay
+
+                        </span>
                     </h5>
                 </div>
                 <div class="modal-body text-center">
                     <div id="mocoQrCode" class="mb-3"></div>
+                    <div id="mocoUserNote" class="alert alert-warning py-2 small text-center">
+                        <i class="ti tabler-info-circle"></i>
+                        After payment, please click <strong>Check Status</strong> to confirm your transaction.
+                    </div>
                     <div id="mocoPaymentDetails" class="alert alert-info text-start">
                         <p><strong>Reference:</strong> <span id="mocoRefNumber"></span></p>
                         <p><strong>Amount:</strong> Rs. <span id="mocoPayAmount"></span></p>
@@ -895,6 +903,7 @@
                             <i class="fas fa-times"></i> Cancel
                         </button>
                     </div>
+
                 </div>
             </div>
         </div>

@@ -14,6 +14,7 @@ use App\Http\Controllers\Backend\Dashboard\ConferenceDashboardController;
 use App\Http\Controllers\Backend\Download\DownloadController;
 use App\Http\Controllers\Backend\Faq\FaqCategoryController;
 use App\Http\Controllers\Backend\Faq\FaqController;
+use App\Http\Controllers\Backend\LogReport\logActivityController;
 use App\Http\Controllers\Backend\Notice\NoticeController;
 use App\Http\Controllers\Backend\ScientificSession\HallController;
 use App\Http\Controllers\Backend\ScientificSession\PollController;
@@ -100,7 +101,7 @@ Route::middleware('auth')->group(function () {
         Route::resource('conference-certificate', ConferenceCertificateController::class);
     });
 
-    Route::get('/conference-certificate/{conference-certificate}/signature/{signature}', [ConferenceCertificateController::class, 'deleteImage'])->name('conference-certificate.signature.remove');
+    Route::get('/conference-certificate/{conferenceCertificate}/signature/{signature}', [ConferenceCertificateController::class, 'deleteImage'])->name('conference-certificate.signature.remove');
 
 
     //submission setting route started
@@ -190,13 +191,16 @@ Route::middleware('auth')->group(function () {
             Route::post('merge-user', 'mergeUser')->name('mergeUser');
             Route::post('merge-user-submit', 'mergeUserSubmit')->name('mergeUserSubmit');
             Route::post('reset-admin-password', 'resetPassword')->name('resetPassword');
+            Route::post('login-history', 'loginHistory')->name('loginHistory');
+            Route::post('/add-user-form', 'addUserForm')->name('addUserForm');
+            Route::post('/add-user-submit', 'addUserSubmit')->name('addUserSubmit');
         });
     });
 
     Route::prefix('/society/{society}/conference/{conference}')->middleware('auto.conf.permission')->group(function () {
         Route::resource('/workshop', WorkshopController::class)->except('show');
         Route::controller(WorkshopController::class)->name('workshop.')->prefix('/workshop')->group(function () {
-            Route::post('/view-data', 'show')->name('show');
+            Route::post('/view-data', 'view')->name('view');
             Route::post('/allocate-price-form', 'allocatePriceForm')->name('allocatePriceForm');
             Route::post('/allocate-price-submit', 'allocatePriceSubmit')->name('allocatePriceSubmit');
         });
@@ -285,6 +289,9 @@ Route::middleware('auth')->group(function () {
         Route::resource('roles', RoleController::class);
         Route::post('/assign-role-form', [RoleController::class, 'assignRoleForm'])->name('assignRoleForm');
         Route::post('/assign-role-form-submit', [RoleController::class, 'assignRoleFormSubmit'])->name('assignRoleFormSubmit');
+
+        //Activity log
+        Route::get('/activity-log', [logActivityController::class, 'index'])->name('activity-log.index');
     });
 });
 Route::get('/participant/profile/{token}', [ConferenceRegistrationController::class, 'participantProfile']);

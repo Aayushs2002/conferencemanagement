@@ -46,6 +46,6 @@ Route::middleware('auth')->group(function () {
         Route::controller(PaymentSettingController::class)->prefix('/payment')->name('payment.')->group(function () {
             Route::get('/payment-setting', 'index')->name('setting');
             Route::post('/setting/submit', 'store')->name('setting.submit');
-        });
+        }); 
     });
 });

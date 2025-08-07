@@ -29,10 +29,11 @@
                                 <li><a class="dropdown-item" href="#" onclick="window.print()">Print</a></li>
                             </ul>
                         </div>
-                        {{-- <a href="{{ route('society.create') }}" class="btn btn-primary" tabindex="0">
-                            <i class="icon-base ti tabler-plus icon-xs me-sm-1"></i>
-                            <span class="d-none d-sm-inline-block">Add New</span>
-                        </a> --}}
+                        <a class="btn btn-primary addUser" tabindex="0" data-bs-toggle="modal"
+                            data-bs-target="#pricingModal">
+                            <i class="icon-base ti tabler-plus icon-xs me-sm-1 text-white"></i>
+                            <span class="d-none d-sm-inline-block text-white">Add New User</span>
+                        </a>
                     </div>
                 </div>
             </div>
@@ -154,6 +155,12 @@
                                         @if (auth()->user()->hasConferencePermissionBlade(getConference(request()->segment(4)), 'Reset Password'))
                                             <a class="dropdown-item resetPassword" data-id="{{ $user->id }}">
                                                 <i class="icon-base ti tabler-restore me-1"></i>Reset Password
+                                            </a>
+                                        @endif
+                                        @if (auth()->user()->hasConferencePermissionBlade(getConference(request()->segment(4)), 'Login History'))
+                                            <a class="dropdown-item loginHistory" data-id="{{ $user->id }}"
+                                                data-bs-toggle="modal" data-bs-target="#pricingModal">
+                                                <i class="icon-base ti tabler-history me-1"></i>Login History
                                             </a>
                                         @endif
                                     </div>
@@ -295,6 +302,33 @@
                     }, 1000);
                 });
             });
+            $(document).on("click", ".loginHistory", function(e) {
+                e.preventDefault();
+                var url = '{{ route('signup-user.loginHistory', [$society, $conference]) }}';
+                var _token = '{{ csrf_token() }}';
+                var id = $(this).data('id');
+
+                $('#modalContent').html(`
+                    <div class="modal-body text-center">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                `);
+                var data = {
+                    _token: _token,
+                    id: id
+                };
+                $('#pricingModal .modal-dialog').removeClass('modal-md');
+                $('#pricingModal .modal-dialog').removeClass('modal-lg');
+                $('#pricingModal .modal-dialog').addClass('modal-xl');
+                // $('#pricingModal .modal-dialog').addClass('modal-fullscreen');
+                $.post(url, data, function(response) {
+                    setTimeout(function() {
+                        $('#modalContent').html(response);
+                    }, 1000);
+                });
+            });
             $(document).on("click", ".viewData", function(e) {
                 e.preventDefault();
                 var url = '{{ route('signup-user.show', [$society, $conference]) }}';
@@ -321,6 +355,34 @@
                     }, 1000);
                 });
             });
+
+            $(document).on("click", ".addUser", function(e) {
+                e.preventDefault();
+                var url = '{{ route('signup-user.addUserForm', [$society, $conference]) }}';
+                var _token = '{{ csrf_token() }}';
+                var id = $(this).data('id');
+
+                $('#modalContent').html(`
+                    <div class="modal-body text-center">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                `);
+                var data = {
+                    _token: _token,
+                    id: id
+                };
+                $('#pricingModal .modal-dialog').removeClass('modal-md');
+                $('#pricingModal .modal-dialog').removeClass('modal-lg');
+                $('#pricingModal .modal-dialog').addClass('modal-xl');
+                $.post(url, data, function(response) {
+                    setTimeout(function() {
+                        $('#modalContent').html(response);
+                    }, 1000);
+                });
+            });
+
             $(document).on("click", ".mergeUser", function(e) {
                 e.preventDefault();
                 var url = '{{ route('signup-user.mergeUser', [$society, $conference]) }}';

@@ -15,7 +15,7 @@
                     <div class="dt-buttons btn-group flex-wrap mb-0">
                         <div class="btn-group me-2">
                             <button type="button" class="btn btn-success dropdown-toggle" data-bs-toggle="dropdown"
-                                aria-expanded="false"> 
+                                aria-expanded="false">
                                 <i class="icon-base ti tabler-upload icon-xs me-sm-1"></i>
                                 <span class="d-none d-sm-inline-block">Export</span>
                             </button>
@@ -142,6 +142,30 @@
                 e.preventDefault();
                 $(".modal-dialog").removeClass('custom-modal-width');
                 var url = '{{ route('workshop.allocatePriceForm', [$society, $conference]) }}';
+                var _token = '{{ csrf_token() }}';
+                var id = $(this).data('id');
+                $('#modalContent').html(`
+                    <div class="modal-body text-center">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                `);
+                var data = {
+                    _token: _token,
+                    id: id
+                };
+                $.post(url, data, function(response) {
+                    setTimeout(function() {
+                        $('#modalContent').html(response);
+                    }, 1000);
+                });
+            });
+
+            $(document).on("click", ".viewData", function(e) {
+                e.preventDefault();
+                $(".modal-dialog").removeClass('custom-modal-width');
+                var url = '{{ route('workshop.view', [$society, $conference]) }}';
                 var _token = '{{ csrf_token() }}';
                 var id = $(this).data('id');
                 $('#modalContent').html(`

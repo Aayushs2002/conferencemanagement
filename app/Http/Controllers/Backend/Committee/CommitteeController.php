@@ -14,6 +14,7 @@ class CommitteeController extends Controller
      */
     public function index($society, $conference)
     {
+        // dd($society);
         // $societyDetail = society_detail();
 
         // if (is_super_admin() && empty($societyDetail)) {
@@ -37,6 +38,7 @@ class CommitteeController extends Controller
             'society_id' => $society->id,
             'status' => 1
         ])->latest()->get();
+        // dd($committees);
         return view('backend.committee.committee.index', compact('committees', 'society', 'conference'));
     }
 
@@ -61,7 +63,7 @@ class CommitteeController extends Controller
                 'phone' => 'required',
                 'description' => 'nullable'
             ]);
-            $validated['society_id'] = $conference->id;
+            $validated['society_id'] = $society->id;
             $validated['slug'] = slugify($validated['committee_name']);
 
             Committee::create($validated);

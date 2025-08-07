@@ -170,6 +170,7 @@ class WorkshopRegistrationController extends Controller
                 Mail::to($user->email)->send(new RegistrationByAdminMail($mailData));
 
                 WorkshopRegistration::create($validated);
+                logActivity($conference->id, 'Registered Workshop', $user->fullName($user) . ' is registered to workshop');
 
                 DB::commit();
 
@@ -296,6 +297,8 @@ class WorkshopRegistrationController extends Controller
 
             // insert table-3
             WorkshopRegistration::create($validated);
+            logActivity($conference->id, 'Registered Workshop', $request->f_name . ' ' . $request->m_name . ' ' . $request->l_name . ' is registered to workshop');
+
             DB::commit();
 
             return redirect()->back()->with('status', 'Successfully registered.');

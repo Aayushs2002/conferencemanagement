@@ -21,7 +21,6 @@ class ScientificSessionCategoryController extends Controller
         // } 
         $parent_id = request('category') ?? 0;
 
-        $parent_id = request('category') ?? 0;
 
         $categories = ScientificSessionCategory::where(function ($query) use ($conference, $parent_id) {
             $query->where('status', 1)
@@ -50,6 +49,7 @@ class ScientificSessionCategoryController extends Controller
      */
     public function store(Request $request, $society, $conference)
     {
+        // dd($request);
         try {
             $validated = $request->validate([
                 'category_name' => 'required',
@@ -65,6 +65,7 @@ class ScientificSessionCategoryController extends Controller
             }
         } catch (Exception $e) {
             //throw $th;
+            // dd($e);
             return redirect()->back()->with('delete', 'Internal Server Error');
         }
     }
@@ -105,7 +106,7 @@ class ScientificSessionCategoryController extends Controller
             }
         } catch (Exception $e) {
             //throw $th;
-            dd($e);
+            // dd($e);
             return redirect()->back()->with('delete', 'Internal Server Error');
         }
     }

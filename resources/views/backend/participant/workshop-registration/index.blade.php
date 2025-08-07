@@ -17,7 +17,7 @@
                100% {
                    opacity: 1;
                }
-           } 
+           }
 
            #meal {
                animation: blink 1s infinite;
@@ -274,6 +274,10 @@
                    </div>
                    <div class="modal-body text-center">
                        <div id="mocoQrCode" class="mb-3"></div>
+                       <div id="mocoUserNote" class="alert alert-warning py-2 small text-center">
+                           <i class="fas fa-info-circle"></i>
+                           After payment, please click <strong>Check Status</strong> to confirm your transaction.
+                       </div>
                        <div id="mocoPaymentDetails" class="alert alert-info text-start">
                            <p><strong>Reference Number:</strong> <span id="mocoRefNumber"></span></p>
                            <p><strong>Amount:</strong> Rs. <span id="mocoPayAmount"></span></p>
