@@ -3,7 +3,7 @@
          <div class="layout-menu-toggle navbar-nav align-items-xl-center me-3 me-xl-0 d-xl-none">
              <a class="nav-item nav-link px-0 me-xl-6" href="javascript:void(0)">
                  <i class="icon-base ti tabler-menu-2 icon-md"></i>
-             </a> 
+             </a>
          </div>
 
          <div class="navbar-nav-right d-flex align-items-center justify-content-end" id="navbar-collapse">
@@ -465,14 +465,15 @@
                          <li>
                              <div class="dropdown-divider my-1 mx-n2"></div>
                          </li>
+                            {{-- <li>
+                                <a class="dropdown-item" href="#">
+                                    <i class="icon-base ti tabler-user me-3 icon-md"></i><span class="align-middle">My
+                                        Profile</span>
+                                </a>
+                            </li> --}}
                          <li>
-                             <a class="dropdown-item" href="#">
-                                 <i class="icon-base ti tabler-user me-3 icon-md"></i><span class="align-middle">My
-                                     Profile</span>
-                             </a>
-                         </li>
-                         <li>
-                             <a class="dropdown-item" href="#">
+                             <a class="dropdown-item"
+                                 href="{{ route('security.index.full', [request()->segment(2), request()->segment(4)]) }}">
                                  <i class="icon-base ti tabler-settings me-3 icon-md"></i><span
                                      class="align-middle">Settings</span>
                              </a>

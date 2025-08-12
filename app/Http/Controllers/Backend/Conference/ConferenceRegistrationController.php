@@ -576,7 +576,6 @@ class ConferenceRegistrationController extends Controller
 
     public function excelExport(Request $request, $society, $conference)
     {
-
         $society_id = $society->id ?? null;
 
         $query = ConferenceRegistration::with([
@@ -618,6 +617,90 @@ class ConferenceRegistrationController extends Controller
         return Excel::download(new ConferenceRegistrationExport($registrants),  'conferenceRegistration.xlsx');
     }
 
+    public function generatePass(Request $request, $society, $conference)
+    {
+        $society_id = $society->id ?? null;
+
+        $query = ConferenceRegistration::with([
+            'user.societies' => function ($query) use ($society_id) {
+                $query->where('society_id', $society_id);
+            },
+            'user.userDetail'
+        ])
+            ->where('conference_id', $conference->id)
+            ->where('status', 1);
+
+        if ($request->filled('registrant_type')) {
+            $query->where('registrant_type', $request->registrant_type);
+        }
+
+        if ($request->filled('is_invited')) {
+            $query->where('is_invited', $request->is_invited);
+        }
+
+        if ($request->filled('payment_type')) {
+            $query->where('payment_type', $request->payment_type);
+        }
+
+        if ($request->filled('from')) {
+            $query->whereDate('created_at', '>=', $request->from);
+        }
+
+        if ($request->filled('country_id')) {
+            $query->whereHas('user.userDetail', function ($q) use ($request) {
+                $q->where('country_id', $request->country_id);
+            });
+        }
+
+        if ($request->filled('to')) {
+            $query->whereDate('created_at', '<=', $request->to);
+        }
+
+        $registrants = $query->latest()->get();
+
+        $passSetting = PassSetting::where(['conference_id' => $conference->id, 'status' => 1])->first();
+
+        $registrantsWithDesignation = $registrants->map(function ($participant) use ($conference) {
+            $userSociety = $participant->user->societies->first();
+            $memberType = $userSociety?->pivot?->memberType;
+
+            $conferenceUserPassDesignation = ConferenceUserPassDesignation::where([
+                'conference_id' => $conference->id,
+                'user_id' => $participant->user_id
+            ])->first();
+
+            $conferenceMemberTypeNameTag = null;
+            if ($memberType) {
+                $conferenceMemberTypeNameTag = ConferenceMemberTypeNameTag::where([
+                    'conference_id' => $conference->id,
+                    'member_type_id' => $memberType->id,
+                    'registrant_type' => $participant->registrant_type
+                ])->first();
+            }
+
+            if ($conferenceUserPassDesignation) {
+                $designation = $conferenceUserPassDesignation->pass_designation;
+            } else {
+                $designation = $conferenceMemberTypeNameTag?->name_tag ?? null;
+            }
+
+            $participant->designation = $designation;
+
+            return $participant;
+        });
+
+        if (!$passSetting) {
+            return redirect()->back()->with('delete', 'Please Create Pass Setting');
+        }
+        // dd($registrantsWithDesignation);
+        return view('backend.conference.conference-registration.bulk-pass', [
+            'registrants' => $registrantsWithDesignation,
+            'passSetting' => $passSetting,
+            'conference' => $conference,
+        ]);
+    }
+
+
     public function generateIndividualPass($society, $conference, ConferenceRegistration $conferenceRegistration)
     {
         // dd($conference);
@@ -635,7 +718,7 @@ class ConferenceRegistrationController extends Controller
         if (!$passSetting) {
             return redirect()->back()->with('delete', 'Please Create Pass Setting');
         }
-        return view('backend.conference.conference-registration.individual-pass', compact('participant', 'passSetting', 'designation'));
+        return view('backend.conference.conference-registration.individual-pass', compact('participant', 'passSetting', 'designation', 'conference'));
     }
 
     public function downloadVoucher($society, $conference, ConferenceRegistration $conferenceRegistration)
@@ -844,7 +927,6 @@ class ConferenceRegistrationController extends Controller
 
     public function destroy($society, $conference, ConferenceRegistration $registrant)
     {
-        // dd($registrant);
         try {
             if ($registrant->payment_voucher) {
                 $this->file_service->deleteFile($registrant->payment_voucher, 'conference/payment-voucher');

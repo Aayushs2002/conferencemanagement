@@ -26,7 +26,8 @@ class DetectSubdomain
 
                 if (!$society) {
                     $mainDomain = preg_replace('/^' . preg_quote($subdomain, '/') . '\./', '', $host);
-                    return redirect()->to("http://$mainDomain" . ':8000' . $request->getRequestUri());
+                    // return redirect()->to("http://$mainDomain" . ':8000' . $request->getRequestUri());
+                    return redirect()->to("http://$mainDomain" . $request->getRequestUri());
                 }
 
                 $request->attributes->set('societyDomainDetail', $society);

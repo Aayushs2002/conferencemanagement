@@ -82,6 +82,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/registration-or-invitation', 'registrationOrInvitation')->name('registrationOrInvitation');
         Route::post('/registration-or-invitation-submit', 'registrationOrInvitationSubmit')->name('registrationOrInvitationSubmit');
         Route::get('/exportExcel',  'excelExport')->name('excelExport');
+        Route::get('/generate-pass',  'generatePass')->name('generatePass');
         Route::get('/generate-individual-pass/{conferenceRegistration}', 'generateIndividualPass')->name('generateIndividualPass');
         Route::get('/download-voucher/{conferenceRegistration}', 'downloadVoucher')->name('downloadVoucher');
         Route::delete('/registrant/destroy/{registrant}', 'destroy')->name('registrant.destroy');

@@ -32,7 +32,7 @@
 
                     <li
                         style="float:left; padding:30px 0px 0px; width:100%; letter-spacing:-0.3px; text-align:center; display:inline; font-size:50px; line-height:40px; color:#fff; font-weight:700;text-shadow:-1px -1px 0 #000;">
-                        SANCON-ASPA 2025
+                        {{ $conference->conference_name }}
                     </li>
 
 
@@ -55,18 +55,20 @@
 
 
                     <small
-                        style="font-size:18px; font-weight:500; letter-spacing:-0.02em; color:#000; padding-top:40px;">"Scaling
-                        new heights in Pediatric Anesthesia and beyond"</small>
+                        style="font-size:18px; font-weight:500; letter-spacing:-0.02em; color:#000; padding-top:40px;">"{{ $conference->conference_theme }}"</small>
                     <p
                         style="line-height:30PX; color:white; margin:0px; padding:2px 0px 6px; font-size:16px; font-weight:500;">
-                        4th - 5th April, 2025, Kathmandu, Nepal<br /> </p>
-
+                        @if ($conference->start_date == $conference->end_date)
+                            {{ \Carbon\Carbon::parse($conference->start_date)->format('jS F, Y') }},
+                        @else
+                            {{ \Carbon\Carbon::parse($conference->start_date)->format('jS') }}
+                            -
+                            {{ \Carbon\Carbon::parse($conference->end_date)->format('jS F, Y') }},
+                        @endif Kathmandu, Nepal<br />
+                    </p>
                     <h6
                         style="font-size:24px; background:#fff;  margin:5px 0px; line-height:30px; font-weight:500; padding:2px 0px; background-color:rgba(255, 255, 255, 0.1);">
                     </h6>
-
-
-
                     <h2
                         style="font-size:26px;text-transform:capitalize; letter-spacing:-0.02em; background:#fff; margin:25px auto 10px; width:470px; border-radius:10px; height:30px; padding:22px 0px;">
                         {{ $participant->user->userDetail->namePrefix->prefix ?? null }}
@@ -86,10 +88,7 @@
 
                     </div>
 
-
-
                 </div>
-
 
                 <div style="background-color:red; height:auto; float:left; width:100%; overflow:hidden;">
                     <h1
@@ -98,11 +97,9 @@
                     </h1>
                 </div>
                 <div style="width:92%; font-size:15px; padding:105px 25px 48px; color:#fff; float:left;">
-  
                 </div>
             </div>
         </div>
-
     </div>
 </body>
 

@@ -466,14 +466,15 @@
                          <li>
                              <div class="dropdown-divider my-1 mx-n2"></div>
                          </li>
-                         <li>
+                         {{-- <li>
                              <a class="dropdown-item" href="#">
                                  <i class="icon-base ti tabler-user me-3 icon-md"></i><span class="align-middle">My
                                      Profile</span>
                              </a>
-                         </li>
+                         </li> --}}
                          <li>
-                             <a class="dropdown-item" href="#">
+                             <a class="dropdown-item"
+                                 href="{{ route('security.index.society', request()->segment(2)) }}">
                                  <i class="icon-base ti tabler-settings me-3 icon-md"></i><span
                                      class="align-middle">Settings</span>
                              </a>

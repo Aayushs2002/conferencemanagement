@@ -292,6 +292,9 @@ if (!function_exists('super_generate_breadcrumbs')) {
             case 'user.index':
                 $breadcrumbs['User'] = route('user.index');
                 break;
+            case 'security.index':
+                $breadcrumbs['Security'] = '#';
+                break;
         }
 
         return $breadcrumbs;
@@ -333,6 +336,9 @@ if (!function_exists('society_generate_breadcrumbs')) {
                 break;
             case 'payment.setting':
                 $breadcrumbs['Payment Setting'] = route('payment.setting', $society);
+                break;
+            case 'security.index.society':
+                $breadcrumbs['Security'] = '#';
                 break;
         }
 
@@ -403,6 +409,10 @@ if (!function_exists('conference_generate_breadcrumbs')) {
             case 'submission.author.index':
                 $breadcrumbs['Submission'] = route('submission.index', [$society, $conference]);
                 $breadcrumbs['Author'] = '#';
+                break;
+            case 'submission.viewDiscussion':
+                $breadcrumbs['Submission'] = route('submission.index', [$society, $conference]);
+                $breadcrumbs['Discussion'] = '#';
                 break;
 
             case 'submission.setting':
@@ -639,6 +649,9 @@ if (!function_exists('conference_generate_breadcrumbs')) {
 
             case 'activity-log.index':
                 $breadcrumbs['Log Report'] = route('activity-log.index', [$society, $conference]);
+                break;
+            case 'security.index.full':
+                $breadcrumbs['Security'] = '#';
                 break;
         }
 

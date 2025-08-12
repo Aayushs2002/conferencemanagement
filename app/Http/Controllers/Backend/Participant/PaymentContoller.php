@@ -271,7 +271,7 @@ class PaymentContoller extends Controller
                 } elseif (base64_decode($responseBody, true) !== false && strlen($responseBody) > 100) {
                     $qrData = 'data:image/png;base64,' . $responseBody;
                     $responseData = ['type' => 'base64_image'];
-                } else {
+                } else { 
                     $qrData = $responseBody;
                     $responseData = ['type' => 'raw_data', 'content_type' => $contentType];
                 }

@@ -1,6 +1,6 @@
 @extends('backend.layouts.conference.main')
 
-@section('title') 
+@section('title')
     Registrant
 @endsection
 @section('content')
@@ -94,8 +94,11 @@
                         <a href="{{ route('conference.conference-registration.index', [$society, $conference]) }}"
                             class="btn btn-danger">Reset</a>
                         @if (auth()->user()->hasConferencePermissionBlade(getConference(request()->segment(4)), 'Export'))
-                            <button type="submit" id="ExportBtn" class="btn btn-success">Export</button>
+                            <button type="submit" id="ExportBtn" class="btn btn-success">
+                                <i class="icon-base ti tabler-upload icon-xs me-sm-1"></i>
+                                Export CSV</button>
                         @endif
+                        <button type="submit" id="PassBtn" class="btn btn-warning">Pass</button>
                         <button type="submit" id="filterBtn" class="btn btn-primary">Filter</button>
                     </div>
                 </div>
@@ -110,7 +113,7 @@
                 </div>
                 <div class="d-md-flex justify-content-between align-items-center dt-layout-end col-md-auto ms-auto mt-0">
                     <div class="dt-buttons btn-group flex-wrap mb-0">
-                        <div class="btn-group me-2">
+                        {{-- <div class="btn-group me-2">
                             <button type="button" class="btn btn-success dropdown-toggle" data-bs-toggle="dropdown"
                                 aria-expanded="false">
                                 <i class="icon-base ti tabler-upload icon-xs me-sm-1"></i>
@@ -129,7 +132,7 @@
                                 </li>
                                 <li><a class="dropdown-item" href="#" onclick="window.print()">Print</a></li>
                             </ul>
-                        </div>
+                        </div> --}}
                         {{-- <a href="{{ route('conference.create') }}" class="btn btn-primary" tabindex="0">
                               <i class="icon-base ti tabler-plus icon-xs me-sm-1"></i>
                               <span class="d-none d-sm-inline-block">Add New</span>
@@ -182,8 +185,8 @@
                                     @endphp
                                     @if ($explodeFileName[1] == 'pdf')
                                         <a href="{{ asset('storage/conference/payment-voucher/' . $registrant->payment_voucher) }}"
-                                            target="_blank"><img src="{{ asset('default-image/pdf.png') }}"
-                                                alt="voucher" height="50" width="40"></a>
+                                            target="_blank"><img src="{{ asset('default-image/pdf.png') }}" alt="voucher"
+                                                height="50" width="40"></a>
                                     @else
                                         <a href="{{ asset('storage/conference/payment-voucher/' . $registrant->payment_voucher) }}"
                                             target="_blank"><img
@@ -203,7 +206,7 @@
                                 @elseif ($registrant->registrant_type == 3)
                                     Session Chair
                                 @elseif ($registrant->registrant_type == 4)
-                                    Special Guest 
+                                    Special Guest
                                 @endif
                                 @if ($registrant->is_invited == 1)
                                     <span title="Invited"
@@ -426,6 +429,13 @@
                 e.preventDefault();
                 form.attr('action',
                     '{{ route('conference.conference-registration.index', [$society, $conference]) }}');
+                form.submit();
+            });
+            $('#PassBtn').on('click', function(e) {
+                e.preventDefault();
+                form.attr('action',
+                    '{{ route('conference.conference-registration.generatePass', [$society, $conference]) }}'
+                );
                 form.submit();
             });
         });

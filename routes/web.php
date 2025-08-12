@@ -3,6 +3,7 @@
 use App\Http\Controllers\Backend\Accommodation\HotelController;
 use App\Http\Controllers\Backend\Ckeditor\CkeditorController;
 use App\Http\Controllers\Backend\Dashboard\DashboardController;
+use App\Http\Controllers\Backend\Setting\SecurityController;
 use App\Http\Controllers\Backend\User\UserController;
 use App\Http\Controllers\Backend\UserManagement\PermissionController;
 use App\Http\Controllers\CommonController;
@@ -53,4 +54,9 @@ Route::middleware('auth')->group(function () {
     Route::delete('user/delete/{user}', [UserController::class, 'destroy'])->name('user.destroy');
     Route::post('user/join-society', [UserController::class, 'joinSociety'])->name('user.join-society');
     Route::post('user/join-society-submit', [UserController::class, 'joinSocietySubmit'])->name('user.joinSocietySubmit');
+
+    Route::get('/setting/security', [SecurityController::class, 'index'])->name('security.index');
+    Route::get('/society/{society}/setting/security', [SecurityController::class, 'index'])->name('security.index.society');
+    Route::get('/society/{society}/conference/{conference}/setting/security', [SecurityController::class, 'index'])->name('security.index.full');
+    Route::post('password-change', [SecurityController::class, 'passwordChange'])->name('security.password-change');
 });
