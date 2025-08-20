@@ -264,6 +264,9 @@
                                         <a class="dropdown-item"
                                             href="{{ route('conference.conference-registration.downloadVoucher', [$society, $conference, $registrant->id]) }}"><i
                                                 class="icon-base ti tabler-ticket me-1"></i> Downlaod Payment Voucher</a>
+                                        <a class="dropdown-item"
+                                            href="{{ route('conference.conference-registration.generateCertificate', [$society, $conference, $registrant->id]) }}"><i
+                                                class="icon-base ti tabler-ticket me-1"></i>Generate Certificate</a>
                                         @if (is_super_admin())
                                             <hr>
                                             <form
@@ -367,6 +370,7 @@
                     }, 1000);
                 });
             });
+
             $(document).on("click", ".viewData", function(e) {
                 e.preventDefault();
                 var url =

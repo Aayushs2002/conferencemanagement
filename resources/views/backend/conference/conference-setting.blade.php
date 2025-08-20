@@ -18,7 +18,7 @@
 
             <div class="col-md-4 mb-4">
                 <label>Name</label>
-                <input type="text" class="form-control" name="name" value="{{ $conferenceSetting?->id }}">
+                <input type="text" class="form-control" name="name" value="{{ $conferenceSetting?->name }}">
             </div>
             <div class="col-md-4 mb-4">
                 <label>Signature</label>

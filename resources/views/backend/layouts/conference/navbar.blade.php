@@ -20,8 +20,8 @@
                  </div>
              </div>
              <div class="navbar-nav flex-row align-items-center ms-md-auto">
-                 <h6 class="text-danger">
-                     {{ getConference(request()->segment(4))->conference_name }}</h6>
+                 <h5 class="text-danger pt-3">
+                     {{ getConference(request()->segment(4))->conference_name }}</h5>
              </div>
              <!-- /Search -->
              <ul class="navbar-nav flex-row align-items-center ms-md-auto">
@@ -465,7 +465,7 @@
                          <li>
                              <div class="dropdown-divider my-1 mx-n2"></div>
                          </li>
-                            {{-- <li>
+                         {{-- <li>
                                 <a class="dropdown-item" href="#">
                                     <i class="icon-base ti tabler-user me-3 icon-md"></i><span class="align-middle">My
                                         Profile</span>

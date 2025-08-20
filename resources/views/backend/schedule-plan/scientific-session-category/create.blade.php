@@ -32,11 +32,11 @@
                             @enderror
                         </div>
                         {{-- @dd(request('category') ?? 0) --}}
-                        @if (isset($category))
+                        {{-- @if (isset($category)) --}}
                             <input type="hidden" name="parent_id" value="{{ request('category') ?? 0 }}">
-                        @endif
+                        {{-- @endif --}}
 
-                        <div class="row">
+                        <div class="row"> 
                             <div class="col-12 text-end">
                                 <button type="submit"
                                     class="btn btn-primary">{{ isset($category) ? 'Update' : 'Submit' }}</button>

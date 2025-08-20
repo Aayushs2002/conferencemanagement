@@ -23,8 +23,8 @@
 
              <!-- /Search -->
              <div class="navbar-nav flex-row align-items-center ms-md-auto">
-                 <h6 class="text-danger">
-                     {{ getSociety(request()->segment(2))->users->where('type', 2)->first()->f_name }}</h6>
+                 <h5 class="text-danger pt-3">
+                     {{ getSociety(request()->segment(2))->users->where('type', 2)->first()->f_name }}</h5>
              </div>
              <ul class="navbar-nav flex-row align-items-center ms-md-auto">
                  @if (current_user()->type == 1)

@@ -14,15 +14,19 @@
     </div>
     <br>
     <div>
-        <p>We hope this message finds you well. We want to express my gratitude for your interest in presenting your
-            desired topic ({{ $data['topic'] }}) for our conference.</p>
-        <p>We have reviewed your submission file and your request has been accepted. Thank You.</p>
+        @if ($bodyContent)
+            {!! $bodyContent !!}
+        @else
+            <p>We hope this message finds you well. We want to express my gratitude for your interest in presenting your
+                desired topic ({{ $data['topic'] }}) for our conference.</p>
+            <p>We have reviewed your submission file and your request has been accepted. Thank You.</p>
+        @endif
     </div>
     <br>
     <div>
         <p>Best Regards,</p>
         <p>Scientific committee</p>
-        <p>SAFOGCON 2025</p>
+        <p>{{ $data['conference_name'] }}</p>
 
     </div>
 </body>

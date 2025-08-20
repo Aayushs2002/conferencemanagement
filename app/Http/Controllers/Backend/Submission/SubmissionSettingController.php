@@ -5,11 +5,14 @@ namespace App\Http\Controllers\Backend\Submission;
 use App\Http\Controllers\Controller;
 use App\Models\Conference\Conference;
 use App\Models\SubmissionSetting;
+use App\Services\File\FileService;
 use Exception;
 use Illuminate\Http\Request;
 
 class SubmissionSettingController extends Controller
 {
+    public function __construct(protected FileService $file_service) {}
+
     public function index(Request $request, $society, $conference)
     {
         // $conferenceDetail = conference_detail();
@@ -21,7 +24,7 @@ class SubmissionSettingController extends Controller
         $conference = Conference::where(['id' => $conference->id, 'status' => 1])->first();
         // dd($conference);
         return view('backend.submission.submission-setting.index', compact('conference', 'society'));
-    } 
+    }
 
     public function store(Request $request)
     {
@@ -38,15 +41,26 @@ class SubmissionSettingController extends Controller
                 'poster_guidelines' => 'nullable',
                 'oral_reviewer_guide' => 'nullable',
                 'poster_reviewer_guide' => 'nullable',
-                'attachment_name' => 'nullable'
+                'attachment_name' => 'nullable',
+                'signature' => 'nullable|mimes:png,jpg',
+
             ]);
 
             $message = empty($validated['id']) ? 'Successfully inserted submission setting.' : 'Successfully updated submission setting';
 
             if (empty($validated['id'])) {
+                if (!empty($validated['signature'])) {
+                    //file uplaod function parameter required file,name,location
+                    $validated['signature'] = $this->file_service->fileUpload($validated['signature'], 'scientific-session-signature', 'submission/setting/signature');
+                }
                 $submitData = SubmissionSetting::create($validated);
             } else {
                 $submissionSetting = SubmissionSetting::whereId($validated['id'])->first();
+                if (!empty($validated['signature'])) {
+                    $this->file_service->deleteFile($submissionSetting->signature, 'conference/conference/logo');
+                    //file uplaod function parameter required file,name,location
+                    $validated['signature'] = $this->file_service->fileUpload($validated['signature'], 'scientific-session-signature', 'submission/setting/signature');
+                }
                 $submitData = $submissionSetting->update($validated);
             }
 

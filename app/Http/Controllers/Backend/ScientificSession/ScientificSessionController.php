@@ -11,7 +11,7 @@ use App\Models\Conference\Submission;
 use App\Models\User;
 use App\Models\User\Society;
 use Carbon\Carbon;
-use Exception;
+use Exception; 
 use Illuminate\Http\Request;
 
 class ScientificSessionController extends Controller

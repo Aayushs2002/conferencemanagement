@@ -97,6 +97,17 @@ if (!function_exists('logActivity')) {
     }
 }
 
+if (!function_exists('parseTemplate')) { 
+    function parseTemplate($templateString, $data)
+    {
+        foreach ($data as $key => $value) {
+            $templateString = str_replace('{' . $key . '}', $value, $templateString);
+        }
+        return $templateString;
+    }
+}
+
+
 if (!function_exists('numberToWord')) {
     function numberToWord($num = '')
     {
@@ -652,6 +663,17 @@ if (!function_exists('conference_generate_breadcrumbs')) {
                 break;
             case 'security.index.full':
                 $breadcrumbs['Security'] = '#';
+                break;
+            case 'email-template.index':
+                $breadcrumbs['Email Template'] = '#';
+                break;
+            case 'email-template.create':
+                $breadcrumbs['Email Template'] = route('email-template.index', [$society, $conference]);
+                $breadcrumbs['Create'] = '#';
+                break;
+            case 'email-template.edit':
+                $breadcrumbs['Email Template'] = route('email-template.index', [$society, $conference]);
+                $breadcrumbs['Edit'] = '#';
                 break;
         }
 

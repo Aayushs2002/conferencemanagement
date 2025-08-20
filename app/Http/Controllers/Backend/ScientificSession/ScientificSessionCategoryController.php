@@ -53,7 +53,7 @@ class ScientificSessionCategoryController extends Controller
         try {
             $validated = $request->validate([
                 'category_name' => 'required',
-                'parent_id' => 'required'
+                'parent_id' => 'nullable'
             ]);
             $validated['slug'] = slugify($validated['category_name']);
             $validated['conference_id'] = $conference->id;
@@ -65,7 +65,7 @@ class ScientificSessionCategoryController extends Controller
             }
         } catch (Exception $e) {
             //throw $th;
-            // dd($e);
+            dd($e);
             return redirect()->back()->with('delete', 'Internal Server Error');
         }
     }

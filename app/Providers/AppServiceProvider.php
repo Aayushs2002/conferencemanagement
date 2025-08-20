@@ -10,6 +10,7 @@ use App\Models\User\NamePrefix;
 use Illuminate\Support\Facades\View;
 use Laravel\Fortify\Contracts\LoginResponse;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Auth\Middleware\RedirectIfAuthenticated;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -49,6 +50,14 @@ class AppServiceProvider extends ServiceProvider
         View::composer('*', function ($view) {
             $institutions = Institution::whereStatus(1)->get();
             $view->with('institutions', $institutions);
+        });
+
+        RedirectIfAuthenticated::redirectUsing(function ($request) {
+            if (current_user()->type == 2) {
+                return route('society.dashboard', current_user()->societies->first());
+            } else {
+                return route('dashboard');
+            }
         });
     }
 }

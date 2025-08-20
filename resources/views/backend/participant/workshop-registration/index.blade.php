@@ -345,6 +345,9 @@
                                                'member_type_id' => $memberType->id,
                                            ])
                                            ->first();
+                                       $deadlinePassed = \Carbon\Carbon::now()->gt(
+                                           \Carbon\Carbon::parse($w_item->registration_deadline),
+                                       );
                                    @endphp
                                    @if (current_user()->userDetail->country->country_name != 'India')
                                        <p class="text-muted mt-2 mb-0">Price:
@@ -366,13 +369,15 @@
                                            <span class="badge bg-danger">Rejected</span>
                                        @endif
                                    @endif
-                                   @if (empty($checkRegistration) && $appliedQuota <= $totalQuota)
+                                   @if (empty($checkRegistration) && $appliedQuota <= $totalQuota && !$deadlinePassed)
                                        <button data-workshop="{{ $hashedWorkshop }}"
                                            data-price="{{ $price->price ?? 0 }}"
                                            class="btn btn-primary btn-sm register-button"
                                            {{ empty($price->price) ? 'disabled' : '' }}>
                                            Register This Workshop
                                        </button>
+                                   @elseif($deadlinePassed)
+                                       <span class="badge bg-secondary">Registration Closed</span>
                                    @endif
                                </div>
                            </div>

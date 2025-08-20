@@ -39,12 +39,14 @@ class ScientificSessionRequest extends FormRequest
             $rules['session_chair_id'] = 'required';
         }
 
-        if (isset($req['is_from_submission'])&&$req['is_from_submission'] == 1) {
+        if (isset($req['is_from_submission']) && $req['is_from_submission'] == 1) {
             $rules['submission_id'] = 'required';
             $rules['topic'] = 'nullable';
+            $rules['submission_presenter'] = 'required';
         } else {
             $rules['submission_id'] = 'nullable';
             $rules['topic'] = 'required';
+            $rules['submission_presenter'] = 'nullable';
         }
 
         return $rules;

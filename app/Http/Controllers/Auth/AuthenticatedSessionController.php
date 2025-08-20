@@ -30,7 +30,7 @@ class AuthenticatedSessionController extends Controller
 
         $request->authenticate();
 
-        $request->session()->regenerate();
+        $request->session()->regenerate(); 
         if (current_user()->type == 3 && current_user()->is_profile_updated == null) {
             session(['show_profile_update_modal' => true]);
         }

@@ -102,7 +102,96 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-lg-4 col-md-6">
+
+                <!-- Registration Trends Chart -->
+                <div class="col-lg-12 col-12">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-header bg-transparent border-0 pt-4 px-4 pb-0">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <div class="d-flex align-items-center mb-2">
+                                        <div class="bg-info bg-opacity-10 rounded-circle p-2 me-3">
+                                            <i class="icon-base ti tabler-trending-up text-info fs-5"></i>
+                                        </div>
+                                        <h5 class="fw-bold text-dark mb-0" id="registrantTitle">Conference Registrants
+                                        </h5>
+                                    </div>
+                                    <p class="text-muted mb-0">Registration trends over time</p>
+                                </div>
+                                <div class="dropdown">
+                                    <button type="button" class="btn btn-outline-secondary border-0 rounded-circle p-2"
+                                        data-bs-toggle="dropdown">
+                                        <i class="icon-base ti tabler-calendar fs-5"></i>
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end border-0 shadow-lg" id="registrationFilters">
+                                        <li><a class="dropdown-item date-dropdown rounded-3 mx-2 my-1" data-range="today">
+                                                <i class="icon-base ti tabler-calendar-event me-2"></i>Today
+                                            </a></li>
+                                        <li><a class="dropdown-item date-dropdown rounded-3 mx-2 my-1"
+                                                data-range="yesterday">
+                                                <i class="icon-base ti tabler-calendar-minus me-2"></i>Yesterday
+                                            </a></li>
+                                        <li><a class="dropdown-item date-dropdown rounded-3 mx-2 my-1"
+                                                data-range="last_7_days">
+                                                <i class="icon-base ti tabler-calendar-week me-2"></i>Last 7 Days
+                                            </a></li>
+                                        <li><a class="dropdown-item date-dropdown rounded-3 mx-2 my-1"
+                                                data-range="last_30_days">
+                                                <i class="icon-base ti tabler-calendar-month me-2"></i>Last 30 Days
+                                            </a></li>
+                                        <li>
+                                            <hr class="dropdown-divider mx-2">
+                                        </li>
+                                        <li><a class="dropdown-item date-dropdown rounded-3 mx-2 my-1"
+                                                data-range="current_month">
+                                                <i class="icon-base ti tabler-calendar-event me-2"></i>Current Month
+                                            </a></li>
+                                        <li><a class="dropdown-item date-dropdown rounded-3 mx-2 my-1"
+                                                data-range="last_month">
+                                                <i class="icon-base ti tabler-calendar-stats me-2"></i>Last Month
+                                            </a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card-body p-4">
+                            <div class="position-relative bg-light bg-opacity-50 rounded-4 p-3" style="height: 300px;">
+                                <!-- Loading Spinner -->
+                                <div id="loadingSpinner"
+                                    class="position-absolute top-50 start-50 translate-middle text-center d-none">
+                                    <div class="spinner-border text-primary mb-2" role="status">
+                                        <span class="visually-hidden">Loading...</span>
+                                    </div>
+                                    <p class="text-muted small mb-0">Loading chart data...</p>
+                                </div>
+
+                                <!-- Chart Canvas -->
+                                <canvas id="registrationData" class="w-100 h-100"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-5 col-md-6">
+                    <div class="card p-4">
+                        <h5 class="mb-4" style="font-weight: bold;">Submission Overview</h5>
+
+                        <!-- Category Filter -->
+                        <div class="mb-3">
+                            <label for="categoryFilter" class="form-label">Filter by Category:</label>
+                            <select id="categoryFilter" class="form-select w-auto">
+                                <option value="">All</option>
+                                @foreach ($submissionCategoryMajorTracks as $cat)
+                                    <option value="{{ $cat->id }}">{{ $cat->title }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <!-- Chart -->
+                        <canvas id="submissionsChart" height="320"></canvas>
+                    </div>
+                </div>
+                <div class="col-lg-5 col-md-6">
                     <div class="card border-0 shadow h-100">
                         <div class="card-body p-4">
                             <div class="d-flex align-items-center justify-content-between mb-4">
@@ -113,7 +202,7 @@
                                     class="badge bg-warning bg-opacity-10 text-warning px-3 py-2 rounded-pill">Meals</span>
                             </div>
 
-                            <h5 class="fw-semibold text-dark mb-3">Workshop Meal Distribution</h5>
+                            <h5 class="fw-semibold text-dark mb-3">Workshop Meal Distribution And Registation</h5>
 
                             <div class="dropdown mb-4">
                                 <button class="btn btn-outline-primary dropdown-toggle rounded-pill px-4" type="button"
@@ -124,7 +213,8 @@
                                     id="workshopMealFilterDropdown">
                                     @foreach ($workshops as $workshop)
                                         <li>
-                                            <a href="#" class="dropdown-item workshop-meal-count rounded-3 mx-2 my-1"
+                                            <a href="#"
+                                                class="dropdown-item workshop-meal-count rounded-3 mx-2 my-1"
                                                 data-workshop-id="{{ $workshop->id }}">
                                                 {{ $workshop->workshop_title }}
                                             </a>
@@ -136,9 +226,10 @@
                             <div id="mealCountList">
                                 @foreach ($workshops as $workshop)
                                     @php
-                                        $counts = $workshopMealCounts[$workshop->id] ?? collect();
-                                        $veg = $counts->firstWhere('meal_type', 1)?->count ?? 0;
-                                        $nonVeg = $counts->firstWhere('meal_type', 2)?->count ?? 0;
+                                        $counts = $workshopMealCounts[$workshop->id] ?? null;
+                                        $veg = $counts->veg ?? 0;
+                                        $nonVeg = $counts->nonVeg ?? 0;
+                                        $total = $counts->total ?? 0;
                                     @endphp
                                     <div class="meal-count-group mb-4" data-workshop-id="{{ $workshop->id }}">
                                         <h6 class="text-primary fw-bold">{{ $workshop->workshop_title }}</h6>
@@ -151,6 +242,11 @@
                                             <span class="text-muted">Non-Veg</span>
                                             <span
                                                 class="badge bg-danger bg-opacity-10 text-danger rounded-pill px-3 py-1">{{ $nonVeg }}</span>
+                                        </div>
+                                        <div class="d-flex justify-content-between align-items-center mt-2">
+                                            <span class="fw-bold text-dark">Total Registation</span>
+                                            <span
+                                                class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-3 py-1">{{ $total }}</span>
                                         </div>
                                     </div>
                                 @endforeach
@@ -295,79 +391,6 @@
                         </div>
                     </div>
 
-                    <!-- Registration Trends Chart -->
-                    <div class="col-lg-6 col-12">
-                        <div class="card border-0 shadow-sm h-100">
-                            <div class="card-header bg-transparent border-0 pt-4 px-4 pb-0">
-                                <div class="d-flex justify-content-between align-items-start">
-                                    <div>
-                                        <div class="d-flex align-items-center mb-2">
-                                            <div class="bg-info bg-opacity-10 rounded-circle p-2 me-3">
-                                                <i class="icon-base ti tabler-trending-up text-info fs-5"></i>
-                                            </div>
-                                            <h5 class="fw-bold text-dark mb-0" id="registrantTitle">Conference Registrants
-                                            </h5>
-                                        </div>
-                                        <p class="text-muted mb-0">Registration trends over time</p>
-                                    </div>
-                                    <div class="dropdown">
-                                        <button type="button"
-                                            class="btn btn-outline-secondary border-0 rounded-circle p-2"
-                                            data-bs-toggle="dropdown">
-                                            <i class="icon-base ti tabler-calendar fs-5"></i>
-                                        </button>
-                                        <ul class="dropdown-menu dropdown-menu-end border-0 shadow-lg"
-                                            id="registrationFilters">
-                                            <li><a class="dropdown-item date-dropdown rounded-3 mx-2 my-1"
-                                                    data-range="today">
-                                                    <i class="icon-base ti tabler-calendar-event me-2"></i>Today
-                                                </a></li>
-                                            <li><a class="dropdown-item date-dropdown rounded-3 mx-2 my-1"
-                                                    data-range="yesterday">
-                                                    <i class="icon-base ti tabler-calendar-minus me-2"></i>Yesterday
-                                                </a></li>
-                                            <li><a class="dropdown-item date-dropdown rounded-3 mx-2 my-1"
-                                                    data-range="last_7_days">
-                                                    <i class="icon-base ti tabler-calendar-week me-2"></i>Last 7 Days
-                                                </a></li>
-                                            <li><a class="dropdown-item date-dropdown rounded-3 mx-2 my-1"
-                                                    data-range="last_30_days">
-                                                    <i class="icon-base ti tabler-calendar-month me-2"></i>Last 30 Days
-                                                </a></li>
-                                            <li>
-                                                <hr class="dropdown-divider mx-2">
-                                            </li>
-                                            <li><a class="dropdown-item date-dropdown rounded-3 mx-2 my-1"
-                                                    data-range="current_month">
-                                                    <i class="icon-base ti tabler-calendar-event me-2"></i>Current Month
-                                                </a></li>
-                                            <li><a class="dropdown-item date-dropdown rounded-3 mx-2 my-1"
-                                                    data-range="last_month">
-                                                    <i class="icon-base ti tabler-calendar-stats me-2"></i>Last Month
-                                                </a></li>
-                                        </ul>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="card-body p-4">
-                                <div class="position-relative bg-light bg-opacity-50 rounded-4 p-3"
-                                    style="height: 300px;">
-                                    <!-- Loading Spinner -->
-                                    <div id="loadingSpinner"
-                                        class="position-absolute top-50 start-50 translate-middle text-center d-none">
-                                        <div class="spinner-border text-primary mb-2" role="status">
-                                            <span class="visually-hidden">Loading...</span>
-                                        </div>
-                                        <p class="text-muted small mb-0">Loading chart data...</p>
-                                    </div>
-
-                                    <!-- Chart Canvas -->
-                                    <canvas id="registrationData" class="w-100 h-100"></canvas>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
                 </div>
             </div>
         </div>
@@ -662,6 +685,53 @@
                     });
                 });
             });
+        });
+        let ctx = document.getElementById('submissionsChart').getContext('2d');
+
+        let submissionsChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['Poster', 'Oral'],
+                datasets: [{
+                    label: 'Number of Submissions',
+                    data: [0, 0], // Initial values
+                    backgroundColor: ['#36A2EB', '#FF6384']
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+
+        function loadChart(categoryId = '') {
+
+            let url = "{{ route('conference.submissionsChart', [$society, $conference]) }}" + (categoryId ?
+                '?category_id=' +
+                categoryId : '');
+            fetch(url)
+                .then(res => res.json())
+                .then(data => {
+                    submissionsChart.data.datasets[0].data = [data.poster, data.oral];
+                    submissionsChart.update();
+                });
+        }
+
+        // Load initial chart
+        loadChart();
+
+        // Reload when category changes
+        document.getElementById('categoryFilter').addEventListener('change', function() {
+            loadChart(this.value);
         });
     </script>
 @endsection

@@ -89,7 +89,7 @@
                                         @if (auth()->user()->hasConferencePermissionBlade(getConference(request()->segment(4)), 'View Poll'))
                                             <a class="dropdown-item"
                                                 href="{{ route('poll.index', [$society, $conference, $scientific_session->id]) }}"><i
-                                                    class="icon-base ti tabler-pencil me-1"></i> Poll</a>
+                                                    class="icon-base ti tabler-circle-letter-p me-1"></i> Poll</a>
                                         @endif
                                         @if (auth()->user()->hasConferencePermissionBlade(getConference(request()->segment(4)), 'Edit Scientific Session'))
                                             <a class="dropdown-item"

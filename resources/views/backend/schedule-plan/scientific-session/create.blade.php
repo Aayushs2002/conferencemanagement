@@ -106,6 +106,16 @@
                                     <p class="text-danger">{{ $message }}</p>
                                 @enderror
                             </div>
+
+                            <div class="col-md-3 form-group mb-3 submissionDiv" hidden>
+                                <label for="submission_presenter">Author <code>*</code></label>
+                                <select name="submission_presenter" class="form-control select2" id="submission_presenter">
+                                    <option value="" hidden>-- Select Author --</option>
+                                </select>
+                                @error('submission_presenter')
+                                    <p class="text-danger">{{ $message }}</p>
+                                @enderror
+                            </div>
                             <div class="col-md-3 form-group mb-3">
                                 <label for="hall_id">Hall <code>*</code></label>
                                 <select name="hall_id" id="hall_id"
@@ -512,7 +522,53 @@
                 }
             });
             $("#scientific_session").trigger('change');
+
+
+
+            function loadAuthors(submissionId, selectedAuthorId = null) {
+                if (!submissionId) {
+                    $('#submission_presenter').empty().append(
+                        '<option value="" hidden>-- Select Author --</option>');
+                    return;
+                }
+
+                var url = "{{ route('submission.getAuthors', [$society, $conference, ':id']) }}";
+                url = url.replace(':id', submissionId);
+
+                $.ajax({
+                    url: url,
+                    type: 'GET',
+                    success: function(authors) {
+                        $('#submission_presenter').empty().append(
+                            '<option value="" hidden>-- Select Author --</option>');
+
+                        $.each(authors, function(index, author) {
+                            var selected = selectedAuthorId == author.id ? 'selected' : '';
+                            $('#submission_presenter').append('<option value="' + author.name +
+                                '" ' +
+                                selected + '>' + author.name + '</option>');
+                        });
+                    }
+                });
+            }
+
+            // Trigger when submission changes
+            $('#submission_id').on('change', function() {
+                var submissionId = $(this).val();
+                loadAuthors(submissionId);
+            });
+
+            // Trigger for edit (if a submission is already selected)
+            var initialSubmissionId = $('#submission_id').val();
+            var initialAuthorId =
+                "{{ old('submission_presenter', $scientific_session->submission_presenter ?? '') }}";
+
+            if (initialSubmissionId) {
+                loadAuthors(initialSubmissionId, initialAuthorId);
+            }
         });
+
+
 
         function checkOnlyOne(checkbox) {
             var checkboxes = document.getElementsByName(checkbox.name);

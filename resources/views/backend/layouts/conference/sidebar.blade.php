@@ -402,7 +402,7 @@
                 <a href="{{ route('hotel.index', [request()->segment(2), request()->segment(4)]) }}"
                     class="menu-link ">
                     <i class="menu-icon icon-base ti tabler-building-skyscraper"></i>
-                    <div data-i18n="Accomodation">Accomodation</div>
+                    <div data-i18n="Hotel And Accomodation">Hotel And Accomodation</div>
                 </a>
             </li>
         @endif
@@ -412,6 +412,15 @@
                     class="menu-link ">
                     <i class="menu-icon icon-base ti tabler-report"></i>
                     <div data-i18n="Log Report">Log Report</div>
+                </a>
+            </li>
+        @endif
+        @if (auth()->user()->hasConferencePermissionBlade($conference, 'Email Template'))
+            <li class="menu-item {{ request()->segment(5) == 'email-template' ? 'active' : '' }}">
+                <a href="{{ route('email-template.index', [request()->segment(2), request()->segment(4)]) }}"
+                    class="menu-link ">
+                    <i class="menu-icon icon-base ti tabler-mail"></i>
+                    <div data-i18n="Email Template">Email Template</div>
                 </a>
             </li>
         @endif

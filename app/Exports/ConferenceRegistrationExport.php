@@ -18,6 +18,7 @@ class ConferenceRegistrationExport implements FromCollection, WithHeadings, Shou
     }
     public function collection()
     {
+        $arrayData = [];
         foreach ($this->registrants as $key => $registrant) {
             $arrayData[] = [
                 'S.No.' => $key + 1,

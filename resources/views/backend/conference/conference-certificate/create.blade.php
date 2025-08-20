@@ -60,7 +60,7 @@
                             <div class="col-lg-6">
                                 <div class="border rounded-3 p-4 bg-light">
                                     <label class="form-label fw-semibold mb-3" for="background_image">
-                                        <i class="ti tabler-photo me-2"></i>Background Image
+                                        <i class="ti tabler-photo me-2"></i>Background Image 
                                     </label>
 
                                     <div class="mb-3">
@@ -230,7 +230,7 @@
                                                                         class="form-label small text-muted">Designation:</label>
                                                                     <input type="text" name="designation_old[]"
                                                                         class="form-control form-control-sm"
-                                                                        placeholder="Enter Job Title"
+                                                                        placeholder="Enter Designation"
                                                                         value="{{ $signature['designation'] }}">
                                                                 </div>
 
@@ -367,7 +367,7 @@
                     '</div>' +
                     '<div class="mb-2">' +
                     '<label class="form-label small text-muted">Designation:</label>' +
-                    '<input type="text" name="designation[]" class="form-control form-control-sm" placeholder="Enter Job Title" required>' +
+                    '<input type="text" name="designation[]" class="form-control form-control-sm" placeholder="Enter Designation" required>' +
                     '</div>' +
                     '<small class="text-muted">Signature ' + (i + 1) + ' of ' + files.length + '</small>' +
                     '</div>' +

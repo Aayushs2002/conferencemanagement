@@ -26,6 +26,7 @@ class Society extends Model
 
     public function getRouteKey()
     {
+        // return $this->attributes['slug'];
         return Hashids::encode($this->attributes['id']);
     }
 

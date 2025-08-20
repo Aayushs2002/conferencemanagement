@@ -12,7 +12,7 @@
     </style>
 @endsection
 
-@section('content') 
+@section('content')
     <div class="col-md">
         <div class="card">
             <h4 class="card-header">
@@ -165,6 +165,10 @@
                                                     Attendee</option>
                                                 <option value="2" {{ $registrantType == 2 ? 'selected' : '' }}>
                                                     Speaker/Presenter</option>
+                                                <option value="3" {{ $registrantType == 3 ? 'selected' : '' }}>
+                                                    Session Chair</option>
+                                                <option value="4" {{ $registrantType == 4 ? 'selected' : '' }}>
+                                                    Special Guest</option>
                                             </select>
                                         </td>
                                         <td>
@@ -202,6 +206,10 @@
                                                 <option value="" hidden>-- Select Registrant Type --</option>
                                                 <option value="1">Attendee</option>
                                                 <option value="2">Speaker/Presenter</option>
+                                                <option value="3">
+                                                    Session Chair</option>
+                                                <option value="4">
+                                                    Special Guest</option>
                                             </select>
                                         </td>
                                         <td>
@@ -295,6 +303,8 @@
                     <option value="" hidden>-- Select Registrant Type --</option>
                     <option value="1">Attendee</option>
                     <option value="2">Speaker/Presenter</option>
+                    <option value="3">Session Chair</option>
+                    <option value="4">Special Guest</option>
                 </select>
             </td>
             <td>

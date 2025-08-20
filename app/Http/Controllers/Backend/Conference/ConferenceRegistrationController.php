@@ -721,6 +721,11 @@ class ConferenceRegistrationController extends Controller
         return view('backend.conference.conference-registration.individual-pass', compact('participant', 'passSetting', 'designation', 'conference'));
     }
 
+    public function generateCertificate($society, $conference, ConferenceRegistration $conferenceRegistration)
+    {
+        return view('backend.conference.conference-registration.generate-certificate');
+    }
+
     public function downloadVoucher($society, $conference, ConferenceRegistration $conferenceRegistration)
     {
         // dd($conferenceRegistration);

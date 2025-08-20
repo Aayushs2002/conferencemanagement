@@ -26,6 +26,7 @@ use App\Http\Controllers\Backend\Submission\AuthorController;
 use App\Http\Controllers\Backend\Submission\SubmissionCategoryMajorTrackContoller;
 use App\Http\Controllers\Backend\Submission\SubmissionController;
 use App\Http\Controllers\Backend\Submission\SubmissionSettingController;
+use App\Http\Controllers\Backend\Template\EmailTemplateController;
 use App\Http\Controllers\Backend\User\SignupUserController;
 use App\Http\Controllers\Backend\UserManagement\RoleController;
 use App\Http\Controllers\Backend\Workshop\PassSetting\WorkshopPassSettingController;
@@ -53,6 +54,7 @@ Route::middleware('auth')->group(function () {
     Route::prefix('/society/{society}/conference/{conference}')->group(function () {
         Route::get('/dashboard', [ConferenceController::class, 'openConferencePortal'])->name('conference.openConferencePortal');
         Route::get('/dashboard/attendance-status', [ConferenceController::class, 'viewAttendanceStatus'])->name('conference.viewAttendanceStatus');
+        Route::get('/dashboard/submissions-chart', [ConferenceController::class, 'submissionsChart'])->name('conference.submissionsChart');
     });
     Route::get('/conference/stats', [ConferenceController::class, 'getStats'])->name('conference.stats');
 
@@ -83,6 +85,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/registration-or-invitation-submit', 'registrationOrInvitationSubmit')->name('registrationOrInvitationSubmit');
         Route::get('/exportExcel',  'excelExport')->name('excelExport');
         Route::get('/generate-pass',  'generatePass')->name('generatePass');
+        Route::get('/generate-certificate/{conferenceRegistration}',  'generateCertificate')->name('generateCertificate');
         Route::get('/generate-individual-pass/{conferenceRegistration}', 'generateIndividualPass')->name('generateIndividualPass');
         Route::get('/download-voucher/{conferenceRegistration}', 'downloadVoucher')->name('downloadVoucher');
         Route::delete('/registrant/destroy/{registrant}', 'destroy')->name('registrant.destroy');
@@ -138,6 +141,7 @@ Route::middleware('auth')->group(function () {
         Route::post('send-mail-submit', 'sendMailSubmit')->name('sendMailSubmit');
         Route::get('/get-users', 'getUsersByTypeAndPresentation')->name('get.users');
         Route::get('/export-word', 'exportWord')->name('export.word');
+        Route::get('/get-author/{id}', 'getAuthors')->name('getAuthors');
         Route::delete('/submission/destroy/{submission}', 'destroy')->name('submission.destroy');
     });
 
@@ -293,6 +297,10 @@ Route::middleware('auth')->group(function () {
 
         //Activity log
         Route::get('/activity-log', [logActivityController::class, 'index'])->name('activity-log.index');
+    });
+
+    Route::prefix('/society/{society}/conference/{conference}')->group(function () {
+        Route::resource('email-template', EmailTemplateController::class)->except('show');
     });
 });
 Route::get('/participant/profile/{token}', [ConferenceRegistrationController::class, 'participantProfile']);

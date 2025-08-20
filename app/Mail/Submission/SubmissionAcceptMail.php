@@ -14,14 +14,16 @@ class SubmissionAcceptMail extends Mailable
     use Queueable, SerializesModels;
 
     public $data;
+    public $subjectText;
+    public $bodyContent;
 
-    /**
-     * Create a new message instance.
-     */
-    public function __construct($data)
+    public function __construct($data, $subjectText, $bodyContent)
     {
         $this->data = $data;
+        $this->subjectText = $subjectText;
+        $this->bodyContent = $bodyContent;
     }
+
 
     /**
      * Get the message envelope.
@@ -29,7 +31,7 @@ class SubmissionAcceptMail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Submission Accept Mail',
+            subject: $this->subjectText ? $this->subjectText : 'Submission Accept Mail',
         );
     }
 

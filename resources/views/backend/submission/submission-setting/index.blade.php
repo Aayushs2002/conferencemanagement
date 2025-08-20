@@ -68,6 +68,27 @@
                                     <p class="text-danger">{{ $message }}</p>
                                 @enderror
                             </div>
+                            <div class="mb-6 col-md-4">
+                                <label class="form-label" for="signature">Signature <code> (Only JPG/PNG) (Max:
+                                        250
+                                        KB)</code></label>
+                                <input type="file" class="form-control" name="signature" id="image"
+                                    value="{{ !empty(old('signature')) ? old('signature') : @$conference->signature }}" />
+                                <div class="row" id="imgPreview">
+                                    @if (isset($conference->submissionSetting->signature))
+                                        <div class="col-3 mt-2">
+                                            <a href="{{ asset('storage/submission/setting/signature/' . $conference->submissionSetting->signature) }}"
+                                                target="_blank"><img
+                                                    src="{{ asset('storage/submission/setting/signature/' . $conference->submissionSetting->signature) }}"
+                                                    class="img-fluid" alt="image"></a>
+                                        </div>
+                                    @endif
+                                </div>
+                                @error('signature')
+                                    <p class="text-danger">{{ $message }}</p>
+                                @enderror
+                            </div>
+
                             <div class="col-md-12 form-group mb-3">
                                 <label for="abstract_guidelines">Abstract Submission Guidelines </label>
                                 <textarea name="abstract_guidelines" class="form-control ckeditor @error('abstract_guidelines') is-invalid @enderror"
@@ -103,8 +124,8 @@
                             <div class="col-md-12 form-group mb-3">
                                 <label for="poster_reviewer_guide">Poster Reviewer Guide</label>
                                 <textarea name="poster_reviewer_guide"
-                                    class="form-control ckeditor @error('poster_reviewer_guide') is-invalid @enderror" id="description2" cols="30"
-                                    rows="10">{{ !empty($conference->submissionSetting) ? $conference->submissionSetting->poster_reviewer_guide : '' }}</textarea>
+                                    class="form-control ckeditor @error('poster_reviewer_guide') is-invalid @enderror" id="description2"
+                                    cols="30" rows="10">{{ !empty($conference->submissionSetting) ? $conference->submissionSetting->poster_reviewer_guide : '' }}</textarea>
                                 @error('poster_reviewer_guide')
                                     <p class="text-danger">{{ $message }}</p>
                                 @enderror

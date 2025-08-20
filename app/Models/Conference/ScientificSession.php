@@ -19,6 +19,7 @@ class ScientificSession extends Model
         'scientific_session_category_id',
         'session_chair_id',
         'presenter_id',
+        'submission_presenter',
         'description',
         'status',
     ];

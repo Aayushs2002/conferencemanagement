@@ -10,7 +10,7 @@
         }
 
         .registration-card:hover {
-            transform: translateY(-2px);
+            transform: translateY(-2px); 
             box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
         }
 
@@ -1236,8 +1236,8 @@
                     // Service charge for international payments
                     if (delegate == 2) {
                         const additionalCharge = preTotalPrice * 0.035;
+                        // alert(additionalCharge)
                         totalPrice = preTotalPrice + additionalCharge;
-
                         calculatedData.append(generatePriceTableRow(
                             rowNumber++,
                             `💳 Service Charge (3.5%)`,
@@ -1266,11 +1266,12 @@
                     ));
 
                     // Store calculated values
-                    calculatedAmount = totalPrice;
+                    calculatedAmount = parseFloat(totalPrice).toFixed(2);
+                    // alert(calculatedAmount)
                     isPriceCalculated = true;
 
                     // Update all amount fields
-                    $(".amount").val(totalPrice);
+                    $(".amount").val(parseFloat(totalPrice).toFixed(2));
 
                     // Update workshop amount fields
                     $("input[name='workshop_amount']").val(workshopAmount);

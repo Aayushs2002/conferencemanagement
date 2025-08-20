@@ -10,6 +10,7 @@ use App\Models\Conference\ConferenceOrganizer;
 use App\Models\Conference\ConferenceRegistration;
 use App\Models\Conference\ConferenceVenueDetail;
 use App\Models\Conference\Submission;
+use App\Models\Conference\SubmissionCategoryMajorTrack;
 use App\Models\User;
 use App\Models\User\Society;
 use App\Models\Workshop\Workshop;
@@ -113,7 +114,7 @@ class ConferenceController extends Controller
                 ->where('type', 2)
                 ->firstOrFail();
 
-            $permissionIds = Permission::pluck('id')->all(); 
+            $permissionIds = Permission::pluck('id')->all();
             $conferenceId = $Conference->id;
 
             foreach ($permissionIds as $permissionId) {
@@ -253,15 +254,43 @@ class ConferenceController extends Controller
             $startDate->addDay();
         }
         $workshops = Workshop::where(['conference_id' => $conference->id, 'status' => 1])->get();
-        $workshopMealCounts = DB::table('workshop_registrations')
-            ->select('workshop_id', 'meal_type', DB::raw('count(*) as count'))
-            ->groupBy('workshop_id', 'meal_type')
+        $workshopMealCounts = DB::table('workshop_registrations as wr')
+            ->join('workshops as w', 'w.id', '=', 'wr.workshop_id')
+            ->where('w.conference_id', $conference->id)
+            ->select(
+                'wr.workshop_id',
+                DB::raw("SUM(CASE WHEN wr.meal_type = 1 THEN 1 ELSE 0 END) as veg"),
+                DB::raw("SUM(CASE WHEN wr.meal_type = 2 THEN 1 ELSE 0 END) as nonVeg"),
+                DB::raw("COUNT(*) as total")
+            )
+            ->groupBy('wr.workshop_id')
             ->get()
-            ->groupBy('workshop_id');
+            ->keyBy('workshop_id');
         $submissionCount = Submission::where(['conference_id' => $conference->id, 'user_id' => current_user()->id, 'status' => 1])->count();
         $workshop = Workshop::where(['conference_id' => $conference->id, 'status' => 1])->pluck('id');
         $workshopRegistrationCount = WorkshopRegistration::where(['user_id' => current_user()->id, 'status' => 1])->whereIn('workshop_id', $workshop)->count();
-        return view('backend.conference.dashboard', compact('conferenceRegistrationCount', 'totalNationalRegistrants', 'totalInternationalRegistrants', 'mealCounts', 'conference', 'society', 'data', 'dates', 'workshops', 'workshopMealCounts', 'submissionCount', 'workshopRegistrationCount'));
+        $submissionCategoryMajorTracks = SubmissionCategoryMajorTrack::where(['conference_id' => $conference->id, 'status' => 1])->get();
+        return view('backend.conference.dashboard', compact('conferenceRegistrationCount', 'totalNationalRegistrants', 'totalInternationalRegistrants', 'mealCounts', 'conference', 'society', 'data', 'dates', 'workshops', 'workshopMealCounts', 'submissionCount', 'workshopRegistrationCount', 'submissionCategoryMajorTracks'));
+    }
+
+    public function submissionsChart(Request $request, $society, $conference)
+    {
+        $categoryId = $request->input('category_id');
+
+        $query = Submission::where(['conference_id' => $conference->id, 'status' => 1]);
+        // dd($query);
+        if ($categoryId) {
+            $query->where('submission_category_major_track_id', $categoryId);
+        }
+
+        $counts = $query->selectRaw('presentation_type, COUNT(*) as total')
+            ->groupBy('presentation_type')
+            ->pluck('total', 'presentation_type');
+
+        return response()->json([
+            'poster' => $counts[1] ?? 0,
+            'oral'   => $counts[2] ?? 0,
+        ]);
     }
 
     public function viewAttendanceStatus($society, $conference)

@@ -10,6 +10,7 @@ use App\Models\Conference\Submission;
 use App\Models\Conference\SubmissionCategoryMajorTrack;
 use App\Models\Conference\SubmissionDiscussion;
 use App\Models\SubmissionSetting;
+use App\Models\Template\EmailTemplate;
 use App\Models\User;
 use App\Services\File\FileService;
 use Exception;
@@ -104,6 +105,9 @@ class SubmissionController extends Controller
                 // Different years: 30 December 2024 – 2 January 2025
                 $conferenceDate = $start->format('d F Y') . ' - ' . $end->format('d F Y');
             }
+
+            $template = EmailTemplate::where(['conference_id' => $conference->id, 'key' => 1])->first();
+
             $userMailData = [
                 'name' => $authUser->fullName($authUser),
                 'namePrefix' => $authUser->userDetail->namePrefix->prefix,
@@ -111,10 +115,21 @@ class SubmissionController extends Controller
                 'conferenceTheme' => $conference->conference_theme,
                 'societyEmail' => $society->contact_person_email,
                 'societyName' => $society->abbreviation,
-                'conferenceDate' => $conferenceDate
+                'conferenceDate' => $conferenceDate, 
+                'conferenceName' => $conference->conference_name
             ];
+
+            $data = [
+                'submission_topic' => $validated['title'],
+                'conference_theme' => $conference->conference_theme, 
+                'conference_date' => $conferenceDate,
+                'society_email' => $society->contact_person_email,
+            ];
+
+            $subject = parseTemplate($template?->subject, $data);
+            $body = parseTemplate($template?->body, $data);
             // dd(current_user()->fullName(current_user()));
-            Mail::to($authUser->email)->send(new SubmissionSubmittedToUserMail($userMailData));
+            Mail::to($authUser->email)->send(new SubmissionSubmittedToUserMail($userMailData, $subject, $body));
             DB::beginTransaction();
             // dd(current_user()->userDetail->phone);
             $submission = Submission::create($validated);

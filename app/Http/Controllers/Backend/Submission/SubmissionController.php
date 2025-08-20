@@ -16,6 +16,7 @@ use App\Models\Conference\SubmissionCategoryMajorTrack;
 use App\Models\Conference\SubmissionDiscussion;
 use App\Models\Conference\SubmissionRating;
 use App\Models\SubmissionSetting;
+use App\Models\Template\EmailTemplate;
 use App\Models\User;
 use App\Services\File\FileService;
 use Carbon\Carbon;
@@ -98,17 +99,21 @@ class SubmissionController extends Controller
                 $validated['forward_expert'] = 1;
 
                 $expert = User::whereId($validated['expert_id'])->first();
-
-
+                $template = EmailTemplate::where(['conference_id' => $submission->conference_id, 'key' => 1])->first();
 
                 $mailData = [
                     'name' => $expert->fullName($expert),
                     'namePrefix' => $expert->userDetail->prefix,
-                    'topic' => $submission->title
+                    'topic' => $submission->title,
+                    'conference_name' => $submission->conference->conference_name
+                ];
+                $data = [
+                    'submission_topic' => $submission->title,
                 ];
                 DB::beginTransaction();
-
-                Mail::to($expert->email)->send(new ExpertForwardMail($mailData));
+                $subject = parseTemplate($template?->subject, $data);
+                $body = parseTemplate($template?->body, $data);
+                Mail::to($expert->email)->send(new ExpertForwardMail($mailData, $subject, $body));
                 $validated['review_status'] = 0;
                 $submission->update($validated);
                 logActivity($submission->conference_id, 'Assign Expert', $expert->fullName($expert) . 'is assign as a expert to ' . $submission->title);
@@ -150,17 +155,33 @@ class SubmissionController extends Controller
             $validated['topic'] = $submission->title;
             $validated['presentation_type'] = $submission->presentation_type;
             $validated['remarks'] = $validated['remarks'];
+            $validated['conference_name'] = $submission->conference->conference_name;
+            $data = [
+                'submission_topic' => $submission->title,
+            ];
+
             if ($request->request_status == 1) {
                 $message = 'Request accepted successfully.';
-                Mail::to($submission->presenter->email)->send(new SubmissionAcceptMail($validated));
+                $template = EmailTemplate::where(['conference_id' => $submission->conference_id, 'key' => 2])->first();
+                $subject = parseTemplate($template?->subject, $data);
+                $body = parseTemplate($template?->body, $data);
+
+                Mail::to($submission->presenter->email)->send(new SubmissionAcceptMail($validated, $subject, $body));
             }
             if ($request->request_status == 2) {
                 $message = 'Request updated for correction..';
-                Mail::to($submission->presenter->email)->send(new SubmissionCorrectionMail($validated));
+                $template = EmailTemplate::where(['conference_id' => $submission->conference_id, 'key' => 3])->first();
+                $subject = parseTemplate($template?->subject, $data);
+                $body = parseTemplate($template?->body, $data);
+                Mail::to($submission->presenter->email)->send(new SubmissionCorrectionMail($validated, $subject, $body));
             }
             if ($request->request_status == 3) {
                 $message = 'Request rejected successfully.';
-                Mail::to($submission->presenter->email)->send(new SubmissionRejectMail($validated));
+                $template = EmailTemplate::where(['conference_id' => $submission->conference_id, 'key' => 4])->first();
+                $data['reject_remark'] = $validated['remarks'];
+                $subject = parseTemplate($template?->subject, $data);
+                $body = parseTemplate($template?->body, $data);
+                Mail::to($submission->presenter->email)->send(new SubmissionRejectMail($validated, $subject, $body));
             }
             DB::beginTransaction();
 
@@ -206,6 +227,8 @@ class SubmissionController extends Controller
             $mailData['presentation_type'] = $submission->presentation_type;
             $mailData['namePrefix'] = $submission->presenter->userDetail->namePrefix->prefix;
             $mailData['conferenceTheme'] = $conference->conference_theme;
+            $mailData['conference_name'] = $conference->conference_name;
+
             DB::beginTransaction();
 
             Mail::to($submission->presenter->email)->send(new ConvertPresentationTypeMail($mailData));
@@ -260,6 +283,16 @@ class SubmissionController extends Controller
         }
     }
 
+    public function getAuthors($society, $conference, $id)
+    {
+        $submission = Submission::with('authors')->find($id);
+
+        if (!$submission) {
+            return response()->json([]);
+        }
+
+        return response()->json($submission->authors);
+    }
 
     public function sendMail($society, $conference)
     {

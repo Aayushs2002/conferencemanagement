@@ -10,13 +10,13 @@
 
     <title>Dashboard | @yield('title') </title>
 
-<meta name="google" content="notranslate">
+    <meta name="google" content="notranslate">
 
     <meta name="description" content="" />
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <!-- Favicon -->
-    <link rel="icon" type="image/x-icon" href="{{ asset('backend/assets/img/favicon/favicon.ico') }}" />
+    <link rel="icon" type="image/x-icon" href="{{ asset('default-image/logo.png') }}" />
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -88,7 +88,7 @@
     <script src="{{ asset('backend/assets/js/config.js') }}"></script>
     @yield('styles')
     {{-- @vite(['resources/css/app.css', 'resources/js/app.js']) --}}
-</head> 
+</head>
 
 <body>
     <!-- Layout wrapper -->

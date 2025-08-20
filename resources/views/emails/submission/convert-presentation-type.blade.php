@@ -39,7 +39,7 @@
     <br>
     <div>
         <p>Best Regards,</p>
-        <p>SAFOGCON 2025</p>
+        <p>{{ $data['conference_name'] }}</p>
 
         {{-- <p>Email: <a href="mailto:summit@nhrc.gov.np">summit@nhrc.gov.np</a></p> --}}
     </div>

@@ -35,7 +35,7 @@ class SubmissionCategoryMajorTrackPolicy
 
     public function edit(User $user, SubmissionCategoryMajorTrack $submissionCategoryMajorTrack): bool
     {
-        // dd($submissionCategoryMajorTrack->conference);
+        // dd($submissionCategoryMajorTrack->conference); 
         return $user->societies->contains($submissionCategoryMajorTrack->conference->society_id);
     }
     /**

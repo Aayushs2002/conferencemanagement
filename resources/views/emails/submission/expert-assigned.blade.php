@@ -29,9 +29,13 @@
     </div>
     <br>
     <div>
-        <p>We hope this message finds you well. We want to inform you that a presentation submission for a topic
-            ({{ $data['topic'] }}) has been assigned to you to review and make a decision for the request.</p>
-        <p>Please check your dashboard for more details. Thank You.</p>
+        @if ($bodyContent)
+            {!! $bodyContent !!}
+        @else
+            <p>We hope this message finds you well. We want to inform you that a presentation submission for a topic
+                ({{ $data['topic'] }}) has been assigned to you to review and make a decision for the request.</p>
+            <p>Please check your dashboard for more details. Thank You.</p>
+        @endif
     </div>
     <br>
     <div>
@@ -40,7 +44,7 @@
     <br>
     <div>
         <p>Best Regards,</p>
-        <p>SAFOGCON 2025</p>
+        <p>{{ $data['conference_name'] }}</p>
 
     </div>
 </body>

@@ -76,9 +76,9 @@
                                             <a class="dropdown-item" href="{{ route('society.edit', $society) }}"><i
                                                     class="icon-base ti tabler-pencil me-1"></i> Edit</a>
 
-                                            <a class="dropdown-item viewData" data-id="{{ $society->id }}"
+                                            <a class="dropdown-item viewData" data-id="{{ $society->id }}" 
                                                 data-bs-toggle="modal" data-bs-target="#pricingModal"><i
-                                                    class="icon-base ti tabler-eye me-1 "></i> View</a>
+                                                    class="icon-base ti tabler-eye me-1 "></i> View</a> 
                                             <hr>
                                             <form action="{{ route('society.destroy', $society->id) }}" method="POST">
                                                 @method('delete')

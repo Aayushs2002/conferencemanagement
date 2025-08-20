@@ -17,7 +17,8 @@ class RouteServiceProvider extends ServiceProvider
     {
         parent::boot();
 
-        Route::bind('society', function ($value) {
+        Route::bind('society', function ($value) { 
+            // dd($value);
             $id = Hashids::decode($value)[0] ?? null;
             abort_if(!$id, 404);
             return Society::findOrFail($id);

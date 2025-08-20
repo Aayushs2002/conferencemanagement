@@ -66,7 +66,7 @@ class ConferenceRegistrationController extends Controller
                 if (!empty($checkRegistration)) {
                     return false;
                 }
-
+ 
                 $totalQuota = $workshop->no_of_participants;
                 $appliedQuota = $workshop->registrations->where('verified_status', 1)->count();
 

@@ -16,11 +16,15 @@ class SubmissionSubmittedToUserMail extends Mailable
     /**
      * Create a new message instance.
      */
-    public $data;
+    public $data; 
+    public $subjectText;
+    public $bodyContent;
 
-    public function __construct($data)
+    public function __construct($data, $subjectText, $bodyContent)
     {
         $this->data = $data;
+        $this->subjectText = $subjectText;
+        $this->bodyContent = $bodyContent;
     }
 
     /**
@@ -28,8 +32,9 @@ class SubmissionSubmittedToUserMail extends Mailable
      */
     public function envelope(): Envelope
     {
+        // dd($this->bodyContent, 2);
         return new Envelope(
-            subject: 'Thank You for Your Abstract Submission',
+            subject: $this->subjectText ? $this->subjectText : 'Thank You for Your Abstract Submission',
         );
     }
 

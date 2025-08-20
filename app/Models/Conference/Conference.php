@@ -57,4 +57,9 @@ class Conference extends Model
     {
         return $this->hasOne(SubmissionSetting::class);
     }
+
+    public function conferenceCertificate()
+    {
+        return $this->hasOne(ConferenceCertificate::class);
+    }
 }
