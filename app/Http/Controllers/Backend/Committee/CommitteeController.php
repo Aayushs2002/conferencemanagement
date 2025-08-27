@@ -5,10 +5,13 @@ namespace App\Http\Controllers\Backend\Committee;
 use App\Http\Controllers\Controller;
 use App\Models\Committee\Committee;
 use Exception;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
 
 class CommitteeController extends Controller
 {
+    use AuthorizesRequests;
+
     /**
      * Display a listing of the resource.
      */
@@ -57,7 +60,7 @@ class CommitteeController extends Controller
     {
         try {
             $validated = $request->validate([
-                'committee_name' => 'required|string|unique:committees,committee_name',
+                'committee_name' => 'required|string',
                 'focal_person' => 'required|string',
                 'email' => 'required|email',
                 'phone' => 'required',
@@ -87,6 +90,7 @@ class CommitteeController extends Controller
      */
     public function edit($society, $conference, Committee $committee)
     {
+        $this->authorize('edit', $committee);
         return view('backend.committee.committee.create', compact('committee', 'society', 'conference'));
     }
 
@@ -97,7 +101,7 @@ class CommitteeController extends Controller
     {
         try {
             $validated = $request->validate([
-                'committee_name' => 'required|string|unique:committees,committee_name,' . $committee->id,
+                'committee_name' => 'required|string',
                 'focal_person' => 'required|string',
                 'email' => 'required|email',
                 'phone' => 'required',

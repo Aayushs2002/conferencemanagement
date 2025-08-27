@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Accomodation\Hotel;
 use App\Services\File\FileService;
 use Exception;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
 
 class HotelController extends Controller
@@ -13,6 +14,7 @@ class HotelController extends Controller
     /**
      * Display a listing of the resource.
      */
+    use AuthorizesRequests;
     public function __construct(protected FileService $file_service) {}
 
     public function index($society, $conference)
@@ -108,6 +110,7 @@ class HotelController extends Controller
      */
     public function edit($society, $conference, Hotel $hotel)
     {
+        $this->authorize('edit', $hotel);
         return view('backend.accomodation.hotel.create', compact('hotel', 'society', 'conference'));
     }
 

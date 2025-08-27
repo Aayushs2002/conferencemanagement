@@ -10,10 +10,12 @@ use App\Models\Sponsor\SponsorCategory;
 use App\Models\Sponsor\SponsorMeal;
 use App\Services\File\FileService;
 use Exception;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
 
 class SponsorController extends Controller
 {
+    use AuthorizesRequests;
     /**
      * Display a listing of the resource.
      */
@@ -126,6 +128,8 @@ class SponsorController extends Controller
         // } else {
         //     return redirect()->route('dashboard');
         // }
+        $this->authorize('edit', $sponsor);
+
         $categories = SponsorCategory::where([
             'society_id' => $society->id,
             'status' => 1
@@ -200,6 +204,7 @@ class SponsorController extends Controller
 
     public function addParticipant(Request $request)
     {
+        // dd($request);
         $sponsor = Sponsor::whereId($request->id)->first();
         return view('backend.sponsor.sponsor.add-participant', compact('sponsor'));
     }

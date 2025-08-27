@@ -3,6 +3,7 @@
 use App\Models\Conference\Conference;
 use App\Models\Conference\ConferenceRegistration;
 use App\Models\Conference\ScientificSessionCategory;
+use App\Models\Payment\InternationalPayment;
 use App\Models\User\ActivityLog;
 use App\Models\User\Society;
 use Illuminate\Support\Facades\Auth;
@@ -97,13 +98,23 @@ if (!function_exists('logActivity')) {
     }
 }
 
-if (!function_exists('parseTemplate')) { 
+if (!function_exists('parseTemplate')) {
     function parseTemplate($templateString, $data)
     {
         foreach ($data as $key => $value) {
             $templateString = str_replace('{' . $key . '}', $value, $templateString);
         }
         return $templateString;
+    }
+}
+
+if (!function_exists('internationalPayment')) {
+    function internationalPayment($society)
+    {
+        $society_id =  Hashids::decode($society);
+        // dd($society_id);
+        $internationalPayment = InternationalPayment::where(['society_id' => $society_id, 'status' => 1])->first();
+        return $internationalPayment;
     }
 }
 

@@ -54,6 +54,7 @@ abstract class ActionRequest
 
     public function __construct()
     {
+        // dd(internationalPayment(request()->segment(2))->access_token);
         $handler = HandlerStack::create();
 
         $handler->push(Middleware::mapRequest(function (RequestInterface $request) {
@@ -63,7 +64,7 @@ abstract class ActionRequest
         $this->client = new Client([
             'base_uri' => self::PaymentEndpoint,
             'handler' => $handler
-			
+
         ]);
 
         $this->jwsCompactSerializer = new JWSCompactSerializer();
@@ -103,7 +104,7 @@ abstract class ActionRequest
             checkers: [
                 new NotBeforeChecker(),
                 new ExpirationTimeChecker(),
-                new AudienceChecker(SecurityData::$AccessToken),
+                new AudienceChecker(internationalPayment(request()->segment(2))->access_token),
                 new IssuerChecker(["PacoIssuer"]),
             ]
         );
@@ -160,6 +161,7 @@ abstract class ActionRequest
         );
     }
 
+
     /**
      * Creates a JWK Private Key from PKCS#8 Encoded Private Key
      *
@@ -175,7 +177,7 @@ abstract class ActionRequest
     }
 
     /**
-     * Creates a JWK Public Key from PKCS#8 Encoded Public Key
+     * Creates a JWK Public Key from PKCS#8 Encoded Public Key 
      *
      * @param string $key
      * @param string|null $password
@@ -215,7 +217,7 @@ abstract class ActionRequest
             ->withSharedProtectedHeader([
                 "alg" => SecurityData::$JWEAlgorithm,
                 "enc" => SecurityData::$JWEEncrptionAlgorithm,
-                "kid" => SecurityData::$EncryptionKeyId,
+                "kid" => internationalPayment(request()->segment(2))->encryption_key_id,
                 "typ" => SecurityData::$TokenType,
             ])
             ->addRecipient($encryptingKey)
@@ -261,7 +263,7 @@ abstract class ActionRequest
             return com_create_guid();
         } else {
             $charId = strtoupper(md5(uniqid(rand(), true)));
-            $hyphen = chr(45);// "-"
+            $hyphen = chr(45); // "-"
             $guid = substr($charId, 0, 8) . $hyphen
                 . substr($charId, 8, 4) . $hyphen
                 . substr($charId, 12, 4) . $hyphen

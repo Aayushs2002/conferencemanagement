@@ -13,6 +13,11 @@ class PassSetting extends Model
         'lunch_end_time',
         'dinner_start_time',
         'dinner_end_time',
-        'status'
+        'status' 
     ];
+
+    public function conference()
+    {
+        return $this->belongsTo(Conference::class);
+    }
 }

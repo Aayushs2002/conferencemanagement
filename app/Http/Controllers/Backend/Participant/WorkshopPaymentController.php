@@ -8,6 +8,9 @@ use App\Models\Payment\InternationalPayment;
 use App\Models\Payment\NationalPayment;
 use App\Models\Workshop\Workshop;
 use App\Models\Workshop\WorkshopRegistration;
+use App\Services\HBL\Api\Payment;
+use Exception;
+use GuzzleHttp\Exception\GuzzleException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 
@@ -419,22 +422,65 @@ class WorkshopPaymentController extends Controller
         session(['workshopPayment' => $data]);
 
         // $paymentSetting = InternationalPayment::where('society_id', $society->id)->first();
-        $form = '<form id="paymentForm" action="https://merchant.conference.nesog.org.np/payment_request.php" method="GET">
-                    <input type="hidden" name="formID" value="92921030145569">
-                    <input type="hidden" name="api_key" value="de94032bd3aa4d86929a99fc56ec21e8">
-                    <input type="hidden" name="merchant_id" value="9104238068">
-                    <input type="hidden" name="input_currency" value="USD">
-                    <input type="hidden" name="input_amount" value="' . $request->price . '">
-                    <input type="hidden" name="input_3d" value="Y">
-                   <input type="hidden" name="success_url" value="' . route('my-society.conference.workshop-registration.internationalPaymentResultSuccessProcess', [$society, $conference]) . '">
-                     <input type="hidden" name="fail_url" value="' . route('my-society.conference.workshop-registration.internationalPaymentResultFail', [$society, $conference]) . '">
-                    <input type="hidden" name="cancel_url" value="' . route('my-society.conference.workshop-registration.internationalPaymentResultCancel', [$society, $conference]) . '">
-                    <input type="hidden" name="backend_url" value="' . route('my-society.conference.workshop-registration.internationalPaymentResultBackend', [$society, $conference]) . '">
-                    <input type="hidden" name="simple_spc" value="92921030145569">
-                </form>
-                <script type="text/javascript">document.getElementById("paymentForm").submit();</script>';
+        // $form = '<form id="paymentForm" action="https://merchant.conference.nesog.org.np/payment_request.php" method="GET">
+        //             <input type="hidden" name="formID" value="92921030145569">
+        //             <input type="hidden" name="api_key" value="de94032bd3aa4d86929a99fc56ec21e8">
+        //             <input type="hidden" name="merchant_id" value="9104238068">
+        //             <input type="hidden" name="input_currency" value="USD">
+        //             <input type="hidden" name="input_amount" value="' . $request->price . '">
+        //             <input type="hidden" name="input_3d" value="Y">
+        //            <input type="hidden" name="success_url" value="' . route('my-society.conference.workshop-registration.internationalPaymentResultSuccessProcess', [$society, $conference]) . '">
+        //              <input type="hidden" name="fail_url" value="' . route('my-society.conference.workshop-registration.internationalPaymentResultFail', [$society, $conference]) . '">
+        //             <input type="hidden" name="cancel_url" value="' . route('my-society.conference.workshop-registration.internationalPaymentResultCancel', [$society, $conference]) . '">
+        //             <input type="hidden" name="backend_url" value="' . route('my-society.conference.workshop-registration.internationalPaymentResultBackend', [$society, $conference]) . '">
+        //             <input type="hidden" name="simple_spc" value="92921030145569">
+        //         </form>
+        //         <script type="text/javascript">document.getElementById("paymentForm").submit();</script>';
 
-        return $form;
+        // return $form;
+
+        $paymentSetting = InternationalPayment::where('society_id', $society->id)->first();
+        // dd($paymentSetting);
+        try {
+            $payment = new Payment();
+            $joseResponse = $payment->ExecuteFormJose(
+                $paymentSetting->merchant_key, // merchant_id
+                $paymentSetting->api_key, // api_key
+                'USD', // input_currency
+                $request->price,   // input_amount
+                'Y',   // input_3d 
+                route('my-society.conference.workshop-registration.internationalPaymentResultSuccessProcess', [$society, $conference]), // success_url
+                route('my-society.conference.workshop-registration.internationalPaymentResultFail', [$society, $conference]),  // fail_url
+                route('my-society.conference.workshop-registration.internationalPaymentResultCancel', [$society, $conference]),  // cancel_url
+                route('my-society.conference.workshop-registration.internationalPaymentResultBackend', [$society, $conference]), // backend_url
+                $paymentSetting->access_token,
+                $paymentSetting->merchant_signing_private_key,
+                $paymentSetting->paco_encryption_public_key,
+                $paymentSetting->merchant_decryption_private_key,
+                $paymentSetting->paco_signing_public_key
+            );
+            // $joseResponse = $payment->ExecuteFormJose(
+            //     '9104137120', // merchant_id
+            //     '65805a1636c74b8e8ac81a991da80be4', // api_key
+            //     'NPR', // input_currency
+            //     '1',   // input_amount
+            //     'N',   // input_3d
+            //     'http://127.0.0.1:9090/payment/success', // success_url
+            //     'http://127.0.0.1:9090/payment/failed',  // fail_url
+            //     'http://127.0.0.1:9090/payment/cancel',  // cancel_url
+            //     'http://127.0.0.1:9090/payment/callback' // backend_url
+            // );
+
+            $response_obj = json_decode($joseResponse);
+            header("Location: " . $response_obj->response->Data->paymentPage->paymentPageURL);
+            exit();
+        } catch (GuzzleException $e) {
+            echo '\n Message: ' . $e->getMessage();
+            echo '\n Trace: ' . $e->getTraceAsString();
+        } catch (Exception $e) {
+            echo '\n Message: ' . $e->getMessage();
+            echo '\n Trace: ' . $e->getTraceAsString();
+        }
     }
 
     public function internationalPaymentResultSuccessProcess(Request $request)

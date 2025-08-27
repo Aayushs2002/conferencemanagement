@@ -2,6 +2,7 @@
 
 namespace App\Models\Template;
 
+use App\Models\Conference\Conference;
 use Illuminate\Database\Eloquent\Model;
 
 class EmailTemplate extends Model
@@ -12,4 +13,9 @@ class EmailTemplate extends Model
         'subject',
         'body'
     ];
+
+    public function conference()
+    {
+        return $this->belongsTo(Conference::class, 'conference_id', 'id');
+    }
 }

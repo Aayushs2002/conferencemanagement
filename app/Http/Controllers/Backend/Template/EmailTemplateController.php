@@ -5,11 +5,13 @@ namespace App\Http\Controllers\Backend\Template;
 use App\Http\Controllers\Controller;
 use App\Models\Template\EmailTemplate;
 use Exception;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
 class EmailTemplateController extends Controller
 {
+    use AuthorizesRequests;
     /**
      * Display a listing of the resource.
      */
@@ -71,6 +73,7 @@ class EmailTemplateController extends Controller
      */
     public function edit($society, $conference, EmailTemplate $email_template)
     {
+        $this->authorize('edit', $email_template);
         return view('backend.template.email-template.create', compact('society', 'conference', 'email_template'));
     }
 

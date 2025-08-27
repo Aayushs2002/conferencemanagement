@@ -2,11 +2,11 @@
 
 namespace App\Policies;
 
-use App\Models\Conference\SubmissionCategoryMajorTrack;
+use App\Models\Notice\Notice;
 use App\Models\User;
 use Illuminate\Auth\Access\Response;
 
-class SubmissionCategoryMajorTrackPolicy
+class NoticePolicy
 {
     /**
      * Determine whether the user can view any models.
@@ -19,10 +19,9 @@ class SubmissionCategoryMajorTrackPolicy
     /**
      * Determine whether the user can view the model.
      */
-    public function view(User $user, SubmissionCategoryMajorTrack $submissionCategoryMajorTrack): bool
+    public function view(User $user, Notice $notice): bool
     {
-        // dd($submissionCategoryMajorTrack->conference);
-        return $user->societies->contains($submissionCategoryMajorTrack->conference->society_id);
+        return false;
     }
 
     /**
@@ -33,15 +32,15 @@ class SubmissionCategoryMajorTrackPolicy
         return false;
     }
 
-    public function edit(User $user, SubmissionCategoryMajorTrack $submissionCategoryMajorTrack): bool
+    public function edit(User $user, Notice $notice): bool
     {
-        // dd($submissionCategoryMajorTrack->conference);  
-        return $user->societies->contains($submissionCategoryMajorTrack->conference->society_id);
+        return $user->societies->contains($notice->conference->society_id);
     }
+
     /**
      * Determine whether the user can update the model.
      */
-    public function update(User $user, SubmissionCategoryMajorTrack $submissionCategoryMajorTrack): bool
+    public function update(User $user, Notice $notice): bool
     {
         return false;
     }
@@ -49,7 +48,7 @@ class SubmissionCategoryMajorTrackPolicy
     /**
      * Determine whether the user can delete the model.
      */
-    public function delete(User $user, SubmissionCategoryMajorTrack $submissionCategoryMajorTrack): bool
+    public function delete(User $user, Notice $notice): bool
     {
         return false;
     }
@@ -57,7 +56,7 @@ class SubmissionCategoryMajorTrackPolicy
     /**
      * Determine whether the user can restore the model.
      */
-    public function restore(User $user, SubmissionCategoryMajorTrack $submissionCategoryMajorTrack): bool
+    public function restore(User $user, Notice $notice): bool
     {
         return false;
     }
@@ -65,7 +64,7 @@ class SubmissionCategoryMajorTrackPolicy
     /**
      * Determine whether the user can permanently delete the model.
      */
-    public function forceDelete(User $user, SubmissionCategoryMajorTrack $submissionCategoryMajorTrack): bool
+    public function forceDelete(User $user, Notice $notice): bool
     {
         return false;
     }

@@ -3,13 +3,16 @@
 namespace App\Http\Controllers\Backend\Participant;
 
 use App\Http\Controllers\Controller;
+use App\Models\Conference\ConferenceAddon;
 use App\Models\Conference\ConferenceMemberTypePrice;
 use App\Models\Payment\InternationalPayment;
 use App\Models\Payment\NationalPayment;
+use App\Models\Workshop\Workshop;
 use App\Services\HBL\Api\Payment;
 use Exception;
 use GuzzleHttp\Exception\GuzzleException;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Svg\Tag\Rect;
 
@@ -413,72 +416,71 @@ class PaymentContoller extends Controller
     public function internationalPayment(Request $request, $society, $conference)
     {
 
-        // dd($request->all());
         if (is_past($conference->regular_registration_deadline)) {
             return redirect()->back()->with('delete', 'Conference Regisration date has ended.');
         }
         session(['onlinePayment' => $request->all()]);
 
         // $paymentSetting = InternationalPayment::where('society_id', $society->id)->first();
-        $form = '<form id="paymentForm" action="https://merchant.conference.nesog.org.np/payment_request.php" method="GET">
-                    <input type="hidden" name="formID" value="92921030145569">
-                    <input type="hidden" name="api_key" value="de94032bd3aa4d86929a99fc56ec21e8">
-                    <input type="hidden" name="merchant_id" value="9104238068">
-                    <input type="hidden" name="input_currency" value="USD">
-                    <input type="hidden" name="input_amount" value="' . $request->amount . '">
-                    <input type="hidden" name="input_3d" value="Y">
-                   <input type="hidden" name="success_url" value="' . route('my-society.conference.internationalPaymentResultSuccessProcess', [$society, $conference]) . '">
-                     <input type="hidden" name="fail_url" value="' . route('my-society.conference.internationalPaymentResultFail', [$society, $conference]) . '">
-                    <input type="hidden" name="cancel_url" value="' . route('my-society.conference.internationalPaymentResultCancel', [$society, $conference]) . '">
-                    <input type="hidden" name="backend_url" value="' . route('my-society.conference.internationalPaymentResultBackend', [$society, $conference]) . '">
-                    <input type="hidden" name="simple_spc" value="92921030145569">
-                </form>
-                <script type="text/javascript">document.getElementById("paymentForm").submit();</script>';
-        return $form;
-        // $paymentSetting = InternationalPayment::where('society_id', $society->id)->first();
-        // // dd($paymentSetting);
-        // try {
-        //     $payment = new Payment();
-        //     $joseResponse = $payment->ExecuteFormJose(
-        //         $paymentSetting->merchant_key, // merchant_id
-        //         $paymentSetting->api_key, // api_key
-        //         'USD', // input_currency
-        //         '1',   // input_amount
-        //         'Y',   // input_3d
-        //         route('my-society.conference.internationalPaymentResultSuccessProcess', [$society, $conference]), // success_url
-        //         route('my-society.conference.internationalPaymentResultFail', [$society, $conference]),  // fail_url
-        //         route('my-society.conference.internationalPaymentResultCancel', [$society, $conference]),  // cancel_url
-        //         route('my-society.conference.internationalPaymentResultBackend', [$society, $conference]), // backend_url
-        //         $paymentSetting->access_token,
-        //         $paymentSetting->merchant_signing_private_key,
-        //         $paymentSetting->paco_encryption_public_key,
-        //         $paymentSetting->merchant_decryption_private_key,
-        //         $paymentSetting->paco_signing_public_key
-        //     );
-        //     // $joseResponse = $payment->ExecuteFormJose(
-        //     //     '9104137120', // merchant_id
-        //     //     '65805a1636c74b8e8ac81a991da80be4', // api_key
-        //     //     'NPR', // input_currency
-        //     //     '1',   // input_amount
-        //     //     'N',   // input_3d
-        //     //     'http://127.0.0.1:9090/payment/success', // success_url
-        //     //     'http://127.0.0.1:9090/payment/failed',  // fail_url
-        //     //     'http://127.0.0.1:9090/payment/cancel',  // cancel_url
-        //     //     'http://127.0.0.1:9090/payment/callback' // backend_url
-        //     // );
+        // $form = '<form id="paymentForm" action="https://merchant.conference.nesog.org.np/payment_request.php" method="GET">
+        //             <input type="hidden" name="formID" value="92921030145569">
+        //             <input type="hidden" name="api_key" value="de94032bd3aa4d86929a99fc56ec21e8">
+        //             <input type="hidden" name="merchant_id" value="9104238068">
+        //             <input type="hidden" name="input_currency" value="USD">
+        //             <input type="hidden" name="input_amount" value="' . $request->amount . '">
+        //             <input type="hidden" name="input_3d" value="Y">
+        //            <input type="hidden" name="success_url" value="' . route('my-society.conference.internationalPaymentResultSuccessProcess', [$society, $conference]) . '">
+        //              <input type="hidden" name="fail_url" value="' . route('my-society.conference.internationalPaymentResultFail', [$society, $conference]) . '">
+        //             <input type="hidden" name="cancel_url" value="' . route('my-society.conference.internationalPaymentResultCancel', [$society, $conference]) . '">
+        //             <input type="hidden" name="backend_url" value="' . route('my-society.conference.internationalPaymentResultBackend', [$society, $conference]) . '">
+        //             <input type="hidden" name="simple_spc" value="92921030145569">
+        //         </form>
+        //         <script type="text/javascript">document.getElementById("paymentForm").submit();</script>';
+        // return $form;
+        $paymentSetting = InternationalPayment::where('society_id', $society->id)->first();
+        // dd($paymentSetting);
+        try {
+            $payment = new Payment();
+            $joseResponse = $payment->ExecuteFormJose(
+                $paymentSetting->merchant_key, // merchant_id
+                $paymentSetting->api_key, // api_key
+                'USD', // input_currency
+                $request->amount,   // input_amount
+                'Y',   // input_3d 
+                route('my-society.conference.internationalPaymentResultSuccessProcess', [$society, $conference]), // success_url
+                route('my-society.conference.internationalPaymentResultFail', [$society, $conference]),  // fail_url
+                route('my-society.conference.internationalPaymentResultCancel', [$society, $conference]),  // cancel_url
+                route('my-society.conference.internationalPaymentResultBackend', [$society, $conference]), // backend_url
+                $paymentSetting->access_token,
+                $paymentSetting->merchant_signing_private_key,
+                $paymentSetting->paco_encryption_public_key,
+                $paymentSetting->merchant_decryption_private_key,
+                $paymentSetting->paco_signing_public_key
+            );
+            // $joseResponse = $payment->ExecuteFormJose(
+            //     '9104137120', // merchant_id
+            //     '65805a1636c74b8e8ac81a991da80be4', // api_key
+            //     'NPR', // input_currency
+            //     '1',   // input_amount
+            //     'N',   // input_3d
+            //     'http://127.0.0.1:9090/payment/success', // success_url
+            //     'http://127.0.0.1:9090/payment/failed',  // fail_url
+            //     'http://127.0.0.1:9090/payment/cancel',  // cancel_url
+            //     'http://127.0.0.1:9090/payment/callback' // backend_url
+            // );
 
-        //     $response_obj = json_decode($joseResponse);
-        //     header("Location: " . $response_obj->response->Data->paymentPage->paymentPageURL);
-        //     exit();
-        // } catch (GuzzleException $e) {
-        //     echo '\n Message: ' . $e->getMessage();
-        //     echo '\n Trace: ' . $e->getTraceAsString();
-        // } catch (Exception $e) {
-        //     echo '\n Message: ' . $e->getMessage();
-        //     echo '\n Trace: ' . $e->getTraceAsString();
-        // }
+            $response_obj = json_decode($joseResponse);
+            header("Location: " . $response_obj->response->Data->paymentPage->paymentPageURL);
+            exit();
+        } catch (GuzzleException $e) {
+            echo '\n Message: ' . $e->getMessage();
+            echo '\n Trace: ' . $e->getTraceAsString();
+        } catch (Exception $e) {
+            echo '\n Message: ' . $e->getMessage();
+            echo '\n Trace: ' . $e->getTraceAsString();
+        }
     }
- 
+
 
     public function internationalPaymentResultSuccessProcess(Request $request, $society, $conference)
     {
@@ -516,8 +518,49 @@ class PaymentContoller extends Controller
         }
         $national_payemnt_setting = NationalPayment::where('society_id', $conference->society_id)->first();
         $international_payemnt_setting = InternationalPayment::where('society_id', $conference->society_id)->first();
+        $workshops = Workshop::with(['registrations' => function ($q) {
+            $q->where('status', 1);
+        }])
+            ->where([
+                'conference_id' => $conference->id,
+                'status' => 1
+            ])
+            ->get()
+            ->filter(function ($workshop) use ($membetType) {
+                $currentUserId = current_user()->id;
+
+                $checkRegistration = $workshop->registrations
+                    ->where('user_id', $currentUserId)
+                    ->first();
+
+                if (!empty($checkRegistration)) {
+                    return false;
+                }
+
+                $totalQuota = $workshop->no_of_participants;
+                $appliedQuota = $workshop->registrations->where('verified_status', 1)->count();
+
+                if ($appliedQuota >= $totalQuota) {
+                    return false;
+                }
+
+                $price = DB::table('workshop_registration_prices')
+                    ->where([
+                        'workshop_id' => $workshop->id,
+                        'member_type_id' => $membetType->id,
+                    ])
+                    ->first();
+
+                if (empty($price) || empty($price->price)) {
+                    return false;
+                }
+
+                return true;
+            });
+        $conferenceAddons = ConferenceAddon::where(['conference_id' => $conference->id, 'status' => 1])->get();
+
         // dd($checkPayment);
-        return view('backend.participant.conference-registration.create', compact('conference', 'amount', 'memberTypePrice', 'society', 'checkPayment', 'international_payemnt_setting', 'national_payemnt_setting'));
+        return view('backend.participant.conference-registration.create', compact('workshops', 'conferenceAddons', 'conference', 'amount', 'memberTypePrice', 'society', 'checkPayment', 'international_payemnt_setting', 'national_payemnt_setting'));
         // $transactionId = $request->orderNo;
         // return view('backend.conferences.registrations.international-payment-success', compact('transactionId'));
     }
@@ -537,7 +580,47 @@ class PaymentContoller extends Controller
         }
         $national_payemnt_setting = NationalPayment::where('society_id', $conference->society_id)->first();
         $international_payemnt_setting = InternationalPayment::where('society_id', $conference->society_id)->first();
-        return view('backend.participant.conference-registration.create', compact('conference', 'amount', 'memberTypePrice', 'society', 'checkPayment', 'international_payemnt_setting', 'national_payemnt_setting'));
+        $workshops = Workshop::with(['registrations' => function ($q) {
+            $q->where('status', 1);
+        }])
+            ->where([
+                'conference_id' => $conference->id,
+                'status' => 1
+            ])
+            ->get()
+            ->filter(function ($workshop) use ($membetType) {
+                $currentUserId = current_user()->id;
+
+                $checkRegistration = $workshop->registrations
+                    ->where('user_id', $currentUserId)
+                    ->first();
+
+                if (!empty($checkRegistration)) {
+                    return false;
+                }
+
+                $totalQuota = $workshop->no_of_participants;
+                $appliedQuota = $workshop->registrations->where('verified_status', 1)->count();
+
+                if ($appliedQuota >= $totalQuota) {
+                    return false;
+                }
+
+                $price = DB::table('workshop_registration_prices')
+                    ->where([
+                        'workshop_id' => $workshop->id,
+                        'member_type_id' => $membetType->id,
+                    ])
+                    ->first();
+
+                if (empty($price) || empty($price->price)) {
+                    return false;
+                }
+
+                return true;
+            });
+        $conferenceAddons = ConferenceAddon::where(['conference_id' => $conference->id, 'status' => 1])->get();
+        return view('backend.participant.conference-registration.create', compact('workshops', 'conferenceAddons', 'conference', 'amount', 'memberTypePrice', 'society', 'checkPayment', 'international_payemnt_setting', 'national_payemnt_setting'));
     }
 
     public function internationalPaymentResultBackend($society, $conference)
@@ -555,6 +638,46 @@ class PaymentContoller extends Controller
         }
         $national_payemnt_setting = NationalPayment::where('society_id', $conference->society_id)->first();
         $international_payemnt_setting = InternationalPayment::where('society_id', $conference->society_id)->first();
-        return view('backend.participant.conference-registration.create', compact('conference', 'amount', 'memberTypePrice', 'society', 'checkPayment', 'international_payemnt_setting', 'national_payemnt_setting'));
+        $workshops = Workshop::with(['registrations' => function ($q) {
+            $q->where('status', 1);
+        }])
+            ->where([
+                'conference_id' => $conference->id,
+                'status' => 1
+            ])
+            ->get()
+            ->filter(function ($workshop) use ($membetType) {
+                $currentUserId = current_user()->id;
+
+                $checkRegistration = $workshop->registrations
+                    ->where('user_id', $currentUserId)
+                    ->first();
+
+                if (!empty($checkRegistration)) {
+                    return false;
+                }
+
+                $totalQuota = $workshop->no_of_participants;
+                $appliedQuota = $workshop->registrations->where('verified_status', 1)->count();
+
+                if ($appliedQuota >= $totalQuota) {
+                    return false;
+                }
+
+                $price = DB::table('workshop_registration_prices')
+                    ->where([
+                        'workshop_id' => $workshop->id,
+                        'member_type_id' => $membetType->id,
+                    ])
+                    ->first();
+
+                if (empty($price) || empty($price->price)) {
+                    return false;
+                }
+
+                return true;
+            });
+        $conferenceAddons = ConferenceAddon::where(['conference_id' => $conference->id, 'status' => 1])->get();
+        return view('backend.participant.conference-registration.create', compact('workshops', 'conferenceAddons', 'conference', 'amount', 'memberTypePrice', 'society', 'checkPayment', 'international_payemnt_setting', 'national_payemnt_setting'));
     }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Models\Workshop;
 
+use App\Models\Conference\Conference;
 use Illuminate\Database\Eloquent\Model;
 
 class WorkshopPassSetting extends Model
@@ -15,4 +16,9 @@ class WorkshopPassSetting extends Model
         'dinner_end_time',
         'status'
     ];
+
+    public function conference()
+    {
+        return $this->belongsTo(Conference::class, 'conference_id', 'id');
+    }
 }

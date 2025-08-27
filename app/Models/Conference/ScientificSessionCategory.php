@@ -13,4 +13,9 @@ class ScientificSessionCategory extends Model
         'slug',
         'status'
     ];
+
+    public function conference()
+    {
+        return $this->belongsTo(Conference::class, 'conference_id', 'id');
+    }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Models\Faq;
 
+use App\Models\Conference\Conference;
 use Illuminate\Database\Eloquent\Model;
 
 class Faq extends Model
@@ -19,5 +20,10 @@ class Faq extends Model
     public function category()
     {
         return $this->belongsTo(faqCategory::class, 'faq_category_id', 'id');
+    }
+
+    public function conference()
+    {
+        return $this->belongsTo(Conference::class, 'conference_id', 'id');
     }
 }

@@ -6,10 +6,13 @@ use App\Http\Controllers\Controller;
 use App\Models\Workshop\WorkshopPassSetting;
 use App\Services\File\FileService;
 use Exception;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
 
 class WorkshopPassSettingController extends Controller
 {
+    use AuthorizesRequests;
+
     /**
      * Display a listing of the resource.
      */
@@ -68,6 +71,8 @@ class WorkshopPassSettingController extends Controller
      */
     public function edit($society, $conference, WorkshopPassSetting $workshop_pass_setting)
     {
+        $this->authorize('edit', $workshop_pass_setting);
+
         return view('backend.workshop.pass-setting.create', compact(
             'society',
             'conference',

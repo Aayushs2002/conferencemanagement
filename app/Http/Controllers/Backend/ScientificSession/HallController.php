@@ -4,10 +4,13 @@ namespace App\Http\Controllers\Backend\ScientificSession;
 
 use App\Http\Controllers\Controller;
 use App\Models\Conference\Hall;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
 
 class HallController extends Controller
 {
+    use AuthorizesRequests;
+
     /**
      * Display a listing of the resource.
      */
@@ -67,6 +70,7 @@ class HallController extends Controller
      */
     public function edit($society, $conference, Hall $hall)
     {
+        $this->authorize('edit', $hall);
         return view('backend.schedule-plan.hall.create', compact('hall', 'society', 'conference'));
     }
 

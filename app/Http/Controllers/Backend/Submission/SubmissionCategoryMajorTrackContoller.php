@@ -46,6 +46,7 @@ class SubmissionCategoryMajorTrackContoller extends Controller
 
     public function edit($society, $conference, SubmissionCategoryMajorTrack $submissionCategoryMajortrack)
     {
+        // dd('ad');
         $this->authorize('edit', $submissionCategoryMajortrack);
 
         return view('backend.submission.submission-category-majortrack.create', compact('submissionCategoryMajortrack', 'society', 'conference'));

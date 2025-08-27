@@ -11,4 +11,9 @@ class Hall extends Model
         'hall_name',
         'status'
     ];
+
+    public function conference()
+    {
+        return $this->belongsTo(Conference::class, 'conference_id', 'id');
+    }
 }

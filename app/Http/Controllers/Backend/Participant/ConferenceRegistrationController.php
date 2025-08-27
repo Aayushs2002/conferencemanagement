@@ -8,7 +8,7 @@ use App\Models\Conference\AccompanyPerson;
 use App\Models\Conference\ConferenceAddon;
 use App\Models\Conference\ConferenceMemberTypePrice;
 use App\Models\Conference\ConferenceRegistration;
-use App\Models\Conference\ConferenceSetting;
+use App\Models\Conference\ConferenceSetting; 
 use App\Models\Conference\Submission;
 use App\Models\Payment\InternationalPayment;
 use App\Models\Payment\NationalPayment;

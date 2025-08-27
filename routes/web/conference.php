@@ -270,8 +270,8 @@ Route::middleware('auth')->group(function () {
 
 
     Route::get('sponsor/change-status/{sponsor}', [SponsorController::class, 'changeStatus'])->middleware('auto.conf.permission')->name('sponsor.changeStatus');
-    Route::post('/sponsor/add-participant', [SponsorController::class, 'addParticipant'])->middleware('auto.conf.permission')->name('sponsor.addParticipant');
-    Route::post('/sponsor/add-participant-submit', [SponsorController::class, 'addParticipantSubmit'])->middleware('auto.conf.permission')->name('sponsor.addParticipantSubmit');
+    Route::post('/sponsor/add-participant', [SponsorController::class, 'addParticipant'])->name('sponsor.addParticipant');
+    Route::post('/sponsor/add-participant-submit', [SponsorController::class, 'addParticipantSubmit'])->name('sponsor.addParticipantSubmit');
 
     Route::prefix('/society/{society}/conference/{conference}')->middleware('auto.conf.permission')->group(function () {
         Route::resource('faq', FaqController::class)->except('show');

@@ -6,10 +6,12 @@ use App\Http\Controllers\Controller;
 use App\Models\Faq\FaqCategory;
 use Exception;
 use Illuminate\Database\QueryException;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
 
 class FaqCategoryController extends Controller
 {
+    use AuthorizesRequests;
     /**
      * Display a listing of the resource.
      */
@@ -55,7 +57,7 @@ class FaqCategoryController extends Controller
     {
         try {
             $validated = $request->validate([
-                'category_name' => 'required|unique:faq_categories,category_name'
+                'category_name' => 'required'
             ]);
             $validated['slug'] = slugify($validated['category_name']);
             $validated['society_id'] = $society->id;
@@ -81,6 +83,7 @@ class FaqCategoryController extends Controller
      */
     public function edit($society, $conference, FaqCategory $faq_category)
     {
+        $this->authorize('edit', $faq_category);
         return view('backend.faq.category.create', compact('faq_category', 'society', 'conference'));
     }
 
@@ -91,7 +94,7 @@ class FaqCategoryController extends Controller
     {
         try {
             $validated = $request->validate([
-                'category_name' => 'required|unique:faq_categories,category_name,' . $faq_category->id
+                'category_name' => 'required'
             ]);
             $validated['slug'] = slugify($validated['category_name']);
 

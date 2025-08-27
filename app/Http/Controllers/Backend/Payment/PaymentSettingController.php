@@ -124,6 +124,7 @@ class PaymentSettingController extends Controller
                     'merchant_key' => 'required|string|max:255',
                     'api_key' => 'required|string|max:255',
                     'access_token' => 'required',
+                    'encryption_key_id' => 'required',
                     'merchant_signing_private_key' => 'required',
                     'paco_encryption_public_key' => 'required',
                     'merchant_decryption_private_key' => 'required',

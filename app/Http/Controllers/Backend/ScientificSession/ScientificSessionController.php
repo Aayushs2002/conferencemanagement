@@ -11,11 +11,13 @@ use App\Models\Conference\Submission;
 use App\Models\User;
 use App\Models\User\Society;
 use Carbon\Carbon;
-use Exception; 
+use Exception;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
 
 class ScientificSessionController extends Controller
 {
+    use AuthorizesRequests;
     /**
      * Display a listing of the resource.
      */
@@ -140,7 +142,7 @@ class ScientificSessionController extends Controller
      */
     public function edit($society, $conference, ScientificSession $scientific_session)
     {
-
+        $this->authorize('edit', $scientific_session);
 
         $startDate = Carbon::parse($conference->start_date);
         $endDate = Carbon::parse($conference->end_date);

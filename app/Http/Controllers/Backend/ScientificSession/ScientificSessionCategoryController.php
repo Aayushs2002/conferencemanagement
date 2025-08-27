@@ -5,10 +5,13 @@ namespace App\Http\Controllers\Backend\ScientificSession;
 use App\Http\Controllers\Controller;
 use App\Models\Conference\ScientificSessionCategory;
 use Exception;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
 
 class ScientificSessionCategoryController extends Controller
 {
+    use AuthorizesRequests;
+
     /**
      * Display a listing of the resource.
      */
@@ -65,7 +68,7 @@ class ScientificSessionCategoryController extends Controller
             }
         } catch (Exception $e) {
             //throw $th;
-            dd($e);
+            // dd($e);
             return redirect()->back()->with('delete', 'Internal Server Error');
         }
     }
@@ -83,6 +86,8 @@ class ScientificSessionCategoryController extends Controller
      */
     public function edit($society, $conference, ScientificSessionCategory $category)
     {
+        $this->authorize('edit', $category);
+
         return view('backend.schedule-plan.scientific-session-category.create', compact('category', 'society', 'conference'));
     }
 

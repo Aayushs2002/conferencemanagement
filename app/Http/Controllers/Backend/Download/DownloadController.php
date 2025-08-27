@@ -6,10 +6,12 @@ use App\Http\Controllers\Controller;
 use App\Models\Download\Download;
 use App\Services\File\FileService;
 use Exception;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
 
 class DownloadController extends Controller
 {
+    use AuthorizesRequests;
     /**
      * Display a listing of the resource.
      */
@@ -82,6 +84,7 @@ class DownloadController extends Controller
      */
     public function edit($society, $conference, Download $download)
     {
+        $this->authorize('edit', $download);
         return view('backend.download.create', compact('download', 'society', 'conference'));
     }
 

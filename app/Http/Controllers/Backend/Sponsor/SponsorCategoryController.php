@@ -6,10 +6,12 @@ use App\Http\Controllers\Controller;
 use App\Models\Sponsor\SponsorCategory;
 use Exception;
 use Illuminate\Database\QueryException;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
 
 class SponsorCategoryController extends Controller
 {
+    use AuthorizesRequests;
     /**
      * Display a listing of the resource.
      */
@@ -55,7 +57,7 @@ class SponsorCategoryController extends Controller
     {
         try {
             $validated = $request->validate([
-                'category_name' => 'required|unique:sponsor_categories,category_name'
+                'category_name' => 'required'
             ]);
             $validated['slug'] = slugify($validated['category_name']);
             $validated['society_id'] = $society->id;
@@ -74,6 +76,8 @@ class SponsorCategoryController extends Controller
      */
     public function edit($society, $conference, SponsorCategory $sponsor_category)
     {
+        $this->authorize('edit', $sponsor_category);
+
         return view('backend.sponsor.category.create', compact('sponsor_category', 'society', 'conference'));
     }
 
@@ -84,7 +88,7 @@ class SponsorCategoryController extends Controller
     {
         try {
             $validated = $request->validate([
-                'category_name' => 'required|unique:sponsor_categories,category_name,' . $sponsor_category->id
+                'category_name' => 'required'
             ]);
             $validated['slug'] = slugify($validated['category_name']);
 

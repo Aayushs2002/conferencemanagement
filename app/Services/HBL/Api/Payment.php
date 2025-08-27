@@ -312,7 +312,7 @@ class Payment extends ActionRequest
         // dd($response);
 
         $token = $response->getBody()->getContents();
-        // $decryptingKey = $this->GetPrivateKey(SecurityData::$MerchantDecryptionPrivateKey);
+        // $decryptingKey = $this->GetPrivateKey(SecurityData::$MerchantDecryptionPrivateKey); 
         $decryptingKey = $this->GetPrivateKey($merchant_decryption_private_key);
         // $signatureVerificationKey = $this->GetPublicKey(SecurityData::$PacoSigningPublicKey);
         $signatureVerificationKey = $this->GetPublicKey($paco_signing_public_key);

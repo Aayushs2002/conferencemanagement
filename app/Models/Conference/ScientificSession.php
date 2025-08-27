@@ -44,4 +44,9 @@ class ScientificSession extends Model
     {
         return $this->belongsTo(Submission::class, 'submission_id', 'id');
     }
+
+    public function conference()
+    {
+        return $this->belongsTo(Conference::class, 'conference_id', 'id');
+    }
 }

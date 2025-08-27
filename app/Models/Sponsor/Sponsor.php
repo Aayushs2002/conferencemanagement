@@ -2,6 +2,7 @@
 
 namespace App\Models\Sponsor;
 
+use App\Models\Conference\Conference;
 use Illuminate\Database\Eloquent\Model;
 
 class Sponsor extends Model
@@ -39,5 +40,10 @@ class Sponsor extends Model
     public function meals()
     {
         return $this->hasMany(SponsorMeal::class, 'sponsor_id', 'id');
+    }
+
+    public function conference()
+    {
+        return $this->belongsTo(Conference::class, 'conference_id', 'id');
     }
 }

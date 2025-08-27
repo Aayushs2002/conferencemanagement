@@ -7,10 +7,12 @@ use App\Models\Faq\Faq;
 use App\Models\Faq\FaqCategory;
 use Exception;
 use Illuminate\Database\QueryException;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
 
 class FaqController extends Controller
 {
+    use AuthorizesRequests;
     /**
      * Display a listing of the resource.
      */
@@ -100,6 +102,7 @@ class FaqController extends Controller
         // } else {
         //     return redirect()->route('dashboard');
         // }
+        $this->authorize('edit', $faq);
         $faq_categories = FaqCategory::where([
             'society_id' => $society->id,
             'status' => 1

@@ -15,4 +15,9 @@ class ConferenceCertificate extends Model
     protected $casts = [
         'signature' => 'array'
     ];
+
+    public function conference()
+    {
+        return $this->belongsTo(Conference::class);
+    }
 }

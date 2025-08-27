@@ -6,10 +6,12 @@ use App\Http\Controllers\Controller;
 use App\Models\Notice\Notice;
 use App\Services\File\FileService;
 use Exception;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
 
 class NoticeController extends Controller
 {
+    use AuthorizesRequests;
     /**
      * Display a listing of the resource.
      */
@@ -80,6 +82,7 @@ class NoticeController extends Controller
      */
     public function edit($society, $conference, Notice $notice)
     {
+        $this->authorize('edit', $notice);
         return view('backend.notice.create', compact('notice', 'society', 'conference'));
     }
 

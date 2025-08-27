@@ -5,10 +5,12 @@ namespace App\Http\Controllers\Backend\Committee;
 use App\Http\Controllers\Controller;
 use App\Models\Committee\CommitteeDesignation;
 use Exception;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
 
 class CommitteeDesignationController extends Controller
 {
+    use AuthorizesRequests;
     /**
      * Display a listing of the resource.
      */
@@ -83,6 +85,8 @@ class CommitteeDesignationController extends Controller
      */
     public function edit($society, $conference, CommitteeDesignation $committe_designation)
     {
+        $this->authorize('edit', $committe_designation);
+        
         return view('backend.committee.committee-designation.create', compact('committe_designation', 'society', 'conference'));
     }
 

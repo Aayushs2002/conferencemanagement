@@ -69,7 +69,7 @@
                                 @if (auth()->user()->hasConferencePermissionBlade(getConference(request()->segment(4)), 'Change Publish Sponsor'))
                                     @if ($sponsor->visible_status == 1)
                                         <a href="{{ route('sponsor.changeStatus', $sponsor->id) }}"
-                                            class="btn btn-success ml-2" title="Unpublish Executive"><i
+                                            class="btn btn-success ml-2" title="Unpublish Executive"><i 
                                                 class="icon-base ti tabler-circle-check"></i></a>
                                     @else
                                         <a href="{{ route('sponsor.changeStatus', $sponsor->id) }}"
@@ -209,7 +209,7 @@
 
             $(document).on("click", ".addParticipant", function(e) {
                 e.preventDefault();
-                var url = '{{ route('sponsor.addParticipant') }}';
+                var url = '{{ route('sponsor.addParticipant') }}'; 
                 var _token = '{{ csrf_token() }}';
                 var id = $(this).data('id');
                 var data = {

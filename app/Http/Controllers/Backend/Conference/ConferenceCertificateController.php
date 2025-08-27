@@ -6,10 +6,13 @@ use App\Http\Controllers\Controller;
 use App\Models\Conference\ConferenceCertificate;
 use App\Services\File\FileService;
 use Exception;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
 
 class ConferenceCertificateController extends Controller
 {
+    use AuthorizesRequests;
+
     public function __construct(protected FileService $file_service) {}
 
     /**
@@ -80,6 +83,8 @@ class ConferenceCertificateController extends Controller
      */
     public function edit($society, $conference, ConferenceCertificate $conference_certificate)
     {
+        $this->authorize('edit', $conference_certificate);
+
         return view('backend.conference.conference-certificate.create', compact('society', 'conference', 'conference_certificate'));
     }
 

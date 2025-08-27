@@ -2,6 +2,7 @@
 
 namespace App\Models\Download;
 
+use App\Models\Conference\Conference;
 use Illuminate\Database\Eloquent\Model;
 
 class Download extends Model
@@ -16,4 +17,9 @@ class Download extends Model
         'is_featured',
         'status'
     ];
+
+    public function conference()
+    {
+        return $this->belongsTo(Conference::class, 'conference_id', 'id');
+    }
 }

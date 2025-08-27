@@ -9,11 +9,14 @@ use App\Models\ConferenceMemberTypeNameTag;
 use App\Models\User\MemberType;
 use App\Services\File\FileService;
 use Exception;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class PassSettingController extends Controller
 {
+    use AuthorizesRequests;
+
     /**
      * Display a listing of the resource. 
      */
@@ -95,6 +98,8 @@ class PassSettingController extends Controller
      */
     public function edit($society, $conference, PassSetting $pass_setting)
     {
+        $this->authorize('edit', $pass_setting);
+
         $memberTypes = MemberType::where('society_id', $conference->society_id)->get();
 
         $passNameTags = ConferenceMemberTypeNameTag::where('conference_id', $conference->id)->get();

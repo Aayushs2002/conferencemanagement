@@ -294,6 +294,19 @@
                                         </div>
 
                                         <div class="col-md-6 form-group mb-3">
+                                            <label class="form-label" for="encryption_key_id">EncryptionKeyId
+                                                <code>*</code></label>
+                                            <input type="text"
+                                                class="form-control @error('encryption_key_id') is-invalid @enderror encryption_key_id"
+                                                name="encryption_key_id" id="encryption_key_id"
+                                                value="{{ $internationalPayment ? $internationalPayment->encryption_key_id : '' }}" />
+                                            <div class="text-danger" id="encryptionKeyIdError"></div>
+                                            @error('encryption_key_id')
+                                                <p class="text-danger">{{ $message }}</p>
+                                            @enderror
+                                        </div>
+
+                                        <div class="col-md-6 form-group mb-3">
                                             <label class="form-label"
                                                 for="merchant_signing_private_key">MerchantSigningPrivateKey
                                                 <code>*</code></label>
@@ -515,6 +528,7 @@
                         let merchantKey = $('#merchant_key').val().trim();
                         let apiKey = $('#api_key').val().trim();
                         let accessToken = $('#access_token').val().trim();
+                        let encryptionKeyId = $('#encryption_key_id').val().trim();
                         let merchantSigningPrivateKey = $('#merchant_signing_private_key').val().trim();
                         let pacoEncryptionPublicKey = $('#paco_encryption_public_key').val().trim();
                         let merchantDecryptionPrivateKey = $('#merchant_decryption_private_key').val()
@@ -526,12 +540,16 @@
                             $('#merchantKeyError').text('Merchant Key is required.');
                         }
                         if (!apiKey) {
-                            isValid = false;
+                            isValid = false; 
                             $('#apiKeyError').text('API Key is required.');
                         }
                         if (!accessToken) {
                             isValid = false;
                             $('#accessTokenError').text('AccessToken is required.');
+                        }
+                        if (!encryptionKeyId) {
+                            isValid = false;
+                            $('#encryptionKeyIdError').text('EncryptionKeyId is required.');
                         }
                         if (!merchantSigningPrivateKey) {
                             isValid = false;
@@ -590,6 +608,7 @@
                         paco_encryption_public_key: $('#paco_encryption_public_key').val(),
                         merchant_decryption_private_key: $('#merchant_decryption_private_key').val(),
                         paco_signing_public_key: $('#paco_signing_public_key').val(),
+                        encryption_key_id: $('#encryption_key_id').val(),
                         //bank_detail 
                         bank_detail: $('#bank_detail').val(),
                         // IDs for updates
