@@ -247,7 +247,7 @@ class SponsorController extends Controller
             ->attendances()
             ->where(['sponsor_id' => $sponsor->id, 'status' => 1])
             ->whereDate('created_at', date('Y-m-d'))
-            ->first();
+            ->first(); 
         // dd($checkAttendance);
         $totalLunchRemaining = $sponsor->total_attendee;
         $totalDinnerRemaining = $sponsor->total_attendee;

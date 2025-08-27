@@ -37,7 +37,7 @@ class SignupUserController extends Controller
                     'conferenceRegistration' => function ($q) use ($conferenceId) {
                         $q->where('conference_id', $conferenceId);
                     },
-                    'workshopRegistration', // Assuming no filter needed here, filter in Blade
+                    'workshopRegistration',
                     'submission' => function ($q) use ($conferenceId) {
                         $q->where('conference_id', $conferenceId);
                     },
