@@ -104,7 +104,7 @@
                 </div>
 
                 <!-- Registration Trends Chart -->
-                <div class="col-lg-12 col-12">
+                <div class="col-lg-8 col-12">
                     <div class="card border-0 shadow-sm h-100">
                         <div class="card-header bg-transparent border-0 pt-4 px-4 pb-0">
                             <div class="d-flex justify-content-between align-items-start">
@@ -172,7 +172,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-lg-5 col-md-6">
+                <div class="col-lg-4 col-md-6">
                     <div class="card p-4">
                         <h5 class="mb-4" style="font-weight: bold;">Submission Overview</h5>
 
@@ -191,7 +191,7 @@
                         <canvas id="submissionsChart" height="320"></canvas>
                     </div>
                 </div>
-                <div class="col-lg-5 col-md-6">
+                <div class="col-lg-4 col-md-6">
                     <div class="card border-0 shadow h-100">
                         <div class="card-body p-4">
                             <div class="d-flex align-items-center justify-content-between mb-4">
@@ -255,9 +255,9 @@
                     </div>
                 </div>
 
-                <div class="row mt-5">
+                {{-- <div class="row mt-5"> --}}
                     <!-- Attendance & Meal Count Card -->
-                    <div class="col-lg-6 col-12">
+                    <div class="col-lg-8 col-12">
                         <div class="card border-0 shadow-sm h-100">
                             <div class="card-header bg-transparent border-0 pt-4 px-4 pb-0">
                                 <div class="d-flex justify-content-between align-items-start">
@@ -391,7 +391,7 @@
                         </div>
                     </div>
 
-                </div>
+                {{-- </div> --}}
             </div>
         </div>
     @else
