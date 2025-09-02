@@ -10,7 +10,7 @@
         }
 
         .registration-card:hover {
-            transform: translateY(-2px); 
+            transform: translateY(-2px);
             box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
         }
 
@@ -323,52 +323,56 @@
                                 </div>
 
                                 <!-- Multiple Add-ons Selection -->
-                                <div class="col-md-6 form-group mb-3">
-                                    <label class="fw-bold">
-                                        <i class="fas fa-utensils text-warning"></i> Add-ons
-                                        <small class="text-muted">(Optional - Multiple Selection)</small>
-                                    </label>
-                                    <div class="card">
-                                        <div class="card-body" style="max-height: 200px; overflow-y: auto;">
-                                            @if ($conferenceAddons && $conferenceAddons->count() > 0)
-                                                @foreach ($conferenceAddons as $addon)
-                                                    <div class="form-check mb-2 p-2  rounded">
-                                                        <input class="form-check-input addon-checkbox" type="checkbox"
-                                                            name="selected_addons[]" value="{{ $addon->id }}"
-                                                            data-name="{{ $addon->addon_name }}"
-                                                            data-amount="{{ @$memberTypePrice->memberType->delegate == 1 ? $addon->addon_national_amount : $addon->addon_international_amount }}"
-                                                            id="addon_{{ $addon->id }}"
-                                                            @if (isset($conference_registration) && $conference_registration->registrationAddons->contains('addon_id', $addon->id)) checked @endif>
-                                                        <label
-                                                            class="form-check-label d-flex justify-content-between align-items-center w-100"
-                                                            for="addon_{{ $addon->id }}">
-                                                            <div>
-                                                                <strong>{{ $addon->addon_name }}</strong>
-                                                                @if ($addon->addon_description)
-                                                                    <br><small
-                                                                        class="text-muted">{{ $addon->addon_description }}</small>
-                                                                @endif
-                                                            </div>
-                                                            <span class="badge bg-primary ms-2">
-                                                                {{ @$memberTypePrice->memberType->delegate == 1 ? 'Rs. ' : '$ ' }}{{ number_format(@$memberTypePrice->memberType->delegate == 1 ? $addon->addon_national_amount : $addon->addon_international_amount, 2) }}
-                                                                <small>/person</small>
-                                                            </span>
-                                                        </label>
+                                @if ($conferenceAddons && $conferenceAddons->count() > 0)
+
+                                    <div class="col-md-6 form-group mb-3">
+                                        <label class="fw-bold">
+                                            <i class="fas fa-utensils text-warning"></i> Add-ons
+                                            <small class="text-muted">(Optional - Multiple Selection)</small>
+                                        </label>
+                                        <div class="card">
+                                            <div class="card-body" style="max-height: 200px; overflow-y: auto;">
+                                                @if ($conferenceAddons && $conferenceAddons->count() > 0)
+                                                    @foreach ($conferenceAddons as $addon)
+                                                        <div class="form-check mb-2 p-2  rounded">
+                                                            <input class="form-check-input addon-checkbox" type="checkbox"
+                                                                name="selected_addons[]" value="{{ $addon->id }}"
+                                                                data-name="{{ $addon->addon_name }}"
+                                                                data-amount="{{ @$memberTypePrice->memberType->delegate == 1 ? $addon->addon_national_amount : $addon->addon_international_amount }}"
+                                                                id="addon_{{ $addon->id }}"
+                                                                @if (isset($conference_registration) && $conference_registration->registrationAddons->contains('addon_id', $addon->id)) checked @endif>
+                                                            <label
+                                                                class="form-check-label d-flex justify-content-between align-items-center w-100"
+                                                                for="addon_{{ $addon->id }}">
+                                                                <div>
+                                                                    <strong>{{ $addon->addon_name }}</strong>
+                                                                    @if ($addon->addon_description)
+                                                                        <br><small
+                                                                            class="text-muted">{{ $addon->addon_description }}</small>
+                                                                    @endif
+                                                                </div>
+                                                                <span class="badge bg-primary ms-2">
+                                                                    {{ @$memberTypePrice->memberType->delegate == 1 ? 'Rs. ' : '$ ' }}{{ number_format(@$memberTypePrice->memberType->delegate == 1 ? $addon->addon_national_amount : $addon->addon_international_amount, 2) }}
+                                                                    <small>/person</small>
+                                                                </span>
+                                                            </label>
+                                                        </div>
+                                                    @endforeach
+                                                @else
+                                                    <div class="text-center py-3">
+                                                        <i class="fas fa-utensils fa-3x text-muted mb-2"></i>
+                                                        <p class="text-muted mb-0">No add-ons available for this conference
+                                                        </p>
                                                     </div>
-                                                @endforeach
-                                            @else
-                                                <div class="text-center py-3">
-                                                    <i class="fas fa-utensils fa-3x text-muted mb-2"></i>
-                                                    <p class="text-muted mb-0">No add-ons available for this conference</p>
-                                                </div>
-                                            @endif
+                                                @endif
+                                            </div>
                                         </div>
+                                        <small class="text-muted">
+                                            <i class="fas fa-info-circle"></i>
+                                            Selected add-ons will be applied to all attendees (you + guests)
+                                        </small>
                                     </div>
-                                    <small class="text-muted">
-                                        <i class="fas fa-info-circle"></i>
-                                        Selected add-ons will be applied to all attendees (you + guests)
-                                    </small>
-                                </div>
+                                @endif
                             </div>
 
                             <!-- Additional Guests Selection -->
@@ -400,14 +404,15 @@
                                     @enderror
                                     <small class="text-muted">People accompanying you</small>
                                 </div>
-
-                                <div class="col-md-6 d-flex align-items-end">
-                                    <div class="alert alert-info w-100">
-                                        <i class="fas fa-calculator"></i>
-                                        <strong>Pricing Note:</strong> Add-ons are charged per person. If you select 1
-                                        guest, add-ons will be charged for 2 people (you + 1 guest).
+                                @if ($conferenceAddons && $conferenceAddons->count() > 0)
+                                    <div class="col-md-6 d-flex align-items-end">
+                                        <div class="alert alert-info w-100">
+                                            <i class="fas fa-calculator"></i>
+                                            <strong>Pricing Note:</strong> Add-ons are charged per person. If you select 1
+                                            guest, add-ons will be charged for 2 people (you + 1 guest).
+                                        </div>
                                     </div>
-                                </div>
+                                @endif
                             </div>
 
                             <!-- Calculate Button -->
