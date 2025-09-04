@@ -205,14 +205,28 @@ class ConferenceRegistrationController extends Controller
                         }
                     }
 
-                    $workshopData = null;
-                    if (!empty($request->workshop_id)) {
-                        $workshop = Workshop::find($request->workshop_id);
-                        $workshopData = [
-                            'name'   => $workshop->workshop_title ?? 'Workshop',
-                            'amount' => $request->workshop_amount
-                        ];
+
+                    $workshopData = [];
+                    if (!empty($request->selected_workshops)) {
+                        $workshops = explode(',', $request->selected_workshops);
+                        foreach ($workshops as $workshopInfos) {
+                            [$workshopId, $mainPrice, $guestPrice] = explode(':', $workshopInfos);
+                            $workshop = Workshop::find($workshopId);
+                            $workshopData[] = [
+                                'name'   => $workshop->workshop_title ?? 'Workshop',
+                                'amount' => $mainPrice
+                            ];
+                        }
                     }
+
+                    // $workshopData = null;
+                    // if (!empty($request->workshop_id)) {
+                    //     $workshop = Workshop::find($request->workshop_id);
+                    //     $workshopData = [
+                    //         'name'   => $workshop->workshop_title ?? 'Workshop',
+                    //         'amount' => $request->workshop_amount
+                    //     ];
+                    // }
                     $accompanyData = null;
                     if (!empty($request->accompany_person)) {
                         $accompanyData = [
@@ -273,18 +287,37 @@ class ConferenceRegistrationController extends Controller
                     }
 
                     // Create Workshop Registration
-                    if (!empty($request->workshop_id)) {
-                        WorkshopRegistration::create([
-                            'user_id'       => $authUser->id,
-                            'workshop_id'   => $request->workshop_id,
-                            'transaction_id' => $validated['transaction_id'],
-                            'payment_type'  => $validated['payment_type'],
-                            'amount'        => $request->workshop_amount,
-                            'payment_voucher' => $validated['payment_voucher'],
-                            'token'         => random_word(60),
-                            'verified_status' => 0,
-                        ]);
+                    if (!empty($request->selected_workshops)) {
+                        $workshops = explode(',', $request->selected_workshops);
+                        $insertWorkshopData = [];
+                        foreach ($workshops as $workshopInfos) {
+                            [$workshopId, $mainPrice, $guestPrice] = explode(':', $workshopInfos);
+                            $insertWorkshopData[] = [
+                                'user_id' => $authUser->id,
+                                'workshop_id' => $workshopId,
+                                'transaction_id' => $validated['transaction_id'],
+                                'payment_type'  => $validated['payment_type'],
+                                'amount'        => $mainPrice,
+                                'token'         => random_word(60),
+                                'verified_status' => 0,
+
+                            ];
+                        }
+                        DB::table('workshop_registrations')->insert($insertWorkshopData);
                     }
+
+                    // if (!empty($request->workshop_id)) {
+                    //     WorkshopRegistration::create([
+                    //         'user_id'       => $authUser->id,
+                    //         'workshop_id'   => $request->workshop_id,
+                    //         'transaction_id' => $validated['transaction_id'],
+                    //         'payment_type'  => $validated['payment_type'],
+                    //         'amount'        => $request->workshop_amount,
+                    //         'payment_voucher' => $validated['payment_voucher'],
+                    //         'token'         => random_word(60),
+                    //         'verified_status' => 0,
+                    //     ]);
+                    // }
 
                     DB::commit();
                     request()->session()->forget('onlinePayment');
