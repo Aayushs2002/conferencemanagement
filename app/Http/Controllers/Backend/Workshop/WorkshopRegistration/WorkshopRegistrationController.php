@@ -348,9 +348,9 @@ class WorkshopRegistrationController extends Controller
 
 
         // dd($addonsData->toArray());
-        $workshopData = null;
+        $workshopData = [];
         if ($workshopRegistration) {
-            $workshopData = [
+            $workshopData[] = [
                 'name' => $workshopRegistration->workshop->workshop_title,
                 'amount' => $workshopRegistration->amount
             ];
