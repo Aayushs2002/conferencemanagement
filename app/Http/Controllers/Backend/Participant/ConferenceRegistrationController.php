@@ -8,7 +8,7 @@ use App\Models\Conference\AccompanyPerson;
 use App\Models\Conference\ConferenceAddon;
 use App\Models\Conference\ConferenceMemberTypePrice;
 use App\Models\Conference\ConferenceRegistration;
-use App\Models\Conference\ConferenceSetting; 
+use App\Models\Conference\ConferenceSetting;
 use App\Models\Conference\Submission;
 use App\Models\Payment\InternationalPayment;
 use App\Models\Payment\NationalPayment;
@@ -66,7 +66,7 @@ class ConferenceRegistrationController extends Controller
                 if (!empty($checkRegistration)) {
                     return false;
                 }
- 
+
                 $totalQuota = $workshop->no_of_participants;
                 $appliedQuota = $workshop->registrations->where('verified_status', 1)->count();
 
@@ -197,7 +197,7 @@ class ConferenceRegistrationController extends Controller
                         $addons = explode(',', $request->selected_addons);
                         foreach ($addons as $addon) {
                             [$addonId, $amount] = explode(':', $addon);
-                            $addonDetail = ConferenceAddon::find($addonId); // Make sure model exists
+                            $addonDetail = ConferenceAddon::find($addonId);
                             $addonsData[] = [
                                 'name'   => $addonDetail->addon_name ?? 'Addon ' . $addonId,
                                 'amount' => $amount
@@ -207,7 +207,7 @@ class ConferenceRegistrationController extends Controller
 
                     $workshopData = null;
                     if (!empty($request->workshop_id)) {
-                        $workshop = Workshop::find($request->workshop_id); // Make sure model exists
+                        $workshop = Workshop::find($request->workshop_id);
                         $workshopData = [
                             'name'   => $workshop->workshop_title ?? 'Workshop',
                             'amount' => $request->workshop_amount
@@ -330,12 +330,11 @@ class ConferenceRegistrationController extends Controller
     public function onlinePaymentSubmit(Request $request, $society, $conference)
     {
         try {
-            // Check if registration deadline passed
+
             if (is_past($conference->regular_registration_deadline)) {
                 return redirect()->back()->with('delete', 'Registration deadline has ended.');
             }
 
-            // Check duplicate registration
             $checkDuplicateRegistration = ConferenceRegistration::where([
                 'user_id'      => current_user()->id,
                 'conference_id' => $conference->id,
@@ -375,7 +374,7 @@ class ConferenceRegistrationController extends Controller
 
             $date = \Carbon\Carbon::now()->format('F j, Y');
             $onlinePayment = session()->get('onlinePayment');
-
+            // dd($onlinePayment);
             // --- Determine Payment Type ---
             $paymentTypes = [
                 1 => 'FonePay',
@@ -410,13 +409,17 @@ class ConferenceRegistrationController extends Controller
             }
 
             // --- Collect Workshop Info for Mail ---
-            $workshopData = null;
-            if (!empty($onlinePayment['workshop_id'])) {
-                $workshop = Workshop::find($onlinePayment['workshop_id']); // Make sure model exists
-                $workshopData = [
-                    'name'   => $workshop->workshop_title ?? 'Workshop',
-                    'amount' => $onlinePayment['workshop_amount']
-                ];
+            $workshopData = [];
+            if (!empty($onlinePayment['selected_workshops'])) {
+                $workshops = explode(',', $onlinePayment['selected_workshops']);
+                foreach ($workshops as $workshopInfos) {
+                    [$workshopId, $mainPrice, $guestPrice] = explode(':', $workshopInfos);
+                    $workshop = Workshop::find($workshopId);
+                    $workshopData[] = [
+                        'name'   => $workshop->workshop_title ?? 'Workshop',
+                        'amount' => $mainPrice
+                    ];
+                }
             }
 
             $accompanyData = null;
@@ -481,16 +484,32 @@ class ConferenceRegistrationController extends Controller
             }
 
             // Create Workshop Registration
-            if (!empty($onlinePayment['workshop_id'])) {
-                WorkshopRegistration::create([
-                    'user_id'       => $authUser->id,
-                    'workshop_id'   => $onlinePayment['workshop_id'],
-                    'transaction_id' => $validated['transaction_id'],
-                    'payment_type'  => $validated['payment_type'],
-                    'amount'        => $onlinePayment['workshop_amount'],
-                    'token'         => random_word(60),
-                    'verified_status' => 1,
-                ]);
+            if (!empty($onlinePayment['selected_workshops'])) {
+                $workshops = explode(',', $onlinePayment['selected_workshops']);
+                $insertWorkshopData = [];
+                foreach ($workshops as $workshopInfos) {
+                    [$workshopId, $mainPrice, $guestPrice] = explode(':', $workshopInfos);
+                    $insertWorkshopData[] = [
+                        'user_id' => $authUser->id,
+                        'workshop_id' => $workshopId,
+                        'transaction_id' => $validated['transaction_id'],
+                        'payment_type'  => $validated['payment_type'],
+                        'amount'        => $mainPrice,
+                        'token'         => random_word(60),
+                        'verified_status' => 1,
+
+                    ];
+                }
+                DB::table('workshop_registrations')->insert($insertWorkshopData);
+                // WorkshopRegistration::create([
+                //     'user_id'       => $authUser->id,
+                //     'workshop_id'   => $onlinePayment['workshop_id'],
+                //     'transaction_id' => $validated['transaction_id'],
+                //     'payment_type'  => $validated['payment_type'],
+                //     'amount'        => $onlinePayment['workshop_amount'],
+                //     'token'         => random_word(60),
+                //     'verified_status' => 1,
+                // ]);
             }
 
             DB::commit();

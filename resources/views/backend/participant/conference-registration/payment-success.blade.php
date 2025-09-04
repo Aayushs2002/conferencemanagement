@@ -14,7 +14,7 @@
                        </div>
                        <div class="modal-body text-center">
                            <div class=" d-flex justify-content-center">
-
+ 
                                <div class="sk-chase my-4" style="height: 80px; width: 80px;">
                                    <div class="sk-chase-dot"></div>
                                    <div class="sk-chase-dot"></div>

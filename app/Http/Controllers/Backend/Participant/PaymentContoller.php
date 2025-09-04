@@ -20,6 +20,7 @@ class PaymentContoller extends Controller
 {
     public function fonepay(Request $request, $society, $conference)
     {
+        // dd($request->all());
         // dd($request->all(), $conference);
 
         if (is_past($conference->regular_registration_deadline)) {

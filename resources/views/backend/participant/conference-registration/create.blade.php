@@ -105,7 +105,6 @@
         }
 
         .btn-calculate {
-            /* background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); */
             border: none;
             padding: 12px 30px;
             border-radius: 25px;
@@ -119,7 +118,6 @@
         }
 
         .price-breakdown {
-            /* background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%); */
             border-radius: 15px;
             padding: 20px;
         }
@@ -142,7 +140,8 @@
             border-left: 5px solid #007bff;
         }
 
-        .addon-checkbox:checked+label {
+        .addon-checkbox:checked+label,
+        .workshop-checkbox:checked+label {
             background-color: #e7f3ff;
             border-color: #007bff !important;
         }
@@ -168,8 +167,23 @@
         .card-body::-webkit-scrollbar-thumb:hover {
             background: #555;
         }
+
+        .workshop-selection-card {
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .workshop-selection-card:hover {
+            border-color: #007bff;
+            box-shadow: 0 2px 8px rgba(0, 123, 255, 0.1);
+        }
+
+        .workshop-selection-card.selected {
+            border-color: #28a745;
+            background-color: #f8fff9;
+        }
     </style>
-    {{-- @dd($national_payemnt_setting) --}}
 
     @if (!old() && !isset($conference_registration))
         <div class="modal fade" id="openModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle"
@@ -262,7 +276,6 @@
                             {{ !empty($conference) ? $conference->conference_name : 'No conference added yet.' }}
                         </p>
                     </div>
-                    {{-- <hr> --}}
                     <div class="card-body">
                         <!-- Registration Summary Card -->
                         <div id="registrationSummary" class="summary-card mt-5" style="display: none;">
@@ -273,7 +286,7 @@
                                 <div class="col-md-6">
                                     <p><strong>📋 Conference:</strong> {{ $conference->conference_name ?? 'N/A' }}</p>
                                     <p><strong>👤 Type:</strong> <span id="summaryRegistrantType">-</span></p>
-                                    <p><strong>🎯 Workshop:</strong> <span id="summaryWorkshop">Not Selected</span></p>
+                                    <p><strong>🎯 Workshops:</strong> <span id="summaryWorkshops">Conference Only</span></p>
                                 </div>
                                 <div class="col-md-6">
                                     <p><strong>👥 Total Attendees:</strong> <span id="summaryAttendees">1</span></p>
@@ -293,78 +306,119 @@
                             <!-- Registration Options -->
                             <div class="alert alert-custom alert-info mb-4">
                                 <i class="fas fa-lightbulb"></i>
-                                <strong>Registration Options:</strong> Choose to register for conference only, or include a
-                                workshop for enhanced learning experience.
+                                <strong>Registration Options:</strong> Choose to register for conference only, or include
+                                workshops for enhanced learning experience.
                             </div>
 
                             <div class="row mb-4">
-                                <!-- Workshop Selection -->
+                                <!-- Multiple Workshop Selection -->
                                 <div class="col-md-6 form-group mb-3">
-                                    <label for="workshop_id" class="fw-bold">
+                                    <label class="fw-bold">
                                         <i class="fas fa-chalkboard-teacher text-primary"></i> Workshop Selection
-                                        <small class="text-muted">(Optional)</small>
+                                        <small class="text-muted">(Optional - Multiple Selection)</small>
                                     </label>
-                                    <select name="workshop_id" id="workshop_id"
-                                        class="form-control @error('workshop_id') is-invalid @enderror">
-                                        <option value=""> Conference Only</option>
-                                        @foreach ($workshops as $workshop)
-                                            <option value="{{ $workshop->id }}" @selected(old('workshop_id', isset($conference_registration) ? $conference_registration->workshop_id : '') == $workshop->id)>
-                                                {{ 'Conference + ' . $workshop->workshop_title }}
-                                            </option>
-                                        @endforeach
-                                    </select>
-                                    @error('workshop_id')
-                                        <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
+                                    <div class="card">
+                                        <div class="card-body" style="max-height: 250px; overflow-y: auto;">
+                                            <!-- Conference Only Option -->
+                                            <div class="form-check mb-2 p-2 rounded workshop-selection-card">
+                                                <input class="form-check-input workshop-checkbox" type="checkbox"
+                                                    name="selected_workshops[]" value="" id="conference_only" checked>
+                                                <label
+                                                    class="form-check-label d-flex justify-content-between align-items-center w-100"
+                                                    for="conference_only">
+                                                    <div>
+                                                        <strong>Conference Only</strong>
+                                                        <br><small class="text-muted">Attend conference sessions without
+                                                            workshops</small>
+                                                    </div>
+                                                    <span class="badge bg-success ms-2">Included</span>
+                                                </label>
+                                            </div>
+
+                                            @if ($workshops && $workshops->count() > 0)
+                                                @foreach ($workshops as $workshop)
+                                                    <div class="form-check mb-2 p-2 rounded workshop-selection-card">
+                                                        <input class="form-check-input workshop-checkbox" type="checkbox"
+                                                            name="selected_workshops[]" value="{{ $workshop->id }}"
+                                                            data-name="{{ $workshop->workshop_title }}"
+                                                            id="workshop_{{ $workshop->id }}"
+                                                            @if (isset($conference_registration) &&
+                                                                    $conference_registration->registrationWorkshops &&
+                                                                    $conference_registration->registrationWorkshops->contains('workshop_id', $workshop->id)) checked @endif>
+                                                        <label
+                                                            class="form-check-label d-flex justify-content-between align-items-center w-100"
+                                                            for="workshop_{{ $workshop->id }}">
+                                                            <div>
+                                                                <strong>{{ $workshop->workshop_title }}</strong>
+                                                                {{-- @if ($workshop->workshop_description)
+                                                                    <br><small
+                                                                        class="text-muted">{{ Str::limit($workshop->workshop_description, 80) }}</small>
+                                                                @endif
+                                                                @if ($workshop->workshop_date)
+                                                                    <br><small class="text-info">
+                                                                        <i class="fas fa-calendar"></i>
+                                                                        {{ date('M j, Y', strtotime($workshop->workshop_date)) }}
+                                                                    </small>
+                                                                @endif --}}
+                                                            </div>
+                                                            <span class="badge bg-primary ms-2"
+                                                                id="workshop_price_{{ $workshop->id }}">
+                                                                <i class="fas fa-spinner fa-spin"></i> Loading...
+                                                            </span>
+                                                        </label>
+                                                    </div>
+                                                @endforeach
+                                            @else
+                                                <div class="text-center py-3">
+                                                    <i class="fas fa-chalkboard-teacher fa-3x text-muted mb-2"></i>
+                                                    <p class="text-muted mb-0">No workshops available for this conference
+                                                    </p>
+                                                </div>
+                                            @endif
+                                        </div>
+                                    </div>
                                     <small class="text-muted">
                                         <i class="fas fa-info-circle"></i>
-                                        Workshops provide hands-on learning and networking opportunities
+                                        You can select multiple workshops to enhance your learning experience
                                     </small>
                                 </div>
 
                                 <!-- Multiple Add-ons Selection -->
                                 @if ($conferenceAddons && $conferenceAddons->count() > 0)
-
                                     <div class="col-md-6 form-group mb-3">
                                         <label class="fw-bold">
                                             <i class="fas fa-utensils text-warning"></i> Add-ons
                                             <small class="text-muted">(Optional - Multiple Selection)</small>
                                         </label>
                                         <div class="card">
-                                            <div class="card-body" style="max-height: 200px; overflow-y: auto;">
-                                                @if ($conferenceAddons && $conferenceAddons->count() > 0)
-                                                    @foreach ($conferenceAddons as $addon)
-                                                        <div class="form-check mb-2 p-2  rounded">
-                                                            <input class="form-check-input addon-checkbox" type="checkbox"
-                                                                name="selected_addons[]" value="{{ $addon->id }}"
-                                                                data-name="{{ $addon->addon_name }}"
-                                                                data-amount="{{ @$memberTypePrice->memberType->delegate == 1 ? $addon->addon_national_amount : $addon->addon_international_amount }}"
-                                                                id="addon_{{ $addon->id }}"
-                                                                @if (isset($conference_registration) && $conference_registration->registrationAddons->contains('addon_id', $addon->id)) checked @endif>
-                                                            <label
-                                                                class="form-check-label d-flex justify-content-between align-items-center w-100"
-                                                                for="addon_{{ $addon->id }}">
-                                                                <div>
-                                                                    <strong>{{ $addon->addon_name }}</strong>
-                                                                    @if ($addon->addon_description)
-                                                                        <br><small
-                                                                            class="text-muted">{{ $addon->addon_description }}</small>
-                                                                    @endif
-                                                                </div>
-                                                                <span class="badge bg-primary ms-2">
-                                                                    {{ @$memberTypePrice->memberType->delegate == 1 ? 'Rs. ' : '$ ' }}{{ number_format(@$memberTypePrice->memberType->delegate == 1 ? $addon->addon_national_amount : $addon->addon_international_amount, 2) }}
-                                                                    <small>/person</small>
-                                                                </span>
-                                                            </label>
-                                                        </div>
-                                                    @endforeach
-                                                @else
-                                                    <div class="text-center py-3">
-                                                        <i class="fas fa-utensils fa-3x text-muted mb-2"></i>
-                                                        <p class="text-muted mb-0">No add-ons available for this conference
-                                                        </p>
+                                            <div class="card-body" style="max-height: 250px; overflow-y: auto;">
+                                                @foreach ($conferenceAddons as $addon)
+                                                    <div class="form-check mb-2 p-2  rounded">
+                                                        <input class="form-check-input addon-checkbox" type="checkbox"
+                                                            name="selected_addons[]" value="{{ $addon->id }}"
+                                                            data-name="{{ $addon->addon_name }}"
+                                                            data-amount="{{ @$memberTypePrice->memberType->delegate == 1 ? $addon->addon_national_amount : $addon->addon_international_amount }}"
+                                                            id="addon_{{ $addon->id }}"
+                                                            @if (isset($conference_registration) &&
+                                                                    $conference_registration->registrationAddons &&
+                                                                    $conference_registration->registrationAddons->contains('addon_id', $addon->id)) checked @endif>
+                                                        <label
+                                                            class="form-check-label d-flex justify-content-between align-items-center w-100"
+                                                            for="addon_{{ $addon->id }}">
+                                                            <div>
+                                                                <strong>{{ $addon->addon_name }}</strong>
+                                                                @if ($addon->addon_description)
+                                                                    <br><small
+                                                                        class="text-muted">{{ $addon->addon_description }}</small>
+                                                                @endif
+                                                            </div>
+                                                            <span class="badge bg-primary ms-2">
+                                                                {{ @$memberTypePrice->memberType->delegate == 1 ? 'Rs. ' : '$ ' }}{{ number_format(@$memberTypePrice->memberType->delegate == 1 ? $addon->addon_national_amount : $addon->addon_international_amount, 2) }}
+                                                                <small>/person</small>
+                                                            </span>
+                                                        </label>
                                                     </div>
-                                                @endif
+                                                @endforeach
                                             </div>
                                         </div>
                                         <small class="text-muted">
@@ -404,12 +458,12 @@
                                     @enderror
                                     <small class="text-muted">People accompanying you</small>
                                 </div>
-                                @if ($conferenceAddons && $conferenceAddons->count() > 0)
+                                @if (($workshops && $workshops->count() > 0) || ($conferenceAddons && $conferenceAddons->count() > 0))
                                     <div class="col-md-6 d-flex align-items-end">
                                         <div class="alert alert-info w-100">
                                             <i class="fas fa-calculator"></i>
-                                            <strong>Pricing Note:</strong> Add-ons are charged per person. If you select 1
-                                            guest, add-ons will be charged for 2 people (you + 1 guest).
+                                            <strong>Pricing Note:</strong> Workshops and add-ons are charged per person. If
+                                            you select 1 guest, they will be charged for 2 people (you + 1 guest).
                                         </div>
                                     </div>
                                 @endif
@@ -421,25 +475,6 @@
                                     <i class="fas fa-calculator"></i> Calculate Total Price
                                 </button>
                             </div>
-
-                            <!-- Workshop Highlight -->
-                            {{-- <div id="workshopHighlight" class="workshop-highlight" style="display: none;">
-                                <h5><i class="fas fa-star"></i> Workshop Benefits</h5>
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <ul class="mb-0">
-                                            <li>Hands-on practical sessions</li>
-                                            <li>Expert-led demonstrations</li>
-                                        </ul>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <ul class="mb-0">
-                                            <li>Networking opportunities</li>
-                                            <li>Certificate of participation</li>
-                                        </ul>
-                                    </div>
-                                </div>
-                            </div> --}}
 
                             <!-- Price Breakdown -->
                             <div id="priceTable" style="display: none;">
@@ -665,8 +700,8 @@
                                                             id="registrant_type_fonepay">
                                                         <input type="hidden" name="accompany_person"
                                                             id="accompany_person_fonepay">
-                                                        <input type="hidden" name="workshop_id"
-                                                            id="workshop_id_fonepay">
+                                                        <input type="hidden" name="selected_workshops"
+                                                            id="selected_workshops_fonepay">
                                                         <input type="hidden" name="workshop_amount"
                                                             id="workshop_amount_fonepay">
                                                         <input type="hidden" name="payment_type" value="1">
@@ -695,7 +730,8 @@
                                                             id="registrant_type_esewa">
                                                         <input type="hidden" name="accompany_person"
                                                             id="accompany_person_esewa">
-                                                        <input type="hidden" name="workshop_id" id="workshop_id_esewa">
+                                                        <input type="hidden" name="selected_workshops"
+                                                            id="selected_workshops_esewa">
                                                         <input type="hidden" name="workshop_amount"
                                                             id="workshop_amount_esewa">
                                                         <input type="hidden" name="payment_type" value="3">
@@ -724,7 +760,8 @@
                                                             id="registrant_type_khalti">
                                                         <input type="hidden" name="accompany_person"
                                                             id="accompany_person_khalti">
-                                                        <input type="hidden" name="workshop_id" id="workshop_id_khalti">
+                                                        <input type="hidden" name="selected_workshops"
+                                                            id="selected_workshops_khalti">
                                                         <input type="hidden" name="workshop_amount"
                                                             id="workshop_amount_khalti">
                                                         <input type="hidden" name="payment_type" value="4">
@@ -751,7 +788,8 @@
                                                             id="registrant_type_moco">
                                                         <input type="hidden" name="accompany_person"
                                                             id="accompany_person_moco">
-                                                        <input type="hidden" name="workshop_id" id="workshop_id_moco">
+                                                        <input type="hidden" name="selected_workshops"
+                                                            id="selected_workshops_moco">
                                                         <input type="hidden" name="workshop_amount"
                                                             id="workshop_amount_moco">
                                                         <input type="hidden" name="payment_type" value="2">
@@ -783,8 +821,8 @@
                                                             id="registrant_type_international">
                                                         <input type="hidden" name="accompany_person"
                                                             id="accompany_person_international">
-                                                        <input type="hidden" name="workshop_id"
-                                                            id="workshop_id_international">
+                                                        <input type="hidden" name="selected_workshops"
+                                                            id="selected_workshops_international">
                                                         <input type="hidden" name="workshop_amount"
                                                             id="workshop_amount_international">
                                                         <input type="hidden" name="amount" class="amount"
@@ -839,7 +877,8 @@
                                                             id="registrant_type_bank_transfer">
                                                         <input type="hidden" name="accompany_person"
                                                             id="accompany_person_bank">
-                                                        <input type="hidden" name="workshop_id" id="workshop_id_bank">
+                                                        <input type="hidden" name="selected_workshops"
+                                                            id="selected_workshops_bank">
                                                         <input type="hidden" name="workshop_amount"
                                                             id="workshop_amount_bank">
                                                         <input type="hidden" name="payment_type" value="6">
@@ -877,7 +916,6 @@
                         <i class="ti tabler-qrcode text-white"></i>
                         <span class="text-white">
                             Scan QR Code to Pay
-
                         </span>
                     </h5>
                 </div>
@@ -923,12 +961,10 @@
             let totalPrice = 0;
             let calculatedAmount = 0;
             let isPriceCalculated = false;
-            let workshopPrice = 0;
-            let workshopGuestPrice = 0;
-            let workshopAmount = 0;
-            let currentWorkshopName = '';
             let currencySymbol = '{{ @$memberTypePrice->memberType->delegate == 1 ? 'Rs. ' : '$ ' }}';
             let selectedAddOns = []; // Store selected add-ons with their details
+            let selectedWorkshops = []; // Store selected workshops with their details
+            let workshopPricing = {}; // Store workshop pricing data
 
             // Initialize
             $.ajaxSetup({
@@ -951,6 +987,99 @@
                     }
                 }
             }
+
+            // Load workshop pricing when page loads
+            function loadWorkshopPricing() {
+                const memberTypeId = '{{ @$memberTypePrice->memberType->id }}';
+                const delegate = '{{ @$memberTypePrice->memberType->delegate }}';
+                const currencySymbol = delegate == 1 ? 'Rs. ' : '$ ';
+
+                $('.workshop-checkbox').each(function() {
+                    const workshopId = $(this).val();
+                    if (workshopId && workshopId !== '') {
+                        $.ajax({
+                            url: '{{ route('getWorkshopPricing') }}',
+                            method: 'GET',
+                            data: {
+                                workshop_id: workshopId,
+                                member_type_id: memberTypeId
+                            },
+                            success: function(response) {
+                                if (response.success) {
+                                    workshopPricing[workshopId] = {
+                                        main_price: parseFloat(response.main_price) || 0,
+                                        guest_price: parseFloat(response.guest_price) || 0,
+                                        workshop_name: response.workshop_name || ''
+                                    };
+
+                                    // Update price display
+                                    const mainPrice = workshopPricing[workshopId].main_price;
+                                    $(`#workshop_price_${workshopId}`).html(currencySymbol +
+                                        mainPrice.toFixed(2) + '<br><small>/person</small>');
+                                }
+                            },
+                            error: function() {
+                                $(`#workshop_price_${workshopId}`).text('Price N/A');
+                            }
+                        });
+                    }
+                });
+            }
+
+            // Handle workshop selection changes
+            function handleWorkshopChange() {
+                selectedWorkshops = [];
+
+                $('.workshop-checkbox:checked').each(function() {
+                    const workshopId = $(this).val();
+                    const workshopName = $(this).data('name');
+
+                    if (workshopId && workshopId !== '' && workshopPricing[workshopId]) {
+                        selectedWorkshops.push({
+                            id: workshopId,
+                            name: workshopName,
+                            main_price: workshopPricing[workshopId].main_price,
+                            guest_price: workshopPricing[workshopId].guest_price
+                        });
+                    }
+                });
+
+                updateRegistrationSummary();
+
+                // Reset calculation if price was already calculated
+                if (isPriceCalculated) {
+                    resetPriceCalculation('workshop selection');
+                }
+            }
+
+            // Handle "Conference Only" checkbox logic
+            $('#conference_only').change(function() {
+                if ($(this).is(':checked')) {
+                    // Uncheck all workshop checkboxes
+                    $('.workshop-checkbox:not(#conference_only)').prop('checked', false);
+                    $('.workshop-selection-card').removeClass('selected');
+                    $(this).closest('.workshop-selection-card').addClass('selected');
+                }
+                handleWorkshopChange();
+            });
+
+            // Handle workshop checkbox changes
+            $('.workshop-checkbox:not(#conference_only)').change(function() {
+                if ($(this).is(':checked')) {
+                    // Uncheck "Conference Only" if any workshop is selected
+                    $('#conference_only').prop('checked', false);
+                    $('#conference_only').closest('.workshop-selection-card').removeClass('selected');
+                    $(this).closest('.workshop-selection-card').addClass('selected');
+                } else {
+                    $(this).closest('.workshop-selection-card').removeClass('selected');
+                    // If no workshops are selected, check "Conference Only"
+                    if ($('.workshop-checkbox:not(#conference_only):checked').length === 0) {
+                        $('#conference_only').prop('checked', true);
+                        $('#conference_only').closest('.workshop-selection-card').addClass('selected');
+                    }
+                }
+                handleWorkshopChange();
+            });
 
             // Handle add-on checkbox changes
             function handleAddOnChange() {
@@ -990,31 +1119,36 @@
 
             // Update registration summary
             function updateRegistrationSummary() {
-                const workshopId = $('#workshop_id').val();
                 const totalAttendees = parseInt($('#total_attendee').val() || 0) + 1;
 
-                let workshopText = 'Not Selected';
+                let workshopText = 'Conference Only';
                 let addOnText = 'None';
 
-                if (workshopId) {
-                    workshopText = $('#workshop_id option:selected').text().replace('🔬 ', '');
-                    $('#workshopHighlight').show();
-                } else {
-                    $('#workshopHighlight').hide();
+                // Handle multiple workshops
+                if (selectedWorkshops.length > 0) {
+                    workshopText = selectedWorkshops.map(w => w.name).join(', ');
+                    if (workshopText.length > 50) {
+                        workshopText = selectedWorkshops.length + ' workshop' + (selectedWorkshops.length > 1 ?
+                            's' : '') + ' selected';
+                    }
                 }
 
                 // Handle multiple add-ons
                 if (selectedAddOns.length > 0) {
                     addOnText = selectedAddOns.map(addon => addon.name).join(', ');
+                    if (addOnText.length > 50) {
+                        addOnText = selectedAddOns.length + ' add-on' + (selectedAddOns.length > 1 ? 's' : '') +
+                            ' selected';
+                    }
                 }
 
                 // Update summary display
-                $('#summaryWorkshop').text(workshopText);
+                $('#summaryWorkshops').text(workshopText);
                 $('#summaryAddOns').text(addOnText);
                 $('#summaryAttendees').text(totalAttendees);
 
                 // Show summary if any option is selected
-                if (workshopId || selectedAddOns.length > 0 || $('#total_attendee').val()) {
+                if (selectedWorkshops.length > 0 || selectedAddOns.length > 0 || $('#total_attendee').val()) {
                     $('#registrationSummary').fadeIn();
                 } else {
                     $('#registrationSummary').fadeOut();
@@ -1030,12 +1164,12 @@
                 const totalDisplay = currencySymbol + parseFloat(total).toFixed(2);
 
                 return `<tr class="${rowClass}">
-            <td>${index}</td>
-            <td>${description}</td>
-            <td class="text-center">${quantityDisplay}</td>
-            <td class="text-end">${unitPriceDisplay}</td>
-            <td class="text-end">${totalDisplay}</td>
-        </tr>`;
+                    <td>${index}</td>
+                    <td>${description}</td>
+                    <td class="text-center">${quantityDisplay}</td>
+                    <td class="text-end">${unitPriceDisplay}</td>
+                    <td class="text-end">${totalDisplay}</td>
+                </tr>`;
             }
 
             // Validate selections before calculation
@@ -1054,40 +1188,6 @@
                 return true;
             }
 
-            // Fetch workshop pricing
-            function fetchWorkshopPricing(workshopId, memberTypeId) {
-                return new Promise((resolve, reject) => {
-                    if (!workshopId) {
-                        resolve({
-                            success: true,
-                            main_price: 0,
-                            guest_price: 0,
-                            workshop_name: ''
-                        });
-                        return;
-                    }
-
-                    $.ajax({
-                        url: '{{ route('getWorkshopPricing') }}',
-                        method: 'GET',
-                        data: {
-                            workshop_id: workshopId,
-                            member_type_id: memberTypeId
-                        },
-                        success: function(response) {
-                            if (response.success) {
-                                resolve(response);
-                            } else {
-                                reject(response.message);
-                            }
-                        },
-                        error: function(xhr) {
-                            reject('Error fetching workshop pricing');
-                        }
-                    });
-                });
-            }
-
             // Calculate total add-on price
             function calculateAddOnTotal(delegate, totalAttendee) {
                 let addOnTotal = 0;
@@ -1100,7 +1200,7 @@
                 return addOnTotal;
             }
 
-            // Enhanced price calculation
+            // Enhanced price calculation for multiple workshops
             $("#calculatePrice").click(async function(e) {
                 e.preventDefault();
 
@@ -1116,11 +1216,8 @@
 
                 try {
                     const registrationPrice = parseFloat('{{ $amount }}') || 0;
-                    const checkCountry = '{{ auth()->user()->userDetail->country->country_name }}';
                     const guestPrice = parseFloat('{{ @$memberTypePrice->guest_amount }}') || 0;
                     const additionalGuest = parseInt($("#total_attendee").val()) || 0;
-                    const workshopId = $('#workshop_id').val();
-                    const memberTypeId = '{{ @$memberTypePrice->memberType->id }}';
                     const delegate = '{{ @$memberTypePrice->memberType->delegate }}';
                     const currencyCondition = (delegate == 1 ? 'Rs. ' : '$ ');
                     const memberType = '{{ @$memberTypePrice->memberType->type }}';
@@ -1130,11 +1227,14 @@
                         throw new Error("Conference price has not been updated by admin.");
                     }
 
-                    // Fetch workshop pricing
-                    const workshopData = await fetchWorkshopPricing(workshopId, memberTypeId);
-                    workshopPrice = parseFloat(workshopData.main_price) || 0;
-                    workshopGuestPrice = parseFloat(workshopData.guest_price) || 0;
-                    currentWorkshopName = workshopData.workshop_name || '';
+                    // Calculate workshop pricing
+                    let totalWorkshopPrice = 0;
+                    let totalWorkshopGuestPrice = 0;
+
+                    selectedWorkshops.forEach(workshop => {
+                        totalWorkshopPrice += workshop.main_price;
+                        totalWorkshopGuestPrice += workshop.guest_price;
+                    });
 
                     // Calculate add-on total price
                     const addOnTotalPrice = calculateAddOnTotal(delegate, totalAttendee);
@@ -1144,9 +1244,9 @@
                     totalPrice = 0;
 
                     if (delegate == 2) {
-                        preTotalPrice = registrationPrice + workshopPrice;
+                        preTotalPrice = registrationPrice + totalWorkshopPrice;
                     } else {
-                        totalPrice = registrationPrice + workshopPrice;
+                        totalPrice = registrationPrice + totalWorkshopPrice;
                     }
 
                     // Build price table
@@ -1158,24 +1258,26 @@
                     // Conference registration row
                     calculatedData.append(generatePriceTableRow(
                         rowNumber++,
-                        `🎓 Conference - ${memberType}`,
+                        `Conference - ${memberType}`,
                         1,
                         registrationPrice,
                         registrationPrice,
                         currencySymbol
                     ));
 
-                    // Workshop registration row
-                    if (workshopId && workshopPrice > 0) {
-                        calculatedData.append(generatePriceTableRow(
-                            rowNumber++,
-                            `🔬 Workshop - ${currentWorkshopName}`,
-                            1,
-                            workshopPrice,
-                            workshopPrice,
-                            currencyCondition
-                        ));
-                    }
+                    // Workshop registration rows (multiple workshops)
+                    selectedWorkshops.forEach(workshop => {
+                        if (workshop.main_price > 0) {
+                            calculatedData.append(generatePriceTableRow(
+                                rowNumber++,
+                                `Workshop: ${workshop.name}`,
+                                1,
+                                workshop.main_price,
+                                workshop.main_price,
+                                currencyCondition
+                            ));
+                        }
+                    });
 
                     // Additional guests pricing
                     if (additionalGuest > 0) {
@@ -1189,31 +1291,34 @@
 
                         calculatedData.append(generatePriceTableRow(
                             rowNumber++,
-                            `👥 Conference - Additional Guests`,
+                            `Conference - Additional Guests`,
                             additionalGuest,
                             guestPrice,
                             guestsTotalPrice,
                             currencyCondition
                         ));
 
-                        // Workshop guests
-                        if (workshopId && workshopGuestPrice > 0) {
-                            const workshopGuestsTotalPrice = additionalGuest * workshopGuestPrice;
-                            if (delegate == 2) {
-                                preTotalPrice += workshopGuestsTotalPrice;
-                            } else {
-                                totalPrice += workshopGuestsTotalPrice;
-                            }
+                        // Workshop guests (for each workshop)
+                        selectedWorkshops.forEach(workshop => {
+                            if (workshop.guest_price > 0) {
+                                const workshopGuestsTotalPrice = additionalGuest * workshop
+                                    .guest_price;
+                                if (delegate == 2) {
+                                    preTotalPrice += workshopGuestsTotalPrice;
+                                } else {
+                                    totalPrice += workshopGuestsTotalPrice;
+                                }
 
-                            calculatedData.append(generatePriceTableRow(
-                                rowNumber++,
-                                `🔬 Workshop - Additional Guests`,
-                                additionalGuest,
-                                workshopGuestPrice,
-                                workshopGuestsTotalPrice,
-                                currencyCondition
-                            ));
-                        }
+                                calculatedData.append(generatePriceTableRow(
+                                    rowNumber++,
+                                    `${workshop.name} - Additional Guests`,
+                                    additionalGuest,
+                                    workshop.guest_price,
+                                    workshopGuestsTotalPrice,
+                                    currencyCondition
+                                ));
+                            }
+                        });
                     }
 
                     // Add-ons pricing (multiple add-ons)
@@ -1229,7 +1334,7 @@
 
                             calculatedData.append(generatePriceTableRow(
                                 rowNumber++,
-                                `🎉 ${addon.name}`,
+                                `Add-on: ${addon.name}`,
                                 totalAttendee,
                                 addon.amount,
                                 addonTotalForThisItem,
@@ -1241,11 +1346,10 @@
                     // Service charge for international payments
                     if (delegate == 2) {
                         const additionalCharge = preTotalPrice * 0.035;
-                        // alert(additionalCharge)
                         totalPrice = preTotalPrice + additionalCharge;
                         calculatedData.append(generatePriceTableRow(
                             rowNumber++,
-                            `💳 Service Charge (3.5%)`,
+                            `Service Charge (3.5%)`,
                             '',
                             '',
                             additionalCharge,
@@ -1253,16 +1357,16 @@
                         ));
                     }
 
-                    // Calculate workshop amount separately for tracking
-                    workshopAmount = workshopPrice;
-                    if (additionalGuest > 0 && workshopGuestPrice > 0) {
-                        workshopAmount += (additionalGuest * workshopGuestPrice);
+                    // Calculate total workshop amount for tracking
+                    let workshopAmount = totalWorkshopPrice;
+                    if (additionalGuest > 0) {
+                        workshopAmount += (additionalGuest * totalWorkshopGuestPrice);
                     }
 
                     // Final total row
                     calculatedData.append(generatePriceTableRow(
                         '',
-                        '💰 <strong>TOTAL AMOUNT</strong>',
+                        '<strong>TOTAL AMOUNT</strong>',
                         `<strong>${totalAttendee}</strong>`,
                         '',
                         totalPrice,
@@ -1272,7 +1376,6 @@
 
                     // Store calculated values
                     calculatedAmount = parseFloat(totalPrice).toFixed(2);
-                    // alert(calculatedAmount)
                     isPriceCalculated = true;
 
                     // Update all amount fields
@@ -1282,7 +1385,7 @@
                     $("input[name='workshop_amount']").val(workshopAmount);
 
                     // Update summary
-                    $('#summaryAmount').text(currencyCondition + totalPrice);
+                    $('#summaryAmount').text(currencyCondition + totalPrice.toFixed(2));
 
                     // Show price table with animation
                     $("#priceTable").fadeIn(500);
@@ -1294,11 +1397,14 @@
                     $("#paymentSection").fadeIn(500);
 
                     // Show success message
-                    const workshopText = workshopId ? ' and workshop' : '';
+                    const workshopText = selectedWorkshops.length > 0 ?
+                        ` and ${selectedWorkshops.length} workshop${selectedWorkshops.length > 1 ? 's' : ''}` :
+                        '';
                     const addOnText = selectedAddOns.length > 0 ?
-                        ` with ${selectedAddOns.length} add-on(s)` : '';
+                        ` with ${selectedAddOns.length} add-on${selectedAddOns.length > 1 ? 's' : ''}` :
+                        '';
                     notyf.success(
-                        `Price calculated successfully! Conference${workshopText}${addOnText} total: ${currencyCondition}${totalPrice}`
+                        `Price calculated successfully! Conference${workshopText}${addOnText} total: ${currencyCondition}${totalPrice.toFixed(2)}`
                     );
 
                     // Scroll to payment section
@@ -1316,25 +1422,27 @@
             });
 
             // Event handlers for form changes
-            $('#workshop_id, #total_attendee').change(function() {
+            $('#total_attendee').change(function() {
                 updateRegistrationSummary();
 
                 // Reset calculation if price was already calculated
                 if (isPriceCalculated) {
-                    const changeType = $(this).attr('id') === 'workshop_id' ? 'workshop selection' :
-                        'attendee count';
-                    resetPriceCalculation(changeType);
+                    resetPriceCalculation('attendee count');
                 }
             });
 
             // Add-on checkbox change handler
             $(document).on('change', '.addon-checkbox', handleAddOnChange);
 
-            // Function to update all hidden fields
+            // Function to update all hidden fields for multiple workshops
             function updateAllHiddenFields() {
                 const registrantType = $('#registrant_type').val() || ($('#registrantType').val() == 1 ? '1' : '2');
                 const accompanyPerson = $('#total_attendee').val() || '0';
-                const workshopId = $('#workshop_id').val() || '';
+
+                // Create workshops data string for form submission
+                const workshopsData = selectedWorkshops.map(workshop =>
+                    `${workshop.id}:${workshop.main_price}:${workshop.guest_price}`
+                ).join(',');
 
                 // Create add-ons data string for form submission
                 const addOnsData = selectedAddOns.map(addon => `${addon.id}:${addon.amount}`).join(',');
@@ -1345,12 +1453,22 @@
                 // Update all accompany person fields
                 $('input[name="accompany_person"]').val(accompanyPerson);
 
-                // Update all workshop fields
-                $('input[name="workshop_id"]').val(workshopId);
-                $('input[name="workshop_amount"]').val(workshopAmount);
+                // Update workshops data in hidden fields
+                $('input[name="selected_workshops"]').val(workshopsData);
 
                 // Update add-ons data in hidden fields
                 $('input[name="selected_addons"]').val(addOnsData);
+
+                // Calculate total workshop amount
+                let totalWorkshopAmount = 0;
+                selectedWorkshops.forEach(workshop => {
+                    totalWorkshopAmount += workshop.main_price;
+                    if (parseInt(accompanyPerson) > 0) {
+                        totalWorkshopAmount += (parseInt(accompanyPerson) * workshop.guest_price);
+                    }
+                });
+
+                $('input[name="workshop_amount"]').val(totalWorkshopAmount);
             }
 
             // Payment method selection handler
@@ -1367,8 +1485,8 @@
                     $('.paymentHeader').show();
                 } else {
                     $('.paymentHeader').hide();
-
                 }
+
                 const checkCountry = '{{ auth()->user()->userDetail->country->country_name }}';
                 const delegate = '{{ @$memberTypePrice->memberType->delegate }}';
 
@@ -1466,7 +1584,7 @@
                     // Attendee
                     $("#openModal").modal('hide');
                     setRegistrantType('1');
-                    $('#summaryRegistrantType').text('👥 Attendee');
+                    $('#summaryRegistrantType').text('Attendee');
                 } else {
                     // Speaker - check if submission exists
                     $btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Checking...');
@@ -1488,7 +1606,7 @@
                             } else {
                                 $("#openModal").modal('hide');
                                 setRegistrantType('2');
-                                $('#summaryRegistrantType').text('🎤 Speaker');
+                                $('#summaryRegistrantType').text('Speaker');
                             }
                         },
                         error: function() {
@@ -1567,7 +1685,7 @@
                 const formData = {
                     registrant_type: $("#registrant_type_moco").val(),
                     accompany_person: $("#accompany_person_moco").val(),
-                    workshop_id: $("#workshop_id_moco").val(),
+                    selected_workshops: $("#selected_workshops_moco").val(),
                     workshop_amount: $("#workshop_amount_moco").val(),
                     selected_addons: $("#selected_addons_moco").val(),
                     payment_type: 2,
@@ -1701,7 +1819,6 @@
                     contentType: false,
                     processData: false,
                     success: function(response) {
-                        console.log(response)
                         if (response.success) {
                             notyf.success('Registration completed successfully!');
                             updateStepIndicator(4);
@@ -1717,7 +1834,6 @@
                         }
                     },
                     error: function(xhr) {
-                        console.log(xhr.status)
                         $('#submitButtonBankTransfer').prop('disabled', false).html(
                             '<i class="fas fa-university"></i> Submit Bank Transfer');
 
@@ -1728,7 +1844,7 @@
                                 let input = $('[name="' + key + '"]');
                                 input.addClass('is-invalid');
                                 input.after('<p class="text-danger">' + errors[key][0] +
-                                    '</p>');
+                                '</p>');
                             }
                         } else {
                             notyf.error('An error occurred. Please try again.');
@@ -1766,13 +1882,16 @@
                 }
             });
 
-            // Initial setup
+            // Initialize the form
+            loadWorkshopPricing();
             updateRegistrationSummary();
             updateStepIndicator(1);
 
             // Smooth scrolling for better UX
             $('html').css('scroll-behavior', 'smooth');
         });
+
+        // Payment status handling
         @if ($checkPayment == 'failed')
             $(document).ready(function() {
                 notyf.error("Your payment has failed. Please try again.");

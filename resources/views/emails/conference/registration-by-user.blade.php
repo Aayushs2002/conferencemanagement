@@ -19,7 +19,9 @@
         (Theme: <em>{{ $data['conference_theme'] }}</em>).
         @if (!empty($data['workshop']))
             We also acknowledge your interest in attending the
-            <strong>workshop: {{ $data['workshop']['name'] }}</strong>.
+            @foreach ($data['workshop'] as $workshop)
+                <strong>workshop: {{ $workshop['name'] }}</strong> <br>
+            @endforeach
         @endif
     </p>
 
@@ -62,8 +64,11 @@
     @if (!empty($data['workshop']))
         <h4>Workshop Registration:</h4>
         <ul>
-            <li><strong>Workshop Name:</strong> {{ $data['workshop']['name'] }}</li>
-            <li><strong>Workshop Amount:</strong> {{ $data['workshop']['amount'] }}</li>
+            @foreach ($data['workshop'] as $workshop)
+                <li><strong>Workshop Name:</strong> {{ $workshop['name'] }}</li>
+                <li><strong>Workshop Amount:</strong> {{ $workshop['amount'] }}</li>
+                <br>
+            @endforeach
         </ul>
     @endif
 

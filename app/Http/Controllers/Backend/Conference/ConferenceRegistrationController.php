@@ -733,7 +733,7 @@ class ConferenceRegistrationController extends Controller
         $date = \Carbon\Carbon::now()->format('F j, Y');
         $conferenceSetting = ConferenceSetting::where('conference_id', $conference->id)->first();
         $conferenceRegistrationAddons = ConferenceRegistration_addon::where('conference_registration_id', $conferenceRegistration->id)->get();
-        $workshopRegistraion = WorkshopRegistration::where(['user_id' => $conferenceRegistration->user_id, 'transaction_id' => $conferenceRegistration->transaction_id])->first();
+        $workshopRegistraions = WorkshopRegistration::where(['user_id' => $conferenceRegistration->user_id, 'transaction_id' => $conferenceRegistration->transaction_id])->get();
         // dd($workshopRegistraion);
         $membetType = $user->societies->where('id', $conference->society_id)->first()?->pivot?->memberType;
         $memberTypePrice = ConferenceMemberTypePrice::where(['conference_id' => $conference->id, 'member_type_id' => $membetType->id])->first();
@@ -762,11 +762,11 @@ class ConferenceRegistrationController extends Controller
             ];
         }
         // dd($addonsData->toArray());
-        $workshopData = null;
-        if ($workshopRegistraion) {
-            $workshopData = [
-                'name' => $workshopRegistraion->workshop->workshop_title,
-                'amount' => $workshopRegistraion->amount
+        $workshopData = [];
+        foreach ($workshopRegistraions as $workshop) {
+            $workshopData[] = [ 
+                'name' => $workshop->workshop->workshop_title,
+                'amount' => $workshop->amount
             ];
         }
 
