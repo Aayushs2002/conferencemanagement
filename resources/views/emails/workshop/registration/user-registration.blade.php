@@ -15,7 +15,10 @@
     <br>
     <div>
         <p>We hope this message finds you well. We want to express my gratitude for registering to the workshop
-            {{ $data['workshop']['name'] }}.</p>
+            @foreach ($data['workshop'] as $workshop)
+                {{ $workshop['name'] }}.
+            @endforeach
+        </p>
         @if (strtolower($data['paymentType']) == 'bank transfer')
             <p>
                 We have received your registration details and your selected payment method is

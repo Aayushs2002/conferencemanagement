@@ -83,7 +83,7 @@ class WorkshopRegistrationController extends Controller
             $conferenceSetting = ConferenceSetting::where('conference_id', $conference->id)->first();
 
             $workshopData = null;
-            $workshopData = [
+            $workshopData[] = [
                 'name'   => $workshop->workshop_title ?? 'Workshop',
                 'amount' => $validated['amount']
             ];
@@ -152,7 +152,7 @@ class WorkshopRegistrationController extends Controller
             // $workshop = Workshop::whereId($workshop->workshop_id)->first();
             $conferenceSetting = ConferenceSetting::where('conference_id', $conference->id)->first();
             $workshopData = null;
-            $workshopData = [
+            $workshopData[] = [
                 'name'   => $workshop->workshop_title ?? 'Workshop',
                 'amount' => $validated['amount']
             ];

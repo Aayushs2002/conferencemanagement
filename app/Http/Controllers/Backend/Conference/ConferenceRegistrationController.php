@@ -223,7 +223,7 @@ class ConferenceRegistrationController extends Controller
                 'signature' => $conferenceSetting->signature,
                 'conferenceAmount' => $validated['amount'],
                 'addons'           => [],
-                'workshop'         => null,
+                'workshop'         => [],
                 'accompany' => null,
                 'serviceCharge' =>  null
             ];
@@ -521,7 +521,7 @@ class ConferenceRegistrationController extends Controller
                 'signature' => $conferenceSetting->signature,
                 'conferenceAmount' => $validated['amount'],
                 'addons'           => [],
-                'workshop'         => null,
+                'workshop'         => [],
                 'accompany' => null,
                 'serviceCharge' =>  null,
                 'invitationType' => 1
