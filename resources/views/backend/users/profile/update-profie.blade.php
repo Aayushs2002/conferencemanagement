@@ -48,7 +48,7 @@
                         </div>
 
                         {{-- Designation --}}
-                        <div class="col-12 col-md-6">
+                        <div class="col-12 col-md-6" id="designationWrapper">
                             <label for="designation_id" class="form-label">Designation <code>*</code></label>
                             <select class="form-select" name="designation_id" id="designation_id" required>
                                 <option value="" hidden>-- Select Designation --</option>
@@ -57,14 +57,29 @@
                                         {{ $designation->designation }}
                                     </option>
                                 @endforeach
+                                <option value="other" @selected(old('designation_id') == 'other')>Others</option>
+
                             </select>
                             @error('designation_id')
                                 <p class="text-danger">{{ $message }}</p>
                             @enderror
                         </div>
 
+                        {{-- Other Designation --}}
+                        <div class="col-12 col-md-6" id="otherDesignationWrapper" style="display: none;">
+                            <label for="other_designation" class="form-label">
+                                Other Designation
+                                <code>*</code>
+                            </label>
+                            <input type="text" class="form-control" name="other_designation" id="other_designation"
+                                placeholder="Enter Designation" value="{{ old('other_designation') }}">
+                            @error('other_designation')
+                                <p class="text-danger">{{ $message }}</p>
+                            @enderror
+                        </div>
+
                         {{-- Department --}}
-                        <div class="col-12 col-md-6">
+                        <div class="col-12 col-md-6" id="departmentWrapper">
                             <label for="department_id" class="form-label">Department <code>*</code></label>
                             <select class="form-select" name="department_id" id="department_id" required>
                                 <option value="" hidden>-- Select Department --</option>
@@ -73,8 +88,22 @@
                                         {{ $department->name }}
                                     </option>
                                 @endforeach
+                                <option value="other" @selected(old('department_id') == 'other')>Others</option>
                             </select>
                             @error('department_id')
+                                <p class="text-danger">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        {{-- Other Department --}}
+                        <div class="col-12 col-md-6" id="otherDepartmentWrapper" style="display: none;">
+                            <label for="other_department" class="form-label">
+                                Other Department
+                                <code>*</code>
+                            </label>
+                            <input type="text" class="form-control" name="other_department" id="other_department"
+                                placeholder="Enter Designation" value="{{ old('other_department') }}">
+                            @error('other_department')
                                 <p class="text-danger">{{ $message }}</p>
                             @enderror
                         </div>
@@ -108,7 +137,8 @@
 
                         {{-- Photo Upload --}}
                         <div class="col-12 col-md-6">
-                            <label class="form-label" for="image">Photo <code>*(Passport Sized Image)</code></label>
+                            <label class="form-label" for="image">Photo <code>*(Passport Sized
+                                    Image)</code></label>
                             <input type="file" id="image" name="image" required class="form-control" />
                             <div class="row" id="imgPreview"></div>
                             @error('image')
@@ -134,6 +164,28 @@
         const institutionSelect = document.getElementById('institution_id');
         const otherInstitutionWrapper = document.getElementById('otherInstitutionWrapper');
         const institutionWrapper = document.getElementById('institutionWrapper');
+
+        const designationSelect = document.getElementById('designation_id');
+        const otherDesignationWrapper = document.getElementById('otherDesignationWrapper');
+        const designationWrapper = document.getElementById('designationWrapper');
+
+        const departmentSelect = document.getElementById('department_id');
+        const otherDepartmentWrapper = document.getElementById('otherDepartmentWrapper');
+        const departmentWrapper = document.getElementById('departmentWrapper');
+
+        function toggleOtherDesignation() {
+            otherDesignationWrapper.style.display = designationSelect.value === 'other' ? 'block' : 'none';
+        }
+
+        designationSelect.addEventListener('change', toggleOtherDesignation);
+        toggleOtherDesignation();
+
+        function toggleOtherDepartment() {
+            otherDepartmentWrapper.style.display = departmentSelect.value === 'other' ? 'block' : 'none';
+        }
+
+        departmentSelect.addEventListener('change', toggleOtherDepartment);
+        toggleOtherDepartment();
 
         @if (current_user()->userDetail->country_id == 125)
             function toggleOtherInstitution() {

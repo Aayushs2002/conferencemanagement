@@ -118,7 +118,7 @@
                         @endif
                     </div>
                     <!-- / Content -->
-
+ 
                     <!-- Footer -->
                     @include('backend.layouts.footer')
                     <!-- / Footer -->

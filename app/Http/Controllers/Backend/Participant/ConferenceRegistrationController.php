@@ -300,7 +300,8 @@ class ConferenceRegistrationController extends Controller
                                 'amount'        => $mainPrice,
                                 'token'         => random_word(60),
                                 'verified_status' => 0,
-
+                                'created_at'                 => now(),
+                                'updated_at'                 => now(),
                             ];
                         }
                         DB::table('workshop_registrations')->insert($insertWorkshopData);
@@ -530,7 +531,8 @@ class ConferenceRegistrationController extends Controller
                         'amount'        => $mainPrice,
                         'token'         => random_word(60),
                         'verified_status' => 1,
-
+                        'created_at'                 => now(),
+                        'updated_at'                 => now(),
                     ];
                 }
                 DB::table('workshop_registrations')->insert($insertWorkshopData);

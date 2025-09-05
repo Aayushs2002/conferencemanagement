@@ -225,29 +225,39 @@
 
                             <div id="mealCountList">
                                 @foreach ($workshops as $workshop)
+                                    {{-- @dd($workshop) --}}
                                     @php
                                         $counts = $workshopMealCounts[$workshop->id] ?? null;
                                         $veg = $counts->veg ?? 0;
-                                        $nonVeg = $counts->nonVeg ?? 0;
+                                        $nonVeg = $counts->nonveg ?? 0;
                                         $total = $counts->total ?? 0;
                                     @endphp
                                     <div class="meal-count-group mb-4" data-workshop-id="{{ $workshop->id }}">
                                         <h6 class="text-primary fw-bold">{{ $workshop->workshop_title }}</h6>
-                                        <div class="d-flex justify-content-between align-items-center">
-                                            <span class="text-muted">Veg</span>
-                                            <span
-                                                class="badge bg-success bg-opacity-10 text-success rounded-pill px-3 py-1">{{ $veg }}</span>
-                                        </div>
-                                        <div class="d-flex justify-content-between align-items-center mt-2">
-                                            <span class="text-muted">Non-Veg</span>
-                                            <span
-                                                class="badge bg-danger bg-opacity-10 text-danger rounded-pill px-3 py-1">{{ $nonVeg }}</span>
-                                        </div>
-                                        <div class="d-flex justify-content-between align-items-center mt-2">
-                                            <span class="fw-bold text-dark">Total Registation</span>
-                                            <span
-                                                class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-3 py-1">{{ $total }}</span>
-                                        </div>
+                                        <a
+                                            href="{{ route('workshop.workshop-registration.index', [$society, $conference, $workshop]) . '?meal_type=1' }}">
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <span class="text-muted">Veg</span>
+                                                <span
+                                                    class="badge bg-success bg-opacity-10 text-success rounded-pill px-3 py-1">{{ $veg }}</span>
+                                            </div>
+                                        </a>
+                                        <a
+                                            href="{{ route('workshop.workshop-registration.index', [$society, $conference, $workshop]) . '?meal_type=2' }}">
+                                            <div class="d-flex justify-content-between align-items-center mt-2">
+                                                <span class="text-muted">Non-Veg</span>
+                                                <span
+                                                    class="badge bg-danger bg-opacity-10 text-danger rounded-pill px-3 py-1">{{ $nonVeg }}</span>
+                                            </div>
+                                        </a>
+                                        <a
+                                            href="{{ route('workshop.workshop-registration.index', [$society, $conference, $workshop]) }}">
+                                            <div class="d-flex justify-content-between align-items-center mt-2">
+                                                <span class="fw-bold text-dark">Total Registation</span>
+                                                <span
+                                                    class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-3 py-1">{{ $total }}</span>
+                                            </div>
+                                        </a>
                                     </div>
                                 @endforeach
                             </div>
@@ -256,140 +266,134 @@
                 </div>
 
                 {{-- <div class="row mt-5"> --}}
-                    <!-- Attendance & Meal Count Card -->
-                    <div class="col-lg-8 col-12">
-                        <div class="card border-0 shadow-sm h-100">
-                            <div class="card-header bg-transparent border-0 pt-4 px-4 pb-0">
-                                <div class="d-flex justify-content-between align-items-start">
-                                    <div>
-                                        <div class="d-flex align-items-center mb-2">
-                                            <div class="bg-primary bg-opacity-10 rounded-circle p-2 me-3">
-                                                <i class="icon-base ti tabler-chart-bar text-primary fs-5"></i>
-                                            </div>
-                                            <h5 class="fw-bold text-dark mb-0">Attendance & Meal Count</h5>
+                <!-- Attendance & Meal Count Card -->
+                <div class="col-lg-8 col-12">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-header bg-transparent border-0 pt-4 px-4 pb-0">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <div class="d-flex align-items-center mb-2">
+                                        <div class="bg-primary bg-opacity-10 rounded-circle p-2 me-3">
+                                            <i class="icon-base ti tabler-chart-bar text-primary fs-5"></i>
                                         </div>
-                                        <p class="text-muted mb-0">Daily attendance and meal statistics</p>
+                                        <h5 class="fw-bold text-dark mb-0">Attendance & Meal Count</h5>
                                     </div>
-                                    <div class="dropdown">
-                                        <button type="button" class="btn btn-primary dropdown-toggle rounded-pill px-4"
-                                            data-bs-toggle="dropdown">
-                                            <i class="icon-base ti tabler-calendar me-2"></i>Filter by Day
-                                        </button>
-                                        <ul class="dropdown-menu dropdown-menu-end border-0 shadow-lg"
-                                            id="dayFilterDropdown">
-                                            @foreach ($dates as $date)
-                                                <li>
-                                                    <a href="#" class="dropdown-item day-filter rounded-3 mx-2 my-1"
-                                                        data-date="{{ $date }}">
-                                                        <i class="icon-base ti tabler-calendar-event me-2"></i>
-                                                        Day {{ $loop->iteration }}
-                                                    </a>
-                                                </li>
-                                            @endforeach
-                                            <li>
-                                                <hr class="dropdown-divider mx-2">
-                                            </li>
+                                    <p class="text-muted mb-0">Daily attendance and meal statistics</p>
+                                </div>
+                                <div class="dropdown">
+                                    <button type="button" class="btn btn-primary dropdown-toggle rounded-pill px-4"
+                                        data-bs-toggle="dropdown">
+                                        <i class="icon-base ti tabler-calendar me-2"></i>Filter by Day
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end border-0 shadow-lg" id="dayFilterDropdown">
+                                        @foreach ($dates as $date)
                                             <li>
                                                 <a href="#" class="dropdown-item day-filter rounded-3 mx-2 my-1"
-                                                    data-date="all">
-                                                    <i class="icon-base ti tabler-calendar me-2"></i>
-                                                    All Days
+                                                    data-date="{{ $date }}">
+                                                    <i class="icon-base ti tabler-calendar-event me-2"></i>
+                                                    Day {{ $loop->iteration }}
                                                 </a>
                                             </li>
-                                        </ul>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="card-body p-4">
-                                <div class="position-relative">
-                                    <!-- Loading Overlay -->
-                                    <div id="attendanceLoadingOverlay"
-                                        class="position-absolute top-0 start-0 w-100 h-100 bg-white bg-opacity-75 d-none rounded-4 d-flex align-items-center justify-content-center"
-                                        style="z-index: 10;">
-                                        <div class="text-center">
-                                            <div class="spinner-border text-primary mb-2" role="status">
-                                                <span class="visually-hidden">Loading...</span>
-                                            </div>
-                                            <p class="text-muted small mb-0">Updating data...</p>
-                                        </div>
-                                    </div>
-
-                                    <div class="row g-3" id="attendanceStatsContainer">
-                                        <!-- Attendance Stat -->
-                                        <div class="col-md-4">
-                                            <div
-                                                class="bg-success bg-opacity-10 rounded-4 p-4 text-center position-relative">
-                                                <div class="bg-success bg-opacity-25 rounded-circle d-inline-flex align-items-center justify-content-center mb-3"
-                                                    style="width: 60px; height: 60px;">
-                                                    <i class="icon-base ti tabler-users text-success fs-3"></i>
-                                                </div>
-                                                <h3 class="fw-bold text-success mb-1" id="attendance-count">0</h3>
-                                                <p class="text-muted mb-0 fw-medium">Attendance</p>
-                                                <!-- Individual loading spinner -->
-                                                <div class="position-absolute top-50 start-50 translate-middle d-none"
-                                                    id="attendance-loading">
-                                                    <div class="spinner-border spinner-border-sm text-success"
-                                                        role="status">
-                                                        <span class="visually-hidden">Loading...</span>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <!-- Lunch Stat -->
-                                        <div class="col-md-4">
-                                            <div
-                                                class="bg-warning bg-opacity-10 rounded-4 p-4 text-center position-relative">
-                                                <div class="bg-warning bg-opacity-25 rounded-circle d-inline-flex align-items-center justify-content-center mb-3"
-                                                    style="width: 60px; height: 60px;">
-                                                    <i class="icon-base ti tabler-sun text-warning fs-3"></i>
-                                                </div>
-                                                <h3 class="fw-bold text-warning mb-1" id="lunch-count">0</h3>
-                                                <p class="text-muted mb-0 fw-medium">Lunch</p>
-                                                <!-- Individual loading spinner -->
-                                                <div class="position-absolute top-50 start-50 translate-middle d-none"
-                                                    id="lunch-loading">
-                                                    <div class="spinner-border spinner-border-sm text-warning"
-                                                        role="status">
-                                                        <span class="visually-hidden">Loading...</span>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <!-- Dinner Stat -->
-                                        <div class="col-md-4">
-                                            <div class="bg-info bg-opacity-10 rounded-4 p-4 text-center position-relative">
-                                                <div class="bg-info bg-opacity-25 rounded-circle d-inline-flex align-items-center justify-content-center mb-3"
-                                                    style="width: 60px; height: 60px;">
-                                                    <i class="icon-base ti tabler-moon text-info fs-3"></i>
-                                                </div>
-                                                <h3 class="fw-bold text-info mb-1" id="dinner-count">0</h3>
-                                                <p class="text-muted mb-0 fw-medium">Dinner</p>
-                                                <!-- Individual loading spinner -->
-                                                <div class="position-absolute top-50 start-50 translate-middle d-none"
-                                                    id="dinner-loading">
-                                                    <div class="spinner-border spinner-border-sm text-info"
-                                                        role="status">
-                                                        <span class="visually-hidden">Loading...</span>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="text-center mt-10">
-                                    <a href="{{ route('conference.viewAttendanceStatus', [$society, $conference]) }}"
-                                        class="btn btn-primary btn-lg rounded-pill px-5">
-                                        <i class="icon-base ti tabler-eye me-2"></i>
-                                        View Detailed Report
-                                    </a>
+                                        @endforeach
+                                        <li>
+                                            <hr class="dropdown-divider mx-2">
+                                        </li>
+                                        <li>
+                                            <a href="#" class="dropdown-item day-filter rounded-3 mx-2 my-1"
+                                                data-date="all">
+                                                <i class="icon-base ti tabler-calendar me-2"></i>
+                                                All Days
+                                            </a>
+                                        </li>
+                                    </ul>
                                 </div>
                             </div>
                         </div>
+
+                        <div class="card-body p-4">
+                            <div class="position-relative">
+                                <!-- Loading Overlay -->
+                                <div id="attendanceLoadingOverlay"
+                                    class="position-absolute top-0 start-0 w-100 h-100 bg-white bg-opacity-75 d-none rounded-4 d-flex align-items-center justify-content-center"
+                                    style="z-index: 10;">
+                                    <div class="text-center">
+                                        <div class="spinner-border text-primary mb-2" role="status">
+                                            <span class="visually-hidden">Loading...</span>
+                                        </div>
+                                        <p class="text-muted small mb-0">Updating data...</p>
+                                    </div>
+                                </div>
+
+                                <div class="row g-3" id="attendanceStatsContainer">
+                                    <!-- Attendance Stat -->
+                                    <div class="col-md-4">
+                                        <div class="bg-success bg-opacity-10 rounded-4 p-4 text-center position-relative">
+                                            <div class="bg-success bg-opacity-25 rounded-circle d-inline-flex align-items-center justify-content-center mb-3"
+                                                style="width: 60px; height: 60px;">
+                                                <i class="icon-base ti tabler-users text-success fs-3"></i>
+                                            </div>
+                                            <h3 class="fw-bold text-success mb-1" id="attendance-count">0</h3>
+                                            <p class="text-muted mb-0 fw-medium">Attendance</p>
+                                            <!-- Individual loading spinner -->
+                                            <div class="position-absolute top-50 start-50 translate-middle d-none"
+                                                id="attendance-loading">
+                                                <div class="spinner-border spinner-border-sm text-success" role="status">
+                                                    <span class="visually-hidden">Loading...</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Lunch Stat -->
+                                    <div class="col-md-4">
+                                        <div class="bg-warning bg-opacity-10 rounded-4 p-4 text-center position-relative">
+                                            <div class="bg-warning bg-opacity-25 rounded-circle d-inline-flex align-items-center justify-content-center mb-3"
+                                                style="width: 60px; height: 60px;">
+                                                <i class="icon-base ti tabler-sun text-warning fs-3"></i>
+                                            </div>
+                                            <h3 class="fw-bold text-warning mb-1" id="lunch-count">0</h3>
+                                            <p class="text-muted mb-0 fw-medium">Lunch</p>
+                                            <!-- Individual loading spinner -->
+                                            <div class="position-absolute top-50 start-50 translate-middle d-none"
+                                                id="lunch-loading">
+                                                <div class="spinner-border spinner-border-sm text-warning" role="status">
+                                                    <span class="visually-hidden">Loading...</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Dinner Stat -->
+                                    <div class="col-md-4">
+                                        <div class="bg-info bg-opacity-10 rounded-4 p-4 text-center position-relative">
+                                            <div class="bg-info bg-opacity-25 rounded-circle d-inline-flex align-items-center justify-content-center mb-3"
+                                                style="width: 60px; height: 60px;">
+                                                <i class="icon-base ti tabler-moon text-info fs-3"></i>
+                                            </div>
+                                            <h3 class="fw-bold text-info mb-1" id="dinner-count">0</h3>
+                                            <p class="text-muted mb-0 fw-medium">Dinner</p>
+                                            <!-- Individual loading spinner -->
+                                            <div class="position-absolute top-50 start-50 translate-middle d-none"
+                                                id="dinner-loading">
+                                                <div class="spinner-border spinner-border-sm text-info" role="status">
+                                                    <span class="visually-hidden">Loading...</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="text-center mt-10">
+                                <a href="{{ route('conference.viewAttendanceStatus', [$society, $conference]) }}"
+                                    class="btn btn-primary btn-lg rounded-pill px-5">
+                                    <i class="icon-base ti tabler-eye me-2"></i>
+                                    View Detailed Report
+                                </a>
+                            </div>
+                        </div>
                     </div>
+                </div>
 
                 {{-- </div> --}}
             </div>

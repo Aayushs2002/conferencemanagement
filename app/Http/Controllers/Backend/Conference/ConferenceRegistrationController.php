@@ -62,8 +62,8 @@ class ConferenceRegistrationController extends Controller
         // }
         $society_id = $society->id;
         $query = ConferenceRegistration::with([
-            'user.societies' => function ($query) use ($society_id) {
-                $query->where('society_id', $society_id);
+            'user.societies' => function ($query) use ($society_id) { 
+                $query->where('society_id', $society_id); 
             },
             'user.userDetail'
         ])

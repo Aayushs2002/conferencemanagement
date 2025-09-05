@@ -367,75 +367,28 @@
 @endsection
 @section('scripts')
     <script>
-        $(document).ready(function() { 
-            const startInput = document.querySelector('#start_date');
-            const endInput = document.querySelector('#end_date');
-            const earlyBirdInput = document.querySelector('#early_bird_registration_deadline');
-            const regularDeadlineInput = document.querySelector('#regular_registration_deadline');
-
-            // Disable initially
-            endInput.disabled = true;
-            earlyBirdInput.disabled = true;
-            regularDeadlineInput.disabled = true;
-
-            // Enable inputs if old values exist
-            if (startInput.value && endInput.value && earlyBirdInput.value) {
-                endInput.disabled = false;
-                earlyBirdInput.disabled = false;
-                regularDeadlineInput.disabled = false; //  explicitly enable it
-            }
-
-            const startDatePicker = flatpickr(startInput, {
-                monthSelectorType: 'static',
-                static: true,
-                minDate: "today",
-                defaultDate: startInput.value,
-                onChange: function(selectedDates) {
-                    if (selectedDates.length > 0) {
-                        const nextDay = new Date(selectedDates[0]);
-                        nextDay.setDate(nextDay.getDate() + 1);
-                        endDatePicker.set('minDate', nextDay);
-                        endInput.disabled = false;
-                    }
-                }
+        $(document).ready(function() {
+            flatpickr("#start_date", {
+                dateFormat: "Y-m-d"
             });
 
-            const endDatePicker = flatpickr(endInput, {
-                monthSelectorType: 'static',
-                static: true,
-                minDate: "today",
-                defaultDate: endInput.value,
-                onChange: function() {
-                    if (startInput.value && endInput.value) {
-                        earlyBirdInput.disabled = false;
-                        regularDeadlineInput.disabled = !!earlyBirdInput.value;
-                    }
-                }
+            flatpickr("#end_date", {
+                dateFormat: "Y-m-d"
             });
 
-            const earlyBirdPicker = flatpickr(earlyBirdInput, {
-                monthSelectorType: 'static',
-                static: true,
-                defaultDate: earlyBirdInput.value,
-                minDate: startInput.value,
-                maxDate: endInput.value,
-                onChange: function(selectedDates) {
-                    if (selectedDates.length > 0) {
-                        const nextDay = new Date(selectedDates[0]);
-                        nextDay.setDate(nextDay.getDate() + 1);
-                        regularDeadlineInput.disabled = false;
-                        regularDeadlinePicker.set('minDate', nextDay);
-                        regularDeadlinePicker.set('maxDate', endInput.value);
-                    }
-                }
+            flatpickr("#early_bird_registration_deadline", {
+                dateFormat: "Y-m-d"
             });
 
-            const regularDeadlinePicker = flatpickr(regularDeadlineInput, {
-                monthSelectorType: 'static',
-                static: true,
-                defaultDate: regularDeadlineInput.value,
-                minDate: earlyBirdInput.value,
-                maxDate: endInput.value
+            flatpickr("#regular_registration_deadline", {
+                dateFormat: "Y-m-d"
+            });
+
+            flatpickr("#flatpickr-time", {
+                enableTime: true,
+                noCalendar: true,
+                dateFormat: "H:i",
+                time_24hr: true
             });
         });
     </script>

@@ -30,9 +30,14 @@ class WorkshopRegistrationController extends Controller
 {
     public function __construct(protected FileService $file_service) {}
 
-    public function index($society, $conference, $workshop)
+    public function index(Request $request, $society, $conference, $workshop)
     {
-        $registrations = WorkshopRegistration::where(['workshop_id' => $workshop->id, 'registrant_type' => 1, 'status' => 1])->get();
+        $query = WorkshopRegistration::where(['workshop_id' => $workshop->id, 'registrant_type' => 1, 'status' => 1]);
+        if ($request->filled('meal_type')) {
+            $query->where('meal_type', $request->meal_type);
+        }
+        $registrations = $query->latest()->get();
+
         return view('backend.workshop.workshop-registration.index', compact('registrations', 'workshop', 'society', 'conference'));
     }
 

@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\ProfileUpdateRequest;
 use App\Models\User;
+use App\Models\User\UserDepartment;
+use App\Models\User\UserDesignation;
 use App\Models\User\UserInstitution;
 use App\Services\File\FileService;
 use Illuminate\Http\RedirectResponse;
@@ -20,7 +22,7 @@ class ProfileController extends Controller
 
     public function updateProfile(Request $request)
     {
-        
+
         try {
             $rules = [
                 'institution_id' => 'required',
@@ -48,6 +50,14 @@ class ProfileController extends Controller
                 $rules['other_institution_name'] = 'required';
             }
 
+            if ($request->designation_id == 'other') {
+                $rules['other_designation'] = 'required';
+            }
+
+            if ($request->department_id == 'other') {
+                $rules['other_department'] = 'required';
+            }
+
             $validator = Validator::make($request->all(), $rules, $messages);
             if ($validator->fails()) {
                 return response()->json([
@@ -68,6 +78,14 @@ class ProfileController extends Controller
                 unset($data['institution_id']);
             }
 
+            if ($request->designation_id == 'other') {
+                unset($data['designation_id']);
+            }
+
+            if ($request->department_id == 'other') {
+                unset($data['department_id']);
+            }
+
             // dd($data);
             $userData->userDetail->update($data);
             $userData->update([
@@ -78,6 +96,20 @@ class ProfileController extends Controller
                 UserInstitution::create([
                     'user_id' => $userData->id,
                     'institution_name' => $request->other_institution_name
+                ]);
+            }
+
+            if ($request->designation_id == 'other') {
+                UserDesignation::create([
+                    'user_id' => $userData->id,
+                    'designation_name' => $request->other_designation
+                ]);
+            }
+
+            if ($request->department_id == 'other') {
+                UserDepartment::create([
+                    'user_id' => $userData->id,
+                    'department_name' => $request->other_department
                 ]);
             }
             DB::commit();
