@@ -15,7 +15,10 @@
     <br>
     <div>
         <p>We hope this message finds you well. We want to express my gratitude for your interest in attending workshop
-            {{ $data['workshop']['name'] }}.</p>
+            @foreach ($data['workshop'] as $workshop)
+                {{ $workshop['name'] }}.
+            @endforeach
+        </p>
         <p>We feel pleasure to inform you that, your request has been done. Thank You.</p>
     </div>
     <br>
