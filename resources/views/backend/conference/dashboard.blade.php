@@ -13,7 +13,9 @@
                                 </div>
                                 <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2 rounded-pill">Total</span>
                             </div>
-                            <h3 class="fw-bold text-dark mb-2">{{ $conferenceRegistrationCount }}</h3>
+                            <a href="{{ route('conference.conference-registration.index', [$society, $conference]) }}">
+                                <h3 class="fw-bold text-dark mb-2">{{ $conferenceRegistrationCount }}</h3>
+                            </a>
                             <p class="text-muted mb-0 fw-medium">Total Registrations</p>
                             <div class="progress mt-3" style="height: 4px;">
                                 <div class="progress-bar bg-primary" style="width: 85%"></div>
@@ -35,14 +37,20 @@
                             </div>
                             <h6 class="fw-bold text-dark mb-3">National Registrants</h6>
                             <div class="list-group list-group-flush">
+                                {{-- @dd($totalNationalRegistrants) --}}
                                 @foreach ($totalNationalRegistrants as $nr_item)
-                                    <div
-                                        class="list-group-item border-0 px-0 py-2 d-flex justify-content-between align-items-center">
-                                        <span class="text-muted fw-medium">{{ $nr_item->type }}</span>
-                                        <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-3 py-1">
-                                            {{ $nr_item->user_count }}
-                                        </span>
-                                    </div>
+                                    {{-- @dd($nr_item) --}}
+                                    <a
+                                        href="{{ route('conference.conference-registration.index', [$society, $conference, 'member_type_id' => $nr_item->id]) }}">
+                                        <div
+                                            class="list-group-item border-0 px-0 py-2 d-flex justify-content-between align-items-center">
+                                            <span class="text-muted fw-medium">{{ $nr_item->type }}</span>
+                                            <span
+                                                class="badge bg-success bg-opacity-10 text-success rounded-pill px-3 py-1">
+                                                {{ $nr_item->user_count }}
+                                            </span>
+                                        </div>
+                                    </a>
                                 @endforeach
                             </div>
                         </div>
@@ -63,13 +71,17 @@
                             <h6 class="fw-bold text-dark mb-3">International Registrants</h6>
                             <div class="list-group list-group-flush">
                                 @foreach ($totalInternationalRegistrants as $inr_item)
-                                    <div
-                                        class="list-group-item border-0 px-0 py-2 d-flex justify-content-between align-items-center">
-                                        <span class="text-muted fw-medium">{{ $inr_item->type }}</span>
-                                        <span class="badge bg-info bg-opacity-10 text-info rounded-pill px-3 py-1">
-                                            {{ $inr_item->user_count }}
-                                        </span>
-                                    </div>
+                                    <a
+                                        href="{{ route('conference.conference-registration.index', [$society, $conference, 'member_type_id' => $inr_item->id]) }}">
+
+                                        <div
+                                            class="list-group-item border-0 px-0 py-2 d-flex justify-content-between align-items-center">
+                                            <span class="text-muted fw-medium">{{ $inr_item->type }}</span>
+                                            <span class="badge bg-info bg-opacity-10 text-info rounded-pill px-3 py-1">
+                                                {{ $inr_item->user_count }}
+                                            </span>
+                                        </div>
+                                    </a>
                                 @endforeach
                             </div>
                         </div>
@@ -90,14 +102,23 @@
                             <h6 class="fw-bold text-dark mb-3">Conference Meal Distribution</h6>
                             <div class="list-group list-group-flush">
                                 @foreach ($mealCounts as $m_item)
-                                    <div
-                                        class="list-group-item border-0 px-0 py-2 d-flex justify-content-between align-items-center">
-                                        <span class="text-muted fw-medium">{{ $m_item->meal_label }}</span>
-                                        <span class="badge bg-warning bg-opacity-10 text-warning rounded-pill px-3 py-1">
-                                            {{ $m_item->count }}
-                                        </span>
-                                    </div>
+                                    <a
+                                        href="{{ route('conference.conference-registration.index', [
+                                            $society,
+                                            $conference,
+                                            'meal_type' => $m_item->meal_label === 'Veg' ? 1 : 2,
+                                        ]) }}">
+                                        <div
+                                            class="list-group-item border-0 px-0 py-2 d-flex justify-content-between align-items-center">
+                                            <span class="text-muted fw-medium">{{ $m_item->meal_label }}</span>
+                                            <span
+                                                class="badge bg-warning bg-opacity-10 text-warning rounded-pill px-3 py-1">
+                                                {{ $m_item->count }}
+                                            </span>
+                                        </div>
+                                    </a>
                                 @endforeach
+
                             </div>
                         </div>
                     </div>

@@ -65,6 +65,21 @@
                             @enderror
                         </div>
                         <div class="col-md-4 form-group mb-3">
+                            <label for="meal_type">Meal Preference <code>*</code></label>
+                            <select name="meal_type" class="form-control" id="meal_type" required>
+                                <option value="" hidden>-- Select Veg/Non-veg --</option>
+                                <option value="1">
+                                    Veg</option>
+                                <option value="2">
+                                    Non-veg</option>
+                            </select>
+                            <div class="valid-feedback">Looks good!</div>
+                            <div class="invalid-feedback">Please Select Meal Type.</div>
+                            @error('meal_type')
+                                <p class="text-danger">{{ $message }}</p>
+                            @enderror
+                        </div>
+                        <div class="col-md-4 form-group mb-3">
                             <label for="payment_voucher">Payment Voucher <code>(Only JPG/PNG/PDF) (Max: 250
                                     KB)</code></label>
                             <input type="file" class="form-control @error('payment_voucher') is-invalid @enderror"

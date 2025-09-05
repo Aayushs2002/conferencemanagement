@@ -117,6 +117,7 @@ class WorkshopRegistrationController extends Controller
                 'user_id' => 'required',
                 'transaction_id' => 'required|unique:workshop_registrations,transaction_id',
                 'amount' => 'required|integer',
+                'meal_type' => 'required',
                 'payment_voucher' => 'nullable|mimes:jpg,png,pdf|max:250'
             ];
 

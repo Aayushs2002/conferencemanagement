@@ -30,6 +30,7 @@
                         <th scope="col">Member Type</th>
                         <th scope="col">Transaction ID</th>
                         <th scope="col">Payment Type/Payment Voucher</th>
+                        <th scope="col">Meal Type</th>
                         <th scope="col">Verified Status</th>
                         <th scope="col">Remarks</th>
                         <th scope="col">Action</th>
@@ -72,6 +73,15 @@
                                                 src="{{ asset('storage/workshop/payment-voucher/' . $registration->payment_voucher) }}"
                                                 height="60" alt="voucher"></a>
                                     @endif
+                                @endif
+                            </td>
+                            <td>
+                                @if ($registration->meal_type == 1)
+                                    Veg
+                                @elseif ($registration->meal_type == 2)
+                                    Non-Veg
+                                @else
+                                    N/A
                                 @endif
                             </td>
                             <td>

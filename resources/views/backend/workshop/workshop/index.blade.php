@@ -66,7 +66,10 @@
                             <td>{{ !empty($workshop->registration_deadline) ? \Carbon\Carbon::parse($workshop->registration_deadline)->format('d M, Y') : '-' }}
                             </td>
                             <td>
-                                {{ $workshop->registrations->where('verified_status', 1)->where('status', 1)->count() }}
+                                <a
+                                    href="{{ route('workshop.workshop-registration.index', [$society, $conference, $workshop]) }}">
+                                    {{ $workshop->registrations->where('verified_status', 1)->where('status', 1)->count() }}
+                                </a>
                             </td>
                             <td>
                                 <div class="dropdown">

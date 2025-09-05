@@ -62,8 +62,8 @@ class ConferenceRegistrationController extends Controller
         // }
         $society_id = $society->id;
         $query = ConferenceRegistration::with([
-            'user.societies' => function ($query) use ($society_id) { 
-                $query->where('society_id', $society_id); 
+            'user.societies' => function ($query) use ($society_id) {
+                $query->where('society_id', $society_id);
             },
             'user.userDetail'
         ])
@@ -72,6 +72,9 @@ class ConferenceRegistrationController extends Controller
 
         if ($request->filled('registrant_type')) {
             $query->where('registrant_type', $request->registrant_type);
+        }
+        if ($request->filled('meal_type')) {
+            $query->where('meal_type', $request->meal_type);
         }
 
         if ($request->filled('is_invited')) {
@@ -94,6 +97,13 @@ class ConferenceRegistrationController extends Controller
 
         if ($request->filled('to')) {
             $query->whereDate('created_at', '<=', $request->to);
+        }
+
+        if ($request->filled('member_type_id')) {
+            $query->whereHas('user.societies', function ($q) use ($request, $society_id) {
+                $q->where('society_id', $society_id)
+                    ->where('member_type_id', $request->member_type_id);
+            });
         }
 
         $registrants = $query->latest()->get();
@@ -764,7 +774,7 @@ class ConferenceRegistrationController extends Controller
         // dd($addonsData->toArray());
         $workshopData = [];
         foreach ($workshopRegistraions as $workshop) {
-            $workshopData[] = [ 
+            $workshopData[] = [
                 'name' => $workshop->workshop->workshop_title,
                 'amount' => $workshop->amount
             ];

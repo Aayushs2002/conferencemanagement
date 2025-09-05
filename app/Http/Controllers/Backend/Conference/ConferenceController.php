@@ -217,7 +217,7 @@ class ConferenceController extends Controller
         $conferenceRegistrationCount = ConferenceRegistration::where(['conference_id' => $conference->id, 'status' => 1])->count();
         $totalNationalRegistrants = ConferenceRegistration::totalRegistrants(1, $society, $conference);
         $totalInternationalRegistrants = ConferenceRegistration::totalRegistrants(2, $society, $conference);
-
+        
         $mealCounts = DB::table('conference_registrations')
             ->select(
                 DB::raw("CASE 
