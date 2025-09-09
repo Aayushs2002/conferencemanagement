@@ -27,7 +27,7 @@
                         class="form-control @error('presentation_type') is-invalid @enderror">
                         <option value="">-- Select Presentation Type --</option>
                         <option {{ request()->presentation_type == 2 ? 'selected' : '' }} value="2">
-                            Oral
+                            Oral 
                         </option>
                         <option {{ request()->presentation_type === 1 ? 'selected' : '' }} value="1">
                             Poster

@@ -149,7 +149,7 @@
                                @if ($submission->presentation_type == 1)
                                    Poster
                                @elseif($submission->presentation_type == 2)
-                                   Oral(Abstract)
+                                   Oral(Abstract) 
                                @endif
                                <br>
                                @if ($submission->presentation_type_change === 0)

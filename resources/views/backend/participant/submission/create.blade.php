@@ -74,11 +74,11 @@
                                <select class="form-select" name="presentation_type" id="presentation_type" required>
                                    <option hidden>-- Select Presentation Type --</option>
                                    <option value="1"
-                                       @if (isset($submission)) {{ $submission->presentation_type == '2' ? 'selected' : '' }} @else @selected(old('presentation_type') == '2') @endif>
-                                       Oral</option>
-                                   <option value="2"
                                        @if (isset($submission)) {{ $submission->presentation_type == '1' ? 'selected' : '' }} @else @selected(old('presentation_type') == '1') @endif>
                                        Poster</option>
+                                   <option value="2"
+                                       @if (isset($submission)) {{ $submission->presentation_type == '2' ? 'selected' : '' }} @else @selected(old('presentation_type') == '2') @endif>
+                                       Oral</option>
                                </select>
                                <div class="valid-feedback">Looks good!</div>
                                <div class="invalid-feedback">Please select Presentation Type.</div>
