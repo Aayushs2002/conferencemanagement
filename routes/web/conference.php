@@ -130,6 +130,8 @@ Route::middleware('auth')->group(function () {
     Route::controller(SubmissionController::class)->middleware('auto.conf.permission')->prefix('/society/{society}/conference/{conference}/submission')->name('submission.')->group(function () {
         Route::get('/', 'index')->name('index');
         Route::post('show', 'show')->name('show');
+        Route::get('edit/{submission}', 'edit')->name('edit');
+        Route::patch('update/{submission}', 'update')->name('update');
         Route::post('/forward-to-expert-form', 'expertForwardForm')->name('expertForwardForm');
         Route::post('/forward-to-expert', 'expertForward')->name('expertForward');
         Route::post('/sent-to-author-form', 'sentToAuthorForm')->name('sentToAuthorForm');

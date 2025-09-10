@@ -205,9 +205,9 @@ class SubmissionController extends Controller
                 $validated['image'] = $this->file_service->fileUpload($validated['image'], 'diagram', 'participant/submission/image');
             }
 
-            $validated['user_id'] = current_user()->id;
-            $validated['conference_id'] = $conference->id;
-            $validated['submitted_date'] = now();
+            // $validated['user_id'] = current_user()->id;
+            // $validated['conference_id'] = $conference->id;
+            // $validated['submitted_date'] = now();
 
             DB::beginTransaction();
             // dd(current_user()->userDetail->phone);

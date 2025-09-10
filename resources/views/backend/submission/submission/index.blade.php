@@ -27,7 +27,7 @@
                         class="form-control @error('presentation_type') is-invalid @enderror">
                         <option value="">-- Select Presentation Type --</option>
                         <option {{ request()->presentation_type == 2 ? 'selected' : '' }} value="2">
-                            Oral 
+                            Oral
                         </option>
                         <option {{ request()->presentation_type === 1 ? 'selected' : '' }} value="1">
                             Poster
@@ -238,7 +238,7 @@
                                     </button>
                                     <div class="dropdown-menu">
                                         @if (auth()->user()->hasConferencePermissionBlade($conference, 'Edit Submission'))
-                                            <a class="dropdown-item" href=""><i
+                                            <a class="dropdown-item" href="{{ route('submission.edit',[$society, $conference, $submission]) }}"><i
                                                     class="icon-base ti tabler-pencil me-1"></i>
                                                 Edit</a>
                                         @endif

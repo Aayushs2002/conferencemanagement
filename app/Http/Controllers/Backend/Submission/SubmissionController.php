@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Backend\Submission;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Participant\SubmissionRequest;
 use App\Jobs\SendSubmissionBulkMailJob;
 use App\Mail\Submission\ConvertPresentationTypeMail;
 use App\Mail\Submission\ExpertForwardMail;
@@ -70,6 +71,68 @@ class SubmissionController extends Controller
         $submission = Submission::whereId($request->id)->first();
 
         return view('backend.submission.submission.view', compact('submission'));
+    }
+
+    public function edit($society, $conference, $submission)
+    {
+        $setting = SubmissionSetting::where('conference_id', $conference->id)
+            ->select('abstract_word_limit', 'key_word_limit', 'deadline', 'attachment_name')
+            ->first();
+        if (!$setting) {
+            return redirect()->back()->with('delete', 'Submission settings not found.');
+        }
+        if (is_past($setting->deadline)) {
+            return redirect()->back()->with('delete', 'Submission date has ended.');
+        }
+        $submissionTracks = SubmissionCategoryMajorTrack::where(['conference_id' => $conference->id, 'status' => 1])->get();
+
+        return view('backend.submission.submission.create', compact('society', 'conference', 'submissionTracks', 'setting', 'submission'));
+    }
+
+    public function update(SubmissionRequest $request, $society, $conference, $submission)
+    {
+        try {
+            $validated = $request->all();
+            // dd($validated);
+            $setting = SubmissionSetting::where('conference_id', $conference->id)->select('abstract_word_limit', 'key_word_limit')->first();
+            // dd('ad');
+            if (!empty($validated['keywords']) && !empty($setting->key_word_limit)) {
+                $keywordsCount = count(explode(',', $request->keywords));
+                // dd($validated['keywords']);
+                if ($keywordsCount > $setting->key_word_limit) {
+                    return redirect()->back()->withInput()->with('delete', 'Keywords word limit exceeded.');
+                }
+                $keywordArray = json_decode($request->keywords, true);
+                $validated['keywords']  = is_array($keywordArray)
+                    ? implode(',', array_column($keywordArray, 'value'))
+                    : '';
+            }
+
+            $abstractWordCount = str_word_count(strip_tags($request->abstract_content));
+            if (!empty($setting->abstract_word_limit) && $abstractWordCount > $setting->abstract_word_limit) {
+                return redirect()->back()->withInput()->with('delete', 'Abstract word limit exceeded.');
+            }
+
+            if (!empty($validated['image'])) {
+                $this->file_service->deleteFile($submission->image, 'participant/submission/image');
+                $validated['image'] = $this->file_service->fileUpload($validated['image'], 'diagram', 'participant/submission/image');
+            }
+
+            // $validated['user_id'] = current_user()->id;
+            // $validated['conference_id'] = $conference->id;
+            // $validated['submitted_date'] = now();
+
+            DB::beginTransaction();
+            // dd(current_user()->userDetail->phone);
+            $submission->update($validated);
+
+            DB::commit();
+            return redirect()->route('submission.index',  [$society, $conference])->with('status', 'Submission Added Successfully');
+        } catch (\Exception $th) {
+            DB::rollBack();
+
+            dd($th);
+        }
     }
 
     public function expertForwardForm(Request $request, $society, $conference)
