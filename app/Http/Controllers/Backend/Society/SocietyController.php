@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Backend\Society;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Society\AddSocietyRequest;
+use App\Models\Cms\Feature;
 use App\Models\Conference\Conference;
 use App\Models\User;
 use App\Models\User\MemberType;
@@ -39,7 +40,8 @@ class SocietyController extends Controller
      */
     public function create()
     {
-        return view('backend.users.societies.create');
+        $features = Feature::whereStatus(1)->get();
+        return view('backend.users.societies.create', compact('features'));
     }
 
     /**
@@ -51,7 +53,7 @@ class SocietyController extends Controller
             $req = $request->all();
             $req['password'] = hash_password('password');
             $req['type'] = 2;
-            $req['slug'] = slugify($req['society_name']); 
+            $req['slug'] = slugify($req['society_name']);
             $req['f_name'] = $req['society_name'];
             $req['token'] = random_word(60);
             unset($req['society_name']);
@@ -82,6 +84,9 @@ class SocietyController extends Controller
                 $role->givePermissionTo(Permission::all());
                 $user->assignRole($role);
             }
+            if ($request->has('features')) {
+                $society->features()->sync($request->features);
+            }
             DB::commit();
             return redirect()->route('society.index')->with('status', 'Society Added Successfully');
         } catch (Exception $e) {
@@ -104,7 +109,10 @@ class SocietyController extends Controller
      */
     public function edit(Society $society)
     {
-        return view('backend.users.societies.create', compact('society'));
+        $features = Feature::whereStatus(1)->get();
+
+        $societyFeatures = $society->features->pluck('id')->toArray();
+        return view('backend.users.societies.create', compact('society','features','societyFeatures'));
     }
 
     /**
@@ -129,6 +137,10 @@ class SocietyController extends Controller
             // update user table
             $user = $society->users->where('type', 2)->first();
             $user->update($req);
+
+            if ($request->has('features')) {
+                $society->features()->sync($request->features);
+            }
             DB::commit();
             return redirect()->route('society.index')->with('status', 'Society Updated Successfully');
         } catch (\Exception $e) {

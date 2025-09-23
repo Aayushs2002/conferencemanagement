@@ -27,30 +27,15 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        View::composer('*', function ($view) {
-            $countries = Country::whereStatus(1)->get();
-            $view->with('countries', $countries);
-        });
+        $sharedData = [
+            'countries'    => Country::whereStatus(1)->get(),
+            'name_prefiexs' => NamePrefix::whereStatus(1)->get(),
+            'departments'  => Department::whereStatus(1)->get(),
+            'designations' => Designation::whereStatus(1)->get(),
+            'institutions' => Institution::whereStatus(1)->get(),
+        ];
 
-        View::composer('*', function ($view) {
-            $name_prefiexs = NamePrefix::whereStatus(1)->get();
-            $view->with('name_prefiexs', $name_prefiexs);
-        });
-
-        View::composer('*', function ($view) {
-            $departments = Department::whereStatus(1)->get();
-            $view->with('departments', $departments);
-        });
-
-        View::composer('*', function ($view) {
-            $designations = Designation::whereStatus(1)->get();
-            $view->with('designations', $designations);
-        });
-
-        View::composer('*', function ($view) {
-            $institutions = Institution::whereStatus(1)->get();
-            $view->with('institutions', $institutions);
-        });
+        View::share($sharedData);
 
         RedirectIfAuthenticated::redirectUsing(function ($request) {
             if (current_user()->type == 2) {

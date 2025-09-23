@@ -77,7 +77,13 @@ class ConferenceController extends Controller
     {
         try {
             $req = $request->all();
-            //current_user function is custom helper function
+            if (!empty($req['tags'])) {
+
+                $tagArray = json_decode($request->tags, true);
+                $req['tags']  = is_array($tagArray)
+                    ? implode(',', array_column($tagArray, 'value'))
+                    : '';
+            }
             $req['society_id'] = $society->id;
 
             //slugify function is custom helper function
@@ -171,6 +177,13 @@ class ConferenceController extends Controller
     {
         try {
             $req = $request->all();
+
+            if (!empty($req['tags'])) {
+                $tagArray = json_decode($request->tags, true);
+                $req['tags']  = is_array($tagArray)
+                    ? implode(',', array_column($tagArray, 'value'))
+                    : '';
+            }
             //slugify function is custom helper function
             $req['slug'] = slugify($req['conference_name']);
 
@@ -217,7 +230,7 @@ class ConferenceController extends Controller
         $conferenceRegistrationCount = ConferenceRegistration::where(['conference_id' => $conference->id, 'status' => 1])->count();
         $totalNationalRegistrants = ConferenceRegistration::totalRegistrants(1, $society, $conference);
         $totalInternationalRegistrants = ConferenceRegistration::totalRegistrants(2, $society, $conference);
-        
+
         $mealCounts = DB::table('conference_registrations')
             ->select(
                 DB::raw("CASE 

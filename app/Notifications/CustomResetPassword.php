@@ -31,7 +31,7 @@ class CustomResetPassword extends Notification
     /**
      * Get the mail representation of the notification.
      */
-    public function toMail($notifiable) 
+    public function toMail($notifiable)
     {
         $url = url(config('app.url') . route('password.reset', [
             'token' => $this->token,
@@ -46,9 +46,7 @@ class CustomResetPassword extends Notification
             ->line('This password reset link will expire in ' . config('auth.passwords.' . config('auth.defaults.passwords') . '.expire') . ' minutes.')
             ->line('If you did not request a password reset, please ignore this email.')
             ->salutation('Regards, ' . config('app.name'))
-            ->markdown('vendor.notifications.email', [
-                'footer' => '© ' . date('Y') . ' ' . config('app.name') . '. All rights reserved.'
-            ]);
+            ->line('© ' . date('Y') . ' ' . config('app.name') . '. All rights reserved.');
     }
 
     /**

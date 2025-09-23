@@ -41,7 +41,9 @@ class AddSocietyRequest extends FormRequest
             'phone' => $phoneRule,
             'logo' => $logoRule,
             'description' => 'nullable',
-            'sub_domain_name' => 'required|regex:/^[a-zA-Z0-9\s]+$/'
+            'sub_domain_name' => 'required|regex:/^[a-zA-Z0-9\s]+$/',
+            'features'   => 'required|array|min:1',
+            'features.*' => 'exists:features,id',
         ];
     }
 
@@ -50,7 +52,9 @@ class AddSocietyRequest extends FormRequest
     {
         return [
             'society_name.required' => 'Society Name field is required',
-            'society_name.regex' => 'The name may only contain letters, numbers, and spaces.'
+            'society_name.regex' => 'The name may only contain letters, numbers, and spaces.',
+            'features.required'             => 'Please select at least one feature.',
+            'features.min'                  => 'Please select at least one feature.',
         ];
     }
 }

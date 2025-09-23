@@ -14,7 +14,7 @@ class SubmissionSettingController extends Controller
     public function __construct(protected FileService $file_service) {}
 
     public function index(Request $request, $society, $conference)
-    {
+    { 
         // $conferenceDetail = conference_detail();
 
         // if (empty($conferenceDetail)) {

@@ -107,7 +107,7 @@
 
 
 
-                            @error('email')
+                            @error('keywords')
                                 <p class="text-danger">{{ $message }}</p>
                             @enderror
                         </div>

@@ -10,6 +10,7 @@ class MemberType extends Model
         'society_id',
         'delegate',
         'type',
+        'is_society_member',
         'status'
     ];
 }

@@ -53,17 +53,60 @@
         </li>
 
 
-        <!-- e-commerce-app menu start -->
+
         @if (is_super_admin() || current_user()->type == 3)
             <li class="menu-item {{ request()->segment(1) == 'society' ? 'active open' : '' }}">
                 <a href="javascript:void(0);" class="menu-link menu-toggle">
-                    <i class="menu-icon icon-base ti tabler-shopping-cart"></i>
+                    <i class="menu-icon icon-base ti tabler-circle-letter-s"></i>
                     <div data-i18n="Society">Society</div>
                 </a>
                 <ul class="menu-sub">
                     <li class="menu-item {{ request()->segment(1) == 'society' ? 'active' : '' }}">
                         <a href="{{ route('society.index') }}" class="menu-link">
                             <div data-i18n="Society">Society</div>
+                        </a>
+                    </li>
+                </ul>
+            </li>
+        @endif
+        @if (is_super_admin())
+            <li class="menu-item {{ request()->segment(1) == 'cms' ? 'active open' : '' }}">
+                <a href="javascript:void(0);" class="menu-link menu-toggle">
+                    <i class="menu-icon icon-base ti tabler-brand-pagekit"></i>
+                    <div data-i18n="Cms">Cms</div>
+                </a>
+                <ul class="menu-sub">
+                    <li class="menu-item {{ request()->segment(2) == 'blog' ? 'active' : '' }}">
+                        <a href="{{ route('blog.index') }}" class="menu-link">
+                            <div data-i18n="Blogs">Blogs</div>
+                        </a>
+                    </li>
+                </ul>
+                <ul class="menu-sub">
+                    <li class="menu-item {{ request()->segment(2) == 'feature' ? 'active' : '' }}">
+                        <a href="{{ route('feature.index') }}" class="menu-link">
+                            <div data-i18n="Features">Features</div>
+                        </a>
+                    </li>
+                </ul>
+                <ul class="menu-sub">
+                    <li class="menu-item {{ request()->segment(2) == 'testimonial' ? 'active' : '' }}">
+                        <a href="{{ route('testimonial.index') }}" class="menu-link">
+                            <div data-i18n="Testimonial">Testimonial</div>
+                        </a>
+                    </li>
+                </ul>
+                <ul class="menu-sub">
+                    <li class="menu-item {{ request()->segment(2) == 'page' ? 'active' : '' }}">
+                        <a href="{{ route('page.index') }}" class="menu-link">
+                            <div data-i18n="Pages">Pages</div>
+                        </a>
+                    </li>
+                </ul>
+                <ul class="menu-sub">
+                    <li class="menu-item {{ request()->segment(2) == 'why-choose-us' ? 'active' : '' }}">
+                        <a href="{{ route('why-choose-us.index') }}" class="menu-link">
+                            <div data-i18n="Why Choose Us">Why Choose Us</div>
                         </a>
                     </li>
                 </ul>

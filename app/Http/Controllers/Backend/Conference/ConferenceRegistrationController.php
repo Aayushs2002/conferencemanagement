@@ -3,7 +3,9 @@
 namespace App\Http\Controllers\Backend\Conference;
 
 use App\Exports\ConferenceRegistrationExport;
+use App\Exports\ImportLogExport;
 use App\Http\Controllers\Controller;
+use App\Imports\ConferenceRegistationImport;
 use App\Mail\Conference\ExceptionalRegistrationMail;
 use App\Mail\Conference\RegistrantAcceptMail;
 use App\Mail\Conference\RegistrantRejectMail;
@@ -42,24 +44,6 @@ class ConferenceRegistrationController extends Controller
 
     public function index(Request $request, $society, $conference)
     {
-        // $conferenceDetail = conference_detail();
-        // $societyDetail = society_detail();
-
-        // if (is_super_admin() && empty($societyDetail)) {
-        //     return redirect()->route('dashboard');
-        // }
-
-        // if (is_society_admin()) {
-        //     $society_id = current_user()->societies->value('id');
-        // } elseif (is_super_admin()) {
-        //     $society_id = $societyDetail->id ?? null;
-        // } else {
-        //     return redirect()->route('dashboard');
-        // }
-
-        // if (empty($conferenceDetail)) {
-        //     return redirect()->route('dashboard');
-        // }
         $society_id = $society->id;
         $query = ConferenceRegistration::with([
             'user.societies' => function ($query) use ($society_id) {
@@ -94,6 +78,11 @@ class ConferenceRegistrationController extends Controller
                 $q->where('country_id', $request->country_id);
             });
         }
+        if ($request->filled('prefix')) {
+            $query->whereHas('user.userDetail', function ($q) use ($request) {
+                $q->where('name_prefix_id', $request->prefix);
+            });
+        }
 
         if ($request->filled('to')) {
             $query->whereDate('created_at', '<=', $request->to);
@@ -123,15 +112,44 @@ class ConferenceRegistrationController extends Controller
         return view('backend.conference.conference-registration.view', compact('registrant'));
     }
 
+    public function importExcel(Request $request, $society, $conference)
+    {
+        return view('backend.conference.conference-registration.import-registrant', compact('society', 'conference'));
+    }
 
+    public function importExcelSubmit(Request $request, $society, $conference)
+    {
+        $request->validate([
+            'excel_file' => 'required|file|mimes:xlsx,xls,csv|max:5120',
+        ], [
+            'excel_file.required' => 'Please upload an Excel file.',
+            'excel_file.mimes' => 'Only Excel files (xlsx, xls, csv) are allowed.',
+            'excel_file.max' => 'The file size should not exceed 5MB.',
+        ]);
 
+        $import = new ConferenceRegistationImport($society, $conference);
+        Excel::import($import, $request->file('excel_file'));
+
+        if (!empty($import->log)) {
+            $fileName = 'import_skipped_log_' . now()->format('Y_m_d_H_i_s') . '.xlsx';
+
+            Excel::store(new ImportLogExport($import->log), $fileName, 'public_uploads');
+
+            return response()->json([
+                'type' => 'log',
+                'file' => url($fileName),
+                'message' => 'Some rows were skipped, download the log file.'
+            ]);
+        }
+
+        return response()->json([
+            'type' => 'success',
+            'message' => 'Excel file imported successfully.'
+        ]);
+    }
 
     public function registerForExceptionalCase($society, $conference)
     {
-        // $conferenceDetail = conference_detail();
-        // if (empty($conferenceDetail)) { 
-        //     return redirect()->route('dashboard');
-        // }
         $registeredUserIds = ConferenceRegistration::where('conference_id', $conference->id)->pluck('user_id');
         $society = Society::with(['users' => function ($query) use ($registeredUserIds) {
             $query->where('type', 3)
@@ -150,7 +168,6 @@ class ConferenceRegistrationController extends Controller
 
     public function registerForExceptionalCaseSubmit(Request $request, $society, $conference)
     {
-        // dd($request->all());
         try {
             $rules = [
                 'user_id' => 'required',

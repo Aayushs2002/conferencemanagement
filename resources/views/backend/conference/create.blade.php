@@ -164,7 +164,23 @@
                                 <p class="text-danger">{{ $message }}</p>
                             @enderror
                         </div>
-
+                        <div class="mb-6 col-md-12">
+                            <label for="tags" class="form-label">Tags <code>*
+                                    <span class="text-info">(Press enter after typing complete word/words to represent it
+                                        as a keyword.)</span></code></label>
+                            @php
+                                $tagsJson =
+                                    old('tags') ?:
+                                    collect(explode(',', @$conference->tags))
+                                        ->map(fn($kw) => ['value' => $kw])
+                                        ->toJson();
+                            @endphp
+                            <input id="tags" class="form-control" name="tags" required placeholder="Enter Tags"
+                                value='{{ $tagsJson }}' />
+                            @error('tags')
+                                <p class="text-danger">{{ $message }}</p>
+                            @enderror
+                        </div>
                         <div class="mb-6">
                             <label class="form-label" for="description">Conference Description <code>*</code></label>
                             <textarea class="form-control ckeditor" id="description" name="conference_description" rows="5"
@@ -390,6 +406,11 @@
                 dateFormat: "H:i",
                 time_24hr: true
             });
+
+            const keywordInput = document.querySelector('#tags');
+            if (keywordInput) {
+                new Tagify(keywordInput);
+            }
         });
     </script>
 @endsection

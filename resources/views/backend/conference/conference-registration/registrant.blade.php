@@ -29,6 +29,18 @@
                     </select>
                 </div>
                 <div class="col-md-3 form-group mb-3">
+                    <label for="prefix" class="mb-2">Prefix</label>
+                    <select name="prefix" id="prefix" class="form-control @error('prefix') is-invalid @enderror">
+                        <option value="">-- Select Prefix --</option>
+                        @foreach ($name_prefiexs as $name_prefiex)
+                            <option {{ request()->prefix == $name_prefiex->id ? 'selected' : '' }}
+                                value="{{ $name_prefiex->id }}">
+                                {{ $name_prefiex->prefix }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="col-md-3 form-group mb-3">
                     <label for="is_invited" class="mb-2">Invited</label>
                     <select name="is_invited" id="is_invited"
                         class="form-control @error('is_invited') is-invalid @enderror">
@@ -76,7 +88,7 @@
                     <input type="date" value="{{ request('to') }}"
                         class="form-control @error('to') is-invalid @enderror" id="to" name="to" />
                 </div>
-                <div class="col-md-3 mt-2  form-group mb-3">
+                <div class="col-md-3  form-group mb-3">
                     <label for="country_id" class="mb-2">Country <code>*</code></label>
                     <select class="form-control select2" name="country_id" id="country_id">
                         <option value="">-- Select Country --</option>
@@ -137,6 +149,9 @@
                               <i class="icon-base ti tabler-plus icon-xs me-sm-1"></i>
                               <span class="d-none d-sm-inline-block">Add New</span>
                           </a> --}}
+                        <button type="button" id="importRegistrant" data-bs-toggle="modal" data-bs-target="#pricingModal"
+                            class="btn btn-primary">Import Registrant</button>
+
                     </div>
                 </div>
             </div>
@@ -185,8 +200,8 @@
                                     @endphp
                                     @if ($explodeFileName[1] == 'pdf')
                                         <a href="{{ asset('storage/conference/payment-voucher/' . $registrant->payment_voucher) }}"
-                                            target="_blank"><img src="{{ asset('default-image/pdf.png') }}" alt="voucher"
-                                                height="50" width="40"></a>
+                                            target="_blank"><img src="{{ asset('default-image/pdf.png') }}"
+                                                alt="voucher" height="50" width="40"></a>
                                     @else
                                         <a href="{{ asset('storage/conference/payment-voucher/' . $registrant->payment_voucher) }}"
                                             target="_blank"><img
@@ -318,6 +333,32 @@
                     _token: _token,
                     id: id
                 };
+                $('#pricingModal .modal-dialog').removeClass('modal-lg');
+                $('#pricingModal .modal-dialog').addClass('modal-md');
+                $.post(url, data, function(response) {
+                    setTimeout(function() {
+                        $('#modalContent').html(response);
+                    }, 1000);
+                });
+            });
+
+            $(document).on("click", "#importRegistrant", function(e) {
+                e.preventDefault();
+                var url =
+                    '{{ route('conference.conference-registration.importExcel', [$society, $conference]) }}';
+                var _token = '{{ csrf_token() }}';
+
+                $('#modalContent').html(`
+                    <div class="modal-body text-center">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                `);
+                var data = {
+                    _token: _token,
+                };
+
                 $('#pricingModal .modal-dialog').removeClass('modal-lg');
                 $('#pricingModal .modal-dialog').addClass('modal-md');
                 $.post(url, data, function(response) {

@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Society;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class MemberTypeRequest extends FormRequest
 {
@@ -21,9 +22,16 @@ class MemberTypeRequest extends FormRequest
      */
     public function rules(): array
     {
+        $society = $this->route('society');
+        // dd($societyId);
         return [
             'delegate' => 'required',
-            'type' => 'required',
+            'type' => [
+                'required',
+                Rule::unique('member_types')
+                    ->where(fn($query) => $query->where('society_id', $society->id))
+                    ->ignore($this->memberType),
+            ],
         ];
     }
 }

@@ -22,6 +22,7 @@ class Conference extends Model
         'conference_description',
         'primary_color',
         'secendary_color',
+        'tags',
         'slug',
         'status'
     ];

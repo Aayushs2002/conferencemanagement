@@ -70,13 +70,15 @@ Route::middleware('auth')->group(function () {
     Route::post('conference/add-on', [ConferenceAddonController::class, 'addOn'])->name('conference.addon');
     Route::post('conference/add-on-submit', [ConferenceAddonController::class, 'addOnSubmit'])->name('conference.addon.submit');
 
-    Route::controller(ConferenceRegistrationController::class)->name('conference.conference-registration.')->middleware('auto.conf.permission')->prefix('/society/{society}/conference/{conference}/conference-registration')->group(function () {
+    Route::controller(ConferenceRegistrationController::class)->name('conference.conference-registration.')->middleware(['auto.conf.permission', 'feature:conference-registration-management'])->prefix('/society/{society}/conference/{conference}/conference-registration')->group(function () {
         Route::get('/registrant', 'index')->name('index');
         Route::post('/view-data', 'show')->name('show');
         Route::get('/register-for-exceptional-case', 'registerForExceptionalCase')->name('registerForExceptionalCase');
         Route::post('/register-for-exceptional-case-submit', 'registerForExceptionalCaseSubmit')->name('registerForExceptionalCaseSubmit');
         Route::post('/add-person', 'addPerson')->name('addPerson');
         Route::post('/add-person-submit', 'addPersonSubmit')->name('addPersonSubmit');
+        Route::post('/import-conference-registrant', 'importExcel')->name('importExcel');
+        Route::post('/import-conference-registrant-submit', 'importExcelSubmit')->name('importExcelSubmit');
         Route::post('/convert-registrant-type', 'convertRegistrantType')->name('convertRegistrantType');
         Route::post('/convert-registrant-type-submit', 'convertRegistrantTypeSubmit')->name('convertRegistrantTypesubmit');
         Route::post('/verify-registrant', 'verifyForm')->name('verifyForm');
@@ -109,14 +111,14 @@ Route::middleware('auth')->group(function () {
 
 
     //submission setting route started
-    Route::controller(SubmissionSettingController::class)->middleware('auto.conf.permission')->prefix('/society/{society}/conference/{conference}/submission')->name('submission.')->group(function () {
+    Route::controller(SubmissionSettingController::class)->middleware(['auto.conf.permission', 'feature:abstract-submission-management'])->prefix('/society/{society}/conference/{conference}/submission')->name('submission.')->group(function () {
         Route::get('/submission-setting', 'index')->name('setting');
         Route::post('/setting-submit', 'store')->name('settingSubmit');
     });
     //submission setting route ended
 
     //submission category/major track route start
-    Route::controller(SubmissionCategoryMajorTrackContoller::class)->middleware('auto.conf.permission')->prefix('/society/{society}/conference/{conference}/submission/submission-cateogry-majortrack')->name('submission.category-majortrack.')->group(function () {
+    Route::controller(SubmissionCategoryMajorTrackContoller::class)->middleware(['auto.conf.permission', 'feature:abstract-submission-management'])->prefix('/society/{society}/conference/{conference}/submission/submission-cateogry-majortrack')->name('submission.category-majortrack.')->group(function () {
         Route::get('/', 'index')->name('index');
         Route::get('/create', 'create')->name('create');
         Route::post('/store', 'store')->name('store');
@@ -127,7 +129,7 @@ Route::middleware('auth')->group(function () {
 
 
     //Submission Route Started
-    Route::controller(SubmissionController::class)->middleware('auto.conf.permission')->prefix('/society/{society}/conference/{conference}/submission')->name('submission.')->group(function () {
+    Route::controller(SubmissionController::class)->middleware(['auto.conf.permission', 'feature:abstract-submission-management'])->prefix('/society/{society}/conference/{conference}/submission')->name('submission.')->group(function () {
         Route::get('/', 'index')->name('index');
         Route::post('show', 'show')->name('show');
         Route::get('edit/{submission}', 'edit')->name('edit');
@@ -148,21 +150,21 @@ Route::middleware('auth')->group(function () {
     });
 
     Route::prefix('/society/{society}/conference/{conference}')->group(function () {
-        Route::controller(AuthorController::class)->middleware('auto.conf.permission')->prefix('/submission/{submission}')->name('submission.author.')->group(function () {
+        Route::controller(AuthorController::class)->middleware(['auto.conf.permission', 'feature:abstract-submission-management'])->prefix('/submission/{submission}')->name('submission.author.')->group(function () {
             Route::get('/author', 'index')->name('index');
         });
     });
     //Submission Route Ended
 
     //Scientific Session route started
-    Route::prefix('/society/{society}/conference/{conference}')->middleware('auto.conf.permission')->group(function () {
+    Route::prefix('/society/{society}/conference/{conference}')->middleware(['auto.conf.permission', 'feature:scientific-session-management'])->group(function () {
         Route::resource('/scientific-session', ScientificSessionController::class)->except('show');
         Route::get('/schedule-session', [ScientificSessionController::class, 'scheduleSession'])->name('scheduleSession');
     });
     //Scientific Session route ended
 
     //Scientific Session Poll route started
-    Route::prefix('/society/{society}/conference/{conference}')->middleware('auto.conf.permission')->group(function () {
+    Route::prefix('/society/{society}/conference/{conference}')->middleware(['auto.conf.permission', 'feature:scientific-session-management'])->group(function () {
         Route::controller(PollController::class)->prefix('/scientific-session/poll')->name('poll.')->group(function () {
             Route::get('/{id}', 'index')->name('index');
             Route::get('/create/{id}', 'create')->name('create');
@@ -174,13 +176,13 @@ Route::middleware('auth')->group(function () {
     });
 
     //Scientific Session category route Started
-    Route::prefix('/society/{society}/conference/{conference}')->middleware('auto.conf.permission')->group(function () {
+    Route::prefix('/society/{society}/conference/{conference}')->middleware(['auto.conf.permission', 'feature:scientific-session-management'])->group(function () {
         Route::resource('/scientific-session/category', ScientificSessionCategoryController::class)->except('show');
     });
     //Scientific Session category route  End
 
     //Hall route started
-    Route::prefix('/society/{society}/conference/{conference}')->middleware('auto.conf.permission')->group(function () {
+    Route::prefix('/society/{society}/conference/{conference}')->middleware(['auto.conf.permission', 'feature:scientific-session-management'])->group(function () {
         Route::resource('/scientific-session/hall', HallController::class)->except('show');
     });
     //Hall route ended

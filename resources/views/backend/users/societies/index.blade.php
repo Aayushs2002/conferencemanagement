@@ -33,7 +33,7 @@
                                     </li>
                                     <li><a class="dropdown-item" href="#" onclick="window.print()">Print</a></li>
                                 </ul>
-                            </div> 
+                            </div>
                             <a href="{{ route('society.create') }}" class="btn btn-primary" tabindex="0">
                                 <i class="icon-base ti tabler-plus icon-xs me-sm-1"></i>
                                 <span class="d-none d-sm-inline-block">Add New</span>
@@ -76,9 +76,12 @@
                                             <a class="dropdown-item" href="{{ route('society.edit', $society) }}"><i
                                                     class="icon-base ti tabler-pencil me-1"></i> Edit</a>
 
-                                            <a class="dropdown-item viewData" data-id="{{ $society->id }}" 
+                                            <a class="dropdown-item viewData" data-id="{{ $society->id }}"
                                                 data-bs-toggle="modal" data-bs-target="#pricingModal"><i
-                                                    class="icon-base ti tabler-eye me-1 "></i> View</a> 
+                                                    class="icon-base ti tabler-eye me-1 "></i> View</a>
+                                            <a class="dropdown-item societySetting" data-id="{{ $society->id }}"
+                                                data-bs-toggle="modal" data-bs-target="#pricingModal"><i
+                                                    class="icon-base ti tabler-settings me-1 "></i> Setting</a>
                                             <hr>
                                             <form action="{{ route('society.destroy', $society->id) }}" method="POST">
                                                 @method('delete')
@@ -143,7 +146,29 @@
                 $('#modalContent').html(`
                     <div class="modal-body text-center">
                         <div class="spinner-border text-primary" role="status">
-                            <span class="visually-hidden">Loading...</span>
+                            <span class="visually-hidden">Loading...</span> 
+                        </div>
+                    </div>
+                `);
+                var data = {
+                    _token: _token,
+                    id: id
+                };
+                $.post(url, data, function(response) {
+                    setTimeout(function() {
+                        $('#modalContent').html(response);
+                    }, 1000);
+                });
+            });
+            $(document).on("click", ".societySetting", function(e) {
+                e.preventDefault();
+                var url = '{{ route('society.setting') }}';
+                var _token = '{{ csrf_token() }}';
+                var id = $(this).data('id');
+                $('#modalContent').html(`
+                    <div class="modal-body text-center">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span> 
                         </div>
                     </div>
                 `);

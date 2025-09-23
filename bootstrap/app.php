@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\AutoCheckConferencePermission;
+use App\Http\Middleware\CheckFeature;
 use App\Http\Middleware\DetectSubdomain;
 use App\Http\Middleware\SocietyAdminPermission;
 use App\Http\Middleware\SuperAdminPermission;
@@ -23,6 +24,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'check.superadmin' => SuperAdminPermission::class,
             'check.societyadmin' => SocietyAdminPermission::class,
             'check.subdomain' => DetectSubdomain::class,
+            'feature' => CheckFeature::class
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

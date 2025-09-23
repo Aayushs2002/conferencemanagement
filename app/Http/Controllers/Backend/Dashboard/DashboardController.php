@@ -12,6 +12,7 @@ use App\Models\User\NamePrefix;
 use App\Models\User\Society;
 use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Http;
 
 class DashboardController extends Controller
 {
@@ -66,7 +67,7 @@ class DashboardController extends Controller
                 ])->get();
                 // dd($types);
             }
-
+            // dd($types);
             return response()->json([
                 'type' => 'success',
                 'message' => 'Member types fetched successfully.',
@@ -79,5 +80,67 @@ class DashboardController extends Controller
                 'data' => []
             ]);
         }
+    }
+
+    public function checkCouncilMembership(Request $request)
+    {
+        $user = auth()->user();
+        $userCouncilNum = $user->userDetail->council_number ?? null;
+        $userDob = $user->userDetail->dob_ad ?? null;
+
+        if (!$userCouncilNum) {
+            return response()->json([
+                'isMember' => false,
+                'error' => 'Your council number is missing.'
+            ]);
+        }
+
+        $memberType = MemberType::find($request->member_type_id)->type ?? null;
+
+        if (!$memberType) {
+            return response()->json([
+                'isMember' => false,
+                'error' => 'Invalid member type selected.'
+            ]);
+        }
+
+        $apiResponse = Http::get('https://membership.san.org.np/api/updated-members');
+
+        if (!$apiResponse->successful()) {
+            return response()->json([
+                'isMember' => false,
+                'error' => 'Could not fetch membership data from external API.'
+            ]);
+        }
+
+        $apiData = $apiResponse->json();
+
+        $matchByCouncil = collect($apiData)->firstWhere('councilNum', $userCouncilNum);
+
+        if (!$matchByCouncil) {
+            return response()->json([
+                'isMember' => false,
+                'error' => 'Council number not found in SAN membership records.'
+            ]);
+        }
+
+        if ($matchByCouncil['memberType'] !== $memberType) {
+            return response()->json([
+                'isMember' => false,
+                'error' => 'Member type does not match SAN records.'
+            ]);
+        }
+
+        if ($matchByCouncil['dobAD'] !== $userDob) {
+            return response()->json([
+                'isMember' => false,
+                'error' => 'Date of birth does not match SAN records.'
+            ]);
+        }
+
+        return response()->json([
+            'isMember' => true,
+            'message' => 'You are verified as a SAN member.'
+        ]);
     }
 }

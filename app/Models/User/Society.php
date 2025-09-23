@@ -2,6 +2,7 @@
 
 namespace App\Models\User;
 
+use App\Models\Cms\Feature;
 use App\Models\Conference\Conference;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
@@ -43,5 +44,10 @@ class Society extends Model
     public function conferences()
     {
         return $this->hasMany(Conference::class, 'society_id', 'id');
+    }
+
+    public function features()
+    {
+        return $this->belongsToMany(Feature::class, 'society_features');
     }
 }

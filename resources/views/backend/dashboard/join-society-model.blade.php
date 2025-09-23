@@ -51,6 +51,8 @@
 
 <script>
     $(document).ready(function() {
+
+        // When society changes, populate member types
         $('#society_id').on('change', function() {
             var society_id = $(this).val();
             if (!society_id) return;
@@ -63,12 +65,13 @@
                 },
                 success: function(response) {
                     $('#member_type_id').empty().append(
-                        '<option value=""  hidden>-- Select Member Type --</option>');
-
+                        '<option value="" hidden>-- Select Member Type --</option>');
                     if (response.type === 'success' && response.data.length > 0) {
                         $.each(response.data, function(index, item) {
                             $('#member_type_id').append('<option value="' + item
-                                .id + '">' + item.type + '</option>');
+                                .id + '" data-is-society-member="' + item
+                                .is_society_member + '">' + item.type +
+                                '</option>');
                         });
                     } else {
                         $('#member_type_id').append(
@@ -88,12 +91,46 @@
             let $submitBtn = $(this).find('button[type="submit"]');
             $submitBtn.prop('disabled', true).text('Submitting...');
 
+            let society_id = $('#society_id').val();
+            let member_type_id = $('#member_type_id').val();
+            let is_society_member = $('#member_type_id option:selected').data('is-society-member');
+
             let formData = {
-                society_id: $('#society_id').val(),
-                member_type_id: $('#member_type_id').val(),
+                society_id: society_id,
+                member_type_id: member_type_id,
                 _token: '{{ csrf_token() }}'
             };
 
+            if (is_society_member == 1) {
+                $.ajax({
+                    type: 'POST',
+                    url: '{{ route('checkCouncilMembership') }}',
+                    data: {
+                        member_type_id: member_type_id,
+                        _token: '{{ csrf_token() }}'
+                    },
+                    success: function(response) {
+                        if (response.isMember) {
+                            submitJoinSocietyForm(formData, $submitBtn);
+                        } else {
+                            $submitBtn.prop('disabled', false).text('Submit');
+                            notyf.error(response.error ||
+                                "You are not a member of the selected council for this member type."
+                                );
+                        }
+                    },
+                    error: function(e) {
+                        $submitBtn.prop('disabled', false).text('Submit');
+                        notyf.error("Could not verify membership. Please try again.");
+                    }
+                });
+            } else {
+                submitJoinSocietyForm(formData, $submitBtn);
+            }
+        });
+
+
+        function submitJoinSocietyForm(formData, $submitBtn) {
             $.ajax({
                 type: 'POST',
                 url: '{{ route('joinSocietySubmit') }}',
@@ -106,7 +143,6 @@
                         }, 1000);
                     } else {
                         $submitBtn.prop('disabled', false).text('Submit');
-
                         notyf.error(response.message || "Something went wrong.");
                     }
                 },
@@ -122,11 +158,10 @@
                         });
                     } else {
                         notyf.error("An unexpected error occurred.");
-
                     }
                 }
             });
-        });
+        }
 
     });
 </script>

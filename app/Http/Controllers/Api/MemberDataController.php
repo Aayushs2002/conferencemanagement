@@ -26,6 +26,8 @@ class MemberDataController extends Controller
         ]);
     }
 
+
+
     public function getMemberTypePrice(Request $request): JsonResponse
     {
         $validator = Validator::make($request->all(), [

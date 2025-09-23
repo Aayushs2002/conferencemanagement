@@ -25,6 +25,7 @@ class ConferenceRequest extends FormRequest
             'conference_name' => 'required|regex:/^[a-zA-Z0-9\s]+$/',
             'conference_theme' => 'nullable',
             'conference_logo' => 'nullable|mimes:png,jpg',
+            'tags' => 'required',
             'conference_description' => 'required',
             'start_date' => 'required|date',
             'end_date' => 'required|date|after_or_equal:start_date',

@@ -2,6 +2,11 @@
 
 use App\Http\Controllers\Backend\Accommodation\HotelController;
 use App\Http\Controllers\Backend\Ckeditor\CkeditorController;
+use App\Http\Controllers\Backend\Cms\BlogController;
+use App\Http\Controllers\Backend\Cms\FeatureController;
+use App\Http\Controllers\Backend\Cms\PageController;
+use App\Http\Controllers\Backend\Cms\TestimonialController;
+use App\Http\Controllers\Backend\Cms\WhyChooseUsController;
 use App\Http\Controllers\Backend\Dashboard\DashboardController;
 use App\Http\Controllers\Backend\Setting\SecurityController;
 use App\Http\Controllers\Backend\User\UserController;
@@ -27,6 +32,7 @@ Route::middleware('auth', 'verified')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::post('/join-society', [DashboardController::class, 'joinSociety'])->name('joinSociety');
     Route::get('/get-society-member-type', [DashboardController::class, 'getMemberType'])->name('getMemberType');
+    Route::post('/check-council-membership', [DashboardController::class, 'checkCouncilMembership'])->name('checkCouncilMembership');
 });
 
 Route::middleware('auth')->group(function () {
@@ -59,4 +65,11 @@ Route::middleware('auth')->group(function () {
     Route::get('/society/{society}/setting/security', [SecurityController::class, 'index'])->name('security.index.society');
     Route::get('/society/{society}/conference/{conference}/setting/security', [SecurityController::class, 'index'])->name('security.index.full');
     Route::post('password-change', [SecurityController::class, 'passwordChange'])->name('security.password-change');
+
+
+    Route::resource('/cms/blog', BlogController::class)->middleware('check.superadmin')->except('show');
+    Route::resource('/cms/feature', FeatureController::class)->middleware('check.superadmin')->except('show');
+    Route::resource('/cms/testimonial', TestimonialController::class)->middleware('check.superadmin')->except('show');
+    Route::resource('/cms/page', PageController::class)->middleware('check.superadmin')->except('show');
+    Route::resource('/cms/why-choose-us', WhyChooseUsController::class)->middleware('check.superadmin')->except('show');
 });

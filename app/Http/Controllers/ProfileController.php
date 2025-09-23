@@ -29,6 +29,7 @@ class ProfileController extends Controller
                 'designation_id' => 'required',
                 'department_id' => 'required',
                 'institute_address' => 'required',
+                'dob_ad' => 'required|date',
                 'image' => 'required',
             ];
 
@@ -40,7 +41,7 @@ class ProfileController extends Controller
 
             $namePrefixId = current_user()->userDetail->name_prefix_id;
             if (($namePrefixId == 1 || $namePrefixId == 3) && current_user()->userDetail->country_id == 125) {
-                $rules['council_number'] = 'required';
+                $rules['council_number'] = 'required|unique:user_details,council_number';
                 $messages['council_number.required'] = 'The council number is required.';
             } else {
                 $rules['council_number'] = 'nullable';
@@ -120,7 +121,7 @@ class ProfileController extends Controller
                 'message' => 'You have successfully updated profile.'
             ]);
         } catch (\Throwable $th) {
-            dd($th);
+            // dd($th);
             DB::rollBack();
             return response()->json([
                 'type' => 'error',

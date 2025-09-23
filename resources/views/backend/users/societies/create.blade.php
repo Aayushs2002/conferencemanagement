@@ -163,6 +163,37 @@
                             @enderror
                         </div>
 
+                        <div class="mb-6 col-md-12">
+                            <label class="form-label">Feature Access <code>*</code></label>
+
+                            <div class="row g-3">
+                                @foreach ($features as $feature)
+                                    <div class="col-md-4">
+                                        <div class="card border shadow-sm h-100">
+                                            <div class="card-body d-flex align-items-center">
+                                                <div class="form-check">
+                                                    <input class="form-check-input me-2" type="checkbox"
+                                                        name="features[]" id="feature-{{ $feature->id }}"
+                                                        value="{{ $feature->id }}"
+                                                        {{ isset($society) ? (in_array($feature->id, $societyFeatures ?? []) ? 'checked' : '') : 'checked' }}>
+                                                    <label class="form-check-label fw-semibold"
+                                                        for="feature-{{ $feature->id }}">
+                                                        {{ $feature->title }}
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+
+                            @error('features')
+                                <p class="text-danger mt-2">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+
+
                         <div class="row">
                             <div class="col-12 text-end">
                                 <button type="submit"

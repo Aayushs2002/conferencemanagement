@@ -4,8 +4,10 @@ namespace App\Http\Controllers\Backend\Society;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Society\MemberTypeRequest;
+use App\Models\Society\SocietySetting;
 use App\Models\User\MemberType;
 use Exception;
+use Illuminate\Support\Facades\Http;
 
 class MemberTypeController extends Controller
 {
@@ -14,28 +16,6 @@ class MemberTypeController extends Controller
      */
     public function index($society)
     {
-
-        // if (!empty(session()->get('conferenceDetail'))) {
-        //     session()->forget('conferenceDetail');
-        // }
-        // $societyDetail = society_detail();
-
-        // if (is_super_admin() && empty($societyDetail)) {
-        //     return redirect()->route('dashboard');
-        // }
-        // if (is_society_admin()) {
-        //     $types = MemberType::where([
-        //         'society_id' => current_user()->societies->value('id'),
-        //         'status' => 1
-        //     ])->latest()->get();
-        // } elseif (is_super_admin()) {
-        //     $types = MemberType::where([
-        //         'society_id' => $societyDetail->id,
-        //         'status' => 1
-        //     ])->latest()->get();
-        // } else {
-        //     return redirect()->route('dashboard');
-        // }
         $types = MemberType::where([
             'society_id' => $society->id,
             'status' => 1
@@ -44,7 +24,7 @@ class MemberTypeController extends Controller
     }
 
     /**
-     * Show the form for creating a new resource.
+     * Show the form for creating a new resource. 
      */
     public function create($society)
     {
@@ -63,7 +43,7 @@ class MemberTypeController extends Controller
 
             return redirect()->route('memberType.index', $society)->with('status', 'Member Type Added Successfully');
         } catch (Exception $e) {
-            dd($e);
+            // dd($e);
             return redirect()->back()->with('delete', 'Internal Server Error');
         }
     }
@@ -89,6 +69,23 @@ class MemberTypeController extends Controller
             return redirect()->route('memberType.index', $society)->with('status', 'Member Type Updated Successfully');
         } catch (Exception $e) {
             return redirect()->back()->with('delete', 'Internal Server Error');
+        }
+    }
+
+    public function fetchExternalMemberTypes($society)
+    {
+        // dd($society);
+        try {
+            $memberTypeApi = SocietySetting::where('society_id', $society->id)->pluck('member_type_api')->first();
+            $response = Http::get($memberTypeApi);
+
+            if ($response->failed()) {
+                return response()->json(['error' => 'Failed to fetch member types'], 500);
+            }
+
+            return response()->json($response->json());
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
         }
     }
 }

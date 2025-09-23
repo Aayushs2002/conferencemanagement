@@ -8,11 +8,16 @@ use App\Http\Controllers\Backend\Society\InstitutionController;
 use App\Http\Controllers\Backend\Society\MemberTypeController;
 use App\Http\Controllers\Backend\Society\NamePrefixController;
 use App\Http\Controllers\Backend\Society\SocietyController;
+use App\Http\Controllers\Backend\Society\SocietySettingController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('auth')->group(function () {
     //society controller start    
     Route::resource('/society', SocietyController::class)->middleware('check.superadmin')->except('show');
+    
+    Route::post('society-setting', [SocietySettingController::class, 'societySetting'])->name('society.setting');
+    Route::post('society-setting-submit', [SocietySettingController::class, 'societySettingSubmit'])->name('society.setting.submit');
+
     Route::get('/society/{society}/dashboard', [SocietyController::class, 'dashboard'])->name('society.dashboard');
     Route::post('/society/show', [SocietyController::class, 'view'])->middleware('check.superadmin')->name('society.show');
     Route::get('/view-society-detail/{slug}', [SocietyController::class, 'viewDetailByAdmin'])->middleware('check.societyadmin')->name('society.viewDetailByAdmin');
@@ -21,8 +26,10 @@ Route::middleware('auth')->group(function () {
     //society member type start
     Route::prefix('/society/{society}')->group(function () {
         Route::resource('/memberType', MemberTypeController::class)->middleware('check.societyadmin')->except('show', 'destroy');
+        Route::get('/fetch-member-types', [MemberTypeController::class, 'fetchExternalMemberTypes'])
+            ->name('memberType.fetch');
     });
-    //society member type end
+    //society member type end 
 
     //name prefix route started
     Route::resource('/name-prefix', NamePrefixController::class)->middleware('check.superadmin')->except('show');
@@ -46,6 +53,6 @@ Route::middleware('auth')->group(function () {
         Route::controller(PaymentSettingController::class)->prefix('/payment')->name('payment.')->group(function () {
             Route::get('/payment-setting', 'index')->name('setting');
             Route::post('/setting/submit', 'store')->name('setting.submit');
-        }); 
+        });
     });
 });

@@ -77,7 +77,7 @@
                                         <a href="#" class="dropdown-item conferenceSetting"
                                             data-id="{{ $conference->id }}" data-bs-toggle="modal"
                                             data-bs-target="#pricingModal"><i
-                                                class="icon-base ti tabler-cash me-1"></i>Conference Setting</a>
+                                                class="icon-base ti tabler-cash me-1"></i>Conference Setting</a> 
                                         {{-- <hr> --}}
                                         {{-- <form action="{{ route('conference.destroy', $conference->id) }}" method="POST">
                                             @method('delete')
