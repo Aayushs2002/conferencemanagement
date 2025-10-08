@@ -39,8 +39,7 @@ class DashboardController extends Controller
 
     public function getMemberType(Request $request)
     {
-        // dd($request);
-        // dd(current_user());
+
         try {
             if (current_user()->type == 1) {
                 $user = User::where('id', $request->user_id)->first();
@@ -65,9 +64,7 @@ class DashboardController extends Controller
                     'society_id' => $society_id,
                     'status' => 1
                 ])->get();
-                // dd($types);
             }
-            // dd($types);
             return response()->json([
                 'type' => 'success',
                 'message' => 'Member types fetched successfully.',

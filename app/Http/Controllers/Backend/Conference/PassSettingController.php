@@ -45,7 +45,6 @@ class PassSettingController extends Controller
      */
     public function store(Request $request, $society, $conference)
     {
-        // dd($request->all());
         try {
             $validated = $request->validate([
                 'image' => 'required|mimes:png,jpg,',
@@ -182,7 +181,6 @@ class PassSettingController extends Controller
 
             return redirect()->route('pass-setting.index', [$society, $conference])->with('status', 'Pass Setting Updated Successfully');
         } catch (Exception $e) {
-            dd($e);
             return redirect()->back()->with('delete', 'Internal Server Error');
         }
     }

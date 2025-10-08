@@ -20,7 +20,7 @@
                     @isset($workshop)
                         @method('patch')
                     @endisset
-                    <div class="row g-6"> 
+                    <div class="row g-6">
                         <div class="col-12">
                             <h6>1. Workshop Details</h6>
                             <hr class="mt-0" style="height:1px;border:none;color:#333;background-color:#333;" />
@@ -173,6 +173,23 @@
                             @error('no_of_participants')
                                 <p class="text-danger">{{ $message }}</p>
                             @enderror
+                        </div>
+
+                        <div class="col-md-4 form-group mb-3">
+                            <label for="image">Image <code>(Only JPG/PNG)</code></label>
+                            <input type="file" class="form-control @error('image') is-invalid @enderror"
+                                name="image" id="image" />
+                            @error('image')
+                                <p class="text-danger">{{ $message }}</p>
+                            @enderror
+                            <div class="row" id="imgPreview">
+                                @if (isset($workshop))
+                                    <div class="col-3 mt-2">
+                                        <img src="{{ asset('storage/workshop/workshop/image/' . $workshop->image) }}"
+                                            alt="image" class="img-fluid">
+                                    </div>
+                                @endif
+                            </div>
                         </div>
 
                         <div class="mb-6">

@@ -93,10 +93,6 @@ class WorkshopRegistrationController extends Controller
 
     public function registerForExceptionalCase($society, $conference)
     {
-        // $conferenceDetail = conference_detail();
-        // if (empty($conferenceDetail)) {
-        //     return redirect()->route('dashboard');
-        // }
         $workshops = Workshop::where(['conference_id' => $conference->id, 'status' => 1])->get();
         $society = Society::with(['users' => function ($query) {
             $query->where('type', 3)->orderByDesc('id');
@@ -192,10 +188,6 @@ class WorkshopRegistrationController extends Controller
 
     public function registerForNewUser($society, $conference)
     {
-        // $conferenceDetail = conference_detail();
-        // if (empty($conferenceDetail)) {
-        //     return redirect()->route('dashboard');
-        // }
         $workshops = Workshop::where(['conference_id' => $conference->id, 'status' => 1])->get();
         $prefixesAll = NamePrefix::whereStatus(1)->get();
         return view('backend.workshop.workshop-registration.register-for-new-user', compact('workshops', 'prefixesAll', 'conference', 'society'));
@@ -205,7 +197,6 @@ class WorkshopRegistrationController extends Controller
     {
         try {
             $checkUser = User::whereEmail($request->email)->first();
-            // dd($checkUser);
 
             $workshop = WorkshopRegistration::where(['workshop_id' => $request->workshop_id, 'user_id' => $checkUser?->id])->first();
             if ($workshop) {
@@ -346,14 +337,10 @@ class WorkshopRegistrationController extends Controller
 
     public function downloadVoucher($society, $conference, WorkshopRegistration $workshopRegistration)
     {
-        // dd($conferenceRegistration);
         $user = User::where('id', $workshopRegistration->user_id)->first();
         $date = \Carbon\Carbon::now()->format('F j, Y');
         $conferenceSetting = ConferenceSetting::where('conference_id', $conference->id)->first();
 
-
-
-        // dd($addonsData->toArray());
         $workshopData = [];
         if ($workshopRegistration) {
             $workshopData[] = [

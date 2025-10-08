@@ -17,24 +17,6 @@ class FaqCategoryController extends Controller
      */
     public function index($society, $conference)
     {
-        // $societyDetail = society_detail();
-
-        // if (is_super_admin() && empty($societyDetail)) {
-        //     return redirect()->route('dashboard');
-        // }
-        // if (is_society_admin()) {
-        //     $faq_categories = FaqCategory::where([
-        //         'society_id' => current_user()->societies->value('id'),
-        //         'status' => 1
-        //     ])->latest()->get();
-        // } elseif (is_super_admin()) {
-        //     $faq_categories = FaqCategory::where([
-        //         'society_id' => $societyDetail->id,
-        //         'status' => 1
-        //     ])->latest()->get();
-        // } else {
-        //     return redirect()->route('dashboard');
-        // }
         $faq_categories = FaqCategory::where([
             'society_id' => $society->id,
             'status' => 1
@@ -116,7 +98,7 @@ class FaqCategoryController extends Controller
 
             return redirect()->route('faq-category.index', [$society, $conference])->with('delete', 'Faq Category Deleted Successfully');
         } catch (QueryException $e) {
-            return redirect()->back()->with('delete', 'Cannot delete this sponser category.');
+            return redirect()->back()->with('delete', 'Cannot delete this sponsor category.');
         } catch (Exception $e) {
             throw $e;
         }

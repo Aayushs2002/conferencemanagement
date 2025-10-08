@@ -20,16 +20,12 @@ class PaymentContoller extends Controller
 {
     public function fonepay(Request $request, $society, $conference)
     {
-        // dd($request->all());
-        // dd($request->all(), $conference);
-
         if (is_past($conference->regular_registration_deadline)) {
             return redirect()->back()->with('delete', 'Conference Regisration date has ended.');
         }
 
         session(['onlinePayment' => $request->all()]);
         $paymentSetting = NationalPayment::where('society_id', $conference->society_id)->first();
-        // dd($conference);
         $PID = $paymentSetting->profile_id;
         $MD = 'P';
         $AMT = $request->amount;
@@ -117,13 +113,9 @@ class PaymentContoller extends Controller
     {
         $data = base64_decode($request->data);
         $data = json_decode($data, true);
-        // dd($data);
-        // dd($conference);
         if ($data['status'] == 'COMPLETE') {
             $transactionId = $data['transaction_code'];
-            // dd($transactionId);
             $amount = (int)$data['total_amount'];
-            // dd($amount);
             return view('backend.participant.conference-registration.payment-success', compact('transactionId', 'amount', 'society', 'conference'));
         } else {
             return redirect()->route('my-society.conference.create', [$society, $conference])->with('delete', 'Payment process has been failed or cancelled, please try again.');
@@ -208,7 +200,6 @@ class PaymentContoller extends Controller
 
     public function moco(Request $request, $society, $conference)
     {
-        // dd($request->all());
         if (is_past($conference->regular_registration_deadline)) {
             return response()->json([
                 'status' => 'error',
@@ -223,8 +214,6 @@ class PaymentContoller extends Controller
         $oid = $paymentSetting->moco_outlet_id;
         $tid = $paymentSetting->moco_terminal_id;
         $amount = $request->amount;
-        // $amount = 1;
-        // dd($amount);
         $referenceNumber = uniqid();
         $timestamp = now()->utc()->format('Y-m-d H:i:s');
         $sharedSecretKey = $paymentSetting->moco_shared_key;
@@ -244,7 +233,6 @@ class PaymentContoller extends Controller
             "hash" => $hash
         ];
 
-        // dd($requestData);
         try {
             $response = Http::timeout(30)
                 ->post('https://mpi.moco.com.np/transaction/qr', $requestData);
@@ -312,7 +300,6 @@ class PaymentContoller extends Controller
 
     public function mocoCheckStatus(Request $request, $society, $conference)
     {
-        // dd($request);
         $paymentSetting = NationalPayment::where('society_id', $conference->society_id)->select('moco_merchant_id', 'moco_outlet_id', 'moco_terminal_id', 'moco_shared_key')->first();
 
         $mid = $paymentSetting->moco_merchant_id;
@@ -337,9 +324,7 @@ class PaymentContoller extends Controller
             'hash' => $hash
         ];
 
-        // dd($queryParams);
         $response = Http::get('https://mpi.moco.com.np/transaction/status', $queryParams);
-        // dd($response->json(), $response->status());
         return response()->json($response->json(), $response->status());
         // return response()->json([
         //     'status' => 'success',
@@ -353,9 +338,7 @@ class PaymentContoller extends Controller
     public function mocoSuccess(Request $request, $society, $conference)
     {
         $mocoPayment = session()->get('onlinePayment');
-        // dd($mocoPayment);
         $transactionId = $request->txnID;
-        // dd($transactionId);
         $amount = $mocoPayment['amount'];
         return view('backend.participant.conference-registration.payment-success', compact('transactionId', 'amount', 'society', 'conference'));
     }

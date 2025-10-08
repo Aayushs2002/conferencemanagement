@@ -58,8 +58,7 @@
                                     @if (isset($scientific_session) && $scientific_session->is_from_submission == 1) checked
                                                         @elseif (old('is_from_submission') == 1)
                                                                 checked @endif />
-                                <label for="scientific_session" class="form-check-label">Select From Scientific
-                                    Session?</label>
+                                <label for="scientific_session" class="form-check-label">Select From Submission?</label>
                             </div>
 
                         </div>

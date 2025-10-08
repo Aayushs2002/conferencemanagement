@@ -10,6 +10,7 @@ class Workshop extends Model
     protected $fillable = [
         'conference_id',
         'workshop_title',
+        'image',
         'workshop_type',
         'start_date',
         'end_date',
@@ -21,7 +22,8 @@ class Workshop extends Model
         'contact_person_email',
         'no_of_participants',
         'workshop_description',
-        'status'
+        'status',
+        'slug'
     ];
 
     public function getRouteKey()
@@ -49,4 +51,9 @@ class Workshop extends Model
     {
         return $this->hasMany(WorkshopRegistration::class);
     }
+
+    // public function trainers()
+    // {
+    //     return $this->hasMany(WorkshopTrainer::class,'workshop_id', 'id');
+    // }
 }

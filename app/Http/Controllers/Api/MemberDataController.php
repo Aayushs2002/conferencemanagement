@@ -24,9 +24,8 @@ class MemberDataController extends Controller
             'status' => 'success',
             'data' => $data
         ]);
+
     }
-
-
 
     public function getMemberTypePrice(Request $request): JsonResponse
     {

@@ -7,6 +7,7 @@ use App\Models\User\Department;
 use App\Models\User\Designation;
 use App\Models\User\Institution;
 use App\Models\User\NamePrefix;
+use App\Models\User\Society;
 use Illuminate\Support\Facades\View;
 use Laravel\Fortify\Contracts\LoginResponse;
 use Illuminate\Support\ServiceProvider;
@@ -33,6 +34,7 @@ class AppServiceProvider extends ServiceProvider
             'departments'  => Department::whereStatus(1)->get(),
             'designations' => Designation::whereStatus(1)->get(),
             'institutions' => Institution::whereStatus(1)->get(),
+            'societies' => Society::whereStatus(1)->get(),
         ];
 
         View::share($sharedData);

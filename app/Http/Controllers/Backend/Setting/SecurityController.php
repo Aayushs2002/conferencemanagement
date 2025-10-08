@@ -37,9 +37,7 @@ class SecurityController extends Controller
                 'currentPassword' => 'Your current password is incorrect.',
             ]);
         }
-        // dd($request->all());
         $user->password = hash_password($request->new_password);
-        // dd($user->password);
         $user->save();
 
         return back()->with('status', 'Password changed successfully.');

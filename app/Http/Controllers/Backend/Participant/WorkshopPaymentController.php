@@ -55,16 +55,16 @@ class WorkshopPaymentController extends Controller
 
     public function fonePaySuccess(Request $request, $society, $conference)
     {
-        // if ($request->RC == 'failed' || $request->RC == 'cancel') {
-        //     return redirect()->route('my-society.conference.workshop.index', [$society, $conference])->with('delete', 'Payment process has been failed or cancelled, please try again.');
-        // } else {
+        if ($request->RC == 'failed' || $request->RC == 'cancel') {
+            return redirect()->route('my-society.conference.workshop.index', [$society, $conference])->with('delete', 'Payment process has been failed or cancelled, please try again.');
+        } else {
             $transactionId = $request->UID;
             $amount = $request->P_AMT;
             $sessionData = session()->get('workshopPayment');
             $workshop = Workshop::whereId($sessionData['id'])->first();
             $paymetType = $sessionData['payment_type'];
             return view('backend.participant.workshop-registration.payment-success', compact('transactionId', 'amount', 'workshop', 'society', 'conference', 'paymetType'));
-        // }
+        }
     }
 
 
@@ -278,16 +278,12 @@ class WorkshopPaymentController extends Controller
     {
         $data = base64_decode($request->data);
         $data = json_decode($data, true);
-        // dd($data);
-        // dd($conference);
         if ($data['status'] == 'COMPLETE') {
             $transactionId = $data['transaction_code'];
-            // dd($transactionId);
             $amount = (int)$data['total_amount'];
             $sessionData = session()->get('workshopPayment');
             $workshop = Workshop::whereId($sessionData['id'])->first();
             $paymetType = $sessionData['payment_type'];
-            // dd($amount);
             return view('backend.participant.workshop-registration.payment-success', compact('transactionId', 'amount', 'society', 'conference', 'workshop', 'paymetType'));
         } else {
             return redirect()->route('my-society.conference.workshop.index', [$society, $conference])->with('delete', 'Payment process has been failed or cancelled, please try again.');

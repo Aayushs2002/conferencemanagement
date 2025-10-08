@@ -13,13 +13,11 @@ class AuthorController extends Controller
 {
     public function index($society, $conference, $submission)
     {
-        // dd($submission);
         $authors = Author::where([
             'submission_id' => $submission->id,
             'status' => 1
         ])->orderBy('id', 'asc')->get();
 
-        // dd($authors);   
         return view('backend.participant.submission.author.index', compact('society', 'conference', 'submission', 'authors'));
     }
 

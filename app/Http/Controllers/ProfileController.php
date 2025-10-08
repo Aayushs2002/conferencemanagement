@@ -121,7 +121,6 @@ class ProfileController extends Controller
                 'message' => 'You have successfully updated profile.'
             ]);
         } catch (\Throwable $th) {
-            // dd($th);
             DB::rollBack();
             return response()->json([
                 'type' => 'error',

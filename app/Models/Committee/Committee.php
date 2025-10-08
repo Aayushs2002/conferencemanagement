@@ -21,4 +21,10 @@ class Committee extends Model
     // {
     //     return $this->hasMany(CommitteeMember::class, 'committee_id', 'id');
     // }
+
+    public function committeeMembers()
+    {
+        return $this->hasMany(CommitteeMember::class, 'committee_id', 'id')
+            ->with(['user', 'designation']);
+    }
 }

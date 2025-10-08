@@ -26,8 +26,6 @@ class MySocietyController extends Controller
     public function conference($society)
     {
         $conferences = Conference::where(['society_id' => $society->id, 'status' => 1])->get();
-        // dd($conferences);
-        // $checkRegistration = 
         return view('backend.participant.conference.index', compact('conferences', 'society'));
     }
 

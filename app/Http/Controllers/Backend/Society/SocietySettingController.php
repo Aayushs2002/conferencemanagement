@@ -13,7 +13,6 @@ class SocietySettingController extends Controller
     {
         $society = Society::where('id', $request->id)->first();
         $societySetting = SocietySetting::where('society_id', $society->id)->first();
-        // dd($societySetting);
         return view('backend.users.societies.society-setting', compact('society', 'societySetting'));
     }
 

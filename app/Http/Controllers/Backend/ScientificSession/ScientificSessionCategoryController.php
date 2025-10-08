@@ -17,11 +17,6 @@ class ScientificSessionCategoryController extends Controller
      */
     public function index($society, $conference)
     {
-        // $conferenceDetail = conference_detail();
-
-        // if (empty($conferenceDetail)) {
-        //     return redirect()->route('dashboard');
-        // } 
         $parent_id = request('category') ?? 0;
 
 
@@ -52,7 +47,6 @@ class ScientificSessionCategoryController extends Controller
      */
     public function store(Request $request, $society, $conference)
     {
-        // dd($request);
         try {
             $validated = $request->validate([
                 'category_name' => 'required',
@@ -67,8 +61,6 @@ class ScientificSessionCategoryController extends Controller
                 return redirect()->route('category.index', [$society, $conference])->with('status', 'Scientific Category Created SuccessFully');
             }
         } catch (Exception $e) {
-            //throw $th;
-            // dd($e);
             return redirect()->back()->with('delete', 'Internal Server Error');
         }
     }
@@ -110,8 +102,6 @@ class ScientificSessionCategoryController extends Controller
                 return redirect()->route('category.index', [$society, $conference])->with('status', 'Scientific Category Updated SuccessFully');
             }
         } catch (Exception $e) {
-            //throw $th;
-            // dd($e);
             return redirect()->back()->with('delete', 'Internal Server Error');
         }
     }
@@ -127,7 +117,6 @@ class ScientificSessionCategoryController extends Controller
             ]);
             return redirect()->route('category.index', [$society, $conference])->with('status', 'Scientific Category Deleted SuccessFully');
         } catch (Exception $e) {
-            //throw $th;
             return redirect()->back()->with('delete', 'Internal Server Error');
         }
     }

@@ -23,11 +23,6 @@ class SponsorController extends Controller
 
     public function index($society, $conference)
     {
-        // $conferenceDetail = conference_detail();
-
-        // if (empty($conferenceDetail)) {
-        //     return redirect()->route('dashboard');
-        // }
         $sponsors = Sponsor::where(['conference_id' => $conference->id, 'status' => 1])->orderBy('id', 'DESC')->get();
         return view('backend.sponsor.sponsor.index', compact('sponsors', 'society', 'conference'));
     }
@@ -37,23 +32,6 @@ class SponsorController extends Controller
      */
     public function create($society, $conference)
     {
-        // $societyDetail = society_detail();
-        // if (is_super_admin() && empty($societyDetail)) {
-        //     return redirect()->route('dashboard');
-        // }
-        // if (is_society_admin()) {
-        //     $categories = SponsorCategory::where([
-        //         'society_id' => current_user()->societies->value('id'),
-        //         'status' => 1
-        //     ])->latest()->get();
-        // } elseif (is_super_admin()) {
-        //     $categories = SponsorCategory::where([
-        //         'society_id' => $societyDetail->id,
-        //         'status' => 1
-        //     ])->latest()->get();
-        // } else {
-        //     return redirect()->route('dashboard');
-        // }
         $categories = SponsorCategory::where([
             'society_id' => $society->id,
             'status' => 1
@@ -111,23 +89,6 @@ class SponsorController extends Controller
      */
     public function edit($society, $conference, Sponsor $sponsor)
     {
-        // $societyDetail = society_detail();
-        // if (is_super_admin() && empty($societyDetail)) {
-        //     return redirect()->route('dashboard');
-        // }
-        // if (is_society_admin()) {
-        //     $categories = SponsorCategory::where([
-        //         'society_id' => current_user()->societies->value('id'),
-        //         'status' => 1
-        //     ])->latest()->get();
-        // } elseif (is_super_admin()) {
-        //     $categories = SponsorCategory::where([
-        //         'society_id' => $societyDetail->id,
-        //         'status' => 1
-        //     ])->latest()->get();
-        // } else {
-        //     return redirect()->route('dashboard');
-        // }
         $this->authorize('edit', $sponsor);
 
         $categories = SponsorCategory::where([
@@ -248,7 +209,6 @@ class SponsorController extends Controller
             ->where(['sponsor_id' => $sponsor->id, 'status' => 1])
             ->whereDate('created_at', date('Y-m-d'))
             ->first(); 
-        // dd($checkAttendance);
         $totalLunchRemaining = $sponsor->total_attendee;
         $totalDinnerRemaining = $sponsor->total_attendee;
         $checkMeal = $sponsor

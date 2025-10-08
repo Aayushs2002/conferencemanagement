@@ -23,11 +23,6 @@ class ScientificSessionController extends Controller
      */
     public function index($society, $conference)
     {
-        // $conferenceDetail = conference_detail();
-
-        // if (empty($conferenceDetail)) {
-        //     return redirect()->route('dashboard');
-        // }
         $scientific_sessions = ScientificSession::where(['conference_id' => $conference->id, 'status' => 1])->get();
 
         $startDate = Carbon::parse($conference->start_date);
@@ -112,7 +107,6 @@ class ScientificSessionController extends Controller
     public function store(ScientificSessionRequest $request, $society, $conference)
     {
         try {
-            // dd('s');
             $req = $request->all();
 
 
@@ -208,8 +202,6 @@ class ScientificSessionController extends Controller
                 return redirect()->back()->withInput()->with('delete', 'Time Slot Already Consumed For This Hall.');
             }
         } catch (Exception $e) {
-            //throw $th;
-            dd($e);
             return redirect()->back()->with('internal server error');
         }
     }

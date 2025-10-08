@@ -12,11 +12,6 @@ class SubmissionCategoryMajorTrackContoller extends Controller
     use AuthorizesRequests;
     public function index($society, $conference)
     {
-        // $conferenceDetail = conference_detail();
-
-        // if (empty($conferenceDetail)) {
-        //     return redirect()->route('dashboard');
-        // }
         $submissionCategoryMajortracks = SubmissionCategoryMajorTrack::where(['conference_id' => $conference->id, 'status' => 1])->get();
         return view('backend.submission.submission-category-majortrack.index', compact('submissionCategoryMajortracks', 'society', 'conference'));
     }

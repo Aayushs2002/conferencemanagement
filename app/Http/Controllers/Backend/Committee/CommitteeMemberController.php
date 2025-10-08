@@ -15,11 +15,6 @@ class CommitteeMemberController extends Controller
 {
     public function index($society, $conference, $slug)
     {
-        // $conferenceDetail = conference_detail();
-
-        // if (empty($conferenceDetail)) {
-        //     return redirect()->route('dashboard');
-        // }
 
         $committee = Committee::where(['slug' => $slug])->first();
         $committee_members = CommitteeMember::where(['conference_id' => $conference->id, 'committee_id' => $committee->id, 'status' => 1])->get();
@@ -28,10 +23,6 @@ class CommitteeMemberController extends Controller
 
     public function create($society, $conference, $slug)
     {
-        // $conferenceDetail = conference_detail();
-        // if (empty($conferenceDetail)) {
-        //     return redirect()->route('dashboard');
-        // }
         $committee = Committee::whereSlug($slug)->first();
         $committee_designations = CommitteeDesignation::where(['society_id' => $conference->society_id, 'status' => 1])->get();
 
@@ -98,10 +89,6 @@ class CommitteeMemberController extends Controller
 
     public function edit($society, $conference, CommitteeMember $committee_member)
     {
-        // $conferenceDetail = conference_detail();
-        // if (empty($conferenceDetail)) {
-        //     return redirect()->route('dashboard');
-        // }
         $committee = Committee::whereId($committee_member->committee_id)->first();
         $committee_designations = CommitteeDesignation::where(['society_id' => $conference->society_id, 'status' => 1])->get();
 

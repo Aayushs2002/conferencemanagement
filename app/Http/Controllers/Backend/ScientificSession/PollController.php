@@ -15,7 +15,6 @@ class PollController extends Controller
 {
     public function index($society, $conference, $id)
     {
-        // dd('da');
         $polls = Poll::whereStatus(1)->where('scientific_session_id', $id)->get();
         return view('backend.schedule-plan.poll.index', compact('id', 'polls', 'conference', 'society'));
     }
@@ -29,13 +28,6 @@ class PollController extends Controller
     {
 
         try {
-            // $request->validate([
-            //     'question_text' => 'required|array|min:1',
-            //     'question_text.*' => 'required|string|max:255',
-            //     'answer_text' => 'required|array|min:1',
-            //     'answer_text.*' => 'required|string|max:255',
-            // ]);
-
             foreach ($request->questions as $questionData) {
                 $question = Poll::create([
                     'scientific_session_id' => $request->scientific_session_id,

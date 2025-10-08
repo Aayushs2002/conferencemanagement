@@ -3,7 +3,7 @@
 @section('title')
     Activity Log
 @endsection
-@section('content')
+@section('content') 
     <div class="card">
 
         <div class="card-datatable table-responsive pt-0">

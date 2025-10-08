@@ -168,7 +168,6 @@ class SocietyController extends Controller
 
     public function dashboard($society)
     {
-        // dd($society);
         $conferenceCount = Conference::where([
             'society_id' => $society->id,
             'status' => 1

@@ -53,7 +53,6 @@ class WorkshopPassSettingController extends Controller
 
             return redirect()->route('workshop-pass-settings.index', [$society, $conference])->with('status', 'Pass Setting Added Successfully');
         } catch (Exception $e) {
-            dd($e);
             return redirect()->back()->with('delete', 'Internal Server Error');
         }
     }
@@ -100,7 +99,6 @@ class WorkshopPassSettingController extends Controller
 
             return redirect()->route('workshop-pass-settings.index', [$society, $conference])->with('status', 'Pass Setting Updated Successfully');
         } catch (Exception $e) {
-            dd($e);
             return redirect()->back()->with('delete', 'Internal Server Error');
         }
     }

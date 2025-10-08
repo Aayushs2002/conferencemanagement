@@ -12,23 +12,6 @@ class PaymentSettingController extends Controller
 {
     public function index($society)
     {
-        // if (!empty(session()->get('conferenceDetail'))) {
-        //     session()->forget('conferenceDetail');
-        // }
-        // $societyDetail = society_detail();
-
-        // if (is_super_admin() && empty($societyDetail)) {
-        //     return redirect()->route('dashboard');
-        // }
-        // if (is_society_admin()) {
-        //     $nationalPayment = NationalPayment::where(['society_id' => current_user()->societies->value('id'), 'status' => 1])->first();
-        //     $internationalPayment = InternationalPayment::where(['society_id' => current_user()->societies->value('id'), 'status' => 1])->first();
-        // } elseif (is_super_admin()) {
-        //     $nationalPayment = NationalPayment::where(['society_id' => $societyDetail->id, 'status' => 1])->first();
-        //     $internationalPayment = InternationalPayment::where(['society_id' => $societyDetail->id, 'status' => 1])->first();
-        // } else {
-        //     return redirect()->route('dashboard');
-        // } 
         $nationalPayment = NationalPayment::where(['society_id' => $society->id, 'status' => 1])->first();
         $internationalPayment = InternationalPayment::where(['society_id' => $society->id, 'status' => 1])->first();
         return view('backend.payment-setting.index', compact('nationalPayment', 'internationalPayment', 'society'));

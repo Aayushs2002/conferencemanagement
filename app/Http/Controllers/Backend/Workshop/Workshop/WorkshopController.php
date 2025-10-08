@@ -24,10 +24,6 @@ class WorkshopController extends Controller
 
     public function index($society, $conference)
     {
-        // $conferenceDetail = conference_detail();
-        // if (empty($conferenceDetail)) {
-        //     return redirect()->route('dashboard');
-        // }
         $workshops = Workshop::where(['conference_id' => $conference->id, 'status' => 1])->get();
         return view('backend.workshop.workshop.index', compact('workshops', 'society', 'conference'));
     }
@@ -59,8 +55,10 @@ class WorkshopController extends Controller
         try {
             $validated = $request->validated();
             $validated['conference_id'] = $conference->id;
-            // dd($validated);
             DB::beginTransaction();
+            if (!empty($validated['image'])) {
+                $validated['image'] = $this->file_service->fileUpload($validated['image'], 'workshop-image', 'workshop/workshop/image/');
+            }
             $workshopData = [
                 'conference_id' => $conference->id,
                 'workshop_title' => $validated['workshop_title'],
@@ -75,8 +73,10 @@ class WorkshopController extends Controller
                 'contact_person_email' => $validated['contact_person_email'],
                 'no_of_participants' => $validated['no_of_participants'],
                 'workshop_description' => $validated['workshop_description'],
-                'slug' => slugify($validated['workshop_title'])
+                'slug' => slugify($validated['workshop_title']),
+                'image' => $validated['image']
             ];
+
 
             $workshop = Workshop::create($workshopData);
             // dd($validated);
@@ -115,11 +115,6 @@ class WorkshopController extends Controller
      */
     public function edit($society, $conference, Workshop $workshop)
     {
-        // $conferenceDetail = conference_detail();
-        // if (empty($conferenceDetail)) {
-        //     return redirect()->route('dashboard');
-        // }
-
         $society = Society::with(['users' => function ($query) {
             $query->where('type', 3)->orderByDesc('id');
         }])->where([
@@ -137,12 +132,18 @@ class WorkshopController extends Controller
      */
     public function update(WorkshopRequest $request, $society, $conference, Workshop $workshop)
     {
+        // dd($request->all());
         try {
             $validated = $request->validated();
             $validated['conference_id'] = $conference->id;
             $validated['slug'] = slugify($validated['workshop_title']);
             DB::beginTransaction();
-
+            // @dd($validated['image']);
+            if (!empty($validated['image'])) {
+                // dd('a');
+                $this->file_service->deleteFile($workshop->image, 'workshop/workshop/image');
+                $validated['image'] = $this->file_service->fileUpload($validated['image'], 'workshop-image', 'workshop/workshop/image/');
+            }
             $workshop->update($validated);
 
             $WorkshopVenueDetail = WorkshopVenueDetail::whereWorkshopId($workshop->id)->first();
@@ -183,10 +184,6 @@ class WorkshopController extends Controller
     public function allocatePriceForm(Request $request, $society, $conference)
     {
         $workshop = Workshop::whereId($request->id)->first();
-        // $conferenceDetail = conference_detail();
-        // if (empty($conferenceDetail)) {
-        //     return redirect()->route('dashboard');
-        // }
 
         $condition = "MT.society_id =" . $conference->society_id;
 

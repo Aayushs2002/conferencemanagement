@@ -17,7 +17,6 @@ class PermissionController extends Controller
     public function index()
     {
         $permissions = Permission::latest()->get();
-        // dd($permissions);
         return view('backend.user-management.permission.index', compact('permissions'));
     }
 
@@ -47,7 +46,6 @@ class PermissionController extends Controller
 
         $SuperUser = User::where('type', 1)->firstOrFail();
         $societyAdmins = User::with('societies.conferences')->where('type', 2)->get();
-        // dd($societyAdmins);
         if ($societyAdmins->isNotEmpty()) {
             foreach ($societyAdmins as $societyAdmin) {
                 foreach ($societyAdmin->societies as $society) {

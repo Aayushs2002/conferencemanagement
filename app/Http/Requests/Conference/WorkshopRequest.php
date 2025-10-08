@@ -39,7 +39,8 @@ class WorkshopRequest extends FormRequest
             'google_map_link' => 'required|url',
             'chairperson_id' => 'required|integer|exists:users,id',
             'photo' => 'nullable|mimes:png,jpg,jpeg|max:250',
-            'short_cv' => 'required|string'
+            'short_cv' => 'required|string',
+            'image' => 'nullable|mimes:jpg,png',
         ];
     }
 

@@ -12,4 +12,9 @@ class SponsorCategory extends Model
         'slug',
         'status'
     ];
+
+    public function sponsors()
+    {
+        return $this->hasMany(Sponsor::class, 'sponsor_category_id', 'id');
+    }
 }

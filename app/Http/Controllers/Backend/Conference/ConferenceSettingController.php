@@ -17,7 +17,6 @@ class ConferenceSettingController extends Controller
     {
         $conference = Conference::where('id', $request->id)->first();
         $conferenceSetting = ConferenceSetting::where('conference_id', $conference->id)->first();
-        // dd($conferenceSetting);
         return view('backend.conference.conference-setting', compact('conference', 'conferenceSetting'));
     }
 

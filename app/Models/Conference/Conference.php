@@ -2,6 +2,8 @@
 
 namespace App\Models\Conference;
 
+use App\Models\Accomodation\Hotel;
+use App\Models\Download\Download;
 use App\Models\SubmissionSetting;
 use App\Models\User\Society;
 use Illuminate\Database\Eloquent\Model;
@@ -62,5 +64,15 @@ class Conference extends Model
     public function conferenceCertificate()
     {
         return $this->hasOne(ConferenceCertificate::class);
+    }
+
+    public function hotels()
+    {
+        return $this->hasMany(Hotel::class, 'conference_id', 'id')->where('status', 1);
+    }
+
+    public function downloads()
+    {
+        return $this->hasMany(Download::class, 'conference_id', 'id')->where('status', 1);
     }
 }

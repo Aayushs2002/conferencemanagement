@@ -17,35 +17,27 @@ class RouteServiceProvider extends ServiceProvider
     {
         parent::boot();
 
-        Route::bind('society', function ($value) { 
-            // dd($value);
-            $id = Hashids::decode($value)[0] ?? null;
-            abort_if(!$id, 404);
-            return Society::findOrFail($id);
-        });
+        // Bind all admin models via hashids
+        $this->bindHashid('society', Society::class);
+        $this->bindHashid('conference', Conference::class);
+        $this->bindHashid('submission', Submission::class);
+        $this->bindHashid('author', Author::class);
+        $this->bindHashid('workshop', Workshop::class);
+    }
 
-        Route::bind('conference', function ($value) {
-            $id = Hashids::decode($value)[0] ?? null;
-            abort_if(!$id, 404);
-            return Conference::findOrFail($id);
-        });
+    /**
+     * Bind a route parameter to a model resolved by Hashid.
+     */
+    protected function bindHashid(string $parameter, string $model): void
+    {
+        Route::bind($parameter, function ($value) use ($model, $parameter) {
+            $decoded = Hashids::decode($value);
+            $id = $decoded[0] ?? null;
 
-        Route::bind('submission', function ($value) {
-            $id = Hashids::decode($value)[0] ?? null;
-            abort_if(!$id, 404);
-            return Submission::findOrFail($id);
-        });
+            // Use is_null so we don't accidentally treat id==0 as invalid
+            abort_if(is_null($id), 404, "Invalid {$parameter} id");
 
-        Route::bind('author', function ($value) {
-            $id = Hashids::decode($value)[0] ?? null;
-            abort_if(!$id, 404);
-            return Author::findOrFail($id);
-        });
-
-        Route::bind('workshop', function ($value) {
-            $id = Hashids::decode($value)[0] ?? null;
-            abort_if(!$id, 404);
-            return Workshop::findOrFail($id);
+            return $model::findOrFail($id);
         });
     }
 }

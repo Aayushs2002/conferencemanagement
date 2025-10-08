@@ -43,7 +43,6 @@ class MemberTypeController extends Controller
 
             return redirect()->route('memberType.index', $society)->with('status', 'Member Type Added Successfully');
         } catch (Exception $e) {
-            // dd($e);
             return redirect()->back()->with('delete', 'Internal Server Error');
         }
     }
@@ -74,7 +73,6 @@ class MemberTypeController extends Controller
 
     public function fetchExternalMemberTypes($society)
     {
-        // dd($society);
         try {
             $memberTypeApi = SocietySetting::where('society_id', $society->id)->pluck('member_type_api')->first();
             $response = Http::get($memberTypeApi);

@@ -10,7 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Batch; 
 
-class ConferenceMemberTypePriceController extends Controller
+class ConferenceMemberTypePriceController extends Controller 
 {
     public function priceForm(Request $request)
     {
@@ -42,7 +42,7 @@ class ConferenceMemberTypePriceController extends Controller
                         $condition
                     ) AS MTP ON MT.id = MTP.member_type_id
                     WHERE MT.society_id = " . $conference->society_id;
-
+ 
         $memberTypes = DB::select($sql);
         // dd($memberTypes);
         return view('backend.conference.price-form', compact('memberTypes', 'conference'));

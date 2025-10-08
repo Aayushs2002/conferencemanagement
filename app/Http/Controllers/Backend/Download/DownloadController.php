@@ -19,11 +19,6 @@ class DownloadController extends Controller
 
     public function index($society, $conference)
     {
-        // $conferenceDetail = conference_detail();
-
-        // if (empty($conferenceDetail)) {
-        //     return redirect()->route('dashboard');
-        // }
         $downloads = Download::where(['conference_id' => $conference->id, 'status' => 1])->get();
         return view('backend.download.index', compact('downloads', 'society', 'conference'));
     }

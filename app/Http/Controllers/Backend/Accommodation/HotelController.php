@@ -19,12 +19,6 @@ class HotelController extends Controller
 
     public function index($society, $conference)
     {
-        // $conferenceDetail = conference_detail();
-
-        // if (empty($conferenceDetail)) {
-        //     return redirect()->route('dashboard');
-        // }
-
         $hotels = Hotel::where(['conference_id' => $conference->id, 'status' => 1])->latest()->get();
         return view('backend.accomodation.hotel.index', compact('hotels', 'society', 'conference'));
     }

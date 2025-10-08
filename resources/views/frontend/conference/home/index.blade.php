@@ -1,0 +1,578 @@
+@extends('frontend.conference.layouts.main')
+@section('content')
+    <section class="container">
+        <div class="row g-4 text-center stats-dashboard">
+            <div class="col-lg-3 col-md-6 col-6">
+                <div class="stat-card p-4 rounded-4 shadow-sm">
+                    <h2 class="stat-number" data-target="50">0</h2>
+                    <p class="stat-label mb-0">Speakers</p>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 col-6">
+                <div class="stat-card p-4 rounded-4 shadow-sm">
+                    <h2 class="stat-number" data-target="150">0</h2>
+                    <p class="stat-label mb-0">National Participants</p>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 col-6">
+                <div class="stat-card p-4 rounded-4 shadow-sm">
+                    <h2 class="stat-number" data-target="150">0</h2>
+                    <p class="stat-label mb-0">International Participants</p>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 col-6">
+                <div class="stat-card p-4 rounded-4 shadow-sm">
+                    <h2 class="stat-number" data-target="350">0</h2>
+                    <p class="stat-label mb-0">Total Participants</p>
+                </div>
+            </div>
+        </div>
+    </section>
+    <div class="td_height_40 td_height_lg_40"></div>
+    <section class="container">
+        <div class="mb-2">
+            {{-- @dd($conference->society) --}}
+            <a href="{{ route('our-client.detail', $conference->society->slug) }}" class="back-btn mb-4">
+                <i class="fa-solid fa-arrow-left me-2"></i> Back to {{ $conference->society->abbreviation }}
+            </a>
+        </div>
+        <div class="row g-5">
+            <aside class="col-lg-3 order-1 order-lg-2">
+                <div class="sidebar-sticky" style="position:sticky; top:20px;">
+                    <div class="nav flex-column nav-pills mb-4" id="safogTabs" role="tablist" aria-orientation="vertical">
+                        <button class="nav-link active d-flex align-items-center" id="tab-overview" data-bs-toggle="pill"
+                            data-bs-target="#overview" type="button" role="tab">
+                            <i class="fa-solid fa-circle-info me-2"></i>
+                            <span>Overview</span>
+                        </button>
+                        <button class="nav-link d-flex align-items-center" id="tab-abstract" data-bs-toggle="pill"
+                            data-bs-target="#abstract" type="button" role="tab">
+                            <i class="fa-regular fa-file-lines me-2"></i>
+                            <span>Abstract Submission</span>
+                        </button>
+                        <button class="nav-link d-flex align-items-center" id="tab-travel" data-bs-toggle="pill"
+                            data-bs-target="#travel" type="button" role="tab">
+                            <i class="fa-regular fa-building me-2"></i>
+                            <span>Travel & Accommodation</span>
+                        </button>
+                        <button class="nav-link d-flex align-items-center" id="tab-sponsors" data-bs-toggle="pill"
+                            data-bs-target="#sponsors" type="button" role="tab">
+                            <i class="fa-regular fa-handshake me-2"></i>
+                            <span>Sponsors</span>
+                        </button>
+                        <button class="nav-link d-flex align-items-center" id="tab-downloads" data-bs-toggle="pill"
+                            data-bs-target="#downloads" type="button" role="tab">
+                            <i class="fa-solid fa-download me-2"></i>
+                            <span>Downloads</span>
+                        </button>
+                        <button class="nav-link d-flex align-items-center" id="tab-contact" data-bs-toggle="pill"
+                            data-bs-target="#contact" type="button" role="tab">
+                            <i class="fa-regular fa-message me-2"></i>
+                            <span>Contact Information</span>
+                        </button>
+                    </div>
+
+                    <div class="payment-box p-3 rounded-4 text-center d-none d-lg-block">
+                        <h4 class="box-title">Payment Methods</h4>
+                        <h6 class="mb-2 fw-600">For International Delegates</h6>
+                        <div class="d-flex justify-content-between align-items-center mb-3 payment-logos">
+                            <div class="logo-item"><img
+                                    src="{{ asset('frontend/assets/img/international_delegate_1.png') }}" alt="Visa"
+                                    class="logo-img">
+                            </div>
+                            <div class="logo-item"><img
+                                    src="{{ asset('frontend/assets/img/international_delegate_2.png') }}" alt="Mastercard"
+                                    class="logo-img"></div>
+                            <div class="logo-item"><img
+                                    src="{{ asset('frontend/assets/img/international_delegate_3.png') }}" alt="PayPal"
+                                    class="logo-img">
+                            </div>
+                            <div class="logo-item"><img
+                                    src="{{ asset('frontend/assets/img/international_delegate_4.png') }}" alt="Amex"
+                                    class="logo-img">
+                            </div>
+                        </div>
+                        <h6 class="mb-2 fw-600">For Indian Delegates</h6>
+                        <div class="d-flex justify-content-between align-items-center mb-3 payment-logos">
+                            <div class="logo-item"><img
+                                    src="{{ asset('frontend/assets/img/international_delegate_4.png') }}"
+                                    alt="Payment Method 1" class="logo-img"></div>
+                            <div class="logo-item"><img
+                                    src="{{ asset('frontend/assets/img/international_delegate_2.png') }}"
+                                    alt="Payment Method 2" class="logo-img"></div>
+                            <div class="logo-item"><img
+                                    src="{{ asset('frontend/assets/img/international_delegate_3.png') }}"
+                                    alt="Payment Method 3" class="logo-img"></div>
+                        </div>
+                        <h6 class="mb-2 fw-600">For Nepali Delegates</h6>
+                        <div class="d-flex justify-content-between align-items-center payment-logos">
+                            <div class="logo-item"><img
+                                    src="{{ asset('frontend/assets/img/international_delegate_3.png') }}" alt="eSewa"
+                                    class="logo-img">
+                            </div>
+                            <div class="logo-item"><img
+                                    src="{{ asset('frontend/assets/img/international_delegate_1.png') }}" alt="Khalti"
+                                    class="logo-img">
+                            </div>
+                            <div class="logo-item"><img
+                                    src="{{ asset('frontend/assets/img/international_delegate_4.png') }}"
+                                    alt="Bank Transfer" class="logo-img"></div>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+
+            <main class="col-lg-9 order-2 order-lg-1">
+                <div class="tab-content" id="safogTabsContent">
+                    <div class="tab-pane fade show active" id="overview" role="tabpanel"
+                        style="background-color: #F1F4FC; padding: 40px; border-radius: 20px;">
+                        <h2 class="section-title">Welcome to {{ $conference->conference_name }}</h2>
+                        <p class="mt-4" style="color: black; text-align: justify;">{!! $conference->conference_description !!}</p>
+
+                        <p class="span-text mt-5">About Conference</p>
+                        <h2 class="section-title">Official Message</h2>
+                        <div class="row mt-3 align-items-center">
+                            <div class="col-md-4">
+                                <div class="prof-card p-3 rounded-3 h-100 d-flex flex-column">
+                                    <img src="assets/img/PADAM RAJ PANT.png" alt="Prof. Padam Raj Pant"
+                                        class="profile-img mb-3">
+                                    <div class="w-100 d-flex align-items-center">
+                                        <h6 class="card-title mb-0">Prof. Padam Raj Pant</h6>
+                                        <a href="#" class="default-btn ms-auto" target="_blank">
+                                            <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                                        </a>
+                                    </div>
+                                    <small class="text-muted">Organizing Chair, SAFOG 2025<br>President, NESOG</small>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="prof-card p-3 rounded-3 h-100 d-flex flex-column">
+                                    <img src="assets/img/Prof. Shyam Desai.png" alt="Prof. Shyam Desai"
+                                        class="profile-img mb-3">
+                                    <div class="w-100 d-flex align-items-center">
+                                        <h6 class="card-title mb-0">Prof. Shyam Desai</h6>
+                                        <a href="#" class="default-btn ms-auto" target="_blank">
+                                            <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                                        </a>
+                                    </div>
+                                    <small class="text-muted">Organizing Chair, SAFOG 2025<br>President, NESOG</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <div class="tab-pane fade" id="abstract" role="tabpanel"
+                        style="background-color: #F1F4FC; padding: 40px; border-radius: 20px;">
+                        <h2 class="section-title">Abstract Submission Guidelines</h2>
+                        {{-- <p class="span-text mt-5">Submission</p>
+                        <p>All abstracts must be uploaded via the <a href="#"
+                                style="color: rgba(1, 36, 140, 1); text-decoration: underline;">Online Abstract Submission
+                                Portal.</a>
+                        </p>
+
+                        <p class="span-text mt-4">Language</p>
+                        <p>All abstracts are to be written in English. The Scientific Committee reserves the right to edit
+                            abstracts
+                            where the English structure makes comprehension difficult.</p>
+
+                        <p class="span-text mt-4">Abstract Preparation</p>
+                        <p>This should be limited to a maximum of 250 words and should include the following:</p>
+                        <ul class="payment-list">
+                            <li>Title of Abstract.</li>
+                            <li>Names and contact details of author(s) {organization, city and country, email, phone
+                                numbers, and
+                                mailing address}. Please underline the name of the presenter/s clearly and provide a 3-line
+                                biography of
+                                the author/s with your abstract (not included in the word limit).</li>
+                            <li>The abstract must include the following headings clearly: Background, Methods, Results and
+                                Discussion.
+                            </li>
+                            <li>Please provide evidence of ethical approval and funding acknowledgements, if any.</li>
+                            <li>Limited to twelve words (exceeding titles will be edited).</li>
+                            <li>Any graphs, charts, diagrams, photos or other forms of display of results can be uploaded in
+                                word file
+                                format.</li>
+                            <li>Abstract submission will be acknowledged via email. If you do not receive an email within
+                                two (2)
+                                weeks of submission or have any additional queries, please contact us by email at
+                                safogcon2025@nesog.org.np.</li>
+                            <li>Omit academic degrees and titles.</li>
+                            <li>Group affiliated institutions with names and addresses.</li>
+                            <li>All abstracts must be submitted on or before October 25, 2025.</li>
+                        </ul>
+
+                        <p class="span-text mt-4">Please Note</p>
+                        <p>Scientific Topics are open to all Obstetricians and Gynecologists related topics Abstracts must
+                            contain
+                            original scientific data collected by the author(s). All reports must be based on work that has
+                            already
+                            been completed. No studies "in progress" will be accepted. Any established research design or
+                            method may
+                            be used.</p>
+
+                        <p class="span-text mt-4">Selection Criteria</p>
+                        <p>Abstracts will be evaluated through a blind review process and scored based upon the following
+                            criteria
+                            to be selected for Oral (8 minutes), Poster, Oral and Poster Presentation:</p>
+                        <ul class="payment-list">
+                            <li>Originality</li>
+                            <li>Concept and Design</li>
+                            <li>Presentation</li>
+                            <li>Clinical Applicability</li>
+                            <li>Limited to twelve words (exceeding titles will be edited).</li>
+                            <li>Any graphs, charts, diagrams, photos or other forms of display of results can be uploaded in
+                                word file
+                                format.</li>
+                        </ul> --}}
+                        {!! $submissionSetting->abstract_guidelines !!}
+                    </div>
+
+
+                    <div class="tab-pane fade" id="travel" role="tabpanel"
+                        style="background-color: #F1F4FC; padding: 40px; border-radius: 20px;">
+                        <h2 class="section-title">Accommodation Partner</h2>
+                        <p class="span-text mt-4">Accommodation</p>
+                        {{-- <p>To receive the conference discount, please use the booking code: SAFOGCON 2025 when making your
+                            reservation.</p>
+                        <p>Note: Discounts will not be applied to online bookings made through international or third-party
+                            apps/websites.</p> --}}
+
+                        <div class="row g-4">
+                            @foreach ($hotels as $hotel)
+                                <div class="col-md-4">
+                                    <div class="accom-card p-3 rounded-4 shadow-sm d-flex flex-column">
+                                        <img src="{{ Storage::url('hotel/cover-image/' . $hotel->cover_image) }}"
+                                            alt="{{ $hotel->name }}" class="accom-img mb-3">
+                                        <div class="d-flex justify-content-between align-items-start">
+                                            <div>
+                                                <h6 class="card-title">{{ $hotel->name }}</h6>
+                                                <small class="text-muted">{{ $hotel->address }}</small>
+                                            </div>
+                                            <a href="AccomadationDetail.html" class="default-btn">
+                                                <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            @endforeach
+
+                            {{-- <div class="col-md-4">
+                                <div class="accom-card p-3 rounded-4 shadow-sm d-flex flex-column">
+                                    <img src="assets/img/venue2.png" alt="Holiday Inn Resort" class="accom-img mb-3">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div>
+                                            <h6 class="card-title">Holiday Inn Resort</h6>
+                                            <small class="text-muted">Budhanilkantha, Kathmandu, Nepal</small>
+                                        </div>
+                                        <a href="AccomadationDetail.html" class="default-btn">
+                                            <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-4">
+                                <div class="accom-card p-3 rounded-4 shadow-sm d-flex flex-column">
+                                    <img src="assets/img/venue3.jpg" alt="Lemon Tree Premier" class="accom-img mb-3">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div>
+                                            <h6 class="card-title">Lemon Tree Premier</h6>
+                                            <small class="text-muted">Budhanilkantha, Kathmandu, Nepal</small>
+                                        </div>
+                                        <a href="AccomadationDetail.html" class="default-btn">
+                                            <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-4">
+                                <div class="accom-card p-3 rounded-4 shadow-sm d-flex flex-column">
+                                    <img src="assets/img/parbera.jpg" alt="Parbera Heritage Resort"
+                                        class="accom-img mb-3">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div>
+                                            <h6 class="card-title">Parbera Heritage Resort</h6>
+                                            <small class="text-muted">Budhanilkantha, Kathmandu, Nepal</small>
+                                        </div>
+                                        <a href="Acomandationdetails.html" class="default-btn">
+                                            <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div> --}}
+                        </div>
+                    </div>
+
+                    <div class="tab-pane fade" id="sponsors" role="tabpanel"
+                        style="background-color: #F1F4FC; padding: 40px; border-radius: 20px;">
+                        <h2 class="section-title">Sponsors</h2>
+                        <p class="span-text mt-4">Our Financial Partners</p>
+                        <p>Experience premium comfort during your stay at our partner hotel, specially selected for NESOG
+                            conference
+                            participants.</p>
+
+                        @foreach ($sponsorCategories as $sponsorCategory)
+                            <h4 class="sponsor-type mb-3 mt-5">{{ $sponsorCategory->category_name }}</h4>
+                            @foreach ($sponsorCategory->sponsors as $sponsor)
+                                <div class="row g-4 mb-2">
+                                    <div class="col-lg-4 col-md-6">
+                                        <div class="sponsor-card p-3 text-center rounded-4 shadow-sm">
+                                            <div class="sponsor-logo mb-2">
+                                                <img src="{{ Storage::url('sponsor/logo/' . $sponsor->logo) }}"
+                                                    alt="Yetichem" class="logo-img">
+                                            </div>
+                                            <h6 class="sponsor-name mb-0">{{ $sponsor->name }}</h6>
+                                        </div>
+                                    </div>
+                                </div>
+                            @endforeach
+                        @endforeach
+
+                        {{-- <h4 class="sponsor-type mb-3 mt-5">Platinum</h4>
+                        <div class="row g-4 mb-4">
+                            <div class="col-lg-4 col-md-6">
+                                <div class="sponsor-card p-3 text-center rounded-4 shadow-sm">
+                                    <div class="sponsor-logo mb-2">
+                                        <img src="assets/img/sponser1.png" alt="DKM Pharmaceuticals" class="logo-img"
+                                            style="border-radius: 60px;">
+                                    </div>
+                                    <h6 class="sponsor-name mb-0">DKM Pharmaceuticals Pvt. Ltd.</h6>
+                                </div>
+                            </div>
+                            <div class="col-lg-4 col-md-6">
+                                <div class="sponsor-card p-3 text-center rounded-4 shadow-sm">
+                                    <div class="sponsor-logo mb-2">
+                                        <img src="assets/img/sponser.2.png" alt="Rishav Group" class="logo-img"
+                                            style="border-radius: 80px;">
+                                    </div>
+                                    <h6 class="sponsor-name mb-0">Rishav Group of Company Pvt.Ltd</h6>
+                                </div>
+                            </div>
+                        </div> --}}
+                    </div>
+
+                    <div class="tab-pane fade" id="downloads" role="tabpanel"
+                        style="background-color: #F1F4FC; padding: 40px; border-radius: 20px;">
+                        <h2 class="section-title">Downloads</h2>
+                        <p class="span-text mt-4">Conference Materials</p>
+                        <div class="download-section mt-5">
+                            @foreach ($downloads as $download)
+                                @php
+                                    // Extract file extension
+                                    $extension = strtolower(pathinfo($download->file, PATHINFO_EXTENSION));
+
+                                    // Determine icon and file type label
+                                    switch ($extension) {
+                                        case 'pdf':
+                                            $icon = 'fa-file-pdf';
+                                            $type = 'PDF';
+                                            break;
+                                        case 'doc':
+                                        case 'docx':
+                                            $icon = 'fa-file-word';
+                                            $type = 'Word Document';
+                                            break;
+                                        case 'jpg':
+                                        case 'jpeg':
+                                        case 'png':
+                                            $icon = 'fa-file-image';
+                                            $type = 'Image';
+                                            break;
+                                        default:
+                                            $icon = 'fa-file';
+                                            $type = strtoupper($extension);
+                                            break;
+                                    }
+                                @endphp
+
+                                <div class="download-item mb-2">
+                                    <span class="download-title">{{ $download->title ?? 'Conference File' }}
+                                        ({{ $type }})
+                                    </span>
+                                    <a href="{{ Storage::url('download/file/' . $download->file) }}" download
+                                        class="download-btn">
+                                        <i class="fa-solid {{ $icon }}"></i> Download
+                                    </a>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+
+
+                    <div class="tab-pane fade" id="contact" role="tabpanel"
+                        style="background-color: #F1F4FC; padding: 40px; border-radius: 20px;">
+                        <h2 class="section-title">Contact Information</h2>
+                        <p class="span-text mt-4">Contact Our Event Manager</p>
+                        <div class="contact-section">
+                            <p class="contact-manager mb-3 mt-5">
+                                {{ $conference->ConferenceOrganizer->organizer_contact_person }}</p>
+                            <p class="contact-info mb-2">
+                                <i class="fa-solid fa-phone me-2"></i>
+                                <strong>Phone:</strong> {{ $conference->ConferenceOrganizer->organizer_phone_number }}
+                                <span class="text-muted">(Available on WhatsApp and Viber)</span>
+                            </p>
+                            <p class="contact-info mb-0">
+                                <i class="fa-solid fa-envelope me-2"></i>
+                                <strong>Email:</strong> <a
+                                    href="mailto:{{ $conference->ConferenceOrganizer->organizer_email }}">{{ $conference->ConferenceOrganizer->organizer_email }}</a>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+
+                <div class="payment-box p-3 rounded-4 text-center d-lg-none mt-4">
+                    <h4 class="box-title">Payment Methods</h4>
+                    <h6 class="mb-2 fw-600">For International Delegates</h6>
+                    <div class="d-flex justify-content-between align-items-center mb-3 payment-logos">
+                        <div class="logo-item"><img src="{{ asset('frontend/assets/img/international_delegate_1.png') }}"
+                                alt="Visa" class="logo-img"></div>
+                        <div class="logo-item"><img src="{{ asset('frontend/assets/img/international_delegate_2.png') }}"
+                                alt="Mastercard" class="logo-img">
+                        </div>
+                        <div class="logo-item"><img src="{{ asset('frontend/assets/img/international_delegate_3.png') }}"
+                                alt="PayPal" class="logo-img">
+                        </div>
+                        <div class="logo-item"><img src="{{ asset('frontend/assets/img/international_delegate_4.png') }}"
+                                alt="Amex" class="logo-img"></div>
+                    </div>
+                    <h6 class="mb-2 fw-600">For Indian Delegates</h6>
+                    <div class="d-flex justify-content-between align-items-center mb-3 payment-logos">
+                        <div class="logo-item"><img src="{{ asset('frontend/assets/img/international_delegate_4.png') }}"
+                                alt="Payment Method 1" class="logo-img"></div>
+                        <div class="logo-item"><img src="{{ asset('frontend/assets/img/international_delegate_2.png') }}"
+                                alt="Payment Method 2" class="logo-img"></div>
+                        <div class="logo-item"><img src="{{ asset('frontend/assets/img/international_delegate_3.png') }}"
+                                alt="Payment Method 3" class="logo-img"></div>
+                    </div>
+                    <h6 class="mb-2 fw-600">For Nepali Delegates</h6>
+                    <div class="d-flex justify-content-between align-items-center payment-logos">
+                        <div class="logo-item"><img src="{{ asset('frontend/assets/img/international_delegate_3.png') }}"
+                                alt="eSewa" class="logo-img">
+                        </div>
+                        <div class="logo-item"><img src="{{ asset('frontend/assets/img/international_delegate_1.png') }}"
+                                alt="Khalti" class="logo-img">
+                        </div>
+                        <div class="logo-item"><img src="{{ asset('frontend/assets/img/international_delegate_4.png') }}"
+                                alt="Bank Transfer" class="logo-img"></div>
+                    </div>
+                </div>
+
+
+                <section class="mt-5">
+                    <h3 class="section-title">Registration Fee Structure</h3>
+                    <div class="table-responsive mt-4">
+                        <table class="table table-bordered text-center align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th scope="col">Description</th>
+                                    <th scope="col">Early Bird (till
+                                        {{ \Carbon\Carbon::parse($conference->early_bird_registration_deadline)->format('F j') }})
+                                    </th>
+                                    <th scope="col">Regular</th>
+                                    <th scope="col">Spot Registration</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach ($memberTypes as $memberType)
+                                    <tr>
+                                        <td>{{ $memberType->type }}
+                                            {{ $memberType->delegate == 1 ? '(Nepal)' : '(International)' }}</td>
+                                        <td>{{ $memberType->early_bird_amount ?? 'N/A' }}
+                                            {{ $memberType->delegate == 1 ? '(NRs)' : '(USD)' }}</td>
+                                        <td>{{ $memberType->regular_amount ?? 'N/A' }}
+                                            {{ $memberType->delegate == 1 ? '(NRs)' : '(USD)' }}</td>
+                                        <td>{{ $memberType->on_site_amount ?? 'N/A' }}
+                                            {{ $memberType->delegate == 1 ? '(NRs)' : '(USD)' }}</td>
+                                    </tr>
+                                @endforeach
+                                {{-- <tr>
+                                    <td>International Participants</td>
+                                    <td>150 USD</td>
+                                    <td>170 USD</td>
+                                    <td>190 USD</td>
+                                </tr> --}}
+                            </tbody>
+                        </table>
+                    </div>
+                    <p class="span-text mt-3">Payment Instructions</p>
+                    <ul class="payment-list">
+                        <li>Local payments in NPR through Nepali payment gateways.</li>
+                        <li>International payment in USD through International gateways.</li>
+                        <li>Early registration recommended for all participants till:
+                            {{ \Carbon\Carbon::parse($conference->early_bird_registration_deadline)->format('F j, Y') }}.
+                        </li>
+                        <li>Payments will be accessible as soon as registration starts.</li>
+                    </ul>
+
+                    <h3 class="section-title mb-4 mt-5">Frequently Asked Questions</h3>
+                    <div class="accordion" id="faqAccordion">
+                        @foreach ($faqs as $index => $faq)
+                            <div class="accordion-item">
+                                <h2 class="accordion-header" id="faqHeading{{ $index }}">
+                                    <button class="accordion-button {{ $index !== 0 ? 'collapsed' : '' }}" type="button"
+                                        data-bs-toggle="collapse" data-bs-target="#faqCollapse{{ $index }}"
+                                        aria-expanded="{{ $index === 0 ? 'true' : 'false' }}"
+                                        aria-controls="faqCollapse{{ $index }}">
+                                        {{ $faq->question }}
+                                    </button>
+                                </h2>
+                                <div id="faqCollapse{{ $index }}"
+                                    class="accordion-collapse collapse {{ $index === 0 ? 'show' : '' }}"
+                                    aria-labelledby="faqHeading{{ $index }}" data-bs-parent="#faqAccordion">
+                                    <div class="accordion-body">
+                                        {!! $faq->answer !!}
+                                    </div>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+
+                </section>
+            </main>
+        </div>
+    </section>
+    <button class="mobile-menu-btn" id="mobileMenuBtn">
+        <i class="fa-solid fa-bars me-2"></i> Conference Menu
+    </button>
+
+    <div class="mobile-sidebar" id="mobileSidebar">
+        <button class="close-sidebar" id="closeSidebar">
+            <i class="fa-solid fa-times"></i>
+        </button>
+
+        <div class="nav flex-column nav-pills mb-4" id="mobileSafogTabs" role="tablist" aria-orientation="vertical">
+            <button class="nav-link active d-flex align-items-center mobile-tab-link" data-bs-target="#overview"
+                type="button">
+                <i class="fa-solid fa-circle-info me-2"></i>
+                <span>Overview</span>
+            </button>
+            <button class="nav-link d-flex align-items-center mobile-tab-link" data-bs-target="#abstract" type="button">
+                <i class="fa-regular fa-file-lines me-2"></i>
+                <span>Abstract Submission</span>
+            </button>
+            <button class="nav-link d-flex align-items-center mobile-tab-link" data-bs-target="#travel" type="button">
+                <i class="fa-regular fa-building me-2"></i>
+                <span>Travel & Accommodation</span>
+            </button>
+            <button class="nav-link d-flex align-items-center mobile-tab-link" data-bs-target="#sponsors" type="button">
+                <i class="fa-regular fa-handshake me-2"></i>
+                <span>Sponsors</span>
+            </button>
+            <button class="nav-link d-flex align-items-center mobile-tab-link" data-bs-target="#downloads"
+                type="button">
+                <i class="fa-solid fa-download me-2"></i>
+                <span>Downloads</span>
+            </button>
+            <button class="nav-link d-flex align-items-center mobile-tab-link" data-bs-target="#contact" type="button">
+                <i class="fa-regular fa-message me-2"></i>
+                <span>Contact Information</span>
+            </button>
+        </div>
+    </div>
+
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+    <div class="td_height_60 td_height_lg_60"></div>
+@endsection

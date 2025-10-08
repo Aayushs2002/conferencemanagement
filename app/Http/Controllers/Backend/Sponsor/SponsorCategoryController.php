@@ -17,24 +17,6 @@ class SponsorCategoryController extends Controller
      */
     public function index($society, $conference)
     {
-        // $societyDetail = society_detail();
-
-        // if (is_super_admin() && empty($societyDetail)) {
-        //     return redirect()->route('dashboard');
-        // }
-        // if (is_society_admin()) {
-        //     $categories = SponsorCategory::where([
-        //         'society_id' => current_user()->societies->value('id'),
-        //         'status' => 1
-        //     ])->latest()->get();
-        // } elseif (is_super_admin()) {
-        //     $categories = SponsorCategory::where([
-        //         'society_id' => $societyDetail->id,
-        //         'status' => 1
-        //     ])->latest()->get();
-        // } else {
-        //     return redirect()->route('dashboard');
-        // }
         $categories = SponsorCategory::where([
             'society_id' => $society->id,
             'status' => 1

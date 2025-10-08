@@ -45,7 +45,6 @@ class ConferenceRegistrationController extends Controller
                 $amount = !empty($memberTypePrice->regular_amount) ? $memberTypePrice->regular_amount : '';
             }
         }
-        // dd($amount);
         $national_payemnt_setting = NationalPayment::where('society_id', $conference->society_id)->first();
         $international_payemnt_setting = InternationalPayment::where('society_id', $conference->society_id)->first();
         $workshops = Workshop::with(['registrations' => function ($q) {

@@ -36,9 +36,7 @@ class SubmissionController extends Controller
                     ->where('expert_id', current_user()->id);
             })
             ->get();
-        // dd($submissions,current_user());    
         $submissionSetting = SubmissionSetting::where('conference_id', $conference->id)->first();
-        // dd($submissionSetting);
         return view('backend.participant.submission.index', compact('conference', 'submissions', 'society', 'submissionSetting'));
     }
 
@@ -85,9 +83,7 @@ class SubmissionController extends Controller
             if (!empty($validated['image'])) {
                 $validated['image'] = $this->file_service->fileUpload($validated['image'], 'diagram', 'participant/submission/image');
             }
-            // dd('ad');
             $authUser = User::whereId(current_user()->id)->first();
-            // dd($authUser);
             $validated['user_id'] = current_user()->id;
             $validated['conference_id'] = $conference->id;
             $validated['submitted_date'] = now();
@@ -128,12 +124,9 @@ class SubmissionController extends Controller
 
             $subject = parseTemplate($template?->subject, $data);
             $body = parseTemplate($template?->body, $data);
-            // dd(current_user()->fullName(current_user()));
             Mail::to($authUser->email)->send(new SubmissionSubmittedToUserMail($userMailData, $subject, $body));
             DB::beginTransaction();
-            // dd(current_user()->userDetail->phone);
             $submission = Submission::create($validated);
-            // dd('da');
             $validated['submission_id'] = $submission->id;
             $validated['name'] = current_user()->fullName(current_user());
             $validated['email'] = current_user()->email;
@@ -155,7 +148,6 @@ class SubmissionController extends Controller
 
     public function view(Request $request, $society, $conference)
     {
-        // dd($request->all());
         $submission = Submission::whereId($request->id)->first();
         return view('backend.participant.submission.view', compact('submission'));
     }
@@ -180,12 +172,9 @@ class SubmissionController extends Controller
     {
         try {
             $validated = $request->all();
-            // dd($validated);
             $setting = SubmissionSetting::where('conference_id', $conference->id)->select('abstract_word_limit', 'key_word_limit')->first();
-            // dd('ad');
             if (!empty($validated['keywords']) && !empty($setting->key_word_limit)) {
                 $keywordsCount = count(explode(',', $request->keywords));
-                // dd($validated['keywords']);
                 if ($keywordsCount > $setting->key_word_limit) {
                     return redirect()->back()->withInput()->with('delete', 'Keywords word limit exceeded.');
                 }
@@ -205,12 +194,7 @@ class SubmissionController extends Controller
                 $validated['image'] = $this->file_service->fileUpload($validated['image'], 'diagram', 'participant/submission/image');
             }
 
-            // $validated['user_id'] = current_user()->id;
-            // $validated['conference_id'] = $conference->id;
-            // $validated['submitted_date'] = now();
-
             DB::beginTransaction();
-            // dd(current_user()->userDetail->phone);
             $submission->update($validated);
 
             DB::commit();
@@ -218,7 +202,6 @@ class SubmissionController extends Controller
         } catch (\Exception $th) {
             DB::rollBack();
 
-            dd($th);
         }
     }
 
@@ -349,6 +332,5 @@ class SubmissionController extends Controller
         if ($request->input('confirmation') == 'no') {
             return redirect()->back()->with('delete', 'Presentation type changed Rejected.');
         }
-        // $submission->update(['presentation_type' => $newValue]);
     }
 }

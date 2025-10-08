@@ -13,8 +13,8 @@ class CommitteeDesignation extends Model
         'status'
     ];
 
-    // public function committeeMembers()
-    // {
-    //     return $this->hasMany(CommitteeMember::class, 'designation_id', 'id');
-    // }
+    public function committeeMembers()
+    {
+        return $this->hasMany(CommitteeMember::class, 'designation_id', 'id');
+    }
 }

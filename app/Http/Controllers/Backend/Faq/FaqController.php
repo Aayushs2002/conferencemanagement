@@ -18,11 +18,6 @@ class FaqController extends Controller
      */
     public function index($society, $conference)
     {
-        // $conferenceDetail = conference_detail();
-
-        // if (empty($conferenceDetail)) {
-        //     return redirect()->route('dashboard');
-        // }
         $faqs = Faq::where(['conference_id' => $conference->id, 'status' => 1])->get();
         return view('backend.faq.faq.index', compact('faqs', 'society', 'conference'));
     }
@@ -32,20 +27,6 @@ class FaqController extends Controller
      */
     public function create($society, $conference)
     {
-        // $societyDetail = society_detail();
-
-        // if (is_super_admin() && empty($societyDetail)) {
-        //     return redirect()->route('dashboard');
-        // }
-        // if (is_society_admin()) {
-        //     $faq_categories = FaqCategory::where([
-        //         'society_id' => current_user()->societies->value('id'),
-        //         'status' => 1
-        //     ])->latest()->get();
-        // } elseif (is_super_admin()) {
-        // } else {
-        //     return redirect()->route('dashboard');
-        // }
         $faq_categories = FaqCategory::where([
             'society_id' => $society->id,
             'status' => 1
@@ -84,24 +65,6 @@ class FaqController extends Controller
      */
     public function edit($society, $conference, Faq $faq)
     {
-        // $societyDetail = society_detail();
-
-        // if (is_super_admin() && empty($societyDetail)) {
-        //     return redirect()->route('dashboard');
-        // }
-        // if (is_society_admin()) {
-        //     $faq_categories = FaqCategory::where([
-        //         'society_id' => current_user()->societies->value('id'),
-        //         'status' => 1
-        //     ])->latest()->get();
-        // } elseif (is_super_admin()) {
-        //     $faq_categories = FaqCategory::where([
-        //         'society_id' => $societyDetail->id,
-        //         'status' => 1
-        //     ])->latest()->get();
-        // } else {
-        //     return redirect()->route('dashboard');
-        // }
         $this->authorize('edit', $faq);
         $faq_categories = FaqCategory::where([
             'society_id' => $society->id,

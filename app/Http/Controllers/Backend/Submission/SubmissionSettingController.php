@@ -15,14 +15,7 @@ class SubmissionSettingController extends Controller
 
     public function index(Request $request, $society, $conference)
     { 
-        // $conferenceDetail = conference_detail();
-
-        // if (empty($conferenceDetail)) {
-        //     return redirect()->route('dashboard');
-        // }
-
         $conference = Conference::where(['id' => $conference->id, 'status' => 1])->first();
-        // dd($conference);
         return view('backend.submission.submission-setting.index', compact('conference', 'society'));
     }
 

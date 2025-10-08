@@ -2,7 +2,7 @@
 
 use App\Http\Controllers\Backend\Accommodation\HotelController;
 use App\Http\Controllers\Backend\Ckeditor\CkeditorController;
-use App\Http\Controllers\Backend\Cms\BlogController;
+use App\Http\Controllers\Backend\Cms\BlogController as CmsBlogController;
 use App\Http\Controllers\Backend\Cms\FeatureController;
 use App\Http\Controllers\Backend\Cms\PageController;
 use App\Http\Controllers\Backend\Cms\TestimonialController;
@@ -12,8 +12,21 @@ use App\Http\Controllers\Backend\Setting\SecurityController;
 use App\Http\Controllers\Backend\User\UserController;
 use App\Http\Controllers\Backend\UserManagement\PermissionController;
 use App\Http\Controllers\CommonController;
+use App\Http\Controllers\Frontend\Conference\AuthController;
+use App\Http\Controllers\Frontend\Conference\CommitteController;
+use App\Http\Controllers\Frontend\Conference\HomeController as ConferenceHomeController;
+use App\Http\Controllers\Frontend\Conference\NewsAndNoticeController;
+use App\Http\Controllers\Frontend\Conference\ScientificSessionController;
+use App\Http\Controllers\Frontend\Conference\SpeakerController;
+use App\Http\Controllers\Frontend\Conference\WorkshopController;
+use App\Http\Controllers\Frontend\MainPage\AboutUsController;
+use App\Http\Controllers\Frontend\MainPage\BlogController;
+use App\Http\Controllers\Frontend\MainPage\ConferenceController;
+use App\Http\Controllers\Frontend\MainPage\ContactController;
+use App\Http\Controllers\Frontend\MainPage\HomeController;
+use App\Http\Controllers\Frontend\MainPage\OurClientController;
+use App\Http\Controllers\Frontend\MainPage\SolutionController;
 use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\SocietyController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -24,9 +37,9 @@ foreach (glob(__DIR__ . '/web/*.php') as $file) {
     require $file;
 }
 
-Route::get('/', function () {
-    return redirect()->route('login');
-});
+// Route::get('/', function () {
+//     return redirect()->route('login');
+// });
 //dashboard route
 Route::middleware('auth', 'verified')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
@@ -67,9 +80,36 @@ Route::middleware('auth')->group(function () {
     Route::post('password-change', [SecurityController::class, 'passwordChange'])->name('security.password-change');
 
 
-    Route::resource('/cms/blog', BlogController::class)->middleware('check.superadmin')->except('show');
+    Route::resource('/cms/blog', CmsBlogController::class)->middleware('check.superadmin')->except('show');
     Route::resource('/cms/feature', FeatureController::class)->middleware('check.superadmin')->except('show');
     Route::resource('/cms/testimonial', TestimonialController::class)->middleware('check.superadmin')->except('show');
     Route::resource('/cms/page', PageController::class)->middleware('check.superadmin')->except('show');
     Route::resource('/cms/why-choose-us', WhyChooseUsController::class)->middleware('check.superadmin')->except('show');
 });
+
+
+//====================================================== Frontend Route Started=====================================================================================
+
+Route::get('/', [HomeController::class, 'index'])->name('home');
+Route::get('/about-us', [AboutUsController::class, 'index'])->name('about-us');
+Route::get('/solution', [SolutionController::class, 'index'])->name('solution');
+Route::get('/our-client', [OurClientController::class, 'index'])->name('our-client');
+Route::get('/our-client/{society_front:slug}', [OurClientController::class, 'detail'])->name('our-client.detail');
+Route::get('/blog', [BlogController::class, 'index'])->name('blog');
+Route::get('blog/{blog:slug}', [BlogController::class, 'singlePage'])->name('blog.single-page');
+Route::get('/contact-us', [ContactController::class, 'index'])->name('contact-us');
+Route::get('/conference', [ConferenceController::class, 'index'])->name('conference');
+Route::get('/conference-filter', [ConferenceController::class, 'filter'])->name('conference.filter');
+
+Route::prefix('conference/{conference_front:slug}')
+    ->as('conference.')
+    ->group(function () {
+        Route::get('/', [ConferenceHomeController::class, 'index'])->name('name');
+        Route::get('/speaker', [SpeakerController::class, 'index'])->name('speaker');
+        Route::get('/committe', [CommitteController::class, 'index'])->name('committe');
+        Route::get('/workshop', [WorkshopController::class, 'index'])->name('workshop');
+        Route::get('/workshop/{workshop_front:slug}', [WorkshopController::class, 'singlePage'])->name('workshop.singlePage');
+        Route::get('/scientific-session', [ScientificSessionController::class, 'index'])->name('scientific-session');
+        Route::get('/news-and-notice', [NewsAndNoticeController::class, 'index'])->name('news-and-notice');
+        Route::get('/register', [AuthController::class, 'register'])->name('register');
+    });

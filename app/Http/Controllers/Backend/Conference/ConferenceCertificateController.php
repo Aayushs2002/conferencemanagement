@@ -161,8 +161,6 @@ class ConferenceCertificateController extends Controller
 
     public function deleteImage(ConferenceCertificate $conferenceCertificate, $signature)
     {
-        // dd($conferenceCertificate, $signature);
-        // dd('da');
         $this->file_service->deleteFile($signature, 'conference/conference/certificate/signature/');
 
         $images = $conferenceCertificate->signature;

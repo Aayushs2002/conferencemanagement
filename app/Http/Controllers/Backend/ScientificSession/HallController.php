@@ -16,12 +16,6 @@ class HallController extends Controller
      */
     public function index($society, $conference)
     {
-        // $conferenceDetail = conference_detail();
-
-        // if (empty($conferenceDetail)) {
-        //     return redirect()->route('dashboard');
-        // }
-
         $halls = Hall::where(['conference_id' => $conference->id, 'status' => 1])->get();
         return view('backend.schedule-plan.hall.index', compact('halls', 'society', 'conference'));
     }
@@ -31,11 +25,6 @@ class HallController extends Controller
      */
     public function create($society, $conference)
     {
-        // $conferenceDetail = conference_detail();
-
-        // if (empty($conferenceDetail)) {
-        //     return redirect()->route('dashboard');
-        // }
 
         return view('backend.schedule-plan.hall.create', compact('society', 'conference'));
     }

@@ -48,9 +48,6 @@ class WorkshopTrainerController extends Controller
             $validated['token'] = random_word(60);
             $validated['verified_status'] = 1;
 
-            // $validated['image'] = $this->fileService->fileUpload($validated['image'], 'trainer_image', 'workshop/trainers/image');
-            // $validated['cv'] = $this->fileService->fileUpload($validated['cv'], 'trainer_cv', 'workshop/trainers/cv');
-
             WorkshopRegistration::create($validated);
 
             return redirect()->route('workshop.workshop-trainer.index', [$society, $conference, $workshop])->with('status', 'Trainer Added Successfully');
@@ -86,16 +83,6 @@ class WorkshopTrainerController extends Controller
             $validated['registrant_type'] = 2;
 
             $workshop = Workshop::where('id', $validated['workshop_id'])->first();
-
-            // if (!empty($validated['image'])) {
-            //     $this->fileService->deleteFile($trainer->image, 'workshop/trainers/image');
-            //     $validated['image'] = $this->fileService->fileUpload($validated['image'], 'trainer_image', 'workshop/trainers/image');
-            // }
-
-            // if (!empty($validated['cv'])) {
-            //     $this->fileService->deleteFile($trainer->cv, 'workshop/trainers/cv');
-            //     $validated['cv'] = $this->fileService->fileUpload($validated['cv'], 'trainer_cv', 'workshop/trainers/cv');
-            // }
 
             $trainer->update($validated);
 

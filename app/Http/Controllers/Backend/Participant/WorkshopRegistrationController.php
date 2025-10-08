@@ -24,7 +24,6 @@ class WorkshopRegistrationController extends Controller
 
     public function index($society, $conference)
     {
-        // dd(current_user()->id);
         $checkPayment = null;
 
         $workshops = Workshop::where([
@@ -64,7 +63,6 @@ class WorkshopRegistrationController extends Controller
             ];
 
             $validated = $request->validate($rules);
-            // $validated['payment_voucher'] = 'Fone-Pay';
             $authUser = current_user();
             $validated['user_id'] = current_user()->id;
             $validated['token'] = random_word(60);
@@ -119,14 +117,12 @@ class WorkshopRegistrationController extends Controller
 
             return redirect()->route('my-society.conference.workshop.index', [$society, $conference])->with('status', 'Successfully registered for workshop.');
         } catch (Exception $e) {
-            // dd($e);
             return redirect()->back()->with('delete', 'Error while registering for workshop.');
         }
     }
 
     public function store(Request $request, $society, $conference, $workshop)
     {
-        // dd($request->all(),$workshop);
         $rules = [
             'transaction_id' => 'required|unique:workshop_registrations,transaction_id',
             'payment_voucher' => 'required',
@@ -149,7 +145,6 @@ class WorkshopRegistrationController extends Controller
             $validated['workshop_id'] = $workshop->id;
             $validated['amount'] = $request->price;
             $date = \Carbon\Carbon::now()->format('F j, Y');
-            // $workshop = Workshop::whereId($workshop->workshop_id)->first();
             $conferenceSetting = ConferenceSetting::where('conference_id', $conference->id)->first();
             $workshopData = null;
             $workshopData[] = [

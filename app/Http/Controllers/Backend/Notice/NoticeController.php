@@ -19,11 +19,6 @@ class NoticeController extends Controller
 
     public function index($society, $conference)
     {
-        // $conferenceDetail = conference_detail();
-
-        // if (empty($conferenceDetail)) {
-        //     return redirect()->route('dashboard');
-        // }
         $notices = Notice::where(['conference_id' => $conference->id, 'status' => 1])->get();
         return view('backend.notice.index', compact('notices', 'society', 'conference'));
     }

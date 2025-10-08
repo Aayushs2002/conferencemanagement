@@ -17,9 +17,7 @@ class EmailTemplateController extends Controller
      */
     public function index($society, $conference)
     {
-        // dd($conference);
         $email_templates = EmailTemplate::where('conference_id', $conference->id)->get();
-        // dd($email_templates);
         return view('backend.template.email-template.index', compact('society', 'conference', 'email_templates'));
     }
 

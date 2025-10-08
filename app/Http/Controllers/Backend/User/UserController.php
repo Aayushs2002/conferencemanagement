@@ -51,7 +51,6 @@ class UserController extends Controller
 
     public function joinSocietySubmit(Request $request)
     {
-        // dd($request->all());
         try {
             $validator = Validator::make($request->all(), [
                 'society_id' => 'required',
@@ -116,7 +115,6 @@ class UserController extends Controller
             DB::commit();
             return redirect()->back()->with('status', 'User Successfully Deleted.');
         } catch (\Exception $e) {
-            dd($e);
             DB::rollBack();
             return redirect()->back()->with('delete', 'Internal Server Error.');
         }

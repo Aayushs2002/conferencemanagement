@@ -426,10 +426,6 @@ class ConferenceRegistrationController extends Controller
 
     public function registrationOrInvitation($society, $conference)
     {
-        // $conferenceDetail = conference_detail();
-        // if (empty($conferenceDetail)) {
-        //     return redirect()->route('dashboard');
-        // }
         $prefixesAll = NamePrefix::whereStatus(1)->get();
         $conferenceAddons = ConferenceAddon::where('conference_id', $conference->id)->get();
 
