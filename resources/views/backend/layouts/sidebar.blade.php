@@ -70,6 +70,12 @@
             </li>
         @endif
         @if (is_super_admin())
+            <li class="menu-item {{ request()->segment(1) == 'contact' ? 'active' : '' }}">
+                <a href="{{ route('contact.index') }}" class="menu-link ">
+                    <i class="menu-icon icon-base ti tabler-label"></i>
+                    <div data-i18n="Contact">Contact</div>
+                </a>
+            </li>
             <li class="menu-item {{ request()->segment(1) == 'cms' ? 'active open' : '' }}">
                 <a href="javascript:void(0);" class="menu-link menu-toggle">
                     <i class="menu-icon icon-base ti tabler-brand-pagekit"></i>

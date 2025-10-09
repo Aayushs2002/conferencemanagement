@@ -7,6 +7,7 @@ use App\Http\Controllers\Backend\Cms\FeatureController;
 use App\Http\Controllers\Backend\Cms\PageController;
 use App\Http\Controllers\Backend\Cms\TestimonialController;
 use App\Http\Controllers\Backend\Cms\WhyChooseUsController;
+use App\Http\Controllers\Backend\Contact\ContactController as ContactContactController;
 use App\Http\Controllers\Backend\Dashboard\DashboardController;
 use App\Http\Controllers\Backend\Setting\SecurityController;
 use App\Http\Controllers\Backend\User\UserController;
@@ -85,6 +86,9 @@ Route::middleware('auth')->group(function () {
     Route::resource('/cms/testimonial', TestimonialController::class)->middleware('check.superadmin')->except('show');
     Route::resource('/cms/page', PageController::class)->middleware('check.superadmin')->except('show');
     Route::resource('/cms/why-choose-us', WhyChooseUsController::class)->middleware('check.superadmin')->except('show');
+    Route::get('/contact', [ContactContactController::class, 'index'])->middleware('check.superadmin')->name('contact.index');
+    Route::post('/contact/view-data', [ContactContactController::class, 'show'])->name('contact.show');
+    Route::delete('/contact/delete/{contact:id}', [ContactContactController::class, 'destroy'])->name('contact.destroy');
 });
 
 
@@ -98,6 +102,7 @@ Route::get('/our-client/{society_front:slug}', [OurClientController::class, 'det
 Route::get('/blog', [BlogController::class, 'index'])->name('blog');
 Route::get('blog/{blog:slug}', [BlogController::class, 'singlePage'])->name('blog.single-page');
 Route::get('/contact-us', [ContactController::class, 'index'])->name('contact-us');
+Route::post('/contact-us-store', [ContactController::class, 'store'])->name('contact-us.store');
 Route::get('/conference', [ConferenceController::class, 'index'])->name('conference');
 Route::get('/conference-filter', [ConferenceController::class, 'filter'])->name('conference.filter');
 

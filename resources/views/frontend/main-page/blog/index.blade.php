@@ -52,7 +52,7 @@
                 @foreach ($blogs as $blog)
                     <div class="col-md-4">
                         <a href="{{ route('blog.single-page', $blog->slug) }}" class="blog-link text-decoration-none">
-                            <div class="blog-card">
+                            <div class="blog-cards">
                                 <img src="{{ Storage::url('blog/image/' . $blog->image) }}" alt="{{ $blog->title }}"
                                     class="img-fluid blog-img">
                                 <div class="blog-date d-flex align-items-center mb-2">
@@ -89,8 +89,8 @@
                         <p class="blog-description">Explore how real-time analytics help organizers optimize resources,
                             boost engagement, and meas...</p>
                     </div>
-                </div> --}}
-            </div>
+                </div>
+            </div> --}}
 
             {{-- <div class="row g-4">
                 <div class="col-md-4">

@@ -421,6 +421,16 @@
             @endif
         @endif
 
+        @if (auth()->user()->hasConferencePermissionBlade($conference, 'View Official Message'))
+            <li class="menu-item {{ request()->segment(5) == 'official-message' ? 'active' : '' }}">
+                <a href="{{ route('official-message.index', [request()->segment(2), request()->segment(4)]) }}"
+                    class="menu-link ">
+                    <i class="menu-icon icon-base ti tabler-download"></i>
+                    <div data-i18n="Official Message">Official Message</div>
+                </a>
+            </li>
+        @endif
+
         @if (feature_enabled('news-and-notice-management', getSociety(request()->segment(2))))
             @if (auth()->user()->hasConferencePermissionBlade($conference, 'View News/Notice'))
                 <li class="menu-item {{ request()->segment(5) == 'notice' ? 'active' : '' }}">

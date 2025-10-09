@@ -7,7 +7,7 @@ use GuzzleHttp\Exception\GuzzleException;
 use App\Services\HBL\ActionRequest;
 use App\Services\HBL\SecurityData;
 
-class Payment extends ActionRequest
+class Refund extends ActionRequest
 {
     /**
      * @throws GuzzleException

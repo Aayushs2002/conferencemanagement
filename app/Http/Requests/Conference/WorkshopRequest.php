@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Requests\conference;
+namespace App\Http\Requests\Conference;
 
 use Illuminate\Foundation\Http\FormRequest;
 

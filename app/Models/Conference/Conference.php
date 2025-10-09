@@ -6,6 +6,7 @@ use App\Models\Accomodation\Hotel;
 use App\Models\Download\Download;
 use App\Models\SubmissionSetting;
 use App\Models\User\Society;
+use App\Models\Workshop\Workshop;
 use Illuminate\Database\Eloquent\Model;
 use Vinkla\Hashids\Facades\Hashids;
 
@@ -70,9 +71,18 @@ class Conference extends Model
     {
         return $this->hasMany(Hotel::class, 'conference_id', 'id')->where('status', 1);
     }
+    public function workshops()
+    {
+        return $this->hasMany(Workshop::class, 'conference_id', 'id');
+    }
 
     public function downloads()
     {
         return $this->hasMany(Download::class, 'conference_id', 'id')->where('status', 1);
+    }
+
+    public function officialMessages()
+    {
+        return $this->hasMany(OfficialMessage::class, 'conference_id', 'id')->where('status', 1);
     }
 }

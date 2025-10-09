@@ -56,14 +56,13 @@
 
                         <h6 class="mb-2 fw-600">For Nepali Delegates</h6>
                         <div class="d-flex justify-content-between align-items-center payment-logos">
-                            <div class="logo-item"><img
-                                    src="{{ asset('frontend/assets/img/international_delegate_3.png') }}" alt="eSewa"
-                                    class="logo-img"></div>
-                            <div class="logo-item"><img
-                                    src="{{ asset('frontend/assets/img/international_delegate_1.png') }}" alt="Khalti"
-                                    class="logo-img"></div>
-                            <div class="logo-item"><img
-                                    src="{{ asset('frontend/assets/img/international_delegate_4.png') }}"
+                            <div class="logo-item"><img src="{{ asset('frontend/assets/img/esewa-icon-large.png') }}"
+                                    alt="eSewa" class="logo-img">
+                            </div>
+                            <div class="logo-item"><img src="{{ asset('frontend/assets/img/khalti-ime-logo.png') }}"
+                                    alt="Khalti" class="logo-img">
+                            </div>
+                            <div class="logo-item"><img src="{{ asset('frontend/assets/img/logo-1 (1).png') }}"
                                     alt="Bank Transfer" class="logo-img"></div>
                         </div>
                     </div>

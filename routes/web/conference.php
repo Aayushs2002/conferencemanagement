@@ -16,6 +16,7 @@ use App\Http\Controllers\Backend\Faq\FaqCategoryController;
 use App\Http\Controllers\Backend\Faq\FaqController;
 use App\Http\Controllers\Backend\LogReport\logActivityController;
 use App\Http\Controllers\Backend\Notice\NoticeController;
+use App\Http\Controllers\Backend\OfficialMessage\OfficialMessageController;
 use App\Http\Controllers\Backend\ScientificSession\HallController;
 use App\Http\Controllers\Backend\ScientificSession\PollController;
 use App\Http\Controllers\Backend\ScientificSession\ScientificSessionCategoryController;
@@ -105,6 +106,11 @@ Route::middleware('auth')->group(function () {
 
     Route::prefix('/society/{society}/conference/{conference}/conference-registration')->middleware('auto.conf.permission')->group(function () {
         Route::resource('conference-certificate', ConferenceCertificateController::class);
+    });
+
+    //offical message
+    Route::prefix('/society/{society}/conference/{conference}/')->group(function () {
+        Route::resource('official-message', OfficialMessageController::class);
     });
 
     Route::get('/conference-certificate/{conferenceCertificate}/signature/{signature}', [ConferenceCertificateController::class, 'deleteImage'])->name('conference-certificate.signature.remove');

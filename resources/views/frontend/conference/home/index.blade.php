@@ -106,16 +106,13 @@
                         </div>
                         <h6 class="mb-2 fw-600">For Nepali Delegates</h6>
                         <div class="d-flex justify-content-between align-items-center payment-logos">
-                            <div class="logo-item"><img
-                                    src="{{ asset('frontend/assets/img/international_delegate_3.png') }}" alt="eSewa"
-                                    class="logo-img">
+                            <div class="logo-item"><img src="{{ asset('frontend/assets/img/esewa-icon-large.png') }}"
+                                    alt="eSewa" class="logo-img">
                             </div>
-                            <div class="logo-item"><img
-                                    src="{{ asset('frontend/assets/img/international_delegate_1.png') }}" alt="Khalti"
-                                    class="logo-img">
+                            <div class="logo-item"><img src="{{ asset('frontend/assets/img/khalti-ime-logo.png') }}"
+                                    alt="Khalti" class="logo-img">
                             </div>
-                            <div class="logo-item"><img
-                                    src="{{ asset('frontend/assets/img/international_delegate_4.png') }}"
+                            <div class="logo-item"><img src="{{ asset('frontend/assets/img/logo-1 (1).png') }}"
                                     alt="Bank Transfer" class="logo-img"></div>
                         </div>
                     </div>
@@ -132,20 +129,23 @@
                         <p class="span-text mt-5">About Conference</p>
                         <h2 class="section-title">Official Message</h2>
                         <div class="row mt-3 align-items-center">
-                            <div class="col-md-4">
-                                <div class="prof-card p-3 rounded-3 h-100 d-flex flex-column">
-                                    <img src="assets/img/PADAM RAJ PANT.png" alt="Prof. Padam Raj Pant"
-                                        class="profile-img mb-3">
-                                    <div class="w-100 d-flex align-items-center">
-                                        <h6 class="card-title mb-0">Prof. Padam Raj Pant</h6>
-                                        <a href="#" class="default-btn ms-auto" target="_blank">
-                                            <i class="fa-solid fa-arrow-up-right-from-square"></i>
-                                        </a>
+                            @foreach ($conference->officialMessages as $offical_message)
+                                <div class="col-md-4">
+                                    <div class="prof-card p-3 rounded-3 h-100 d-flex flex-column">
+                                        <img src="{{ Storage::url('offical-message/image/' . $offical_message->image) }}"
+                                            alt="{{ $offical_message->full_name }}" class="profile-img mb-3">
+                                        <div class="w-100 d-flex align-items-center">
+                                            <h6 class="card-title mb-0">{{ $offical_message->full_name }}</h6>
+                                            <a href="#" class="default-btn ms-auto" target="_blank">
+                                                <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                                            </a>
+                                        </div>
+                                        {{-- <small class="text-muted">Organizing Chair, SAFOG 2025<br>President, NESOG</small> --}}
+                                        <small class="text-muted">{{ $offical_message->designation }}</small>
                                     </div>
-                                    <small class="text-muted">Organizing Chair, SAFOG 2025<br>President, NESOG</small>
                                 </div>
-                            </div>
-                            <div class="col-md-4">
+                            @endforeach
+                            {{-- <div class="col-md-4">
                                 <div class="prof-card p-3 rounded-3 h-100 d-flex flex-column">
                                     <img src="assets/img/Prof. Shyam Desai.png" alt="Prof. Shyam Desai"
                                         class="profile-img mb-3">
@@ -157,7 +157,7 @@
                                     </div>
                                     <small class="text-muted">Organizing Chair, SAFOG 2025<br>President, NESOG</small>
                                 </div>
-                            </div>
+                            </div> --}}
                         </div>
                     </div>
 
@@ -449,13 +449,13 @@
                     </div>
                     <h6 class="mb-2 fw-600">For Nepali Delegates</h6>
                     <div class="d-flex justify-content-between align-items-center payment-logos">
-                        <div class="logo-item"><img src="{{ asset('frontend/assets/img/international_delegate_3.png') }}"
+                        <div class="logo-item"><img src="{{ asset('frontend/assets/img/esewa-icon-large.png') }}"
                                 alt="eSewa" class="logo-img">
                         </div>
-                        <div class="logo-item"><img src="{{ asset('frontend/assets/img/international_delegate_1.png') }}"
+                        <div class="logo-item"><img src="{{ asset('frontend/assets/img/khalti-ime-logo.png') }}"
                                 alt="Khalti" class="logo-img">
                         </div>
-                        <div class="logo-item"><img src="{{ asset('frontend/assets/img/international_delegate_4.png') }}"
+                        <div class="logo-item"><img src="{{ asset('frontend/assets/img/logo-1 (1).png') }}"
                                 alt="Bank Transfer" class="logo-img"></div>
                     </div>
                 </div>
