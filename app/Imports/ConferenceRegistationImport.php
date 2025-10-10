@@ -5,6 +5,9 @@ namespace App\Imports;
 use App\Models\Conference\ConferenceRegistration;
 use App\Models\User;
 use App\Models\User\Country;
+use App\Models\User\Department;
+use App\Models\User\Designation;
+use App\Models\User\Institution;
 use App\Models\User\MemberType;
 use App\Models\User\NamePrefix;
 use App\Models\User\UserDetail;
@@ -61,12 +64,18 @@ class ConferenceRegistationImport implements ToCollection, WithHeadingRow
             $countryId = $this->resolveId(Country::class, $row['country']);
             $genderId = $this->resolveValue($row['gender'], $this->genderMap);
             $memberTypeId = $this->resolveId(MemberType::class, $row['member_type']);
+            $designaionId = $this->resolveId(Designation::class, $row['designation']);
+            $institutionId = $this->resolveId(Institution::class, $row['institution']);
+            $departmentId = $this->resolveId(Department::class, $row['department']);
 
             $invalidFields = [];
             if (!$prefixId) $invalidFields[] = 'prefix';
             if (!$countryId) $invalidFields[] = 'country';
             if (!$genderId) $invalidFields[] = 'gender';
             if (!$memberTypeId) $invalidFields[] = 'member_type';
+            if (!$designaionId) $invalidFields[] = 'designaion';
+            if (!$institutionId) $invalidFields[] = 'institution';
+            if (!$departmentId) $invalidFields[] = 'department';
 
             if (!empty($invalidFields)) {
                 $this->log[] = [
@@ -93,6 +102,9 @@ class ConferenceRegistationImport implements ToCollection, WithHeadingRow
                     'name_prefix_id' => $prefixId,
                     'country_id' => $countryId,
                     'gender_id' => $genderId,
+                    'designation_id' => $designaionId,
+                    'department_id' => $departmentId,
+                    'institution_id' => $institutionId,
                     'phone' => $row['phone'],
                     'council_number' => $row['council_number'],
                 ]);
@@ -133,6 +145,9 @@ class ConferenceRegistationImport implements ToCollection, WithHeadingRow
         NamePrefix::class => 'prefix',
         Country::class => 'country_name',
         MemberType::class => 'type',
+        Institution::class => 'name',
+        Department::class => 'name',
+        Designation::class => 'designation',
     ];
 
     protected function resolveId($model, $value)

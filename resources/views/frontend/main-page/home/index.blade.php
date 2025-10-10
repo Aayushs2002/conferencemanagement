@@ -41,7 +41,7 @@
                         <div class="col-lg-4 col-md-6">
                             <a href="{{ route('conference.name', $conference->slug) }}"
                                 class="text-decoration-none conference-link">
-                                <div class="conference-card p-4 h-100"> 
+                                <div class="conference-card p-4 h-100">
                                     <div class="d-flex gap-2 mb-3">
                                         <img src="{{ Storage::url('society/logo/' . $conference->society->logo) }}"
                                             class="logo-img" alt="{{ $conference->conference_name }}" loading="lazy">
@@ -191,29 +191,34 @@
                         management, from planning to execution.
                     </p>
 
-                    <div id="textCarousel" class="carousel slide" data-bs-ride="carousel">
+                    <div id="textCarousel" class="carousel slide carousel-fade" data-bs-ride="carousel"
+                        data-bs-interval="3000">
                         <div class="carousel-inner">
                             @foreach ($whyChooseUs as $index => $whyChoose)
                                 <div class="carousel-item {{ $loop->first ? 'active' : '' }}">
-                                    <h3 class="carousel-title"><span class="number">{{ $loop->iteration }}.</span>
-                                        {{ $whyChoose->title }}</h3>
-                                    <p class="carousel-desc">
-                                        {!! $whyChoose->description !!}
-                                    </p>
+                                    <div class="carousel-text">
+                                        <h3 class="carousel-title">
+                                            <span class="number">{{ $loop->iteration }}.</span>
+                                            {{ $whyChoose->title }}
+                                        </h3>
+                                        <p class="carousel-desc">
+                                            {!! $whyChoose->description !!}
+                                        </p>
+                                    </div>
                                 </div>
                             @endforeach
                         </div>
                     </div>
                 </div>
 
-
                 <div class="col-lg-6 d-flex justify-content-end">
-                    <div id="imageCarousel" class="carousel slide" data-bs-ride="carousel">
+                    <div id="imageCarousel" class="carousel slide carousel-fade" data-bs-ride="carousel"
+                        data-bs-interval="3000">
                         <div class="carousel-inner">
                             @foreach ($whyChooseUs as $index => $whyChoose)
-                                <div class="carousel-item {{ $loop->first ? 'active img-fluid' : '' }}">
+                                <div class="carousel-item {{ $loop->first ? 'active' : '' }}">
                                     <img src="{{ Storage::url('whyChooseUs/image/' . $whyChoose->image) }}"
-                                        class="carousel-image img-fluid" alt="Seamless Experience">
+                                        class="carousel-image img-fluid" alt="{{ $whyChoose->title }}">
                                 </div>
                             @endforeach
                         </div>
@@ -223,14 +228,16 @@
 
             <div class="carousel-indicators-wrapper text-center mt-4">
                 <div class="carousel-indicators">
-                    <button type="button" data-bs-target="#textCarousel" data-bs-slide-to="0" class="active"
-                        aria-current="true"></button>
-                    <button type="button" data-bs-target="#textCarousel" data-bs-slide-to="1"></button>
-                    <button type="button" data-bs-target="#textCarousel" data-bs-slide-to="2"></button>
+                    @foreach ($whyChooseUs as $index => $whyChoose)
+                        <button type="button" data-bs-target="#textCarousel" data-bs-slide-to="{{ $index }}"
+                            class="{{ $loop->first ? 'active' : '' }}">
+                        </button>
+                    @endforeach
                 </div>
             </div>
         </div>
     </section>
+
 
 
     <div class="td_height_100 td_height_lg_80"></div>
@@ -305,11 +312,6 @@
                 </div>
             </div>
 
-            <div class="testimonial-nav">
-                <div class="testimonial-dot active" data-index="0"></div>
-                <div class="testimonial-dot" data-index="1"></div>
-                <div class="testimonial-dot" data-index="2"></div>
-            </div>
         </div>
     </section>
 
@@ -368,5 +370,33 @@
         </div>
     </section>
 
-    <div class="td_height_80 td_height_lg_80"></div>
+    <div class="td_height_80 td_height_lg_80"></div> 
+     <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const textCarousel = new bootstrap.Carousel('#textCarousel', {
+                interval: 3000,
+                wrap: true
+            });
+            const imageCarousel = new bootstrap.Carousel('#imageCarousel', {
+                interval: 3000,
+                wrap: true
+            });
+            const indicators = document.querySelectorAll('.carousel-indicators button');
+
+            function setActiveIndicator(index) {
+                indicators.forEach((btn, i) => btn.classList.toggle('active', i === index));
+            }
+
+            document.querySelector('#textCarousel').addEventListener('slide.bs.carousel', e => {
+                imageCarousel.to(e.to);
+                setActiveIndicator(e.to);
+            });
+
+            indicators.forEach((btn, i) => btn.addEventListener('click', () => {
+                textCarousel.to(i);
+                imageCarousel.to(i);
+                setActiveIndicator(i);
+            }));
+        });
+    </script>
 @endsection

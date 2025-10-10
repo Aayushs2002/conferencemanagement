@@ -174,34 +174,42 @@ Testimonial
 
     document.addEventListener("DOMContentLoaded", function () {
         const slider = document.querySelector(".testimonial-slider");
-        const cards = document.querySelectorAll(".testimonial-card");
+        const cards = Array.from(
+            document.querySelectorAll(".testimonial-card")
+        );
         const container = document.querySelector(".testimonial-container");
-        const dots = document.querySelectorAll(".testimonial-dot");
+
         let currentIndex = 0;
         let slideInterval;
 
-        const cardCount = cards.length;
-        const visibleCount =
-            window.innerWidth <= 767 ? 1 : window.innerWidth <= 991 ? 2 : 3;
+        function getVisibleCount() {
+            if (window.innerWidth <= 767) return 1;
+            if (window.innerWidth <= 991) return 2;
+            return 3;
+        }
 
-        for (let i = 0; i < visibleCount; i++) {
-            const clone = cards[i].cloneNode(true);
-            slider.appendChild(clone);
+        function cloneCards() {
+            const visibleCount = getVisibleCount();
+            for (let i = 0; i < visibleCount; i++) {
+                const clone = cards[i].cloneNode(true);
+                slider.appendChild(clone);
+            }
         }
 
         function updateCardWidth() {
-            const containerWidth = container.offsetWidth;
-            let visibleCards =
-                window.innerWidth <= 767 ? 1 : window.innerWidth <= 991 ? 2 : 3;
-
-            document.querySelectorAll(".testimonial-card").forEach((card) => {
-                card.style.flex = `0 0 ${containerWidth / visibleCards - 20}px`;
-                card.style.maxWidth = `${containerWidth / visibleCards - 20}px`;
+            const visibleCount = getVisibleCount();
+            const cardWidth = container.offsetWidth / visibleCount - 20;
+            const allCards = slider.querySelectorAll(".testimonial-card");
+            allCards.forEach((card) => {
+                card.style.flex = `0 0 ${cardWidth}px`;
+                card.style.maxWidth = `${cardWidth}px`;
             });
+            updateSlider();
         }
 
         function updateSlider() {
-            const cardWidth = cards[0].offsetWidth + 20;
+            const cardWidth =
+                slider.querySelector(".testimonial-card").offsetWidth + 20;
             slider.style.transition = "transform 0.5s ease";
             slider.style.transform = `translateX(${
                 -currentIndex * cardWidth
@@ -209,14 +217,16 @@ Testimonial
         }
 
         function nextSlide() {
-            const cardWidth = cards[0].offsetWidth + 20;
+            const visibleCount = getVisibleCount();
+            const cardWidth =
+                slider.querySelector(".testimonial-card").offsetWidth + 20;
             currentIndex++;
             slider.style.transition = "transform 0.5s ease";
             slider.style.transform = `translateX(${
                 -currentIndex * cardWidth
             }px)`;
 
-            if (currentIndex >= cardCount) {
+            if (currentIndex >= cards.length) {
                 setTimeout(() => {
                     slider.style.transition = "none";
                     currentIndex = 0;
@@ -238,75 +248,37 @@ Testimonial
 
         window.addEventListener("resize", () => {
             updateCardWidth();
-            updateSlider();
         });
 
-        // Initialize
+        cloneCards();
         updateCardWidth();
-        updateSlider();
         startAutoSlide();
     });
-
-    /*--------------------------------------------------------------
-Blogs
-  --------------------------------------------------------------*/
-
-    //  const cards = document.querySelectorAll('.blog-card');
-    // let current = 0;
-
-    // function animateCards() {
-    //   cards.forEach(card => {
-    //     card.classList.remove('col-6');
-    //     card.classList.add('col-3');
-    //   });
-
-    //   cards[current].classList.remove('col-3');
-    //   cards[current].classList.add('col-6');
-
-    //   current = (current + 1) % cards.length;
-    // }
-
-    // animateCards();
-    // setInterval(animateCards, 3000);
-
-    /*--------------------------------------------------------------
-image slider
-  --------------------------------------------------------------*/
-    // document.addEventListener('DOMContentLoaded', () => {
-    //   const textCarousel   = document.getElementById('textCarousel');
-    //   const imageCarousel  = document.getElementById('imageCarousel');
-    //   const imageInstance  = bootstrap.Carousel.getOrCreateInstance(imageCarousel);
-
-    //   textCarousel.addEventListener('slide.bs.carousel', (e) => {
-    //     imageInstance.to(e.to);
-    //   });
-    // });
 
     /*--------------------------------------------------------------
 Confrence time countsdown
   --------------------------------------------------------------*/
 
-    document.querySelectorAll(".countdown-box").forEach((box) => {
-        const startDate = new Date(box.dataset.start).getTime();
-        const endDate = new Date(box.dataset.end).getTime();
+    const startDate = new Date("November 8, 2025 00:00:00").getTime();
+    const endDate = new Date("November 9, 2025 23:59:59").getTime();
 
-        const timer = setInterval(() => {
-            const now = new Date().getTime();
-            const distance = startDate - now;
+    const timer = setInterval(() => {
+        const now = new Date().getTime();
+        const distance = startDate - now;
 
-            if (distance > 0) {
-                updateClock(box, distance);
-            } else if (now <= endDate) {
-                box.innerHTML =
-                    "<div class='time-box'>Conference In Progress</div>";
-            } else {
-                clearInterval(timer);
-                box.innerHTML = "<div class='time-box'>Conference Ended</div>";
-            }
-        }, 1000);
-    });
+        if (distance > 0) {
+            updateClock(distance);
+        } else if (now <= endDate) {
+            document.querySelector(".countdown-box").innerHTML =
+                "<div class='time-box'>Conference In Progress</div>";
+        } else {
+            clearInterval(timer);
+            document.querySelector(".countdown-box").innerHTML =
+                "<div class='time-box'>Conference Ended</div>";
+        }
+    }, 1000);
 
-    function updateClock(box, dist) {
+    function updateClock(dist) {
         const days = Math.floor(dist / (1000 * 60 * 60 * 24));
         const hours = Math.floor(
             (dist % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)
@@ -314,14 +286,14 @@ Confrence time countsdown
         const minutes = Math.floor((dist % (1000 * 60 * 60)) / (1000 * 60));
         const seconds = Math.floor((dist % (1000 * 60)) / 1000);
 
-        box.querySelector(".days").textContent = days;
-        box.querySelector(".hours").textContent = hours
+        document.getElementById("days").textContent = days;
+        document.getElementById("hours").textContent = hours
             .toString()
             .padStart(2, "0");
-        box.querySelector(".minutes").textContent = minutes
+        document.getElementById("minutes").textContent = minutes
             .toString()
             .padStart(2, "0");
-        box.querySelector(".seconds").textContent = seconds
+        document.getElementById("seconds").textContent = seconds
             .toString()
             .padStart(2, "0");
     }

@@ -12,7 +12,7 @@
                     <input type="file" class="form-control" name="excel_file" id="excel_file" />
                     <div class="invalid-feedback"></div>
                 </div>
-                <div class="col-md-12 text-end">
+                <div class="col-md-12 text-end"> 
                     <button type="submit" id="importRegistration" class="btn btn-primary">
                         Import
                     </button>

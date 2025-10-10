@@ -2,6 +2,7 @@
 
 namespace App\Models\User;
 
+use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 
 class UserInstitution extends Model
@@ -10,4 +11,9 @@ class UserInstitution extends Model
         'user_id',
         'institution_name'
     ];
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 }

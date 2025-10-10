@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Approval\OtherDataApprovalController;
 use App\Http\Controllers\Backend\Accommodation\HotelController;
 use App\Http\Controllers\Backend\Ckeditor\CkeditorController;
 use App\Http\Controllers\Backend\Cms\BlogController as CmsBlogController;
@@ -89,6 +90,11 @@ Route::middleware('auth')->group(function () {
     Route::get('/contact', [ContactContactController::class, 'index'])->middleware('check.superadmin')->name('contact.index');
     Route::post('/contact/view-data', [ContactContactController::class, 'show'])->name('contact.show');
     Route::delete('/contact/delete/{contact:id}', [ContactContactController::class, 'destroy'])->name('contact.destroy');
+
+
+    Route::get('approvals/others', [OtherDataApprovalController::class, 'index'])->name('admin.approvals.index');
+    Route::post('approvals/approve', [OtherDataApprovalController::class, 'approve'])->name('admin.approvals.approve');
+    Route::delete('approvals/reject', [OtherDataApprovalController::class, 'reject'])->name('admin.approvals.reject');
 });
 
 

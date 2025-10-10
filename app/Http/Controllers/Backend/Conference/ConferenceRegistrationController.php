@@ -128,7 +128,7 @@ class ConferenceRegistrationController extends Controller
         ]);
 
         $import = new ConferenceRegistationImport($society, $conference);
-        Excel::import($import, $request->file('excel_file'));
+        Excel::import($import, $request->file('excel_file')); 
 
         if (!empty($import->log)) {
             $fileName = 'import_skipped_log_' . now()->format('Y_m_d_H_i_s') . '.xlsx';

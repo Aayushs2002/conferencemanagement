@@ -61,18 +61,7 @@
     </script>
 
     <!-- image slider -->
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const textCarousel = document.getElementById('textCarousel');
-            const imageCarousel = document.getElementById('imageCarousel');
-            const imageInstance = bootstrap.Carousel.getOrCreateInstance(imageCarousel);
-
-
-            textCarousel.addEventListener('slide.bs.carousel', (e) => {
-                imageInstance.to(e.to);
-            });
-        });
-    </script>
+   
 
 
 </body>

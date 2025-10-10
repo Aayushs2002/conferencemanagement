@@ -155,6 +155,12 @@
                     <div data-i18n="User">User</div>
                 </a>
             </li>
+            <li class="menu-item {{ request()->segment(1) == 'approvals' ? 'active' : '' }}">
+                <a href="{{ route('admin.approvals.index') }}" class="menu-link ">
+                    <i class="menu-icon icon-base ti tabler-circle-letter-u"></i>
+                    <div data-i18n="Other Data">Other Data</div>
+                </a>
+            </li>
         @endif
         {{-- @if (current_user()->type == 3)
             <li class="menu-item {{ request()->segment(1) == 'my-society' ? 'active' : '' }}">

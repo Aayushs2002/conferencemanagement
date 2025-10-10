@@ -49,7 +49,7 @@
                 Chosen by Experts,<br>
                 Backed by Results
             </h2>
-            <div class="row g-4 justify-content-between align-items-center text-center">
+            <div class="row g-4  align-items-center text-center">
                 @foreach ($societies as $society)
                     @php
                         $justifyClass = 'justify-content-center';

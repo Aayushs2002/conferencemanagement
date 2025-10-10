@@ -22,6 +22,29 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css"
         integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw=="
         crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <style>
+        :root {
+            --white-01-color: #fff;
+            --white-02-color: #f2f2f2;
+            --white-03-color: #f9f9f9;
+            --hover-blue: #000A26;
+            --Dark-blue: #00154E;
+            --primary-color: {{ $conference->primary_color }};
+            --body-color: #555;
+            --blue01-color: #CEDDFF;
+            --blue02-color: #F1F4FC;
+            --Secondary-color: {{$conference->secendary_color}};
+            --black-01_color: #131313;
+            --black-02_color: #00001B;
+            --gray-03-color: #888888;
+            --gray-04-color: #A4A3A1;
+            --gray-05-color: #DDDDDD;
+            --gray-06-color: #E9E9E9;
+            --heading-font: "Sora", sans-serif;
+            --body-font: "Arial", sans-serif;
+
+        }
+    </style>
 </head>
 
 <body>
