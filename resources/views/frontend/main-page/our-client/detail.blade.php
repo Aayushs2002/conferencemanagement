@@ -71,7 +71,6 @@
                 </li>
             </ul>
 
-
             <div class="tab-content" id="conferenceTabContent">
                 <div class="tab-pane fade {{ $activeTab === 'current' ? 'show active' : '' }}" id="current"
                     role="tabpanel" aria-labelledby="current-tab">
@@ -85,10 +84,8 @@
                                             <img src="{{ Storage::url('society/logo/' . $conference->society->logo) }}"
                                                 class="logo-img" alt="{{ $conference->conference_name }}" loading="lazy">
                                         </div>
-
                                         <h5 class="card-title">{{ $conference->conference_name }}</h5>
                                         <p class="text-muted small mb-3">{{ $conference->conference_theme }}</p>
-
                                         <div class="countdown d-flex mb-3 justify-content-center countdown-box"
                                             data-start="{{ $conference->start_date }}"
                                             data-end="{{ $conference->end_date }}">
@@ -149,7 +146,20 @@
 
                                         <h5 class="card-title">{{ $conference->conference_name }}</h5>
                                         <p class="text-muted small mb-3">{{ $conference->conference_theme }}</p>
-
+                                        <div class="countdown d-flex mb-3 justify-content-center countdown-box"
+                                            data-start="{{ $conference->start_date }}"
+                                            data-end="{{ $conference->end_date }}">
+                                            <div class="time-box"><span class="days">00</span><br><span>Days</span>
+                                            </div>
+                                            <span class="sep">:</span>
+                                            <div class="time-box"><span class="hours">00</span><br><span>Hrs</span></div>
+                                            <span class="sep">:</span>
+                                            <div class="time-box"><span class="minutes">00</span><br><span>Mins</span>
+                                            </div>
+                                            <span class="sep">:</span>
+                                            <div class="time-box"><span class="seconds">00</span><br><span>Secs</span>
+                                            </div>
+                                        </div>
                                         <div class="mb-3">
                                             @foreach (explode(',', $conference->tags) as $tag)
                                                 <span

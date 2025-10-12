@@ -6,7 +6,7 @@
                 <div class="col-lg-8">
                     <nav aria-label="breadcrumb" class="mb-3">
                         <ol class="breadcrumb">
-                            <li class="breadcrumb-item"><a href="index.html">Home</a></li>
+                            <li class="breadcrumb-item"><a href="{{ route('home') }}">Home</a></li>
                             <li class="breadcrumb-item active" aria-current="page">Clients</li>
                         </ol>
                     </nav>
@@ -260,53 +260,53 @@
                     }
                 }
 
-                function initializeCountdowns() {
-                    $('.countdown').each(function() {
-                        const existingInterval = $(this).data('interval');
-                        if (existingInterval) {
-                            clearInterval(existingInterval);
-                        }
-                    });
+                // function initializeCountdowns() {
+                //     $('.countdown').each(function() {
+                //         const existingInterval = $(this).data('interval');
+                //         if (existingInterval) {
+                //             clearInterval(existingInterval);
+                //         }
+                //     });
 
-                    $('.countdown').each(function() {
-                        const $this = $(this);
-                        const startDate = new Date($this.data('start')).getTime();
-                        const endDate = new Date($this.data('end')).getTime();
-                        const now = new Date().getTime();
+                //     $('.countdown').each(function() {
+                //         const $this = $(this);
+                //         const startDate = new Date($this.data('start')).getTime();
+                //         const endDate = new Date($this.data('end')).getTime();
+                //         const now = new Date().getTime();
 
-                        if (isNaN(startDate) || isNaN(endDate)) {
-                            return;
-                        }
+                //         if (isNaN(startDate) || isNaN(endDate)) {
+                //             return;
+                //         }
 
-                        let targetDate = now < startDate ? startDate : endDate;
+                //         let targetDate = now < startDate ? startDate : endDate;
 
-                        const timer = setInterval(function() {
-                            const now = new Date().getTime();
-                            const distance = targetDate - now;
+                //         const timer = setInterval(function() {
+                //             const now = new Date().getTime();
+                //             const distance = targetDate - now;
 
-                            if (distance < 0) {
-                                clearInterval(timer);
-                                $this.html('<span class="text-muted small">Event Ended</span>');
-                                return;
-                            }
+                //             if (distance < 0) {
+                //                 clearInterval(timer);
+                //                 $this.html('<span class="text-muted small">Event Ended</span>');
+                //                 return;
+                //             }
 
-                            const days = Math.floor(distance / (1000 * 60 * 60 * 24));
-                            const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 *
-                                60));
-                            const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-                            const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+                //             const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+                //             const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 *
+                //                 60));
+                //             const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                //             const seconds = Math.floor((distance % (1000 * 60)) / 1000);
 
-                            $this.find('.days').text(String(days).padStart(2, '0'));
-                            $this.find('.hours').text(String(hours).padStart(2, '0'));
-                            $this.find('.minutes').text(String(minutes).padStart(2, '0'));
-                            $this.find('.seconds').text(String(seconds).padStart(2, '0'));
-                        }, 1000);
+                //             $this.find('.days').text(String(days).padStart(2, '0'));
+                //             $this.find('.hours').text(String(hours).padStart(2, '0'));
+                //             $this.find('.minutes').text(String(minutes).padStart(2, '0'));
+                //             $this.find('.seconds').text(String(seconds).padStart(2, '0'));
+                //         }, 1000);
 
-                        $this.data('interval', timer);
-                    });
-                }
+                //         $this.data('interval', timer);
+                //     });
+                // }
 
-                initializeCountdowns();
+                // initializeCountdowns();
 
                 if (typeof window.addEventListener !== 'undefined') {
                     window.addEventListener('popstate', function(event) {

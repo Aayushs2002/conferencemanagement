@@ -6,7 +6,7 @@
                     <div class="d-flex gap-2 mb-3">
                         <img src="{{ Storage::url('society/logo/' . $conference->society?->logo) }}" class="logo-img"
                             alt="{{ $conference->conference_name }}" loading="lazy">
-                    </div>
+                    </div> 
                     <h5 class="card-title">{{ $conference->conference_name }}</h5>
                     <p class="text-muted small mb-3">
                         {{ $conference->conference_theme }}

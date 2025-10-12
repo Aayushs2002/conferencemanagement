@@ -330,7 +330,7 @@
                     </div>
 
                     <div class="col-md-6 text-md-end text-start mt-3 mt-md-0">
-                        <a href="Blogs.html" class="btn default-btn">
+                        <a href="{{ route('blog') }}" class="btn default-btn">
                             View All Blogs <i class="fa-solid fa-arrow-up-right-from-square ms-1"></i>
                         </a>
                     </div>
@@ -351,7 +351,8 @@
                                             <i class="fa-solid fa-calendar-days"></i>
                                             <span>{{ \Carbon\Carbon::parse($blog->created_at)->format('Y/m/d') }}</span>
                                         </div>
-                                        <a href="" class="btn default-btn mb-2">
+                                        <a href="{{ route('blog.single-page', $blog->slug) }}"
+                                            class="btn default-btn mb-2">
                                             View Details<i class="fa-solid fa-arrow-up-right-from-square ms-1"></i>
                                         </a>
                                     </div>
@@ -370,8 +371,8 @@
         </div>
     </section>
 
-    <div class="td_height_80 td_height_lg_80"></div> 
-     <script>
+    <div class="td_height_80 td_height_lg_80"></div>
+    <script>
         document.addEventListener('DOMContentLoaded', () => {
             const textCarousel = new bootstrap.Carousel('#textCarousel', {
                 interval: 3000,

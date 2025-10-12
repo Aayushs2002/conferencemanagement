@@ -259,26 +259,27 @@ Testimonial
 Confrence time countsdown
   --------------------------------------------------------------*/
 
-    const startDate = new Date("November 8, 2025 00:00:00").getTime();
-    const endDate = new Date("November 9, 2025 23:59:59").getTime();
+    document.querySelectorAll(".countdown-box").forEach((box) => {
+        const startDate = new Date(box.dataset.start).getTime();
+        const endDate = new Date(box.dataset.end).getTime();
 
-    const timer = setInterval(() => {
-        const now = new Date().getTime();
-        const distance = startDate - now;
+        const timer = setInterval(() => {
+            const now = new Date().getTime();
+            const distance = startDate - now;
 
-        if (distance > 0) {
-            updateClock(distance);
-        } else if (now <= endDate) {
-            document.querySelector(".countdown-box").innerHTML =
-                "<div class='time-box'>Conference In Progress</div>";
-        } else {
-            clearInterval(timer);
-            document.querySelector(".countdown-box").innerHTML =
-                "<div class='time-box'>Conference Ended</div>";
-        }
-    }, 1000);
+            if (distance > 0) {
+                updateClock(box, distance);
+            } else if (now <= endDate) {
+                box.innerHTML =
+                    "<div class='time-box'>Conference In Progress</div>";
+            } else {
+                clearInterval(timer);
+                box.innerHTML = "<div class='time-box'>Conference Ended</div>";
+            }
+        }, 1000);
+    });
 
-    function updateClock(dist) {
+    function updateClock(box, dist) {
         const days = Math.floor(dist / (1000 * 60 * 60 * 24));
         const hours = Math.floor(
             (dist % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)
@@ -286,14 +287,14 @@ Confrence time countsdown
         const minutes = Math.floor((dist % (1000 * 60 * 60)) / (1000 * 60));
         const seconds = Math.floor((dist % (1000 * 60)) / 1000);
 
-        document.getElementById("days").textContent = days;
-        document.getElementById("hours").textContent = hours
+        box.querySelector(".days").textContent = days;
+        box.querySelector(".hours").textContent = hours
             .toString()
             .padStart(2, "0");
-        document.getElementById("minutes").textContent = minutes
+        box.querySelector(".minutes").textContent = minutes
             .toString()
             .padStart(2, "0");
-        document.getElementById("seconds").textContent = seconds
+        box.querySelector(".seconds").textContent = seconds
             .toString()
             .padStart(2, "0");
     }
