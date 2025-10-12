@@ -11,11 +11,12 @@
     <title>Dashboard | @yield('title') </title>
 
 
-    <meta name="description" content="" /> 
+    <meta name="description" content="" />
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <!-- Favicon -->
-    <link rel="icon" type="image/x-icon" href="{{ asset('storage/society/logo/' . getSociety(request()->segment(2))->logo) }}" />
+    <link rel="icon" type="image/x-icon"
+        href="{{ asset('storage/society/logo/' . getSociety(request()->segment(2))->logo) }}" />
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -90,8 +91,65 @@
 </head>
 
 <body>
-    <!-- Layout wrapper --> 
-    <div class="layout-wrapper layout-content-navbar"> 
+    @php
+        $showAccommodationPopup = false;
+        if (auth()->check() && auth()->user()->type == 3) {
+            $conferenceId = getConference(request()->segment(4))->id;
+            // dd($conferenceId); 
+
+            $registration = auth()
+                ->user()
+                ->conferenceRegistrations()
+                ->where('conference_id', $conferenceId)
+                ->whereHas('conference', function ($query) {
+                    $query->where('status', 1)->whereDate('start_date', '>', now());
+                })
+                ->first();
+
+            if ($registration) {
+                $isInternational = auth()->user()->userDetail?->country_id != 125; // Not Nepal
+                $hasAccommodation = $registration->internationalAccommodation()->exists();
+                $showAccommodationPopup = $isInternational && !$hasAccommodation;
+            }
+        }
+    @endphp
+
+    @if ($showAccommodationPopup)
+        <div class="modal fade" id="accommodationReminderModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Accommodation Details Required</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row">
+                            <div class="col-12 mb-3">
+                                <p>As an international participant, please update your accommodation and travel details
+                                    for better conference management.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Remind Me
+                            Later</button>
+                        <a href="{{ route('my-society.conference.accommodation', [request()->segment(2), request()->segment(4)]) }}"
+                            class="btn btn-primary">Update Now</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                var modal = new bootstrap.Modal(document.getElementById('accommodationReminderModal'));
+                modal.show();
+            });
+        </script>
+    @endif
+
+    <!-- Layout wrapper -->
+    <div class="layout-wrapper layout-content-navbar">
         <div class="layout-container">
             <!-- Menu -->
 
@@ -332,7 +390,7 @@
     <script>
         $(document).ready(function() {
 
-            $(".integerValue").on("keydown", function(event) { 
+            $(".integerValue").on("keydown", function(event) {
                 // Allow backspace, delete, tab, escape, and enter keys
                 if (event.keyCode == 46 || event.keyCode == 8 || event.keyCode == 9 || event.keyCode ==
                     27 || event

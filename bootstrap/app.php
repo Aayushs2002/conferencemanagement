@@ -16,8 +16,11 @@ return Application::configure(basePath: dirname(__DIR__))
         api: __DIR__ . '/../routes/api.php',
         commands: __DIR__ . '/../routes/console.php',
         health: '/up',
-
     )
+    ->withSchedule(function ($schedule) {
+        // Run daily at 9 AM
+        $schedule->command('participants:remind-accommodation')->dailyAt('09:00');
+    })
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->alias([
             'auto.conf.permission' => AutoCheckConferencePermission::class,

@@ -40,7 +40,7 @@ class ConferenceRegistration extends Model
 
     public function user()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class); 
     }
 
     public function accompanyPersons()
@@ -101,5 +101,10 @@ GROUP BY MT.id, MT.delegate, MT.type";
     public function addons()
     {
         return $this->hasMany(ConferenceRegistration_addon::class, 'conference_registration_id', 'id');
+    }
+
+    public function internationalAccommodation()
+    {
+        return $this->hasOne(\App\Models\Accomodation\InternationalAccommodation::class);
     }
 }

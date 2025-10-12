@@ -98,6 +98,11 @@ class User extends Authenticatable
         return $this->hasMany(UserSociety::class);
     }
 
+    public function conferenceRegistrations()
+    {
+        return $this->hasMany(ConferenceRegistration::class);
+    }
+
     public function conferenceRegistration()
     {
         return $this->hasMany(ConferenceRegistration::class)->where('status', 1);

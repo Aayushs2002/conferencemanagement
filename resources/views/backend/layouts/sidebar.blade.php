@@ -169,7 +169,7 @@
                     <div data-i18n="My Society">My Society</div>
                 </a>
             </li>
-        @endif --}}
+        @endif --}} 
     </ul>
 </aside>
 
@@ -177,5 +177,5 @@
     <a href="javascript:void(0);" class="layout-menu-toggle menu-link text-large text-bg-secondary p-2 rounded-1">
         <i class="ti tabler-menu icon-base"></i>
         <i class="ti tabler-chevron-right icon-base"></i>
-    </a>
+    </a> 
 </div>

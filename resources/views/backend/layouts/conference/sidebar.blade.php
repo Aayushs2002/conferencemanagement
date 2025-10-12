@@ -94,6 +94,17 @@
                 </li>
             @endif
         @endif
+
+        {{-- @if (feature_enabled('accommodation-management', getSociety(request()->segment(2)))) --}}
+            @if (auth()->user()->hasConferencePermissionBlade($conference, 'View Accommodation'))
+                <li class="menu-item {{ request()->segment(5) == 'accommodation' ? 'active open' : '' }}">
+                    <a href="{{ route('conference.accommodation.index', [request()->segment(2), request()->segment(4)]) }}" class="menu-link">
+                        <i class="menu-icon icon-base ti tabler-building-skyscraper"></i>
+                        <div data-i18n="User Accommodation">User Accommodation</div>
+                    </a>
+                </li>
+            {{-- @endif --}}
+        @endif
         {{-- @endif --}}
 
         @if (current_user()->type == 3)
@@ -124,6 +135,16 @@
                         class="menu-link ">
                         <i class="menu-icon icon-base ti tabler-building-skyscraper"></i>
                         <div data-i18n="My Submission">My Submission</div>
+                    </a>
+                </li>
+            @endif
+            
+            @if(auth()->user()->userDetail->country_id != 125 && checkRegistration(request()->segment(4)))
+                <li class="menu-item {{ request()->segment(5) == 'accommodation' ? 'active' : '' }}">
+                    <a href="{{ route('my-society.conference.accommodation', [request()->segment(2), request()->segment(4)]) }}"
+                        class="menu-link">
+                        <i class="menu-icon icon-base ti tabler-building-skyscraper"></i>
+                        <div data-i18n="My Accommodation">My Accommodation</div>
                     </a>
                 </li>
             @endif
