@@ -77,11 +77,23 @@
                                     </tr>
                                     <tr>
                                         <th>Check-in</th>
-                                        <td>{{ \Carbon\Carbon::parse($accommodation->check_in_date)->format('Y-m-d') }}</td>
+                                        <td>
+                                            @if($accommodation->check_in_date)
+                                                {{ \Carbon\Carbon::parse($accommodation->check_in_date)->format('Y-m-d') }}
+                                            @else
+                                                <span class="text-muted">Not set</span>
+                                            @endif
+                                        </td>
                                     </tr>
                                     <tr>
                                         <th>Check-out</th>
-                                        <td>{{ \Carbon\Carbon::parse($accommodation->check_out_date)->format('Y-m-d') }}</td>
+                                        <td>
+                                            @if($accommodation->check_out_date)
+                                                {{ \Carbon\Carbon::parse($accommodation->check_out_date)->format('Y-m-d') }}
+                                            @else
+                                                <span class="text-muted">Not set</span>
+                                            @endif
+                                        </td>
                                     </tr>
                                 </table>
                             </div>

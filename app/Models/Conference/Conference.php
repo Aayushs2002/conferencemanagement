@@ -32,7 +32,7 @@ class Conference extends Model
 
 
     public function getRouteKey()
-    {
+    { 
         return Hashids::encode($this->attributes['id']);
     }
 

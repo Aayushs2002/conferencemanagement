@@ -65,14 +65,29 @@
 
                         <h6 class="mb-2 fw-600">For Nepali Delegates</h6>
                         <div class="d-flex justify-content-between align-items-center payment-logos">
-                            <div class="logo-item"><img src="{{ asset('frontend/assets/img/esewa-icon-large.png') }}"
+                            {{-- <div class="logo-item"><img src="{{ asset('frontend/assets/img/esewa-icon-large.png') }}"
                                     alt="eSewa" class="logo-img">
                             </div>
                             <div class="logo-item"><img src="{{ asset('frontend/assets/img/khalti-ime-logo.png') }}"
                                     alt="Khalti" class="logo-img">
                             </div>
                             <div class="logo-item"><img src="{{ asset('frontend/assets/img/logo-1 (1).png') }}"
-                                    alt="Bank Transfer" class="logo-img"></div>
+                                    alt="Bank Transfer" class="logo-img"></div> --}}
+                            @if ($conference->society->nationalPaymentSetting?->esewa_product_key)
+                                <div class="logo-item"><img src="{{ asset('frontend/assets/img/esewa-icon-large.png') }}"
+                                        alt="eSewa" class="logo-img">
+                                </div>
+                            @endif
+                            @if ($conference->society->nationalPaymentSetting?->khalti_live_secret_key)
+                                <div class="logo-item"><img src="{{ asset('frontend/assets/img/khalti-ime-logo.png') }}"
+                                        alt="Khalti" class="logo-img">
+                                </div>
+                            @endif
+                            @if ($conference->society->nationalPaymentSetting?->moco_shared_key)
+                                <div class="logo-item"><img src="{{ asset('frontend/assets/img/logo-1 (1).png') }}"
+                                        alt="Bank Transfer" class="logo-img"></div>
+                            @endif
+
                         </div>
                     </div>
             </aside>

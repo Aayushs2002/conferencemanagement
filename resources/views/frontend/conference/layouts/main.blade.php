@@ -71,8 +71,10 @@
                 </div>
 
                 <div class="col-auto">
+                    @if ($conference->conference_logo)     
                     <img src="{{ Storage::url('conference/conference/logo/' . $conference->conference_logo) }}"
                         alt="SAFOG Logo" class="hero-logo">
+                    @endif
                 </div>
             </div>
 
@@ -169,7 +171,7 @@
                         <p class="dash-date mb-0">
                             <i class="fa-regular fa-calendar me-1"></i>
                             {{-- July 1, 2025 --}}
-                            {{ \Carbon\Carbon::parse($conference->submissionSetting->created_at)->format('F j, Y') }}
+                            {{ \Carbon\Carbon::parse($conference->submissionSetting?->created_at)->format('F j, Y') }}
 
                         </p>
                     </div>
@@ -201,7 +203,7 @@
                         <p class="dash-date mb-0">
                             <i class="fa-regular fa-calendar me-1"></i>
                             {{-- July 1, 2025 --}}
-                            {{ \Carbon\Carbon::parse($conference->workshops->first()->created_at)->format('F j, Y') }}
+                            {{ \Carbon\Carbon::parse($conference->workshops?->first()?->created_at)->format('F j, Y') }}
 
                         </p>
                     </div>

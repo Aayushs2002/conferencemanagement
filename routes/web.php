@@ -21,6 +21,7 @@ use App\Http\Controllers\Frontend\Conference\NewsAndNoticeController;
 use App\Http\Controllers\Frontend\Conference\ScientificSessionController;
 use App\Http\Controllers\Frontend\Conference\SpeakerController;
 use App\Http\Controllers\Frontend\Conference\WorkshopController;
+use App\Http\Controllers\Frontend\InvitationController;
 use App\Http\Controllers\Frontend\MainPage\AboutUsController;
 use App\Http\Controllers\Frontend\MainPage\BlogController;
 use App\Http\Controllers\Frontend\MainPage\ConferenceController;
@@ -38,6 +39,13 @@ Route::get('/', function () {
 foreach (glob(__DIR__ . '/web/*.php') as $file) {
     require $file;
 }
+
+// Invitation routes (public access)
+Route::prefix('invitation')->name('invitation.')->group(function () {
+    Route::get('/{token}', [InvitationController::class, 'show'])->name('show');
+    Route::post('/{token}/accept', [InvitationController::class, 'accept'])->name('accept');
+    Route::post('/{token}/decline', [InvitationController::class, 'decline'])->name('decline');
+});
 
 // Route::get('/', function () {
 //     return redirect()->route('login');

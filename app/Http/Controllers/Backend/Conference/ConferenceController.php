@@ -213,7 +213,7 @@ class ConferenceController extends Controller
             ->select(
                 DB::raw("CASE 
                     WHEN meal_type = 1 THEN 'Veg' 
-                    WHEN meal_type = 2 THEN 'Non-Veg' 
+                    WHEN meal_type = 2 THEN 'Non-Veg'  
                     ELSE 'Unknown' 
                  END as meal_label"),
                 DB::raw('COUNT(*) as count')

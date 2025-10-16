@@ -43,6 +43,9 @@
                                         <th>Hotel</th>
                                         <th>Arrival</th>
                                         <th>Departure</th>
+                                        <th>Check-in</th>
+                                        <th>Check-out</th>
+                                        <th>Status</th>
                                         <th>Actions</th>
                                     </tr>
                                 </thead>
@@ -67,6 +70,28 @@
                                                 <small>{{ \Carbon\Carbon::parse($accommodation->departure_time)->format('H:i') }}</small>
                                             </td>
                                             <td>
+                                                @if($accommodation->check_in_date)
+                                                    {{ \Carbon\Carbon::parse($accommodation->check_in_date)->format('Y-m-d') }}
+                                                @else
+                                                    <span class="text-muted">Not set</span>
+                                                @endif
+                                            </td>
+                                            <td>
+                                                @if($accommodation->check_out_date)
+                                                    {{ \Carbon\Carbon::parse($accommodation->check_out_date)->format('Y-m-d') }}
+                                                @else
+                                                    <span class="text-muted">Not set</span>
+                                                @endif
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-success">Completed</span>
+                                                @if($accommodation->created_by_admin ?? false)
+                                                    <br><small class="text-muted">Created by Admin</small>
+                                                @else
+                                                    <br><small class="text-muted">Self-filled</small>
+                                                @endif
+                                            </td>
+                                            <td>
                                                 <a href="{{ route('conference.accommodation.show', [$society, $conference, $accommodation]) }}" 
                                                    class="btn btn-sm btn-info">
                                                     <i class="ti ti-eye"></i> View Details
@@ -77,13 +102,113 @@
                                 </tbody>
                             </table>
                         </div>
+
+                        @if($invitedAwaitingAccommodation->count() > 0)
+                            <div class="mt-4">
+                                <h6 class="text-danger">
+                                    <i class="ti ti-user-plus"></i> 
+                                    Invited Participants Awaiting Admin Setup ({{ $invitedAwaitingAccommodation->count() }})
+                                </h6>
+                                <div class="alert alert-danger">
+                                    <p class="mb-2">The following invited participants need accommodation details filled by admin:</p>
+                                    <div class="table-responsive">
+                                        <table class="table table-sm">
+                                            <thead>
+                                                <tr>
+                                                    <th>Name</th>
+                                                    <th>Country</th>
+                                                    <th>Invitation Accepted</th>
+                                                    <th>Registrant Type</th>
+                                                    <th>Action</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @foreach($invitedAwaitingAccommodation as $registration)
+                                                    <tr>
+                                                        <td>
+                                                            {{ $registration->user->f_name }} {{ $registration->user->l_name }}
+                                                        </td>
+                                                        <td>{{ $registration->user->userDetail->country->country_name ?? 'N/A' }}</td>
+                                                        <td>
+                                                            <small>{{ $registration->invitation_accepted_at->format('M d, Y H:i') }}</small>
+                                                        </td>
+                                                        <td>
+                                                            <span class="badge bg-info">{{ $registration->registrant_type_text }}</span>
+                                                        </td>
+                                                        <td>
+                                                            <button class="btn btn-sm btn-primary" onclick="createAccommodation({{ $registration->user->id }})">
+                                                                <i class="ti ti-plus"></i> Create Accommodation
+                                                            </button>
+                                                        </td>
+                                                    </tr>
+                                                @endforeach
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        @endif
+
+                        @if($selfRegisteredNeedingAccommodation->count() > 0)
+                            <div class="mt-4">
+                                <h6 class="text-warning">
+                                    <i class="ti ti-alert-triangle"></i> 
+                                    Self-Registered Participants Needing to Fill Details ({{ $selfRegisteredNeedingAccommodation->count() }})
+                                </h6>
+                                <div class="alert alert-warning">
+                                    <p class="mb-2">The following self-registered participants need to fill their own accommodation details:</p>
+                                    <div class="table-responsive">
+                                        <table class="table table-sm">
+                                            <thead>
+                                                <tr>
+                                                    <th>Name</th>
+                                                    <th>Country</th>
+                                                    <th>Registration Date</th>
+                                                    <th>Registrant Type</th>
+                                                    <th>Action</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @foreach($selfRegisteredNeedingAccommodation as $registration)
+                                                    <tr>
+                                                        <td>
+                                                            {{ $registration->user->f_name }} {{ $registration->user->l_name }}
+                                                        </td>
+                                                        <td>{{ $registration->user->userDetail->country->country_name ?? 'N/A' }}</td>
+                                                        <td>
+                                                            <small>{{ $registration->created_at->format('M d, Y H:i') }}</small>
+                                                        </td>
+                                                        <td>
+                                                            <span class="badge bg-success">{{ $registration->registrant_type_text }}</span>
+                                                        </td>
+                                                        <td>
+                                                            <button class="btn btn-sm btn-warning" onclick="sendReminder({{ $registration->user->id }})">
+                                                                <i class="ti ti-mail"></i> Send Reminder
+                                                            </button>
+                                                        </td>
+                                                    </tr>
+                                                @endforeach
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        @endif
                     </div>
                 </div>
-            </div>
         </div>
     </div>
-@endsection
+</div>
 
+<!-- Modal for Accommodation Creation -->
+<div class="modal fade" id="accommodationModal" tabindex="-1" aria-labelledby="accommodationModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content" id="accommodationModalContent">
+            <!-- Content will be loaded here -->
+        </div>
+    </div>
+</div>
+@endsection
 @section('styles')
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css">
 @endsection
@@ -138,12 +263,17 @@
         // Custom filtering function for date range
         function filterByDateRange(start, end) {
             $.fn.dataTable.ext.search.push(function(settings, data, dataIndex) {
+                // Updated column indexes: Arrival=4, Departure=5, Check-in=6, Check-out=7
                 var arrivalDate = moment(data[4], 'YYYY-MM-DD');
                 var departureDate = moment(data[5], 'YYYY-MM-DD');
+                var checkInDate = moment(data[6], 'YYYY-MM-DD');
+                var checkOutDate = moment(data[7], 'YYYY-MM-DD');
                 
                 if (
                     (arrivalDate.isSameOrAfter(start, 'day') && arrivalDate.isSameOrBefore(end, 'day')) ||
                     (departureDate.isSameOrAfter(start, 'day') && departureDate.isSameOrBefore(end, 'day')) ||
+                    (checkInDate.isValid() && checkInDate.isSameOrAfter(start, 'day') && checkInDate.isSameOrBefore(end, 'day')) ||
+                    (checkOutDate.isValid() && checkOutDate.isSameOrAfter(start, 'day') && checkOutDate.isSameOrBefore(end, 'day')) ||
                     (arrivalDate.isSameOrBefore(start, 'day') && departureDate.isSameOrAfter(end, 'day'))
                 ) {
                     return true;
@@ -154,5 +284,105 @@
             $.fn.dataTable.ext.search.pop(); // Clean up the filter after use
         }
     });
+
+    // Function to send accommodation reminder
+    function sendReminder(userId) {
+        Swal.fire({
+            title: 'Send Accommodation Reminder?',
+            text: 'This will send an email reminder to the participant to fill their accommodation details.',
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Yes, send reminder!'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajaxSetup({
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    }
+                });
+
+                $.ajax({
+                    url: '{{ route("conference.accommodation.sendReminder", [$society, $conference]) }}',
+                    type: 'POST',
+                    data: { user_id: userId },
+                    beforeSend: function() {
+                        Swal.fire({
+                            title: 'Sending...',
+                            text: 'Please wait while we send the reminder.',
+                            allowOutsideClick: false,
+                            didOpen: () => {
+                                Swal.showLoading();
+                            }
+                        });
+                    },
+                    success: function(response) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Success!',
+                            text: response.message,
+                            timer: 3000,
+                            showConfirmButton: false
+                        });
+                    },
+                    error: function(xhr) {
+                        let message = 'An error occurred while sending the reminder.';
+                        if (xhr.responseJSON && xhr.responseJSON.message) {
+                            message = xhr.responseJSON.message;
+                        }
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: message
+                        });
+                    }
+                });
+            }
+        });
+    }
+
+    // Function to create accommodation for invited participant
+    function createAccommodation(userId) {
+        $.ajaxSetup({
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            }
+        });
+
+        // Load the accommodation creation form
+        $.ajax({
+            url: '{{ route("conference.accommodation.createForInvited", [$society, $conference]) }}',
+            type: 'POST',
+            data: { user_id: userId },
+            beforeSend: function() {
+                Swal.fire({
+                    title: 'Loading...',
+                    text: 'Please wait while we load the accommodation form.',
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+            },
+            success: function(response) {
+                Swal.close();
+                // Show the form in a modal
+                $('#accommodationModalContent').html(response);
+                $('#accommodationModal').modal('show');
+            },
+            error: function(xhr) {
+                let message = 'An error occurred while loading the form.';
+                if (xhr.responseJSON && xhr.responseJSON.message) {
+                    message = xhr.responseJSON.message;
+                }
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: message
+                });
+            }
+        });
+    }
 </script>
 @endsection

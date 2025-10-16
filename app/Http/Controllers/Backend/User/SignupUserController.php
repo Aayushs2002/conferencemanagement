@@ -92,40 +92,76 @@ class SignupUserController extends Controller
     {
         try {
             $validated = $request->validate([
-                'registrant_type' => 'required',
-                'certificate_required' => 'required'
+                'registrant_type' => 'required|integer|in:1,2,3,4',
+                'certificate_required' => 'required|boolean'
             ]);
-            $validated['user_id'] = $request->user_id;
-            $validated['conference_id'] = $conference->id;
-            $validated['token'] = random_word(60);
-            $validated['verified_status'] = 1;
-            $validated['is_invited'] = 1;
-            $validated['attend_type'] = 1;
-            $validated['total_attendee'] = 1;
-            $validated['meal_type'] = 2;
 
-            $user = User::whereId($validated['user_id'])->first();
+            $user = User::with('userDetail.namePrefix')->findOrFail($request->user_id);
+
+            // Check if user is already registered for this conference
+            $existingRegistration = ConferenceRegistration::where([
+                'user_id' => $user->id,
+                'conference_id' => $conference->id
+            ])->first();
+
+            if ($existingRegistration) {
+                throw new \Exception('User is already registered for this conference.');
+            }
+
+            DB::beginTransaction();
+
+            // Generate invitation token
+            $invitationToken = bin2hex(random_bytes(32));
+
+            // Create registration with invitation token
+            $registration = ConferenceRegistration::create([
+                'user_id' => $user->id,
+                'conference_id' => $conference->id,
+                'registrant_type' => $validated['registrant_type'],
+                'certificate_required' => $validated['certificate_required'],
+                'token' => random_word(60),
+                'verified_status' => ConferenceRegistration::STATUS_PENDING,
+                'is_invited' => true,
+                'attend_type' => ConferenceRegistration::ATTEND_PHYSICAL,
+                'total_attendee' => 1,
+                'meal_type' => 2,
+                'invitation_response_token' => $invitationToken
+            ]);
+
+            // Prepare email data
             $middleName = !empty($user->m_name) ? $user->m_name . ' ' : '';
             $data = [
-                'namePrefix' => $user->userDetail->namePrefix->prefix,
+                'namePrefix' => $user->userDetail->namePrefix->prefix ?? '',
                 'name' => $user->f_name . ' ' . $middleName . $user->l_name,
                 'conference_theme' => $conference->conference_theme,
                 'conference_name' => $conference->conference_name,
+                'is_invited' => 1,
                 'invitationType' => 2,
-                'amount' => null
+                'amount' => null,
+                'invitation_token' => $invitationToken,
+                'invitation_url' => route('invitation.show', $invitationToken)
             ];
-            DB::beginTransaction();
+
+            // Send invitation email
             Mail::to($user->email)->send(new RegistrationMail($data));
-            ConferenceRegistration::create($validated);
-            logActivity($conference->id, 'Invited Conference',  $user->f_name . ' ' . $middleName . $user->l_name . ' is registered to conference');
+
+            // Log activity
+            logActivity(
+                $conference->id,
+                'Invited Conference',
+                $user->f_name . ' ' . $middleName . $user->l_name . ' is invited to conference'
+            );
+
             DB::commit();
+
             $type = 'success';
-            $message = "User invited successfully for conference.";
+            $message = "User invited successfully for conference. They will receive an email to accept the invitation.";
         } catch (Exception $e) {
             DB::rollBack();
             $type = 'error';
             $message = $e->getMessage();
         }
+
         return response()->json(['type' => $type, 'message' => $message]);
     }
 

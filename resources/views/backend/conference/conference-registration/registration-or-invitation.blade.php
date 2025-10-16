@@ -3,7 +3,7 @@
 @section('title')
     Add Registration/Invitations
 @endsection
-@section('content')
+@section('content') 
     <div class="col-md">
         <div class="card">
             <h4 class="card-header">

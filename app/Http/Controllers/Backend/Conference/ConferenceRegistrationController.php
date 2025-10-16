@@ -128,7 +128,7 @@ class ConferenceRegistrationController extends Controller
         ]);
 
         $import = new ConferenceRegistationImport($society, $conference);
-        Excel::import($import, $request->file('excel_file')); 
+        Excel::import($import, $request->file('excel_file'));
 
         if (!empty($import->log)) {
             $fileName = 'import_skipped_log_' . now()->format('Y_m_d_H_i_s') . '.xlsx';
@@ -496,10 +496,13 @@ class ConferenceRegistrationController extends Controller
             } else {
                 $validated['total_attendee'] = $validated['additional_guests'] + 1;
             }
+            $invitationToken = bin2hex(random_bytes(32));
             $validated['conference_id'] = $conference->id;
             $validated['token'] = random_word(60);
             $validated['verified_status'] = 1;
             $validated['payment_type'] = 6;
+            $validated['invitation_response_token'] = $invitationToken;
+
             $date = \Carbon\Carbon::now()->format('F j, Y');
 
             if (!empty($validated['payment_voucher'])) {
@@ -537,7 +540,10 @@ class ConferenceRegistrationController extends Controller
                 'workshop'         => [],
                 'accompany' => null,
                 'serviceCharge' =>  null,
-                'invitationType' => 1
+                'invitationType' => 1,
+                'is_invited' => $request->has('invited_guest') ? 1 : 0,
+                'invitation_token' => $invitationToken,
+                'invitation_url' => route('invitation.show', $invitationToken)
             ];
             Mail::to($validated['email'])->send(new RegistrationMail($data));
 

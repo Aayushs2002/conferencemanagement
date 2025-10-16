@@ -5,14 +5,20 @@
         <form id="excelForm" enctype="multipart/form-data">
             @csrf
             <div class="row">
-                <div class="col-md-12 form-group mb-3">
+                <div class="col-md-12 form-group mb-3"> 
                     <label for="excel_file" class="pb-1">
                         Import Registrant <code>(Only .xls/.xlsx/.csv)</code>
                     </label>
                     <input type="file" class="form-control" name="excel_file" id="excel_file" />
                     <div class="invalid-feedback"></div>
+                    <small class="form-text text-muted mt-2 d-block">
+                        Need help?
+                        <a href="{{ asset('downloads/sample.xlsx') }}" class="text-primary" id="downloadSample">
+                            <i class="bi bi-download"></i> Download Sample Excel
+                        </a>
+                    </small>
                 </div>
-                <div class="col-md-12 text-end"> 
+                <div class="col-md-12 text-end">
                     <button type="submit" id="importRegistration" class="btn btn-primary">
                         Import
                     </button>
@@ -22,21 +28,17 @@
     </div>
 </div>
 
-
 <script>
     $(document).ready(function() {
         $('#importRegistration').on('click', function(e) {
             e.preventDefault();
-
             var form = $('#excelForm')[0];
             var data = new FormData(form);
-
             $.ajaxSetup({
                 headers: {
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 }
             });
-
             $.ajax({
                 type: "POST",
                 url: '{{ route('conference.conference-registration.importExcelSubmit', [$society, $conference]) }}',
@@ -52,9 +54,8 @@
                 },
                 success: function(response) {
                     $('#importRegistration').attr('disabled', false).text('Import');
-
                     if (response.type === 'log') {
-                        window.location.href = response.file; // trigger download
+                        window.location.href = response.file;
                         notyf.success(response.message);
                     } else if (response.type === 'success') {
                         $(".modal").modal("hide");
@@ -64,10 +65,8 @@
                         notyf.error(response.message || 'Something went wrong.');
                     }
                 },
-
                 error: function(xhr) {
                     $('#importRegistration').attr('disabled', false).text('Import');
-
                     if (xhr.status === 422) {
                         let errors = xhr.responseJSON.errors;
                         if (errors.excel_file) {

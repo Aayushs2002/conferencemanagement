@@ -19,7 +19,7 @@
                         </option>
                         <option value="2">
                             Speaker
-                        </option>
+                        </option> 
                         <option value="3">
                             Session Chair
                         </option>

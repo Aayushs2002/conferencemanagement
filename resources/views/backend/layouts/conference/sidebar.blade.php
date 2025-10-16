@@ -298,7 +298,7 @@
                 </li>
             @endif
         @endif
-
+ 
         @if (feature_enabled('commitee-management', getSociety(request()->segment(2))))
             @if (auth()->user()->hasAnyConferencePermission($conference, ['View Committee', 'View Committee Designation']))
                 <li class="menu-item {{ request()->segment(5) == 'committee' ? 'active open' : '' }}">

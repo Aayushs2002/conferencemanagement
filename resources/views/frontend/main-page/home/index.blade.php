@@ -49,7 +49,7 @@
                                     <h5 class="card-title">{{ $conference->conference_name }}</h5>
                                     <p class="text-muted small mb-3">
                                         {{ $conference->conference_theme }}
-                                    </p>
+                                    </p> 
 
                                     <div class="countdown d-flex mb-3 justify-content-center countdown-box"
                                         data-start="{{ $conference->start_date }}" data-end="{{ $conference->end_date }}">

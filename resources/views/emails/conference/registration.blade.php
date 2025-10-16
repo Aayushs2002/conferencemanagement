@@ -15,27 +15,35 @@
     <br>
     <div>
         <p>We hope this message finds you well.<br>
-            We feel pleasure to inform you that, you have been registered to conference (Theme:
+            We feel pleasure to inform you that, you have been invited to conference (Theme:
             {{ $data['conference_theme'] }}).<br>
             Please keep this mail safe for your reference.<br>
             @if ($data['invitationType'] == 1)
                 Below are your login details to access the dashboard of conference.<br>
+                <div>
+                    <p><a href="{{ config('app.url') }}/login" target="_blank">Click here for login</a></p>
+                    <p>Email: {{ $data['email'] }}</p>
+                    <p>Password: {{ $data['password'] }}</p>
+                </div>
+                <br>
+            @endif
+            @if ($data['is_invited'] == 1)
+                <strong>Please click the link below to accept or decline this invitation:</strong><br>
+                <a href="{{ $data['invitation_url'] }}"
+                    style="background-color: #007bff; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block; margin: 10px 0;">
+                    Accept/Decline Invitation
+                </a><br>
+                <strong>Note:</strong> You must accept this invitation before you can access conference features and
+                submit accommodation details if you are an international participant.<br>
             @endif
             Thank you.
         </p>
     </div>
     <br>
-    @if ($data['invitationType'] == 1)
-        <div>
-            <p><a href="{{ config('app.url') }}/login" target="_blank">Click here for login</a></p>
-            <p>Email: {{ $data['email'] }}</p>
-            <p>Password: {{ $data['password'] }}</p>
-        </div>
-        <br>
-    @endif
+
     <div>
         <p>Best Regards,</p>
-        <p>{{$data['conference_name']}}</p>
+        <p>{{ $data['conference_name'] }}</p>
     </div>
 </body>
 

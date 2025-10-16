@@ -4,6 +4,7 @@ namespace App\Models\User;
 
 use App\Models\Cms\Feature;
 use App\Models\Conference\Conference;
+use App\Models\Payment\NationalPayment;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Vinkla\Hashids\Facades\Hashids;
@@ -49,5 +50,10 @@ class Society extends Model
     public function features()
     {
         return $this->belongsToMany(Feature::class, 'society_features');
+    }
+
+    public function nationalPaymentSetting()
+    {
+        return $this->hasOne(NationalPayment::class, 'society_id', 'id');
     }
 }

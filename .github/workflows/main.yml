@@ -33,7 +33,7 @@ jobs:
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
           source: "."
-          target: "/var/www/conferencemanagement"
+          target: "/var/www/medconalert.com"
 
       # 5. Run Artisan commands on VPS
       - name: Run Artisan commands
@@ -43,7 +43,7 @@ jobs:
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
           script: |
-            cd /var/www/conferencemanagement
+            cd /var/www/medconalert.com
             COMPOSER_ALLOW_SUPERUSER=1 composer install --no-dev --optimize-autoloader
             php artisan migrate --force
             php artisan config:cache

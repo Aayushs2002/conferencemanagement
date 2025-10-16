@@ -150,7 +150,7 @@
                               <span class="d-none d-sm-inline-block">Add New</span>
                           </a> --}}
                         <button type="button" id="importRegistrant" data-bs-toggle="modal" data-bs-target="#pricingModal"
-                            class="btn btn-primary">Import Registrant</button>
+                            class="btn btn-primary">Import Registrant</button> 
 
                     </div>
                 </div>

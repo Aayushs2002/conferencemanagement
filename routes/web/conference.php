@@ -52,7 +52,7 @@ Route::middleware('auth')->group(function () {
     });
     Route::post('/conference/show', [ConferenceController::class, 'view'])->name('conference.show');
 
-    //conference open portal route
+    //conference open portal route 
     Route::prefix('/society/{society}/conference/{conference}')->group(function () {
         Route::get('/dashboard', [ConferenceController::class, 'openConferencePortal'])->name('conference.openConferencePortal');
         Route::get('/dashboard/attendance-status', [ConferenceController::class, 'viewAttendanceStatus'])->name('conference.viewAttendanceStatus');
@@ -62,6 +62,9 @@ Route::middleware('auth')->group(function () {
         Route::controller(AccommodationManagementController::class)->middleware(['auto.conf.permission'])->prefix('accommodation')->name('conference.accommodation.')->group(function () {
             Route::get('/', 'index')->name('index');
             Route::get('/{accommodation}', 'show')->name('show');
+            Route::post('/send-reminder', 'sendReminder')->name('sendReminder');
+            Route::post('/create-for-invited', 'createForInvited')->name('createForInvited');
+            Route::post('/store-for-invited', 'storeForInvited')->name('storeForInvited');
         });
     });
     Route::get('/conference/stats', [ConferenceController::class, 'getStats'])->name('conference.stats');

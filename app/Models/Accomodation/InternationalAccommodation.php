@@ -18,12 +18,15 @@ class InternationalAccommodation extends Model
         'arrival_time',
         'departure_date',
         'departure_time',
+        // 'arrival_flight_number',
+        // 'departure_flight_number',
         'airport_pickup_required',
         'special_requirements',
         'check_in_date',
         'check_out_date',
         'room_type',
-        'status'
+        'status',
+        'created_by_admin'
     ];
 
     protected $casts = [

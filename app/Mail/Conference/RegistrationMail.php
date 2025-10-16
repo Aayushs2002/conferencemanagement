@@ -21,7 +21,7 @@ class RegistrationMail extends Mailable
      * Create a new message instance.
      */
     public function __construct($data)
-    {
+    { 
         $this->data = $data;
     }
     /**

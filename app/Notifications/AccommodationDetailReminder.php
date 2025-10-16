@@ -98,11 +98,11 @@ class AccommodationDetailReminder extends Notification implements ShouldQueue
     /**
      * Determine the notification's delivery delay.
      */
-    public function delay(object $notifiable): ?\DateTimeInterface
-    {
-        // Add a small delay to prevent overwhelming the mail server
-        return now()->addMinutes(rand(1, 5));
-    }
+    // public function delay(object $notifiable): ?\DateTimeInterface
+    // {
+    //     // Add a small delay to prevent overwhelming the mail server
+    //     return now()->addMinutes(rand(1, 5));
+    // }
 
     /**
      * Get the notification's database type.
