@@ -7,7 +7,7 @@ use App\Models\User\Department;
 use App\Models\User\Designation;
 use App\Models\User\Institution;
 use App\Models\User\NamePrefix;
-use App\Models\User\Society;
+use App\Models\User\Society; 
 use Illuminate\Support\Facades\View;
 use Laravel\Fortify\Contracts\LoginResponse;
 use Illuminate\Support\ServiceProvider;
