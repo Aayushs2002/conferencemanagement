@@ -23,7 +23,7 @@ jobs:
 
       # 3. Install Composer dependencies
       - name: Install dependencies
-        run: composer install --no-dev --optimize-autoloader
+        run: composer install --no-dev --optimize-autoloader --no-scripts
 
       # 4. Upload files to VPS
       - name: Deploy to VPS
