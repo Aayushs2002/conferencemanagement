@@ -32,7 +32,7 @@
             <div class="container" style="background-color: rgba(241, 244, 252, 1); padding: 35px; border-radius: 30px;">
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     <h2 class="section-title">Upcoming Conferences</h2>
-                    <a href="{{ route('conference') }}" class="btn default-btn">
+                    <a href="{{ route('conference') }}" class="btn default-btn"> 
                         View All Conferences <i class="fa-solid fa-arrow-up-right-from-square ms-1"></i>
                     </a>
                 </div>
