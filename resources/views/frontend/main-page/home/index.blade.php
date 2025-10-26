@@ -26,7 +26,7 @@
                 </div>
             </div>
         </div>
-    </section>
+    </section> 
     <section class="main-section">
         <section class="conference-section">
             <div class="container" style="background-color: rgba(241, 244, 252, 1); padding: 35px; border-radius: 30px;">
