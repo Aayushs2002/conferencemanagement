@@ -1,7 +1,7 @@
 @extends('frontend.main-page.layouts.main')
 @section('content')
     <section class="hero-section">
-        <div class="container">
+        <div class="container"> 
             <div class="row align-items-center">
 
                 <div class="col-lg-6">
