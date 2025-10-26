@@ -2,38 +2,39 @@ name: Deploy Laravel to VPS
 
 on:
   push:
-    branches: [ master ]
+    branches:
+      - master  # Or your production branch
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
+      # 1. Checkout repository
       - name: Checkout code
         uses: actions/checkout@v4
 
+      # 2. Setup PHP (needed for SSH commands with composer on VPS)
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.3'
           extensions: mbstring, bcmath, curl
 
-      - name: Upload to VPS
+      # 3. Upload files to VPS
+      - name: Upload files to VPS
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
           source: |
-            ./ --exclude .git \
-                --exclude .github \
-                --exclude node_modules \
-                --exclude storage \
-                --exclude tests
+            . --exclude .git --exclude .github --exclude node_modules --exclude storage/logs --exclude tests
           target: "/var/www/medconalert.com"
           overwrite: true
 
-      - name: Run SSH Commands
+      # 4. Run commands on VPS
+      - name: Run SSH commands on VPS
         uses: appleboy/ssh-action@v0.1.10
         with:
           host: ${{ secrets.VPS_HOST }}
@@ -41,13 +42,26 @@ jobs:
           key: ${{ secrets.VPS_SSH_KEY }}
           script: |
             cd /var/www/medconalert.com
+
+            # Ensure storage and cache directories exist and have proper permissions
+            mkdir -p storage/logs
+            sudo chown -R www-data:www-data storage bootstrap/cache
+            sudo chmod -R 775 storage bootstrap/cache
+
+            # Install PHP dependencies (production-only)
             composer install --no-dev --optimize-autoloader --no-interaction
+
+            # Run migrations
             php artisan migrate --force
-            php artisan storage:link
+
+            # Create storage symlink (if using public storage)
+            php artisan storage:link || true
+
+            # Cache configuration, routes, views
             php artisan config:cache
             php artisan route:cache
             php artisan view:cache
-            sudo chown -R www-data:www-data storage bootstrap/cache
-            sudo chmod -R 775 storage bootstrap/cache
+
+            # Restart PHP-FPM and reload Apache
             sudo systemctl restart php8.3-fpm
             sudo systemctl reload apache2
