@@ -10,30 +10,40 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. Checkout code
-      - name: Checkout repository
+      # 1. Checkout the repository
+      - name: Checkout code
         uses: actions/checkout@v4
 
-      # 2. Setup PHP (needed for composer commands)
+      # 2. Setup PHP (needed for composer commands locally)
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.3'
           extensions: mbstring, bcmath, curl
 
-      # 3. Upload files to VPS
-      - name: Upload files to VPS
+      # 3. Create a tar archive excluding unnecessary files
+      - name: Create deploy archive
+        run: |
+          tar czf deploy.tar.gz . \
+            --exclude=.git \
+            --exclude=.github \
+            --exclude=node_modules \
+            --exclude=storage/logs \
+            --exclude=tests
+
+      # 4. Upload the archive to the VPS
+      - name: Upload archive to VPS
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
-          source: ". --exclude=.git --exclude=.github --exclude=node_modules --exclude=storage/logs --exclude=tests"
+          source: "deploy.tar.gz"
           target: "/var/www/medconalert.com"
           overwrite: true
 
-      # 4. Run SSH commands on VPS
-      - name: Run SSH commands on VPS
+      # 5. Run SSH commands to extract and deploy
+      - name: Deploy on VPS
         uses: appleboy/ssh-action@v0.1.10
         with:
           host: ${{ secrets.VPS_HOST }}
@@ -42,12 +52,16 @@ jobs:
           script: |
             cd /var/www/medconalert.com
 
-            # Ensure storage/logs exist and correct permissions
+            # Extract archive and remove it
+            tar xzf deploy.tar.gz
+            rm deploy.tar.gz
+
+            # Ensure storage and bootstrap/cache directories exist and have correct permissions
             mkdir -p storage/logs
             sudo chown -R www-data:www-data storage bootstrap/cache
             sudo chmod -R 775 storage bootstrap/cache
 
-            # Install PHP dependencies
+            # Install PHP dependencies on VPS (production only)
             composer install --no-dev --optimize-autoloader --no-interaction
 
             # Run database migrations
@@ -56,7 +70,7 @@ jobs:
             # Create storage symlink if using public storage
             php artisan storage:link || true
 
-            # Cache configuration, routes, views
+            # Cache config, routes, views
             php artisan config:cache
             php artisan route:cache
             php artisan view:cache
