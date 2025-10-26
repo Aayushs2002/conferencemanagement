@@ -6,7 +6,7 @@
 
                 <div class="col-lg-6">
                     <div class="hero-content glass-box">
-                        <h1 class="hero-title">
+                        <h1 class="hero-title">   
                             MedConAlert:<br>
                             <span>Smarter Conference Management – Simplified</span>
                         </h1>
