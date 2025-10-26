@@ -1,30 +1,36 @@
-name: Deploy Laravel
+name: Deploy Laravel to VPS
 
 on:
   push:
     branches:
-      - master
+      - master  # change if your production branch is different
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repo
+      # 1. Checkout code
+      - name: Checkout repository
         uses: actions/checkout@v4
 
+      # 2. Optional: List files to debug
+      - name: List files
+        run: ls -alh
+
+      # 3. Upload files to VPS
       - name: Upload files to VPS
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
-          source: |
-            . --exclude .git --exclude .github --exclude node_modules --exclude storage --exclude tests
-          target: /var/www/medconalert.com
+          source: "./"   # all files in repo root
+          target: "/var/www/medconalert.com"
           overwrite: true
 
-      - name: Deploy on VPS
+      # 4. Run commands on VPS
+      - name: SSH commands on VPS
         uses: appleboy/ssh-action@v0.1.10
         with:
           host: ${{ secrets.VPS_HOST }}
@@ -33,19 +39,23 @@ jobs:
           script: |
             cd /var/www/medconalert.com
 
-            # Recreate storage directories
+            # Ensure storage/cache exist
             mkdir -p storage/logs bootstrap/cache
 
             # Set permissions
             sudo chown -R www-data:www-data storage bootstrap/cache
             sudo chmod -R 775 storage bootstrap/cache
 
-            # Composer install
+            # Install composer dependencies
             composer install --no-dev --optimize-autoloader --no-interaction
 
-            # Migrate and cache
+            # Run migrations
             php artisan migrate --force
+
+            # Create storage link
             php artisan storage:link || true
+
+            # Cache configs
             php artisan config:cache
             php artisan route:cache
             php artisan view:cache
