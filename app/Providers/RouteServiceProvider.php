@@ -39,5 +39,5 @@ class RouteServiceProvider extends ServiceProvider
 
             return $model::findOrFail($id);
         });
-    }
+    } 
 }
