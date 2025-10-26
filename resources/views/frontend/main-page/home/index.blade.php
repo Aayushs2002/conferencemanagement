@@ -20,7 +20,7 @@
                         </a>
                     </div>
                 </div>
-
+ 
                 <div class="col-lg-6 hero-image">
                     <img src="{{ asset('frontend/assets/img/Group 9.png') }}" alt="Medical Conference" class="img-fluid">
                 </div>
