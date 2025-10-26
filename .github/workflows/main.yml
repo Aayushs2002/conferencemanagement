@@ -3,7 +3,7 @@ name: Deploy Laravel to VPS
 on:
   push:
     branches:
-      - master # Or your production branch
+      - master # Change to your production branch if needed
 
 jobs:
   deploy:
@@ -19,13 +19,13 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.3'
-          extensions: mbstring, bcmath, curl
+          extensions: mbstring, bcmath, curl, pdo_pgsql
 
-      # 3. Install Composer dependencies
-      - name: Install dependencies
-        run: composer install --no-dev --optimize-autoloader
+      # 3. Install Composer dependencies on GitHub runner (skip scripts to avoid DB errors)
+      - name: Install dependencies on runner
+        run: composer install --no-dev --optimize-autoloader --no-scripts
 
-      # 4. Upload files to VPS
+      # 4. Upload project files to VPS
       - name: Deploy to VPS
         uses: appleboy/scp-action@v0.1.7
         with:
@@ -35,8 +35,8 @@ jobs:
           source: "."
           target: "/var/www/medconalert.com"
 
-      # 5. Run Artisan commands on VPS
-      - name: Run Artisan commands
+      # 5. Run Composer and Artisan commands on VPS
+      - name: Setup Laravel on VPS
         uses: appleboy/ssh-action@v0.1.10
         with:
           host: ${{ secrets.VPS_HOST }}
@@ -44,12 +44,22 @@ jobs:
           key: ${{ secrets.VPS_SSH_KEY }}
           script: |
             cd /var/www/medconalert.com
+
+            # Install Composer dependencies with scripts (package discovery)
             COMPOSER_ALLOW_SUPERUSER=1 composer install --no-dev --optimize-autoloader
+
+            # Run database migrations
             php artisan migrate --force
+
+            # Cache configs, routes, views
             php artisan config:cache
             php artisan route:cache
             php artisan view:cache
+
+            # Set permissions
             sudo chown -R www-data:www-data storage bootstrap/cache
             sudo chmod -R 775 storage bootstrap/cache
+
+            # Restart PHP-FPM and reload Apache
             sudo systemctl restart php8.3-fpm
             sudo systemctl reload apache2
