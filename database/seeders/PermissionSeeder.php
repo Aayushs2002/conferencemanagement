@@ -667,6 +667,27 @@ class PermissionSeeder extends Seeder
                 'guard_name' => 'web',
                 'parent' => 'Hotel'
             ],
+            [
+                'name' => 'View Accommodation',
+                'guard_name' => 'web',
+                'parent' => 'Accommodation'
+            ],
+            [
+                'name' => 'View Official Message',
+                'guard_name' => 'web',
+                'parent' => 'Official Message'
+            ],
+            [
+                'name' => 'Log Report',
+                'guard_name' => 'web',
+                'parent' => 'Report'
+            ],
+            [
+                'name' => 'Email Template',
+                'guard_name' => 'web',
+                'parent' => 'Template'
+            ],
+
         ];
         Permission::insert($permission);
     }

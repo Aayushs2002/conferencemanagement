@@ -43,7 +43,9 @@
                 </li>
             </ul>
             <div class="btn-container ms-lg-3">
-                <button class="btn btn-primary ">Login</button>
+                <a href="{{ route('login') }}">
+                    <button class="btn btn-primary ">Login</button>
+                </a>
                 <a href="{{ route('conference.register', $conference->slug) }}" class="btn btn-outline-primary">
                     Register
                 </a>

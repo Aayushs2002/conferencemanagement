@@ -14,7 +14,7 @@ use Illuminate\Support\Facades\Route;
 Route::middleware('auth')->group(function () {
     //society controller start    
     Route::resource('/society', SocietyController::class)->middleware('check.superadmin')->except('show');
-    
+
     Route::post('society-setting', [SocietySettingController::class, 'societySetting'])->name('society.setting');
     Route::post('society-setting-submit', [SocietySettingController::class, 'societySettingSubmit'])->name('society.setting.submit');
 

@@ -7,12 +7,12 @@
         <a href="#" class="app-brand-link">
             @if ($society)
                 <img src="{{ asset('storage/society/logo/' . $society->logo) }}" height="65">
-            @else
+            @else 
                 <img src="{{ asset('default-image/NESOG.png') }}" style="height: 60px;">
             @endif
         </a>
     </div>
-
+ 
     <p class="mb-6">Please sign-in to your account and start the registration</p>
 
     <form id="formAuthentication" class="mb-4" method="POST" action="{{ route('login') }}">
@@ -114,17 +114,57 @@
     <div class="col-md-6">
         <div class="login-box"
             style="background:#f0e9fe;  text-align:center; height:auto; padding:40px 20px 50px; color:#000;">
-            <a href="#" class="app-brand-link">
+            @php
+                $nextConference = null;
+                if (!empty($society) && $society->conferences) {
+                    $upcoming = $society->conferences
+                        ->filter(function ($c) {
+                            return \Carbon\Carbon::parse($c->start_date)->isToday() ||
+                                \Carbon\Carbon::parse($c->start_date)->isFuture();
+                        })
+                        ->sortBy('start_date');
 
-                <img src="{{ asset('default-image/NESOG.png') }}" style="height:50px;">
-            </a> <br />
-            <i>"Advancing Women's Health in South Asia; Quality Innovation, and
-                Sustainability"</i><br /><br /><br /><br />
-            <p><strong>Time & Venue </strong><br />
-                7th-9th November, 2025<br />
+                    $nextConference = $upcoming->first();
 
-                Park Village Resort, Budhanilkantha, Kathmandu<br />
-            </p>
+                    if (!$nextConference) {
+                        $nextConference = $society->conferences->sortByDesc('start_date')->first();
+                    }
+                }
+            @endphp
+
+            @if (!empty($nextConference))
+                @if (!empty($nextConference->conference_logo))
+                    <a href="#" class="app-brand-link">
+                        <img src="{{ asset('storage/conference/conference/logo/' . $nextConference->conference_logo) }}"
+                            style="height:50px;">
+                    </a>
+                @else
+                <div class="text-center">
+                    <h3>{{ $nextConference->conference_name ?? 'Upcoming Conference' }}</h3>
+                </div>
+                @endif
+
+                <br />
+                <div class="mt-2" style="font-style:italic">{{ $nextConference->conference_theme ?? '' }}</div>
+                <br /><br />
+                <p><strong>Time & Venue </strong><br />
+                    {{ \Carbon\Carbon::parse($nextConference->start_date)->format('j M, Y') }}
+                    @if (!empty($nextConference->end_date))
+                        - {{ \Carbon\Carbon::parse($nextConference->end_date)->format('j M, Y') }}
+                    @endif
+                    <br />
+                    @if (!empty($nextConference->ConferenceVenueDetail))
+                        {{ $nextConference->ConferenceVenueDetail->venue_name ?? '' }}
+                        @if (!empty($nextConference->ConferenceVenueDetail->venue_address))
+                            , {{ $nextConference->ConferenceVenueDetail->venue_address }}
+                        @endif
+                    @else
+                        Venue details coming soon
+                    @endif
+                </p>
+            @else 
+                <p>Conference Management System</p>
+            @endif
 
             <!-- Guidelines Link -->
             <div class="mt-3">

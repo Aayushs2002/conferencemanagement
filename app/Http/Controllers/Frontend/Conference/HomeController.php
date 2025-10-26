@@ -54,8 +54,18 @@ class HomeController extends BaseConferenceController
                     WHERE MT.society_id = " . $this->conference->society_id;
 
         $memberTypes = DB::select($sql);
-        // dd($memberTypes);
+
         $faqs = Faq::where(['conference_id' => $this->conference->id, 'status' => 1])->get();
+
+        $society = $this->conference->society;
+        $subdomain = $society->sub_domain_name;
+        $host = request()->getHost();
+
+        if (!str_starts_with($host, $subdomain . '.')) {
+            $mainDomain = preg_replace('/^www\./', '', $host);
+            $url = "http://{$subdomain}.{$mainDomain}" . request()->getRequestUri();
+            return redirect()->to($url);
+        }
         return view('frontend.conference.home.index', compact('submissionSetting', 'hotels', 'sponsorCategories', 'downloads', 'memberTypes', 'faqs'));
     }
 }

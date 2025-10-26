@@ -14,7 +14,7 @@
                             All-in-one registrations, abstracts, sessions, workshops, sponsors,
                             Name TAG Card, QR and certifications used by leading medical institutions.
                         </p>
-                        <a href="#" class="btn btn-outline-primary">
+                        <a href="{{ route('conference') }}" class="btn btn-outline-primary">
                             Upcoming Conferences
                             <i class="fa-solid fa-arrow-up-right-from-square me-2"></i>
                         </a>
@@ -49,7 +49,7 @@
                                     <h5 class="card-title">{{ $conference->conference_name }}</h5>
                                     <p class="text-muted small mb-3">
                                         {{ $conference->conference_theme }}
-                                    </p> 
+                                    </p>
 
                                     <div class="countdown d-flex mb-3 justify-content-center countdown-box"
                                         data-start="{{ $conference->start_date }}" data-end="{{ $conference->end_date }}">

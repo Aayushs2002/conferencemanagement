@@ -29,7 +29,7 @@
             </ul>
             <div class="btn-container ms-lg-3">
                 <button class="btn btn-primary ">Request a Quote</button>
-                <a href="#" class="btn btn-outline-primary">
+                <a href="{{route('login')}}" class="btn btn-outline-primary">
                     Login
                 </a>
             </div>

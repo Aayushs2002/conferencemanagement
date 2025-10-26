@@ -24,7 +24,7 @@
                 <i class="menu-icon icon-base ti tabler-smart-home"></i>
                 <div data-i18n="Dashboard">Dashboard</div>
             </a>
-        </li>
+        </li> 
         @php
             $conference = getConference(request()->segment(4));
         @endphp

@@ -120,7 +120,7 @@ Route::post('/contact-us-store', [ContactController::class, 'store'])->name('con
 Route::get('/conference', [ConferenceController::class, 'index'])->name('conference');
 Route::get('/conference-filter', [ConferenceController::class, 'filter'])->name('conference.filter');
 
-Route::prefix('conference/{conference_front:slug}')
+Route::prefix('conference/{conference_front:slug}')->middleware('check.subdomain')
     ->as('conference.')
     ->group(function () {
         Route::get('/', [ConferenceHomeController::class, 'index'])->name('name');

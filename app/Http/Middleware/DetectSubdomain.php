@@ -17,9 +17,10 @@ class DetectSubdomain
     public function handle(Request $request, Closure $next)
     {
         $host = $request->getHost();
+        // dd($host);
         $parts = explode('.', $host);
         if (count($parts) >= 3) {
-            $subdomain = $parts[0];
+            $subdomain = $parts[0]; 
 
             if (!in_array($subdomain, ['www', 'admin'])) {
                 $society = Society::where('sub_domain_name', $subdomain)->first();

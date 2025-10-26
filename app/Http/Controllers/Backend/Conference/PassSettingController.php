@@ -82,7 +82,7 @@ class PassSettingController extends Controller
 
             return redirect()->route('pass-setting.index', [$society, $conference])->with('status', 'Pass Setting Added Successfully');
         } catch (Exception $e) {
-            dd($e);
+            // dd($e);
             return redirect()->back()->with('delete', 'Internal Server Error');
         }
     }

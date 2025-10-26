@@ -374,11 +374,42 @@
 </body> --}}
 <x-guest-layout>
     <!-- Logo -->
-    <div class="app-brand justify-content-center mb-6">
-        <a href="#" class="app-brand-link">
+    @php
+        $nextConference = null;
+        if (!empty($society) && $society->conferences) {
+            $upcoming = $society->conferences
+                ->filter(function ($c) {
+                    return \Carbon\Carbon::parse($c->start_date)->isToday() ||
+                        \Carbon\Carbon::parse($c->start_date)->isFuture();
+                })
+                ->sortBy('start_date');
 
-            <img src="{{ asset('default-image/NESOG.png') }}" style="height: 60px;">
-        </a>
+            $nextConference = $upcoming->first();
+
+            if (!$nextConference) {
+                $nextConference = $society->conferences->sortByDesc('start_date')->first();
+            }
+        }
+    @endphp
+    <div class="app-brand justify-content-center mb-6">
+        @if (!empty($nextConference))
+            {{-- <a href="#" class="app-brand-link">
+
+                <img src="{{ asset('default-image/NESOG.png') }}" style="height: 60px;">
+            </a> --}}
+            @if (!empty($nextConference->conference_logo))
+                <a href="#" class="app-brand-link">
+                    <img src="{{ asset('storage/conference/conference/logo/' . $nextConference->conference_logo) }}"
+                        style="height:50px;">
+                </a>
+            @else
+                <div class="text-center">
+                    <h3>{{ $nextConference->conference_name ?? 'Upcoming Conference' }}</h3>
+                </div>
+            @endif
+        @else
+            <h3>Conference Management System</h3>
+        @endif
     </div>
     <!-- /Logo -->
     <p class="mb-6">Please sign-up to your account and start the conference registration</p>
