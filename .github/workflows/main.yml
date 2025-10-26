@@ -3,33 +3,42 @@ name: Deploy Laravel to VPS
 on:
   push:
     branches:
-      - master  # change if your production branch is different
+      - master
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. Checkout code
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 2. Optional: List files to debug
-      - name: List files
+      # Optional: list files to debug
+      - name: List repo files
         run: ls -alh
 
-      # 3. Upload files to VPS
+      # Upload only necessary files
       - name: Upload files to VPS
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
-          source: "./"   # all files in repo root
+          source: |
+            app
+            bootstrap
+            config
+            database
+            public
+            resources
+            routes
+            artisan
+            composer.json
+            composer.lock
           target: "/var/www/medconalert.com"
           overwrite: true
 
-      # 4. Run commands on VPS
+      # SSH commands to finish deploy
       - name: SSH commands on VPS
         uses: appleboy/ssh-action@v0.1.10
         with:
@@ -38,28 +47,18 @@ jobs:
           key: ${{ secrets.VPS_SSH_KEY }}
           script: |
             cd /var/www/medconalert.com
-
-            # Ensure storage/cache exist
             mkdir -p storage/logs bootstrap/cache
 
-            # Set permissions
             sudo chown -R www-data:www-data storage bootstrap/cache
             sudo chmod -R 775 storage bootstrap/cache
 
-            # Install composer dependencies
             composer install --no-dev --optimize-autoloader --no-interaction
 
-            # Run migrations
             php artisan migrate --force
-
-            # Create storage link
             php artisan storage:link || true
-
-            # Cache configs
             php artisan config:cache
             php artisan route:cache
             php artisan view:cache
 
-            # Restart services
             sudo systemctl restart php8.3-fpm
             sudo systemctl reload apache2
