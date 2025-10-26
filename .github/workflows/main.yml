@@ -3,18 +3,18 @@ name: Deploy Laravel to VPS
 on:
   push:
     branches:
-      - master  # Or your production branch
+      - master  # Production branch
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. Checkout repository
-      - name: Checkout code
+      # 1. Checkout code
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 2. Setup PHP (needed for SSH commands with composer on VPS)
+      # 2. Setup PHP (needed for composer commands)
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
@@ -28,12 +28,11 @@ jobs:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
-          source: |
-            . --exclude .git --exclude .github --exclude node_modules --exclude storage/logs --exclude tests
+          source: ". --exclude=.git --exclude=.github --exclude=node_modules --exclude=storage/logs --exclude=tests"
           target: "/var/www/medconalert.com"
           overwrite: true
 
-      # 4. Run commands on VPS
+      # 4. Run SSH commands on VPS
       - name: Run SSH commands on VPS
         uses: appleboy/ssh-action@v0.1.10
         with:
@@ -43,18 +42,18 @@ jobs:
           script: |
             cd /var/www/medconalert.com
 
-            # Ensure storage and cache directories exist and have proper permissions
+            # Ensure storage/logs exist and correct permissions
             mkdir -p storage/logs
             sudo chown -R www-data:www-data storage bootstrap/cache
             sudo chmod -R 775 storage bootstrap/cache
 
-            # Install PHP dependencies (production-only)
+            # Install PHP dependencies
             composer install --no-dev --optimize-autoloader --no-interaction
 
-            # Run migrations
+            # Run database migrations
             php artisan migrate --force
 
-            # Create storage symlink (if using public storage)
+            # Create storage symlink if using public storage
             php artisan storage:link || true
 
             # Cache configuration, routes, views
@@ -64,4 +63,4 @@ jobs:
 
             # Restart PHP-FPM and reload Apache
             sudo systemctl restart php8.3-fpm
-            sudo systemctl reload apache2 
+            sudo systemctl reload apache2
