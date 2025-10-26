@@ -64,4 +64,4 @@ jobs:
 
             # Restart PHP-FPM and reload Apache
             sudo systemctl restart php8.3-fpm
-            sudo systemctl reload apache2
+            sudo systemctl reload apache2 
