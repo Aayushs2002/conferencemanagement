@@ -2,50 +2,42 @@ name: Deploy Laravel to VPS
 
 on:
   push:
-    branches: [ "master" ]
+    branches:
+      - master # Change to your production branch if needed
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
-      # ✅ Checkout code
+      # 1. Checkout repository
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # ✅ Setup PHP for build on GitHub runner
+      # 2. Setup PHP
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.3'
           extensions: mbstring, bcmath, curl, pdo_pgsql
 
-      # ✅ Install dependencies on runner (faster deploy)
-      - name: Install Composer dependencies
-        run: composer install --no-dev --optimize-autoloader --no-scripts --prefer-dist --no-interaction
+      # 3. Install Composer dependencies on GitHub runner (skip scripts to avoid DB errors)
+      - name: Install dependencies on runner
+        run: composer install --no-dev --optimize-autoloader --no-scripts
 
-      # ✅ Upload project to VPS (supports tar overwrite + exclude ✅)
-      - name: Upload project to server
-        uses: appleboy/scp-action@v0.1.8
+      # 4. Deploy using rsync (more reliable than scp-action)
+      - name: Deploy to VPS with rsync
+        uses: burnett01/rsync-deployments@7.0.1
         with:
-          host: ${{ secrets.VPS_HOST }}
-          username: ${{ secrets.VPS_USER }}
-          key: ${{ secrets.VPS_SSH_KEY }}
-          source: "."
-          target: "/var/www/medconalert.com"
-          strip_components: 1
-          rm: true
-          tar_extra_opts: --overwrite
-          exclude: |
-            .git
-            .github
-            node_modules
-            storage
-            vendor
-            bootstrap/cache/*.php
+          switches: -avzr --delete --exclude='.git' --exclude='.env' --exclude='storage/framework/sessions/*' --exclude='storage/logs/*'
+          path: ./
+          remote_path: /var/www/medconalert.com/
+          remote_host: ${{ secrets.VPS_HOST }}
+          remote_user: ${{ secrets.VPS_USER }}
+          remote_key: ${{ secrets.VPS_SSH_KEY }}
 
-      # ✅ Finalize deployment on VPS
-      - name: Configure & Optimize Laravel on Server
+      # 5. Run Composer and Artisan commands on VPS
+      - name: Setup Laravel on VPS
         uses: appleboy/ssh-action@v0.1.10
         with:
           host: ${{ secrets.VPS_HOST }}
@@ -54,27 +46,27 @@ jobs:
           script: |
             cd /var/www/medconalert.com
 
-            # ✅ Ensure production .env exists before doing anything
-            if [ ! -f .env ]; then
-              echo "❌ Missing production .env on server"
-              exit 1
-            fi
+            # Install Composer dependencies with scripts (package discovery)
+            COMPOSER_ALLOW_SUPERUSER=1 composer install --no-dev --optimize-autoloader
 
-            # ✅ Install vendor on server (safer)
-            COMPOSER_ALLOW_SUPERUSER=1 composer install --no-dev --prefer-dist --optimize-autoloader --no-interaction
+            # Run database migrations
+            php artisan migrate --force
 
-            # ✅ Storage & cache permissions
+            # Clear all caches
+            php artisan cache:clear
+            php artisan config:clear
+            php artisan route:clear
+            php artisan view:clear
+
+            # Cache configs, routes, views
+            php artisan config:cache
+            php artisan route:cache
+            php artisan view:cache
+
+            # Set permissions
             sudo chown -R www-data:www-data storage bootstrap/cache
             sudo chmod -R 775 storage bootstrap/cache
 
-            # ✅ Cache & optimize Laravel
-            php artisan config:clear
-            php artisan cache:clear
-            php artisan optimize
-
-            # ✅ Database migrations
-            php artisan migrate --force
-
-            # ✅ Restart services (PHP & web server)
+            # Restart PHP-FPM and reload Apache
             sudo systemctl restart php8.3-fpm
             sudo systemctl reload apache2
