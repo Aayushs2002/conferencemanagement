@@ -230,7 +230,7 @@ class ConferenceRegistationImport implements ToCollection, WithHeadingRow, WithC
         MemberType::class => 'type',
         Institution::class => 'name',
         Department::class => 'name',
-        Designation::class => 'designation', 
+        Designation::class => 'designation',
     ];
 
     protected function resolveId($model, $value)

@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Cms\Blog;
 use App\Models\Conference\Conference;
 use App\Models\Conference\ConferenceRegistration;
 use App\Models\Conference\ScientificSessionCategory;
@@ -8,12 +9,35 @@ use App\Models\User\ActivityLog;
 use App\Models\User\Society;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Vinkla\Hashids\Facades\Hashids;
 
 foreach (glob(__DIR__ . '/*_helpers.php') as $file) {
     require_once $file;
 }
 
+
+function getMetas($segment1, $segment2)
+{
+
+    if ($segment1 == 'blog') {
+        $blog = Blog::where('slug', $segment2)->first();
+        $meta = (object) [
+            'title' => $blog?->title,
+            'description' => $blog?->description,
+            'image' =>  Storage::url('blog/image/' . $blog?->image),
+        ];
+        return $meta;
+    } else {
+        $meta = (object) [
+            'title' => "Medcon Alert",
+            'description' => "Medcon Alert - Manage your conferences with ease. Stay updated with the latest news, register for events, and connect with professionals in your field.",
+            'image' =>  null,
+        ];
+        return $meta;
+    }
+    // return null;
+}
 
 if (!function_exists('checkRegistration')) {
     function checkRegistration($conference)

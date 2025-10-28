@@ -36,7 +36,8 @@
                                 </div>
                                 <div class="blog-share">
                                     Share On:
-                                    <a href="#" class="text-muted me-2"><i class="fab fa-facebook-f"></i></a>
+                                    <a href="https://www.facebook.com/sharer/sharer.php?u={{ url()->full() }}"
+                                        target="_blank" class="text-muted me-2"><i class="fab fa-facebook-f"></i></a>
                                     <a href="#" class="text-muted me-2"><i class="fab fa-twitter"></i></a>
                                     <a href="#" class="text-muted"><i class="fab fa-linkedin-in"></i></a>
                                 </div>

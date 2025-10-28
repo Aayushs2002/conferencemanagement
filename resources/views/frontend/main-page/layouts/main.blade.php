@@ -9,10 +9,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="author" content="">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+
+    @php
+        $segment = request()->segment(1);
+        $meta = getMetas(Request::segment(1), Request::segment(2));
+    @endphp
     <!-- Favicon Icon -->
     <link rel="icon" href="assets/img/MEDCON-LOGO.png">
     <!-- Site Title -->
-    <title>Medcon Alert</title>
+    <title>{{ $meta->title ?? 'Medcon Alert' }}</title>
+    <meta name=description content="{{ Str::limit(strip_tags($meta->description, 2000)) }}">
+    <meta property=og:image content="{{ $meta->image }}" />
+    <meta property=twitter:title content="{{ $meta->title }}" />
+    <meta property=twitter:description content="{{ Str::limit(strip_tags($meta->description, 50)) }}" />
+    <meta property=twitter:image content="{{ $meta->image }}">
     <link rel="stylesheet" href="{{ asset('frontend/assets/css/bootstrap.min.css') }}">
     <link rel="stylesheet" href="{{ asset('frontend/assets/css/fontawesome.min.css') }}">
     <link rel="stylesheet" href="{{ asset('frontend/assets/css/slick.min.css') }}">
@@ -62,7 +72,7 @@
     </script>
 
     <!-- image slider -->
-   
+
 
 
 </body>
