@@ -232,7 +232,7 @@ class ConferenceRegistration extends Model
     COUNT(DISTINCT UD.user_id) AS user_count,
     STRING_AGG(DISTINCT UD.user_id::text, ',') AS user_ids
 FROM member_types AS MT
-LEFT JOIN
+LEFT JOIN 
 (
     SELECT
         US.member_type_id,
@@ -245,10 +245,8 @@ LEFT JOIN
     JOIN conference_registrations AS CR ON UD.user_id = CR.user_id
     WHERE UD.status = 1 AND CR.status = 1 AND CR.verified_status = 1 AND CR.conference_id = $conferenceId AND US.society_id = $society->id
 ) AS UD ON MT.id = UD.member_type_id
-WHERE MT.status = 1 $cond
+WHERE MT.status = 1 AND MT.society_id = $society->id $cond
 GROUP BY MT.id, MT.delegate, MT.type";
-
-
 
         $totalRegistrants = DB::select($sql);
 

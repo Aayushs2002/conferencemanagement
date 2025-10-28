@@ -120,7 +120,7 @@
                 </div>
             </div>
 
-            <div id="conferenceCardsContainer">
+            <div id="conferenceCardsContainer"> 
                 @include('frontend.main-page.conference.partials.conference-cards')
             </div>
 

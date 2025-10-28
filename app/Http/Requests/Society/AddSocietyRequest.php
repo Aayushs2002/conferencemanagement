@@ -22,7 +22,7 @@ class AddSocietyRequest extends FormRequest
     public function rules(): array
     {
         $emailRule = 'required|email|unique:users,email';
-        $phoneRule = 'required|regex:/^\d{10}$/|unique:user_details,phone';
+        $phoneRule = 'required|regex:/^\d{10}$/';
         $logoRule = 'required|mimes:jpg,jpeg,png|max:250';
         if (!$this->isMethod('post') && $this->society) {
             $emailRule .= ',' . $this->society->users->where('type', 2)->value('id');
@@ -41,7 +41,7 @@ class AddSocietyRequest extends FormRequest
             'phone' => $phoneRule,
             'logo' => $logoRule,
             'description' => 'nullable',
-            'sub_domain_name' => 'required|regex:/^[a-zA-Z0-9\s]+$/',
+            'sub_domain_name' => 'required|unique:societies,sub_domain_name|regex:/^[a-zA-Z0-9\s]+$/',
             'features'   => 'required|array|min:1',
             'features.*' => 'exists:features,id',
         ];

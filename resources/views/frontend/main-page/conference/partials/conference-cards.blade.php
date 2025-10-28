@@ -8,7 +8,7 @@
                             alt="{{ $conference->conference_name }}" loading="lazy">
                     </div> 
                     <h5 class="card-title">{{ $conference->conference_name }}</h5>
-                    <p class="text-muted small mb-3">
+                    <p class="text-muted small mb-3"> 
                         {{ $conference->conference_theme }}
                     </p>
 

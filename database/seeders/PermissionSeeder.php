@@ -680,7 +680,7 @@ class PermissionSeeder extends Seeder
             [
                 'name' => 'Log Report',
                 'guard_name' => 'web',
-                'parent' => 'Report'
+                'parent' => 'Report' 
             ],
             [
                 'name' => 'Email Template',

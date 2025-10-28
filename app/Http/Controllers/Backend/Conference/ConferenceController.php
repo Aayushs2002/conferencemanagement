@@ -205,6 +205,7 @@ class ConferenceController extends Controller
 
     public function openConferencePortal($society, $conference)
     {
+        // dd('da');
         $conferenceRegistrationCount = ConferenceRegistration::where(['conference_id' => $conference->id, 'status' => 1])->count();
         $totalNationalRegistrants = ConferenceRegistration::totalRegistrants(1, $society, $conference);
         $totalInternationalRegistrants = ConferenceRegistration::totalRegistrants(2, $society, $conference);
@@ -231,7 +232,7 @@ class ConferenceController extends Controller
             ->select(
                 DB::raw('COUNT(DISTINCT attendances.id) as attendance_count'),
                 DB::raw('COALESCE(SUM(meals.lunch_taken), 0) as lunch_count'),
-                DB::raw('COALESCE(SUM(meals.dinner_taken), 0) as dinner_count')
+                DB::raw('COALESCE(SUM(meals.dinner_taken), 0) as dinner_count') 
             )
             ->where('conference_registrations.conference_id', $conferenceId)
             ->first();

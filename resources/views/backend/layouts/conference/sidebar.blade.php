@@ -24,7 +24,7 @@
                 <i class="menu-icon icon-base ti tabler-smart-home"></i>
                 <div data-i18n="Dashboard">Dashboard</div>
             </a>
-        </li> 
+        </li>
         @php
             $conference = getConference(request()->segment(4));
         @endphp
@@ -95,17 +95,18 @@
             @endif
         @endif
 
-        {{-- @if (feature_enabled('accommodation-management', getSociety(request()->segment(2)))) --}}
+        @if (feature_enabled('accommodation-management', getSociety(request()->segment(2))))
             @if (auth()->user()->hasConferencePermissionBlade($conference, 'View Accommodation'))
                 <li class="menu-item {{ request()->segment(5) == 'accommodation' ? 'active open' : '' }}">
-                    <a href="{{ route('conference.accommodation.index', [request()->segment(2), request()->segment(4)]) }}" class="menu-link">
+                    <a href="{{ route('conference.accommodation.index', [request()->segment(2), request()->segment(4)]) }}"
+                        class="menu-link">
                         <i class="menu-icon icon-base ti tabler-building-skyscraper"></i>
                         <div data-i18n="User Accommodation">User Accommodation</div>
                     </a>
                 </li>
-            {{-- @endif --}}
+                {{-- @endif --}}
+            @endif
         @endif
-        {{-- @endif --}}
 
         @if (current_user()->type == 3)
             @if (feature_enabled('conference-registration-management', getSociety(request()->segment(2))))
@@ -138,8 +139,8 @@
                     </a>
                 </li>
             @endif
-            
-            @if(auth()->user()->userDetail->country_id != 125 && checkRegistration(request()->segment(4)))
+
+            @if (auth()->user()->userDetail->country_id != 125 && checkRegistration(request()->segment(4)))
                 <li class="menu-item {{ request()->segment(5) == 'accommodation' ? 'active' : '' }}">
                     <a href="{{ route('my-society.conference.accommodation', [request()->segment(2), request()->segment(4)]) }}"
                         class="menu-link">
@@ -298,7 +299,7 @@
                 </li>
             @endif
         @endif
- 
+
         @if (feature_enabled('commitee-management', getSociety(request()->segment(2))))
             @if (auth()->user()->hasAnyConferencePermission($conference, ['View Committee', 'View Committee Designation']))
                 <li class="menu-item {{ request()->segment(5) == 'committee' ? 'active open' : '' }}">
@@ -462,8 +463,8 @@
                     </a>
                 </li>
             @endif
-        @endif
-
+        @endif 
+ 
         @if (feature_enabled('hotel-and-accomodation-management', getSociety(request()->segment(2))))
             @if (auth()->user()->hasConferencePermissionBlade($conference, 'View Hotel'))
                 <li class="menu-item {{ request()->segment(5) == 'hotel' ? 'active' : '' }}">

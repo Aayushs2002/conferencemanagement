@@ -14,7 +14,7 @@ class ConferenceController extends Controller
 {
     private const CACHE_TTL = 3600; 
 
-    public function __construct(
+    public function __construct( 
         private readonly Conference $conference
     ) {}
 
@@ -25,7 +25,7 @@ class ConferenceController extends Controller
             return view('frontend.main-page.conference.index', compact('conferences'));
         } catch (Throwable $e) {
             Log::error('Error fetching conferences', [
-                'error' => $e->getMessage(),
+                'error' => $e->getMessage(), 
                 'trace' => $e->getTraceAsString(),
                 'filters' => $request->validated()
             ]);
@@ -65,7 +65,7 @@ class ConferenceController extends Controller
 
             $this->applyFilters($query, $request);
 
-            return $query->orderBy('start_date', 'asc')->get();
+            return $query->orderBy('start_date', 'desc')->get();
         });
     }
 

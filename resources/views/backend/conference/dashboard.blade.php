@@ -12,7 +12,7 @@
                                     <i class="icon-base ti tabler-truck text-primary fs-4"></i>
                                 </div>
                                 <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2 rounded-pill">Total</span>
-                            </div>
+                            </div> 
                             <a href="{{ route('conference.conference-registration.index', [$society, $conference]) }}">
                                 <h3 class="fw-bold text-dark mb-2">{{ $conferenceRegistrationCount }}</h3>
                             </a>
