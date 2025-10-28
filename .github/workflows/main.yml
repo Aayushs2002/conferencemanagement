@@ -2,41 +2,50 @@ name: Deploy Laravel to VPS
 
 on:
   push:
-    branches:
-      - master # Change to your production branch if needed
+    branches: [ "master" ]
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. Checkout repository
+      # ✅ Checkout code
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # 2. Setup PHP
+      # ✅ Setup PHP for build on GitHub runner
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.3'
           extensions: mbstring, bcmath, curl, pdo_pgsql
 
-      # 3. Install Composer dependencies on GitHub runner (skip scripts to avoid DB errors)
-      - name: Install dependencies on runner
-        run: composer install --no-dev --optimize-autoloader --no-scripts
+      # ✅ Install dependencies on runner (faster deploy)
+      - name: Install Composer dependencies
+        run: composer install --no-dev --optimize-autoloader --no-scripts --prefer-dist --no-interaction
 
-      # 4. Upload project files to VPS
-      - name: Deploy to VPS
-        uses: appleboy/scp-action@v0.1.7
+      # ✅ Upload project to VPS (supports tar overwrite + exclude ✅)
+      - name: Upload project to server
+        uses: appleboy/scp-action@v0.1.8
         with:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
           source: "."
           target: "/var/www/medconalert.com"
+          strip_components: 1
+          rm: true
+          tar_extra_opts: --overwrite
+          exclude: |
+            .git
+            .github
+            node_modules
+            storage
+            vendor
+            bootstrap/cache/*.php
 
-      # 5. Run Composer and Artisan commands on VPS
-      - name: Setup Laravel on VPS
+      # ✅ Finalize deployment on VPS
+      - name: Configure & Optimize Laravel on Server
         uses: appleboy/ssh-action@v0.1.10
         with:
           host: ${{ secrets.VPS_HOST }}
@@ -45,21 +54,27 @@ jobs:
           script: |
             cd /var/www/medconalert.com
 
-            # Install Composer dependencies with scripts (package discovery)
-            COMPOSER_ALLOW_SUPERUSER=1 composer install --no-dev --optimize-autoloader
+            # ✅ Ensure production .env exists before doing anything
+            if [ ! -f .env ]; then
+              echo "❌ Missing production .env on server"
+              exit 1
+            fi
 
-            # Run database migrations
-            php artisan migrate --force
+            # ✅ Install vendor on server (safer)
+            COMPOSER_ALLOW_SUPERUSER=1 composer install --no-dev --prefer-dist --optimize-autoloader --no-interaction
 
-            # Cache configs, routes, views
-            php artisan config:cache
-            php artisan route:cache
-            php artisan view:cache
-
-            # Set permissions
+            # ✅ Storage & cache permissions
             sudo chown -R www-data:www-data storage bootstrap/cache
             sudo chmod -R 775 storage bootstrap/cache
 
-            # Restart PHP-FPM and reload Apache
+            # ✅ Cache & optimize Laravel
+            php artisan config:clear
+            php artisan cache:clear
+            php artisan optimize
+
+            # ✅ Database migrations
+            php artisan migrate --force
+
+            # ✅ Restart services (PHP & web server)
             sudo systemctl restart php8.3-fpm
             sudo systemctl reload apache2
