@@ -68,25 +68,41 @@ jobs:
             echo "📦 Running composer scripts on VPS..."
             composer dump-autoload --optimize
             
-            echo "🗄️ Running migrations..."
-            php artisan migrate --force
-            
-            echo "🧹 Clearing caches..."
-            php artisan cache:clear
-            php artisan config:clear
-            php artisan route:clear
-            php artisan view:clear
-            
-            echo "⚡ Building caches..."
-            php artisan config:cache
-            php artisan route:cache
-            php artisan view:cache
-            
-            echo "🔒 Setting permissions..."
+            echo "🔒 Setting proper permissions first..."
+            # Set ownership to www-data
             sudo chown -R www-data:www-data /var/www/medconalert.com
-            sudo chmod -R 755 /var/www/medconalert.com
+            
+            # Set base permissions
+            sudo find /var/www/medconalert.com -type f -exec chmod 644 {} \;
+            sudo find /var/www/medconalert.com -type d -exec chmod 755 {} \;
+            
+            # Set storage and cache permissions (writable)
             sudo chmod -R 775 /var/www/medconalert.com/storage
             sudo chmod -R 775 /var/www/medconalert.com/bootstrap/cache
+            
+            # Ensure storage directories exist
+            sudo -u www-data mkdir -p /var/www/medconalert.com/storage/framework/sessions
+            sudo -u www-data mkdir -p /var/www/medconalert.com/storage/framework/views
+            sudo -u www-data mkdir -p /var/www/medconalert.com/storage/framework/cache
+            sudo -u www-data mkdir -p /var/www/medconalert.com/storage/logs
+            sudo -u www-data mkdir -p /var/www/medconalert.com/storage/app/public
+            
+            echo "🗄️ Running migrations..."
+            sudo -u www-data php artisan migrate --force
+            
+            echo "🧹 Clearing caches..."
+            sudo -u www-data php artisan cache:clear
+            sudo -u www-data php artisan config:clear
+            sudo -u www-data php artisan route:clear
+            sudo -u www-data php artisan view:clear
+            
+            echo "⚡ Building caches..."
+            sudo -u www-data php artisan config:cache
+            sudo -u www-data php artisan route:cache
+            sudo -u www-data php artisan view:cache
+            
+            echo "🔗 Creating storage link..."
+            sudo -u www-data php artisan storage:link 2>/dev/null || echo "Storage link already exists"
             
             echo "♻️ Restarting services..."
             sudo systemctl restart php8.3-fpm
