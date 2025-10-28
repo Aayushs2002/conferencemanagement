@@ -36,11 +36,18 @@
                                 </div>
                                 <div class="blog-share">
                                     Share On:
-                                    <a href="https://www.facebook.com/sharer/sharer.php?u={{ url()->full() }}"
-                                        target="_blank" class="text-muted me-2"><i class="fab fa-facebook-f"></i></a>
-                                    <a href="https://twitter.com/intent/tweet?url={{ url()->full() }}" target="_blank"
-                                        class="text-muted me-2"><i class="fab fa-twitter"></i></a>
-                                    <a href="#" class="text-muted"><i class="fab fa-linkedin-in"></i></a>
+                                    <a href="https://www.facebook.com/sharer/sharer.php?u={{ urlencode(url()->full()) }}"
+                                        target="_blank" rel="noopener noreferrer" class="text-muted me-2" title="Share on Facebook">
+                                        <i class="fab fa-facebook-f"></i>
+                                    </a>
+                                    <a href="https://twitter.com/intent/tweet?url={{ urlencode(url()->full()) }}&text={{ urlencode($blog->title) }}" 
+                                        target="_blank" rel="noopener noreferrer" class="text-muted me-2" title="Share on Twitter/X">
+                                        <i class="fab fa-twitter"></i>
+                                    </a>
+                                    <a href="https://www.linkedin.com/sharing/share-offsite/?url={{ urlencode(url()->full()) }}" 
+                                        target="_blank" rel="noopener noreferrer" class="text-muted" title="Share on LinkedIn">
+                                        <i class="fab fa-linkedin-in"></i>
+                                    </a>
                                 </div>
                             </div>
 

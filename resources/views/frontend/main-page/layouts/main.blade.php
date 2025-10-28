@@ -18,11 +18,37 @@
     <link rel="icon" href="assets/img/MEDCON-LOGO.png">
     <!-- Site Title -->
     <title>{{ $meta->title ?? 'Medcon Alert' }}</title>
-    <meta name=description content="{{ Str::limit(strip_tags($meta->description, 2000)) }}">
-    <meta property=og:image content="{{ $meta->image }}" />
-    <meta property=twitter:title content="{{ $meta->title }}" />
-    <meta property=twitter:description content="{{ Str::limit(strip_tags($meta->description, 50)) }}" />
-    <meta property=twitter:image content="{{ $meta->image }}">
+    
+    <!-- Basic Meta Tags -->
+    <meta name="description" content="{{ Str::limit(strip_tags($meta->description), 160) }}">
+    
+    <!-- Open Graph Meta Tags (Facebook, LinkedIn) -->
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="{{ $meta->title ?? 'Medcon Alert' }}">
+    <meta property="og:description" content="{{ Str::limit(strip_tags($meta->description), 200) }}">
+    <meta property="og:url" content="{{ url()->current() }}">
+    @if($meta->image)
+        <meta property="og:image" content="{{ $meta->image }}">
+        <meta property="og:image:secure_url" content="{{ $meta->image }}">
+        <meta property="og:image:width" content="1200">
+        <meta property="og:image:height" content="630">
+        <meta property="og:image:alt" content="{{ $meta->title ?? 'Medcon Alert' }}">
+    @endif
+    <meta property="og:site_name" content="Medcon Alert">
+    
+    <!-- Twitter Card Meta Tags -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="{{ $meta->title ?? 'Medcon Alert' }}">
+    <meta name="twitter:description" content="{{ Str::limit(strip_tags($meta->description), 200) }}">
+    @if($meta->image)
+        <meta name="twitter:image" content="{{ $meta->image }}">
+        <meta name="twitter:image:alt" content="{{ $meta->title ?? 'Medcon Alert' }}">
+    @endif
+    
+    <!-- Canonical URL -->
+    <meta property="og:url" content="{{ url()->current() }}">
+    <link rel="canonical" href="{{ url()->current() }}">
+    
     <link rel="stylesheet" href="{{ asset('frontend/assets/css/bootstrap.min.css') }}">
     <link rel="stylesheet" href="{{ asset('frontend/assets/css/fontawesome.min.css') }}">
     <link rel="stylesheet" href="{{ asset('frontend/assets/css/slick.min.css') }}">
