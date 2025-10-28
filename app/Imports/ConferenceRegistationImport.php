@@ -13,19 +13,72 @@ use App\Models\User\NamePrefix;
 use App\Models\User\UserDetail;
 use App\Models\User\UserSociety;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Concerns\ToCollection;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
+use Maatwebsite\Excel\Concerns\WithBatchInserts;
+use Maatwebsite\Excel\Concerns\WithChunkReading;
 
-class ConferenceRegistationImport implements ToCollection, WithHeadingRow
+class ConferenceRegistationImport implements ToCollection, WithHeadingRow, WithChunkReading
 {
     protected $society;
     protected $conference;
     public $log = [];
+    protected $lookupCache = [];
+    protected $defaultPasswordHash = null;
 
     public function __construct($society, $conference)
     {
         $this->society = $society;
         $this->conference = $conference;
+        // Hash the default password once instead of for every user
+        $this->defaultPasswordHash = hash_password('password');
+    }
+
+    /**
+     * Process data in chunks of 100 rows at a time
+     */
+    public function chunkSize(): int
+    {
+        return 100;
+    }
+
+    /**
+     * Pre-load all lookup data to avoid N+1 queries
+     */
+    protected function preloadLookupData()
+    {
+        // Cache all prefixes
+        $this->lookupCache['prefixes'] = NamePrefix::all()->keyBy(function ($item) {
+            return strtolower($item->prefix);
+        });
+
+        // Cache all countries
+        $this->lookupCache['countries'] = Country::all()->keyBy(function ($item) {
+            return strtolower($item->country_name);
+        });
+
+        // Cache all member types for this society
+        $this->lookupCache['member_types'] = MemberType::where('society_id', $this->society->id)
+            ->get()
+            ->keyBy(function ($item) {
+                return strtolower($item->type);
+            });
+
+        // Cache all institutions
+        $this->lookupCache['institutions'] = Institution::all()->keyBy(function ($item) {
+            return strtolower($item->name);
+        });
+
+        // Cache all departments
+        $this->lookupCache['departments'] = Department::all()->keyBy(function ($item) {
+            return strtolower($item->name);
+        });
+
+        // Cache all designations
+        $this->lookupCache['designations'] = Designation::all()->keyBy(function ($item) {
+            return strtolower($item->designation);
+        });
     }
 
     protected $genderMap = [
@@ -51,6 +104,32 @@ class ConferenceRegistationImport implements ToCollection, WithHeadingRow
      */
     public function collection(Collection $rows)
     {
+        // Increase execution time and memory limit for large imports
+        set_time_limit(300); // 5 minutes
+        ini_set('memory_limit', '512M');
+
+        // Pre-load all lookup data to avoid repeated queries
+        if (empty($this->lookupCache)) {
+            $this->preloadLookupData();
+        }
+
+        // Get all emails from this chunk to check existing users
+        $emails = $rows->pluck('email')->filter()->map(fn($email) => trim($email))->unique();
+        $existingUsers = User::whereIn('email', $emails)->get()->keyBy('email');
+
+        // Get existing registrations for this conference
+        $existingRegistrations = ConferenceRegistration::where('conference_id', $this->conference->id)
+            ->whereIn('user_id', $existingUsers->pluck('id'))
+            ->pluck('user_id')
+            ->flip();
+
+        // Get existing society memberships
+        $existingSocietyMemberships = DB::table('user_societies')
+            ->where('society_id', $this->society->id)
+            ->whereIn('user_id', $existingUsers->pluck('id'))
+            ->pluck('user_id')
+            ->flip();
+
         foreach ($rows as $index => $row) {
             $rowNumber = $index + 2;
             $email = trim($row['email']);
@@ -86,7 +165,7 @@ class ConferenceRegistationImport implements ToCollection, WithHeadingRow
                 continue;
             }
 
-            $user = User::where('email', $email)->first();
+            $user = $existingUsers->get($email);
 
             if (!$user) {
                 $user = User::create([
@@ -94,7 +173,7 @@ class ConferenceRegistationImport implements ToCollection, WithHeadingRow
                     'm_name' => $row['middle_name'],
                     'l_name' => $row['last_name'],
                     'email' => $email,
-                    'password' => hash_password('password')
+                    'password' => $this->defaultPasswordHash // Use pre-hashed password
                 ]);
 
                 UserDetail::create([
@@ -108,20 +187,19 @@ class ConferenceRegistationImport implements ToCollection, WithHeadingRow
                     'phone' => $row['phone'],
                     'council_number' => $row['council_number'],
                 ]);
+
+                // Add to cache for next iterations
+                $existingUsers->put($email, $user);
             }
 
-            $existsInSociety = $user->societies()->where('society_id', $this->society->id)->exists();
-            if (!$existsInSociety) {
+            if (!isset($existingSocietyMemberships[$user->id])) {
                 $user->societies()->attach($this->society->id, ['member_type_id' => $memberTypeId]);
+                $existingSocietyMemberships[$user->id] = true;
             } else {
                 $this->log[] = ['row' => $rowNumber, 'name' => $row['first_name'] . '' . $row['last_name'], 'reason' => 'User already exists in this society, skipped UserSociety.'];
             }
 
-            $existsRegistration = ConferenceRegistration::where('user_id', $user->id)
-                ->where('conference_id', $this->conference->id)
-                ->exists();
-
-            if ($existsRegistration) {
+            if (isset($existingRegistrations[$user->id])) {
                 $this->log[] = ['row' => $rowNumber, 'name' => $row['first_name'] . '' . $row['last_name'], 'reason' => 'User already registered for this conference, skipped ConferenceRegistration.'];
                 continue;
             }
@@ -137,6 +215,9 @@ class ConferenceRegistationImport implements ToCollection, WithHeadingRow
                 'amount' => $row['amount'],
                 'transaction_id' => $row['transaction_id'],
             ]);
+
+            // Mark as registered to prevent duplicates in same batch
+            $existingRegistrations[$user->id] = true;
         }
     }
 
@@ -147,7 +228,7 @@ class ConferenceRegistationImport implements ToCollection, WithHeadingRow
         MemberType::class => 'type',
         Institution::class => 'name',
         Department::class => 'name',
-        Designation::class => 'designation',
+        Designation::class => 'designation', 
     ];
 
     protected function resolveId($model, $value)
@@ -158,10 +239,34 @@ class ConferenceRegistationImport implements ToCollection, WithHeadingRow
 
         if (is_numeric($value)) return (int) $value;
 
+        // Use cached lookup data instead of querying database
+        $cacheKey = $this->getCacheKey($model);
+        if (isset($this->lookupCache[$cacheKey])) {
+            $item = $this->lookupCache[$cacheKey][strtolower($value)] ?? null;
+            return $item ? $item->id : null;
+        }
+
+        // Fallback to database query if not in cache
         $column = $this->modelColumnMap[$model] ?? 'name';
         $record = $model::whereRaw("LOWER({$column}) = ?", [strtolower($value)])->first();
 
         return $record ? $record->id : null;
+    }
+
+    /**
+     * Get cache key for a model
+     */
+    protected function getCacheKey($model)
+    {
+        return match ($model) {
+            NamePrefix::class => 'prefixes',
+            Country::class => 'countries',
+            MemberType::class => 'member_types',
+            Institution::class => 'institutions',
+            Department::class => 'departments',
+            Designation::class => 'designations',
+            default => null,
+        };
     }
 
 

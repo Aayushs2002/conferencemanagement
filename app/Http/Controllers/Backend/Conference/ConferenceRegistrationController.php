@@ -127,8 +127,20 @@ class ConferenceRegistrationController extends Controller
             'excel_file.max' => 'The file size should not exceed 5MB.',
         ]);
 
+        // Increase time limit and memory for large imports
+        set_time_limit(600); // 10 minutes
+        ini_set('memory_limit', '1024M'); // 1GB
+ 
         $import = new ConferenceRegistationImport($society, $conference);
-        Excel::import($import, $request->file('excel_file'));
+        
+        try {
+            Excel::import($import, $request->file('excel_file'));
+        } catch (\Exception $e) {
+            return response()->json([
+                'type' => 'error',
+                'message' => 'Import failed: ' . $e->getMessage()
+            ], 500);
+        }
 
         if (!empty($import->log)) {
             $fileName = 'import_skipped_log_' . now()->format('Y_m_d_H_i_s') . '.xlsx';
@@ -433,7 +445,7 @@ class ConferenceRegistrationController extends Controller
     }
 
     public function registrationOrInvitationSubmit(Request $request, $society, $conference)
-    {
+    { 
         try {
             // dd($request->all());
             $checkUser = User::whereEmail($request->email)->first();
