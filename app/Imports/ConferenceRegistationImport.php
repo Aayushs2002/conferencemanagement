@@ -73,9 +73,9 @@ class ConferenceRegistationImport implements ToCollection, WithHeadingRow
             if (!$countryId) $invalidFields[] = 'country';
             if (!$genderId) $invalidFields[] = 'gender';
             if (!$memberTypeId) $invalidFields[] = 'member_type';
-            if (!$designaionId) $invalidFields[] = 'designaion';
-            if (!$institutionId) $invalidFields[] = 'institution';
-            if (!$departmentId) $invalidFields[] = 'department';
+            // if (!$designaionId) $invalidFields[] = 'designaion';
+            // if (!$institutionId) $invalidFields[] = 'institution';
+            // if (!$departmentId) $invalidFields[] = 'department';
 
             if (!empty($invalidFields)) {
                 $this->log[] = [
