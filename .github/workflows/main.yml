@@ -3,55 +3,60 @@ name: Deploy Laravel to VPS
 on:
   push:
     branches:
-      - master # Change to your production branch if needed
+      - master
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. Checkout repository
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # 2. Setup PHP
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.3'
           extensions: mbstring, bcmath, curl, pdo_pgsql
 
-      # 3. Install Composer dependencies on GitHub runner
-      - name: Install dependencies on runner
-        run: composer install --no-dev --optimize-autoloader --no-scripts
+      - name: Install Composer dependencies
+        run: composer install --no-dev --optimize-autoloader --no-interaction
 
-      # 4. Change ownership temporarily to allow rsync
-      - name: Prepare VPS for deployment
+      - name: Prepare for deployment
         uses: appleboy/ssh-action@v0.1.10
         with:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
           script: |
-            # Temporarily change ownership to SSH user
+            # Change ownership to current user temporarily
             sudo chown -R $USER:$USER /var/www/medconalert.com
-            
-            # Backup .env
-            cp /var/www/medconalert.com/.env /tmp/.env.backup 2>/dev/null || true
 
-      # 5. Deploy with rsync (now we have permissions)
-      - name: Deploy to VPS with rsync
-        uses: burnett01/rsync-deployments@7.0.1
-        with:
-          switches: -avzr --delete --exclude='.git' --exclude='.env' --exclude='storage/framework/sessions/*' --exclude='storage/logs/*' --exclude='storage/app/public/*'
-          path: ./
-          remote_path: /var/www/medconalert.com/
-          remote_host: ${{ secrets.VPS_HOST }}
-          remote_user: ${{ secrets.VPS_USER }}
-          remote_key: ${{ secrets.VPS_SSH_KEY }}
+      - name: Sync only changed files
+        run: |
+          # Setup SSH key
+          mkdir -p ~/.ssh
+          echo "${{ secrets.VPS_SSH_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          
+          # Sync files (only changed ones)
+          rsync -avz --delete \
+            -e "ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no" \
+            --exclude='.git' \
+            --exclude='.github' \
+            --exclude='.env' \
+            --exclude='storage/framework/sessions/*' \
+            --exclude='storage/framework/cache/*' \
+            --exclude='storage/logs/*' \
+            --exclude='storage/app/public/*' \
+            --exclude='node_modules' \
+            --exclude='.gitignore' \
+            ./ ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/var/www/medconalert.com/
+          
+          # Cleanup
+          rm ~/.ssh/deploy_key
 
-      # 6. Post-deployment tasks
-      - name: Setup Laravel on VPS
+      - name: Run Laravel commands
         uses: appleboy/ssh-action@v0.1.10
         with:
           host: ${{ secrets.VPS_HOST }}
@@ -60,33 +65,27 @@ jobs:
           script: |
             cd /var/www/medconalert.com
             
-            # Restore .env if backed up
-            if [ -f /tmp/.env.backup ]; then
-              cp /tmp/.env.backup .env
-              rm /tmp/.env.backup
-            fi
-            
-            # Install Composer dependencies
-            COMPOSER_ALLOW_SUPERUSER=1 composer install --no-dev --optimize-autoloader
-            
-            # Run migrations
+            echo "🗄️ Running migrations..."
             php artisan migrate --force
             
-            # Clear and rebuild caches
-            php artisan optimize:clear
+            echo "🧹 Clearing caches..."
+            php artisan cache:clear
+            php artisan config:clear
+            php artisan route:clear
+            php artisan view:clear
+            
+            echo "⚡ Building caches..."
             php artisan config:cache
             php artisan route:cache
             php artisan view:cache
             
-            # Set proper ownership back to www-data
+            echo "🔒 Setting permissions..."
             sudo chown -R www-data:www-data /var/www/medconalert.com
-            
-            # Set proper permissions
             sudo chmod -R 755 /var/www/medconalert.com
             sudo chmod -R 775 /var/www/medconalert.com/storage
             sudo chmod -R 775 /var/www/medconalert.com/bootstrap/cache
             
-            # Restart services
+            echo "♻️ Restarting services..."
             sudo systemctl restart php8.3-fpm
             sudo systemctl reload apache2
             
