@@ -25,18 +25,18 @@ jobs:
       - name: Install dependencies on runner
         run: composer install --no-dev --optimize-autoloader --no-scripts
 
-      # 4. Deploy using rsync (more reliable than scp-action)
-      - name: Deploy to VPS with rsync
+      # 4. Create a temporary deployment directory and sync files there
+      - name: Deploy to temporary directory
         uses: burnett01/rsync-deployments@7.0.1
         with:
-          switches: -avzr --delete --exclude='.git' --exclude='.env' --exclude='storage/framework/sessions/*' --exclude='storage/logs/*'
+          switches: -avzr --exclude='.git' --exclude='.env' --exclude='storage/framework/sessions/*' --exclude='storage/logs/*'
           path: ./
-          remote_path: /var/www/medconalert.com/
+          remote_path: /tmp/laravel-deploy-temp/
           remote_host: ${{ secrets.VPS_HOST }}
           remote_user: ${{ secrets.VPS_USER }}
           remote_key: ${{ secrets.VPS_SSH_KEY }}
 
-      # 5. Run Composer and Artisan commands on VPS
+      # 5. Move files from temp to production with proper permissions
       - name: Setup Laravel on VPS
         uses: appleboy/ssh-action@v0.1.10
         with:
@@ -44,29 +44,60 @@ jobs:
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
           script: |
-            cd /var/www/medconalert.com
-
-            # Install Composer dependencies with scripts (package discovery)
-            COMPOSER_ALLOW_SUPERUSER=1 composer install --no-dev --optimize-autoloader
-
+            # Define paths
+            TEMP_DIR="/tmp/laravel-deploy-temp"
+            PROD_DIR="/var/www/medconalert.com"
+            
+            # Backup .env file
+            if [ -f "$PROD_DIR/.env" ]; then
+              cp "$PROD_DIR/.env" /tmp/.env.backup
+            fi
+            
+            # Move files with sudo (preserving permissions where possible)
+            sudo rsync -av --delete \
+              --exclude='.env' \
+              --exclude='storage/framework/sessions/*' \
+              --exclude='storage/logs/*' \
+              "$TEMP_DIR/" "$PROD_DIR/"
+            
+            # Restore .env
+            if [ -f /tmp/.env.backup ]; then
+              sudo cp /tmp/.env.backup "$PROD_DIR/.env"
+              sudo chown www-data:www-data "$PROD_DIR/.env"
+              rm /tmp/.env.backup
+            fi
+            
+            # Clean up temp directory
+            rm -rf "$TEMP_DIR"
+            
+            # Navigate to production directory
+            cd "$PROD_DIR"
+            
+            # Install Composer dependencies with scripts
+            sudo -u www-data COMPOSER_ALLOW_SUPERUSER=1 composer install --no-dev --optimize-autoloader
+            
             # Run database migrations
-            php artisan migrate --force
-
+            sudo -u www-data php artisan migrate --force
+            
             # Clear all caches
-            php artisan cache:clear
-            php artisan config:clear
-            php artisan route:clear
-            php artisan view:clear
-
-            # Cache configs, routes, views
-            php artisan config:cache
-            php artisan route:cache
-            php artisan view:cache
-
-            # Set permissions
-            sudo chown -R www-data:www-data storage bootstrap/cache
-            sudo chmod -R 775 storage bootstrap/cache
-
-            # Restart PHP-FPM and reload Apache
+            sudo -u www-data php artisan cache:clear
+            sudo -u www-data php artisan config:clear
+            sudo -u www-data php artisan route:clear
+            sudo -u www-data php artisan view:clear
+            
+            # Rebuild caches
+            sudo -u www-data php artisan config:cache
+            sudo -u www-data php artisan route:cache
+            sudo -u www-data php artisan view:cache
+            
+            # Set proper permissions
+            sudo chown -R www-data:www-data "$PROD_DIR"
+            sudo chmod -R 755 "$PROD_DIR"
+            sudo chmod -R 775 "$PROD_DIR/storage"
+            sudo chmod -R 775 "$PROD_DIR/bootstrap/cache"
+            
+            # Restart services
             sudo systemctl restart php8.3-fpm
             sudo systemctl reload apache2
+            
+            echo "Deployment completed successfully!"
