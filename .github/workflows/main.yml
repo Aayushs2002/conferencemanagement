@@ -21,22 +21,36 @@ jobs:
           php-version: '8.3'
           extensions: mbstring, bcmath, curl, pdo_pgsql
 
-      # 3. Install Composer dependencies on GitHub runner (skip scripts to avoid DB errors)
+      # 3. Install Composer dependencies on GitHub runner
       - name: Install dependencies on runner
         run: composer install --no-dev --optimize-autoloader --no-scripts
 
-      # 4. Create a temporary deployment directory and sync files there
-      - name: Deploy to temporary directory
+      # 4. Change ownership temporarily to allow rsync
+      - name: Prepare VPS for deployment
+        uses: appleboy/ssh-action@v0.1.10
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            # Temporarily change ownership to SSH user
+            sudo chown -R $USER:$USER /var/www/medconalert.com
+            
+            # Backup .env
+            cp /var/www/medconalert.com/.env /tmp/.env.backup 2>/dev/null || true
+
+      # 5. Deploy with rsync (now we have permissions)
+      - name: Deploy to VPS with rsync
         uses: burnett01/rsync-deployments@7.0.1
         with:
-          switches: -avzr --exclude='.git' --exclude='.env' --exclude='storage/framework/sessions/*' --exclude='storage/logs/*'
+          switches: -avzr --delete --exclude='.git' --exclude='.env' --exclude='storage/framework/sessions/*' --exclude='storage/logs/*' --exclude='storage/app/public/*'
           path: ./
-          remote_path: /tmp/laravel-deploy-temp/
+          remote_path: /var/www/medconalert.com/
           remote_host: ${{ secrets.VPS_HOST }}
           remote_user: ${{ secrets.VPS_USER }}
           remote_key: ${{ secrets.VPS_SSH_KEY }}
 
-      # 5. Move files from temp to production with proper permissions
+      # 6. Post-deployment tasks
       - name: Setup Laravel on VPS
         uses: appleboy/ssh-action@v0.1.10
         with:
@@ -44,60 +58,36 @@ jobs:
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
           script: |
-            # Define paths
-            TEMP_DIR="/tmp/laravel-deploy-temp"
-            PROD_DIR="/var/www/medconalert.com"
+            cd /var/www/medconalert.com
             
-            # Backup .env file
-            if [ -f "$PROD_DIR/.env" ]; then
-              cp "$PROD_DIR/.env" /tmp/.env.backup
-            fi
-            
-            # Move files with sudo (preserving permissions where possible)
-            sudo rsync -av --delete \
-              --exclude='.env' \
-              --exclude='storage/framework/sessions/*' \
-              --exclude='storage/logs/*' \
-              "$TEMP_DIR/" "$PROD_DIR/"
-            
-            # Restore .env
+            # Restore .env if backed up
             if [ -f /tmp/.env.backup ]; then
-              sudo cp /tmp/.env.backup "$PROD_DIR/.env"
-              sudo chown www-data:www-data "$PROD_DIR/.env"
+              cp /tmp/.env.backup .env
               rm /tmp/.env.backup
             fi
             
-            # Clean up temp directory
-            rm -rf "$TEMP_DIR"
+            # Install Composer dependencies
+            COMPOSER_ALLOW_SUPERUSER=1 composer install --no-dev --optimize-autoloader
             
-            # Navigate to production directory
-            cd "$PROD_DIR"
+            # Run migrations
+            php artisan migrate --force
             
-            # Install Composer dependencies with scripts
-            sudo -u www-data COMPOSER_ALLOW_SUPERUSER=1 composer install --no-dev --optimize-autoloader
+            # Clear and rebuild caches
+            php artisan optimize:clear
+            php artisan config:cache
+            php artisan route:cache
+            php artisan view:cache
             
-            # Run database migrations
-            sudo -u www-data php artisan migrate --force
-            
-            # Clear all caches
-            sudo -u www-data php artisan cache:clear
-            sudo -u www-data php artisan config:clear
-            sudo -u www-data php artisan route:clear
-            sudo -u www-data php artisan view:clear
-            
-            # Rebuild caches
-            sudo -u www-data php artisan config:cache
-            sudo -u www-data php artisan route:cache
-            sudo -u www-data php artisan view:cache
+            # Set proper ownership back to www-data
+            sudo chown -R www-data:www-data /var/www/medconalert.com
             
             # Set proper permissions
-            sudo chown -R www-data:www-data "$PROD_DIR"
-            sudo chmod -R 755 "$PROD_DIR"
-            sudo chmod -R 775 "$PROD_DIR/storage"
-            sudo chmod -R 775 "$PROD_DIR/bootstrap/cache"
+            sudo chmod -R 755 /var/www/medconalert.com
+            sudo chmod -R 775 /var/www/medconalert.com/storage
+            sudo chmod -R 775 /var/www/medconalert.com/bootstrap/cache
             
             # Restart services
             sudo systemctl restart php8.3-fpm
             sudo systemctl reload apache2
             
-            echo "Deployment completed successfully!"
+            echo "✅ Deployment completed successfully!"
