@@ -127,9 +127,8 @@ class ConferenceRegistrationController extends Controller
             'excel_file.max' => 'The file size should not exceed 5MB.',
         ]);
 
-        // Increase time limit and memory for large imports
-        set_time_limit(600); // 10 minutes
-        ini_set('memory_limit', '1024M'); // 1GB
+        set_time_limit(600); 
+        ini_set('memory_limit', '1024M'); 
  
         $import = new ConferenceRegistationImport($society, $conference);
         

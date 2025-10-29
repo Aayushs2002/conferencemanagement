@@ -2206,7 +2206,6 @@ textarea {
 1...NAVBAR...... */
 .navbar {
     padding: 15px 30px;
-    /* transition: background-color 0.3s ease; */
     position: fixed;
     top: 0;
     left: 0;
@@ -2233,28 +2232,29 @@ textarea {
     font-weight: 500;
     margin: 0 10px;
     font-size: 15px;
-    transition: color 0.3s;
+    padding: 6px 10px;
+    border-radius: 12px;
+    transition: background-color 0.3s, color 0.3s;
 }
 
 .navbar-nav .nav-link:hover {
     color: var(--Secondary-color);
     background-color: var(--blue01-color);
-    border-radius: 12px;
-    padding: 6px 10px;
 }
 
 .btn-outline-primary {
-    border-color: var(--white-01-color);
+    border: 2px solid var(--white-01-color);
     color: var(--white-01-color);
     font-weight: 600;
     margin-left: 10px;
     border-radius: 13px;
+    transition: all 0.3s ease;
 }
 
 .btn-outline-primary:hover {
     background-color: var(--Secondary-color);
     color: white;
-    border: none;
+    border-color: var(--Secondary-color);
 }
 
 .btn-primary {
@@ -2262,16 +2262,17 @@ textarea {
     font-weight: 500;
     margin-left: 10px;
     border-radius: 15px;
-    border: none;
+    border: 2px solid var(--Secondary-color);
+    color: white;
+    transition: all 0.3s ease;
 }
 
 .btn-primary:hover {
     background-color: var(--blue01-color);
+    border-color: var(--blue01-color);
     color: var(--primary-color);
-    background-color: var(--white-01-color);
 }
 
-/* Improved Navbar Toggler */
 .navbar-toggler {
     border: none;
     padding: 0;

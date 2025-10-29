@@ -23,7 +23,6 @@ function getMetas($segment1, $segment2)
     if ($segment1 == 'blog') {
         $blog = Blog::where('slug', $segment2)->first();
         
-        // Generate full absolute URL for the image
         $imageUrl = null;
         if ($blog && $blog->image) {
             $imageUrl = url(Storage::url('blog/image/' . $blog->image));
@@ -39,7 +38,7 @@ function getMetas($segment1, $segment2)
         $meta = (object) [
             'title' => "Medcon Alert",
             'description' => "Medcon Alert - Manage your conferences with ease. Stay updated with the latest news, register for events, and connect with professionals in your field.",
-            'image' =>  asset('frontend/assets/img/MEDCON-LOGO.png'), // Default image
+            'image' =>  asset('frontend/assets/img/MEDCON-LOGO.png'), 
         ];
         return $meta;
     }

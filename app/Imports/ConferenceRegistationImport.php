@@ -31,7 +31,6 @@ class ConferenceRegistationImport implements ToCollection, WithHeadingRow, WithC
     {
         $this->society = $society;
         $this->conference = $conference;
-        // Hash the default password once instead of for every user
         $this->defaultPasswordHash = hash_password('password');
     }
 
@@ -173,7 +172,7 @@ class ConferenceRegistationImport implements ToCollection, WithHeadingRow, WithC
                     'm_name' => $row['middle_name'],
                     'l_name' => $row['last_name'],
                     'email' => $email,
-                    'password' => $this->defaultPasswordHash // Use pre-hashed password
+                    'password' => $this->defaultPasswordHash 
                 ]);
 
                 UserDetail::create([
