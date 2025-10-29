@@ -107,18 +107,21 @@ Route::middleware('auth')->group(function () {
 
 
 //====================================================== Frontend Route Started=====================================================================================
+Route::middleware('check.subdomain')
+    ->group(function () {
 
-Route::get('/', [HomeController::class, 'index'])->name('home');
-Route::get('/about-us', [AboutUsController::class, 'index'])->name('about-us');
-Route::get('/solution', [SolutionController::class, 'index'])->name('solution');
-Route::get('/our-client', [OurClientController::class, 'index'])->name('our-client');
-Route::get('/our-client/{society_front:slug}', [OurClientController::class, 'detail'])->name('our-client.detail');
-Route::get('/blog', [BlogController::class, 'index'])->name('blog');
-Route::get('blog/{blog:slug}', [BlogController::class, 'singlePage'])->name('blog.single-page');
-Route::get('/contact-us', [ContactController::class, 'index'])->name('contact-us');
-Route::post('/contact-us-store', [ContactController::class, 'store'])->name('contact-us.store');
-Route::get('/conference', [ConferenceController::class, 'index'])->name('conference');
-Route::get('/conference-filter', [ConferenceController::class, 'filter'])->name('conference.filter');
+        Route::get('/', [HomeController::class, 'index'])->name('home');
+        Route::get('/about-us', [AboutUsController::class, 'index'])->name('about-us');
+        Route::get('/solution', [SolutionController::class, 'index'])->name('solution');
+        Route::get('/our-client', [OurClientController::class, 'index'])->name('our-client');
+        Route::get('/our-client/{society_front:slug}', [OurClientController::class, 'detail'])->name('our-client.detail');
+        Route::get('/blog', [BlogController::class, 'index'])->name('blog');
+        Route::get('blog/{blog:slug}', [BlogController::class, 'singlePage'])->name('blog.single-page');
+        Route::get('/contact-us', [ContactController::class, 'index'])->name('contact-us');
+        Route::post('/contact-us-store', [ContactController::class, 'store'])->name('contact-us.store');
+        Route::get('/conference', [ConferenceController::class, 'index'])->name('conference');
+        Route::get('/conference-filter', [ConferenceController::class, 'filter'])->name('conference.filter');
+    });
 
 Route::prefix('conference/{conference_front:slug}')->middleware('check.subdomain')
     ->as('conference.')
