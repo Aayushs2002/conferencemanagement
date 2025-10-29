@@ -20,47 +20,41 @@ class DetectSubdomain
         // dd($host);
         $parts = explode('.', $host);
 
-        // List of main domain routes that should not work on subdomains
-        $mainDomainRoutes = [
-            '/',
+        // List of route names that should redirect to main domain when accessed from subdomain
+        $mainDomainRouteNames = [
+            'home',
             'about-us',
             'solution',
             'our-client',
+            'our-client.detail',
             'blog',
+            'blog.single-page',
             'contact-us',
-            'contact-us-store',
-            // 'conference',
-            // 'conference-filter',
+            'contact-us.store',
+            'conference',
+            'conference.filter',
         ];
 
         if (count($parts) >= 3) {
             $subdomain = $parts[0];
 
             if (!in_array($subdomain, ['www', 'admin'])) {
-                // Check if current path matches main domain routes
-                $currentPath = trim($request->path(), '/');
-                $isMainDomainRoute = false;
-
-                foreach ($mainDomainRoutes as $route) {
-                    if ($currentPath === $route || str_starts_with($currentPath, $route . '/')) {
-                        $isMainDomainRoute = true;
-                        break;
-                    }
-                }
-
-                // If it's a main domain route, redirect to main domain
-                if ($isMainDomainRoute) {
-                    $mainDomain = implode('.', array_slice($parts, 1));
-                    $scheme = $request->getScheme();
-                    return redirect()->to("{$scheme}://{$mainDomain}" . $request->getRequestUri());
-                }
-
                 $society = Society::where('sub_domain_name', $subdomain)->first();
 
                 if (!$society) {
                     $mainDomain = preg_replace('/^' . preg_quote($subdomain, '/') . '\./', '', $host);
                     // return redirect()->to("http://$mainDomain" . ':8000' . $request->getRequestUri());
                     return redirect()->to("http://$mainDomain" . $request->getRequestUri());
+                }
+
+                // Check if current route name matches main domain routes
+                $currentRouteName = $request->route()?->getName();
+                
+                if ($currentRouteName && in_array($currentRouteName, $mainDomainRouteNames)) {
+                    // Redirect to main domain
+                    $mainDomain = implode('.', array_slice($parts, 1));
+                    $scheme = $request->getScheme();
+                    return redirect()->to("{$scheme}://{$mainDomain}" . $request->getRequestUri());
                 }
 
                 $request->attributes->set('societyDomainDetail', $society);
