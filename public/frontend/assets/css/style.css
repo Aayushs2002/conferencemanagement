@@ -2368,7 +2368,7 @@ textarea {
     margin-bottom: 20px;
 }
 
-.hero-title span {
+.hero-title strong {
     color: var(--white-01-color);
     display: block;
     font-size: 2.7rem;
@@ -3384,7 +3384,7 @@ BOLG SECTION......................... */
         margin-right: auto;
     }
 
-    .hero-title span {
+    .hero-title strong {
         font-size: 26px;
         margin-top: 20px;
         text-align: center;
