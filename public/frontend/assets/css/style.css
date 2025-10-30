@@ -3197,36 +3197,142 @@ BOLG SECTION......................... */
 .........1.ABOUT....................... */
 .banner {
     min-height: 40vh;
-    background: linear-gradient(160deg, #0d1d62 0%, #0d1d62 30%, #163a96 100%);
+    background: linear-gradient(
+        160deg,
+        rgba(1, 36, 140, 1),
+        rgba(0, 10, 38, 1)
+    );
     position: relative;
     color: #fff;
     padding: 90px 0 100px;
     overflow: hidden;
 }
 
-.banner::before,
-.banner::after {
-    content: "";
+.banner span,
+.hero-section span {
     position: absolute;
-    width: 400px;
-    height: 400px;
     background: radial-gradient(
         circle,
-        rgba(255, 255, 255, 0.08) 0%,
-        transparent 60%
+        rgba(0, 110, 218, 0.9) 0%,
+        transparent 80%
     );
-    filter: blur(80px);
+    filter: blur(-10px);
+    border-radius: 50%;
     z-index: 1;
+    animation: float 10s ease-in-out infinite alternate;
+}
+.tech-icon {
+    position: absolute;
+    font-size: 2rem;
+    color: rgba(255, 255, 255, 0.15);
+    z-index: 0;
+    animation: float 10s ease-in-out infinite;
 }
 
-.banner::before {
-    top: -100px;
-    left: -100px;
+.icon-1 {
+    top: 15%;
+    left: 8%;
+    animation-delay: 0s;
+}
+.icon-2 {
+    top: 25%;
+    right: 12%;
+    animation-delay: 2s;
+}
+.icon-3 {
+    bottom: 20%;
+    left: 12%;
+    animation-delay: 4s;
+}
+.icon-4 {
+    bottom: 25%;
+    right: 15%;
+    animation-delay: 6s;
+}
+.icon-5 {
+    top: 40%;
+    left: 45%;
+    animation-delay: 8s;
 }
 
-.banner::after {
-    bottom: -100px;
-    right: -100px;
+@keyframes float {
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-15px);
+    }
+}
+
+/* Glass effect box */
+/* .glass-box {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(15px);
+  border-radius: 16px;
+  padding: 30px;
+  z-index: 1;
+} */
+
+.nth-circle-1 {
+    width: 140px;
+    height: 140px;
+    top: 40px;
+    left: 20px;
+    animation-delay: 0s;
+}
+
+.nth-circle-2 {
+    width: 80px;
+    height: 80px;
+    top: 40px;
+    right: 20px;
+    animation-delay: 2s;
+}
+
+.nth-circle-3 {
+    width: 120px;
+    height: 120px;
+    top: 40%;
+    left: 40%;
+    transform: translateX(-50%);
+    animation-delay: 4s;
+}
+
+.nth-circle-4 {
+    width: 60px;
+    height: 60px;
+    bottom: 10%;
+    left: 10%;
+    transform: translateX(-50%);
+    animation-delay: 6s;
+}
+
+.nth-circle-5 {
+    width: 40px;
+    height: 40px;
+    bottom: 10%;
+    left: 40%;
+    transform: translateX(-50%);
+    animation-delay: 8s;
+}
+
+@keyframes float {
+    0% {
+        transform: translate(0, 0) scale(1);
+    }
+    25% {
+        transform: translate(20px, -30px) scale(1.05);
+    }
+    50% {
+        transform: translate(-15px, 25px) scale(0.95);
+    }
+    75% {
+        transform: translate(10px, -15px) scale(1.02);
+    }
+    100% {
+        transform: translate(-20px, 20px) scale(1);
+    }
 }
 
 .breadcrumb-item + .breadcrumb-item::before {

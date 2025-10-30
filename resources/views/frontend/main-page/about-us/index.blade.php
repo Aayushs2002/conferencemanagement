@@ -1,6 +1,11 @@
 @extends('frontend.main-page.layouts.main')
 @section('content')
     <section class="banner d-flex align-items-center">
+        <span class="nth-circle-1"></span>
+        <span class="nth-circle-2"></span>
+        <span class="nth-circle-3"></span>
+        <span class="nth-circle-4"></span>
+        <span class="nth-circle-5"></span>
         <div class="container">
             <div class="row">
                 <div class="col-lg-8">
@@ -58,13 +63,19 @@
                 We are honored to work with:
             </h2>
             <div class="row g-4 text-center justify-content-center ">
-                <div class="col-6 col-md-4 col-lg-2">
-                    <div class="partner-card ">
-                        <img src="assets/img/image 1.png" alt="Nepal Health Research Council" class="img-fluid mb-3">
-                        <h6 class="partner-name text-white ">Nepal Health Research Council</h6>
-                    </div>
-                </div>
-                <div class="col-6 col-md-4 col-lg-2">
+                @foreach ($societies as $society)
+                    <a href="{{ route('our-client.detail', $society->slug) }}">
+
+                        <div class="col-6 col-md-4 col-lg-2">
+                            <div class="partner-card ">
+                                <img src="{{ Storage::url('society/logo/' . $society->logo) }}" alt="{{ $society->name }}"
+                                    class="img-fluid mb-3">
+                                <h6 class="partner-name text-white ">{{ $society->users->value('f_name') }}</h6>
+                            </div>
+                        </div>
+                    </a>
+                @endforeach
+                {{-- <div class="col-6 col-md-4 col-lg-2">
                     <div class="partner-card ">
                         <img src="assets/img/NMA-removebg-preview 1.png" alt="Nepal Medical Association"
                             class="img-fluid mb-3">
@@ -92,7 +103,7 @@
                         <img src="assets/img/image 2.png" alt="SAN" class="img-fluid mb-3">
                         <h6 class="partner-name text-white ">Society of Anaesthesiologists of Nepal (SAN)</h6>
                     </div>
-                </div>
+                </div> --}}
 
             </div>
 

@@ -18,7 +18,7 @@ class OurClientController extends Controller
 
     public function __construct(
         private readonly Society $society
-    ) {}
+    ) {} 
 
     public function index(): View
     {

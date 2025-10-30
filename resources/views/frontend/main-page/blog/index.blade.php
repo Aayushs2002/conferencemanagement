@@ -1,6 +1,11 @@
 @extends('frontend.main-page.layouts.main')
 @section('content')
     <section class="banner d-flex align-items-center">
+        <span class="nth-circle-1"></span>
+        <span class="nth-circle-2"></span>
+        <span class="nth-circle-3"></span>
+        <span class="nth-circle-4"></span>
+        <span class="nth-circle-5"></span>
         <div class="container">
             <div class="row">
                 <div class="col-lg-8">
@@ -92,7 +97,7 @@
                 </div>
             </div> --}}
 
-            {{-- <div class="row g-4">
+                {{-- <div class="row g-4">
                 <div class="col-md-4">
                     <div class="blog-card">
                         <img src="assets/img/blog_4.png" alt="Blog 1" class="img-fluid blog-img">
@@ -151,7 +156,7 @@
                 </nav>
 
             </div> --}}
-        </div>
+            </div>
     </section>
     <div class="td_height_60 td_height_lg_60"></div>
 @endsection

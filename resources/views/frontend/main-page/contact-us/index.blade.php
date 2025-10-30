@@ -1,6 +1,11 @@
 @extends('frontend.main-page.layouts.main')
 @section('content')
     <section class="banner d-flex align-items-center">
+        <span class="nth-circle-1"></span>
+        <span class="nth-circle-2"></span>
+        <span class="nth-circle-3"></span>
+        <span class="nth-circle-4"></span>
+        <span class="nth-circle-5"></span>
         <div class="container">
             <div class="row">
                 <div class="col-lg-8">
@@ -9,7 +14,7 @@
                             <li class="breadcrumb-item"><a href="index.html">Home</a></li>
                             <li class="breadcrumb-item active" aria-current="page">Clients</li>
                         </ol>
-                    </nav> 
+                    </nav>
                     <h1 class="banner-title">MedConAlert: Connect<br> with Us</h1>
                     <p class="banner-sub">
                         MedConAlert empowers seamless conference experiences, fostering collaboration, innovation, and
@@ -27,7 +32,7 @@
             </p>
 
             {{-- Success Message --}}
-            @if(session('success'))
+            @if (session('success'))
                 <div class="alert alert-success alert-dismissible fade show" role="alert">
                     {{ session('success') }}
                     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
@@ -35,7 +40,7 @@
             @endif
 
             {{-- Error Message --}}
-            @if(session('error'))
+            @if (session('error'))
                 <div class="alert alert-danger alert-dismissible fade show" role="alert">
                     {{ session('error') }}
                     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
@@ -51,30 +56,25 @@
                 <div class="first-step">
                     <div class="form-group">
                         <label for="fullName">Full Name</label>
-                        <input type="text" class="form-control @error('full_name') is-invalid @enderror" 
-                               id="fullName" name="full_name" 
-                               placeholder="Full Name" 
-                               value="{{ old('full_name') }}">
+                        <input type="text" class="form-control @error('full_name') is-invalid @enderror" id="fullName"
+                            name="full_name" placeholder="Full Name" value="{{ old('full_name') }}">
                         @error('full_name')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
                     </div>
                     <div class="form-group">
                         <label for="email">Email</label>
-                        <input type="email" class="form-control @error('email') is-invalid @enderror" 
-                               id="email" name="email" 
-                               placeholder="Email" 
-                               value="{{ old('email') }}">
+                        <input type="email" class="form-control @error('email') is-invalid @enderror" id="email"
+                            name="email" placeholder="Email" value="{{ old('email') }}">
                         @error('email')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
                     </div>
                     <div class="form-group">
                         <label for="contact">Contact Number</label>
-                        <input type="text" class="form-control @error('contact_number') is-invalid @enderror" 
-                               id="contact" name="contact_number" 
-                               placeholder="Contact Number" 
-                               value="{{ old('contact_number') }}">
+                        <input type="text" class="form-control @error('contact_number') is-invalid @enderror"
+                            id="contact" name="contact_number" placeholder="Contact Number"
+                            value="{{ old('contact_number') }}">
                         @error('contact_number')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
@@ -89,10 +89,9 @@
                     <div class="form-group">
                         <label for="conferenceType">Type of Conference (Medical, Scientific, Workshop, Hybrid,
                             etc.)</label>
-                        <input type="text" class="form-control @error('conference_type') is-invalid @enderror" 
-                               id="conferenceType" name="conference_type" 
-                               placeholder="Type of Conference" 
-                               value="{{ old('conference_type') }}">
+                        <input type="text" class="form-control @error('conference_type') is-invalid @enderror"
+                            id="conferenceType" name="conference_type" placeholder="Type of Conference"
+                            value="{{ old('conference_type') }}">
                         @error('conference_type')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
@@ -100,18 +99,16 @@
                     <div class="date-group row">
                         <div class="form-group col-12 col-md-6">
                             <label for="startDate">Start Date</label>
-                            <input type="date" class="form-control @error('start_date') is-invalid @enderror" 
-                                   id="startDate" name="start_date" 
-                                   value="{{ old('start_date') }}">
+                            <input type="date" class="form-control @error('start_date') is-invalid @enderror"
+                                id="startDate" name="start_date" value="{{ old('start_date') }}">
                             @error('start_date')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
                         <div class="form-group col-12 col-md-6">
                             <label for="endDate">End Date</label>
-                            <input type="date" class="form-control @error('end_date') is-invalid @enderror" 
-                                   id="endDate" name="end_date" 
-                                   value="{{ old('end_date') }}">
+                            <input type="date" class="form-control @error('end_date') is-invalid @enderror"
+                                id="endDate" name="end_date" value="{{ old('end_date') }}">
                             @error('end_date')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
@@ -119,26 +116,27 @@
                     </div>
                     <div class="form-group">
                         <label for="nationalParticipants">Number of National Participants</label>
-                        <input type="number" class="form-control @error('no_of_national_participant') is-invalid @enderror" 
-                               id="nationalParticipants" name="no_of_national_participant" 
-                               value="{{ old('no_of_national_participant') }}">
+                        <input type="number"
+                            class="form-control @error('no_of_national_participant') is-invalid @enderror"
+                            id="nationalParticipants" name="no_of_national_participant"
+                            value="{{ old('no_of_national_participant') }}">
                         @error('no_of_national_participant')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
                     </div>
                     <div class="form-group">
                         <label for="internationalParticipants">Number of International Participants</label>
-                        <input type="number" class="form-control @error('no_of_international_participant') is-invalid @enderror" 
-                               id="internationalParticipants" name="no_of_international_participant" 
-                               value="{{ old('no_of_international_participant') }}">
+                        <input type="number"
+                            class="form-control @error('no_of_international_participant') is-invalid @enderror"
+                            id="internationalParticipants" name="no_of_international_participant"
+                            value="{{ old('no_of_international_participant') }}">
                         @error('no_of_international_participant')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
                     </div>
                     <div class="form-group">
                         <label for="query">Any Query?</label>
-                        <textarea class="form-control @error('query') is-invalid @enderror" 
-                                  rows="4" id="query" name="query">{{ old('query') }}</textarea>
+                        <textarea class="form-control @error('query') is-invalid @enderror" rows="4" id="query" name="query">{{ old('query') }}</textarea>
                         @error('query')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
@@ -180,7 +178,10 @@
             divider.parentNode.insertBefore(alertDiv, divider);
 
             // Scroll to the alert
-            alertDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            alertDiv.scrollIntoView({
+                behavior: 'smooth',
+                block: 'center'
+            });
 
             // Auto-hide after 5 seconds
             setTimeout(() => {
@@ -242,7 +243,10 @@
             secondStep.style.display = "block";
 
             // Scroll to top of second step
-            secondStep.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            secondStep.scrollIntoView({
+                behavior: 'smooth',
+                block: 'start'
+            });
         });
 
         backBtn.addEventListener("click", () => {
@@ -256,7 +260,10 @@
             firstStep.style.display = "block";
 
             // Scroll to top of first step
-            firstStep.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            firstStep.scrollIntoView({
+                behavior: 'smooth',
+                block: 'start'
+            });
         });
 
         // Auto-hide server-side alerts after 5 seconds

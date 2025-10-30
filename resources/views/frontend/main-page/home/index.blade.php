@@ -1,14 +1,25 @@
 @extends('frontend.main-page.layouts.main')
 @section('content')
-    <section class="hero-section">
-        <div class="container"> 
-            <div class="row align-items-center">
+    <section class="hero-section position-relative overflow-hidden">
+        <span class="nth-circle-1"></span>
+        <span class="nth-circle-2"></span>
+        <span class="nth-circle-3"></span>
+        <span class="nth-circle-4"></span>
+        <span class="nth-circle-5"></span>
 
+        <i class="fa-solid fa-microchip tech-icon icon-1"></i>
+        <i class="fa-solid fa-laptop-code tech-icon icon-2"></i>
+
+        <i class="fa-solid fa-dna tech-icon icon-4"></i>
+
+
+        <div class="container">
+            <div class="row align-items-center">
                 <div class="col-lg-6">
                     <div class="hero-content glass-box">
-                        <h1 class="hero-title">   
+                        <h1 class="hero-title">
                             MedConAlert:<br>
-                            <span>Smarter Conference Management – Simplified</span>
+                            <strong>Smarter Conference Management – Simplified</strong>
                         </h1>
                         <p class="hero-subtitle">
                             All-in-one registrations, abstracts, sessions, workshops, sponsors,
@@ -20,19 +31,20 @@
                         </a>
                     </div>
                 </div>
- 
+
                 <div class="col-lg-6 hero-image">
                     <img src="{{ asset('frontend/assets/img/Group 9.png') }}" alt="Medical Conference" class="img-fluid">
+
                 </div>
-            </div> 
+            </div>
         </div>
-    </section> 
+    </section>
     <section class="main-section">
         <section class="conference-section">
             <div class="container" style="background-color: rgba(241, 244, 252, 1); padding: 35px; border-radius: 30px;">
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     <h2 class="section-title">Upcoming Conferences</h2>
-                    <a href="{{ route('conference') }}" class="btn default-btn"> 
+                    <a href="{{ route('conference') }}" class="btn default-btn">
                         View All Conferences <i class="fa-solid fa-arrow-up-right-from-square ms-1"></i>
                     </a>
                 </div>

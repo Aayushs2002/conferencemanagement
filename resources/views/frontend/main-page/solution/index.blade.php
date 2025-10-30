@@ -1,7 +1,13 @@
 @extends('frontend.main-page.layouts.main')
 @section('content')
     <section class="banner d-flex align-items-center">
+        <span class="nth-circle-1"></span>
+        <span class="nth-circle-2"></span>
+        <span class="nth-circle-3"></span>
+        <span class="nth-circle-4"></span>
+        <span class="nth-circle-5"></span>
         <div class="container">
+
             <div class="row">
                 <div class="col-lg-8">
                     <nav aria-label="breadcrumb" class="mb-3">
