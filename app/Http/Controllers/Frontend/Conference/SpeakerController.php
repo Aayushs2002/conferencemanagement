@@ -22,7 +22,7 @@ class SpeakerController extends BaseConferenceController
         $nationalSpeakers = $allSpeaker->filter(function ($speaker) {
             return optional($speaker->user->userDetail)->country_id == 125;
         });
-
+ 
         $internationalSpeakers = $allSpeaker->filter(function ($speaker) {
             return optional($speaker->user->userDetail)->country_id != 125;
         });

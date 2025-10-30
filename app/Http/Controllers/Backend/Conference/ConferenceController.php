@@ -33,7 +33,7 @@ class ConferenceController extends Controller
         $conferences = Conference::where([
             'society_id' => $society->id,
             'status' => 1
-        ])->latest()->get();
+        ])->orderBy('start_date', 'desc')->get();
 
         return view('backend.conference.index', compact('conferences', 'society'));
 
@@ -232,7 +232,7 @@ class ConferenceController extends Controller
             ->select(
                 DB::raw('COUNT(DISTINCT attendances.id) as attendance_count'),
                 DB::raw('COALESCE(SUM(meals.lunch_taken), 0) as lunch_count'),
-                DB::raw('COALESCE(SUM(meals.dinner_taken), 0) as dinner_count') 
+                DB::raw('COALESCE(SUM(meals.dinner_taken), 0) as dinner_count')
             )
             ->where('conference_registrations.conference_id', $conferenceId)
             ->first();

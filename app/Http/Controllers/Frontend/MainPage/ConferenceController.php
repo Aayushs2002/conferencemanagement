@@ -56,7 +56,7 @@ class ConferenceController extends Controller
 
     private function getFilteredConferences(ConferenceFilterRequest $request)
     {
-        $cacheKey = $this->generateCacheKey($request);
+        $cacheKey = $this->generateCacheKey($request); 
 
         return Cache::remember($cacheKey, self::CACHE_TTL, function () use ($request) {
             $query = $this->conference

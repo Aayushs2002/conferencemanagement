@@ -4,25 +4,25 @@
         <div class="row g-4 text-center stats-dashboard">
             <div class="col-lg-3 col-md-6 col-6">
                 <div class="stat-card p-4 rounded-4 shadow-sm">
-                    <h2 class="stat-number" data-target="50">0</h2>
+                    <h2 class="stat-number" data-target="{{ $stats['speakers'] }}">0</h2>
                     <p class="stat-label mb-0">Speakers</p>
                 </div>
             </div>
             <div class="col-lg-3 col-md-6 col-6">
                 <div class="stat-card p-4 rounded-4 shadow-sm">
-                    <h2 class="stat-number" data-target="150">0</h2>
+                    <h2 class="stat-number" data-target="{{ $stats['national_participants'] }}">0</h2>
                     <p class="stat-label mb-0">National Participants</p>
                 </div>
             </div>
             <div class="col-lg-3 col-md-6 col-6">
                 <div class="stat-card p-4 rounded-4 shadow-sm">
-                    <h2 class="stat-number" data-target="150">0</h2>
-                    <p class="stat-label mb-0">International Participants</p>
+                    <h2 class="stat-number" data-target="{{ $stats['international_participants'] }}">0</h2>
+                    <p class="stat-label mb-0">International Participants</p> 
                 </div>
             </div>
             <div class="col-lg-3 col-md-6 col-6">
                 <div class="stat-card p-4 rounded-4 shadow-sm">
-                    <h2 class="stat-number" data-target="350">0</h2>
+                    <h2 class="stat-number" data-target="{{ $stats['total_participants'] }}">0</h2>
                     <p class="stat-label mb-0">Total Participants</p>
                 </div>
             </div>
@@ -456,7 +456,7 @@
                     <h6 class="mb-2 fw-600">For Nepali Delegates</h6>
                     <div class="d-flex justify-content-between align-items-center payment-logos">
                         @if ($conference->society->nationalPaymentSetting?->esewa_product_key)
-                            <div class="logo-item"><img src="{{ asset('frontend/assets/img/esewa-icon-large.png') }}"
+                            <div class="logo-item"><img src="{{ asset('frontend/assets/img/esewa-icon-large.png') }}" 
                                     alt="eSewa" class="logo-img">
                             </div>
                         @endif

@@ -48,7 +48,7 @@
           <div
               class="footer-bottom d-flex flex-column flex-md-row justify-content-between align-items-center pt-3 border-top">
               <div>© Copyright MedConAlert {{ date('Y') }}</div>
-              <div>Developed by / <a href="https://omwaytechnologies.com/" class="strong">Omway Technology</strong></a>
+              <div>Developed by / <a href="https://omwaytechnologies.com/" target="blank" class="strong">Omway Technology</strong></a>
               </div>
           </div>
       </div>

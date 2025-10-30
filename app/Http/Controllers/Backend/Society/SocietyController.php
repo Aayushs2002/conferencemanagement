@@ -112,7 +112,7 @@ class SocietyController extends Controller
         $features = Feature::whereStatus(1)->get();
 
         $societyFeatures = $society->features->pluck('id')->toArray();
-        return view('backend.users.societies.create', compact('society','features','societyFeatures'));
+        return view('backend.users.societies.create', compact('society', 'features', 'societyFeatures'));
     }
 
     /**
@@ -149,7 +149,7 @@ class SocietyController extends Controller
         }
     }
 
-    /**
+    /** 
      * Remove the specified resource from storage.
      */
     public function destroy(Society $society)
@@ -179,7 +179,7 @@ class SocietyController extends Controller
         $conferences = Conference::where([
             'society_id' => $society->id,
             'status' => 1
-        ])->latest()->get();
+        ])->orderBy('start_date', 'desc')->get();
         return view('backend.users.societies.dashboard', compact('conferenceCount', 'typeCount', 'conferences', 'society'));
     }
 

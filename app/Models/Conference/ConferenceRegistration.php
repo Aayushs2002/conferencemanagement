@@ -321,4 +321,34 @@ GROUP BY MT.id, MT.delegate, MT.type";
         return $this->canReceiveAccommodation() &&
             !$this->internationalAccommodation;
     }
+
+    /**
+     * Get conference statistics with single optimized query
+     * 
+     * @param int $conferenceId
+     * @return array
+     */
+    public static function getConferenceStats($conferenceId): array
+    {
+        $stats = DB::table('conference_registrations as cr')
+            ->join('users as u', 'cr.user_id', '=', 'u.id')
+            ->join('user_details as ud', 'u.id', '=', 'ud.user_id')
+            ->where('cr.conference_id', $conferenceId)
+            ->where('cr.status', 1)
+            ->where('cr.verified_status', self::STATUS_ACCEPTED)
+            ->selectRaw('
+                COUNT(*) as total_participants,
+                SUM(CASE WHEN cr.registrant_type = ? THEN 1 ELSE 0 END) as speakers,
+                SUM(CASE WHEN ud.country_id = 125 THEN 1 ELSE 0 END) as national_participants,
+                SUM(CASE WHEN ud.country_id != 125 THEN 1 ELSE 0 END) as international_participants
+            ', [self::REGISTRANT_SPEAKER])
+            ->first();
+
+        return [
+            'speakers' => (int) ($stats->speakers ?? 0),
+            'national_participants' => (int) ($stats->national_participants ?? 0),
+            'international_participants' => (int) ($stats->international_participants ?? 0),
+            'total_participants' => (int) ($stats->total_participants ?? 0),
+        ];
+    }
 }

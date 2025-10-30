@@ -4,8 +4,10 @@ namespace App\Http\Controllers\Frontend\Conference;
 
 use App\Models\Faq\Faq;
 use App\Models\Sponsor\SponsorCategory;
+use App\Models\Conference\ConferenceRegistration;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Cache;
 
 class HomeController extends BaseConferenceController
 {
@@ -24,6 +26,11 @@ class HomeController extends BaseConferenceController
             }])
             ->get();
         $downloads = $this->conference->downloads;
+
+        $cacheKey = "conference_stats_{$this->conference->id}";
+        $stats = Cache::remember($cacheKey, 300, function () {
+            return ConferenceRegistration::getConferenceStats($this->conference->id);
+        });
 
         $condition = "WHERE conference_id = " . $this->conference->id;
         $sql = "SELECT
@@ -50,11 +57,11 @@ class HomeController extends BaseConferenceController
                     FROM
                         conference_member_type_prices
                         $condition
-                    ) AS MTP ON MT.id = MTP.member_type_id
+                    ) AS MTP ON MT.id = MTP.member_type_id 
                     WHERE MT.society_id = " . $this->conference->society_id;
 
         $memberTypes = DB::select($sql);
-
+ 
         $faqs = Faq::where(['conference_id' => $this->conference->id, 'status' => 1])->get();
 
         $society = $this->conference->society;
@@ -66,6 +73,6 @@ class HomeController extends BaseConferenceController
             $url = "http://{$subdomain}.{$mainDomain}" . request()->getRequestUri();
             return redirect()->to($url);
         }
-        return view('frontend.conference.home.index', compact('submissionSetting', 'hotels', 'sponsorCategories', 'downloads', 'memberTypes', 'faqs'));
+        return view('frontend.conference.home.index', compact('submissionSetting', 'hotels', 'sponsorCategories', 'downloads', 'memberTypes', 'faqs', 'stats'));
     }
 }
