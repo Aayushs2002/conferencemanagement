@@ -10,7 +10,7 @@ use App\Mail\Conference\ExceptionalRegistrationMail;
 use App\Mail\Conference\RegistrantAcceptMail;
 use App\Mail\Conference\RegistrantRejectMail;
 use App\Mail\Conference\RegistrationMail;
-use App\Models\Conference\AccompanyPerson;
+use App\Models\Conference\AccompanyPerson; 
 use App\Models\Conference\Attendance;
 use App\Models\Conference\ConferenceAddon;
 use App\Models\Conference\ConferenceMemberTypePrice;
@@ -112,6 +112,236 @@ class ConferenceRegistrationController extends Controller
         return view('backend.conference.conference-registration.view', compact('registrant'));
     }
 
+    public function edit($society, $conference, ConferenceRegistration $registrant)
+    {
+        $prefixesAll = NamePrefix::whereStatus(1)->get();
+        $conferenceAddons = ConferenceAddon::where('conference_id', $conference->id)->get();
+        $memberTypes = MemberType::where(['society_id' => $society->id, 'status' => 1])->get();
+        $countries = \App\Models\User\Country::where('status', 1)->get();
+        $institutions = \App\Models\User\Institution::where('status', 1)->get();
+        $designations = \App\Models\User\Designation::where('status', 1)->get();
+        $departments = \App\Models\User\Department::where('status', 1)->get();
+        $name_prefiexs = NamePrefix::where('status', 1)->get();
+
+        return view('backend.conference.conference-registration.edit', compact(
+            'registrant',
+            'society',
+            'conference',
+            'prefixesAll',
+            'conferenceAddons',
+            'memberTypes',
+            'countries',
+            'institutions',
+            'designations',
+            'departments',
+            'name_prefiexs'
+        ));
+    }
+
+    public function update(Request $request, $society, $conference, ConferenceRegistration $registrant)
+    {
+        try {
+            $rules = [
+                'name_prefix_id' => 'required',
+                'gender' => 'required',
+                'f_name' => 'required',
+                'm_name' => 'nullable',
+                'l_name' => 'required',
+                'phone' => 'required',
+                'designation_id' => 'nullable',
+                'department_id' => 'nullable',
+                'institution_id' => 'nullable',
+                'address' => 'nullable',
+                'member_type_id' => 'required',
+                'registrant_type' => 'required',
+                'additional_guests' => 'nullable|numeric',
+                'country_id' => 'required',
+                'meal_type' => 'required',
+                'payment_type' => 'required|in:1,2,3,4,5,6',
+                'payment_voucher' => 'nullable|mimes:jpg,png,pdf|max:250',
+                'email' => 'required|email|unique:users,email,' . $registrant->user_id,
+                'council_number' => 'nullable',
+                'transaction_id' => 'required|unique:conference_registrations,transaction_id,' . $registrant->id,
+                'amount' => 'required|numeric',
+            ];
+
+            if ($request->registrant_type == 2) {
+                $rules['description'] = 'required';
+            }
+
+            if ($request->additional_guests >= 1) {
+                $rules['person_name.*'] = 'required';
+            }
+
+            $message = [
+                'transaction_id.unique' => 'Transaction/Reference Id already exist.',
+                'person_name.*.required' => 'Each person name is required.',
+            ];
+
+            $validated = $request->validate($rules, $message);
+
+            if (empty($validated['additional_guests'])) {
+                $validated['total_attendee'] = 1;
+            } else {
+                $validated['total_attendee'] = $validated['additional_guests'] + 1;
+            }
+
+            if (!empty($validated['payment_voucher'])) {
+                // Delete old voucher if exists
+                if ($registrant->payment_voucher) {
+                    $this->file_service->deleteFile($registrant->payment_voucher, 'conference/payment-voucher');
+                }
+                $validated['payment_voucher'] = $this->file_service->fileUpload($validated['payment_voucher'], 'payment_voucher', 'conference/payment-voucher');
+            }
+
+            DB::beginTransaction();
+
+            // Update user data
+            $user = User::findOrFail($registrant->user_id);
+            $user->update([
+                'name_prefix_id' => $validated['name_prefix_id'],
+                'f_name' => $validated['f_name'],
+                'm_name' => $validated['m_name'],
+                'l_name' => $validated['l_name'],
+                'gender' => $validated['gender'],
+                'email' => $validated['email'],
+            ]);
+
+            // Update user details
+            $user->userDetail->update([
+                'phone' => $validated['phone'],
+                'designation_id' => $validated['designation_id'],
+                'department_id' => $validated['department_id'],
+                'institution_id' => $validated['institution_id'],
+                'institute_address' => $validated['address'],
+                'council_number' => $validated['council_number'],
+                'country_id' => $validated['country_id'],
+            ]);
+
+            // Update user society membership
+            $user->societies()->syncWithoutDetaching([
+                $society->id => ['member_type_id' => $validated['member_type_id']]
+            ]);
+
+            // Update conference registration
+            $registrant->update([
+                'registrant_type' => $validated['registrant_type'],
+                'total_attendee' => $validated['total_attendee'],
+                'meal_type' => $validated['meal_type'],
+                'payment_type' => $validated['payment_type'],
+                'transaction_id' => $validated['transaction_id'],
+                'amount' => $validated['amount'],
+                'payment_voucher' => $validated['payment_voucher'] ?? $registrant->payment_voucher,
+                'short_cv' => $validated['description'] ?? $registrant->short_cv,
+            ]);
+
+            // Update accompany persons
+            if ($request->additional_guests >= 1) {
+                // Delete existing accompany persons
+                AccompanyPerson::where('conference_registration_id', $registrant->id)->delete();
+                
+                // Insert new ones
+                $insertArray = [];
+                foreach ($validated['person_name'] as $key => $value) {
+                    $array['conference_registration_id'] = $registrant->id;
+                    $array['person_name'] = $value;
+                    $array['created_at'] = now();
+                    $array['updated_at'] = now();
+                    $insertArray[] = $array;
+                }
+                AccompanyPerson::insert($insertArray);
+            } else {
+                // Remove all accompany persons if additional_guests is 0
+                AccompanyPerson::where('conference_registration_id', $registrant->id)->delete();
+            }
+
+            // Update addons
+            if ($request->conference_addon_id) {
+                // Delete existing addons
+                ConferenceRegistration_addon::where('conference_registration_id', $registrant->id)->delete();
+                
+                // Insert new ones
+                foreach ($request->conference_addon_id as $addon_id) {
+                    $addon = ConferenceAddon::findOrFail($addon_id);
+                    ConferenceRegistration_addon::create([
+                        'conference_registration_id' => $registrant->id,
+                        'conference_addon_id' => $addon_id,
+                        'amount' => $user->userDetail->country_id == 125 ? $addon->addon_national_amount : $addon->addon_international_amount,
+                    ]);
+                }
+            } else {
+                // Remove all addons if none selected
+                ConferenceRegistration_addon::where('conference_registration_id', $registrant->id)->delete();
+            }
+
+            $middleName = !empty($validated['m_name']) ? $validated['m_name'] . ' ' : '';
+            logActivity($conference->id, 'Updated Conference Registration', $validated['f_name'] . ' ' . $middleName . $validated['l_name'] . ' registration updated');
+            
+            DB::commit();
+
+            return redirect()->route('conference.conference-registration.index', [$society, $conference])
+                ->with('status', 'Conference registration updated successfully.');
+        } catch (Exception $e) {
+            DB::rollBack();
+            return redirect()->back()->withInput()->with('delete', 'Failed to update registration: ' . $e->getMessage());
+        }
+    }
+
+    public function deleteVoucher($society, $conference, ConferenceRegistration $registrant)
+    {
+        try {
+            if ($registrant->payment_voucher) {
+                $this->file_service->deleteFile($registrant->payment_voucher, 'conference/payment-voucher');
+                $registrant->update(['payment_voucher' => null]);
+                
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Payment voucher deleted successfully.'
+                ]);
+            }
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'No voucher found to delete.'
+            ], 404);
+        } catch (Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to delete voucher: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function deleteAccompanyPerson($society, $conference, AccompanyPerson $accompanyPerson)
+    {
+        try {
+            $registration = ConferenceRegistration::findOrFail($accompanyPerson->conference_registration_id);
+            $personName = $accompanyPerson->person_name;
+            
+            // Hard delete the accompany person
+            $accompanyPerson->delete();
+            
+            // Update total attendee count
+            $activeAccompanyCount = AccompanyPerson::where('conference_registration_id', $registration->id)->count();
+            
+            $registration->update([
+                'total_attendee' => $activeAccompanyCount + 1 // +1 for the registrant
+            ]);
+            
+            logActivity($conference->id, 'Deleted Accompany Person', 'Deleted accompany person: ' . $personName . ' from ' . $registration->user->fullName($registration->user) . ' registration');
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Accompany person deleted successfully.'
+            ]);
+        } catch (Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to delete accompany person: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
     public function importExcel(Request $request, $society, $conference)
     {
         return view('backend.conference.conference-registration.import-registrant', compact('society', 'conference'));
@@ -127,11 +357,11 @@ class ConferenceRegistrationController extends Controller
             'excel_file.max' => 'The file size should not exceed 5MB.',
         ]);
 
-        set_time_limit(600); 
-        ini_set('memory_limit', '1024M'); 
- 
+        set_time_limit(600);
+        ini_set('memory_limit', '1024M');
+
         $import = new ConferenceRegistationImport($society, $conference);
-        
+
         try {
             Excel::import($import, $request->file('excel_file'));
         } catch (\Exception $e) {
@@ -338,6 +568,9 @@ class ConferenceRegistrationController extends Controller
                 }
                 AccompanyPerson::insert($insertArray);
             }
+
+            logActivity($registration->conference_id, 'Add Person','Added ' .$validated['additional_guests'] . ' Guests to ' . $registration->user->fullName($registration->user) . ' is registered to conference');
+
             $type = 'success';
             $message = "Successfully Added";
 
@@ -444,7 +677,7 @@ class ConferenceRegistrationController extends Controller
     }
 
     public function registrationOrInvitationSubmit(Request $request, $society, $conference)
-    { 
+    {
         try {
             // dd($request->all());
             $checkUser = User::whereEmail($request->email)->first();

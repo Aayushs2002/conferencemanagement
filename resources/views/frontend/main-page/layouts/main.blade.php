@@ -51,7 +51,7 @@
     
     <link rel="stylesheet" href="{{ asset('frontend/assets/css/bootstrap.min.css') }}">
     <link rel="stylesheet" href="{{ asset('frontend/assets/css/fontawesome.min.css') }}">
-    <link rel="stylesheet" href="{{ asset('frontend/assets/css/slick.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('frontend/assets/css/slick.min.css') }}"> 
     <link rel="stylesheet" href="{{ asset('frontend/assets/css/odometer.css') }}">
     <link rel="stylesheet" href="{{ asset('frontend/assets/css/animate.css') }}">
     <link rel="stylesheet" href="{{ asset('frontend/assets/css/jquery-ui.min.css') }}">

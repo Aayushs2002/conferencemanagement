@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Frontend\Conference;
 use App\Http\Controllers\Controller;
 use App\Models\Conference\Conference;
 use App\Models\Workshop\Workshop;
-use Illuminate\Support\Collection;
+use Illuminate\Support\Collection; 
 
 class BaseConferenceController extends Controller
 {

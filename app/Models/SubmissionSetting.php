@@ -19,6 +19,7 @@ class SubmissionSetting extends Model
         'poster_reviewer_guide',
         'attachment_name',
         'signature',
+        'scoring_allowed',
         'status'
     ];
 }

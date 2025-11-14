@@ -18,7 +18,7 @@
                                 <i class="icon-base ti tabler-upload icon-xs me-sm-1"></i>
                                 <span class="d-none d-sm-inline-block">Export</span>
                             </button>
-                            <ul class="dropdown-menu">
+                            <ul class="dropdown-menu"> 
                                 <li><a class="dropdown-item" href="#" onclick="exportTo('excel')">Export to Excel</a>
                                 </li>
                                 <li><a class="dropdown-item" href="#" onclick="exportTo('pdf')">Export to PDF</a></li>
@@ -210,5 +210,5 @@
                 });
             });
         });
-    </script>
+    </script> 
 @endsection

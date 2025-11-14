@@ -44,75 +44,77 @@
                         @enderror
                     </div>
                     {{-- @endif --}}
+                    @if ($setting->scoring_allowed == 1)
+                        <div class="row pl-3 decisionForm" style="display: none;">
+                            <div class="col-md-12 mb-3">
+                                <label class="text-danger" for="defaultCheck1">Score Base On below Topic
+                                    <code>(Check the box if the structure not applicable <input
+                                            class="form-check-input mt-1" type="checkbox" value="1"
+                                            name="structure" id="defaultCheck1" />) </code></label>
+                            </div>
+                            <div class="col-md-4 form-group mb-3 ifAcceptContents">
+                                <label for="introduction">Introduction/Background <code>*</code></label>
+                                <select name="introduction" id="introduction"
+                                    class="form-control @error('introduction') is-invalid @enderror">
+                                    <option value="" hidden>-- Select Score --</option>
+                                    <option value="0" @selected(old('introduction') === 0)>0</option>
+                                    <option value="1" @selected(old('introduction') == 1)>1</option>
+                                    <option value="2" @selected(old('introduction') == 2)>2</option>
+                                </select>
+                                <p class="text-danger introduction"></p>
+                            </div>
+                            <div class="col-md-4 form-group mb-3 ifAcceptContents">
+                                <label for="method">Methods <code>*</code></label>
+                                <select name="method" id="method"
+                                    class="form-control @error('method') is-invalid @enderror">
+                                    <option value="" hidden>-- Select Score --</option>
+                                    <option value="0" @selected(old('method') === 0)>0</option>
+                                    <option value="1" @selected(old('method') == 1)>1</option>
+                                    <option value="2" @selected(old('method') == 2)>2</option>
+                                </select>
+                                <p class="text-danger method"></p>
+                            </div>
+                            <div class="col-md-4 form-group mb-3 ifAcceptContents">
+                                <label for="result">Results/Findings <code>*</code></label>
+                                <select name="result" id="result"
+                                    class="form-control @error('result') is-invalid @enderror">
+                                    <option value="" hidden>-- Select Score --</option>
+                                    <option value="0" @selected(old('result') === 0)>0</option>
+                                    <option value="1" @selected(old('result') == 1)>1</option>
+                                    <option value="2" @selected(old('result') == 2)>2</option>
+                                </select>
+                                <p class="text-danger result"></p>
+                            </div>
+                            <div class="col-md-5 form-group mb-3 ifAcceptContents">
+                                <label for="conclusion">Conclusion <code>*</code></label>
+                                <select name="conclusion" id="conclusion"
+                                    class="form-control @error('conclusion') is-invalid @enderror">
+                                    <option value="" hidden>-- Select Score --</option>
+                                    <option value="0" @selected(old('conclusion') === 0)>0</option>
+                                    <option value="1" @selected(old('conclusion') == 1)>1</option>
+                                    <option value="2" @selected(old('conclusion') == 2)>2</option>
+                                </select>
+                                <p class="text-danger conclusion"></p>
+                            </div>
+                            <div class="col-md-5 form-group mb-3 ifAcceptContents">
+                                <label for="grammar">Grammar/Languages <code>*</code></label>
+                                <select name="grammar" id="grammar"
+                                    class="form-control @error('grammar') is-invalid @enderror">
+                                    <option value="" hidden>-- Select Score --</option>
+                                    <option value="0" @selected(old('grammar') === 0)>0</option>
+                                    <option value="1" @selected(old('grammar') == 1)>1</option>
+                                    <option value="2" @selected(old('grammar') == 2)>2</option>
+                                </select>
+                                <p class="text-danger grammar"></p>
+                            </div>
+                        </div>
+                        <div class="col-md-5 overall_ratings mb-3" style="display: none;">
+                            <label for="overall_rating">Overall Rating <code>*</code></label>
+                            <input type='number' class="form-control" name="overall_rating" id="overall_rating">
+                            <p class="text-danger overall_rating"></p>
+                        </div>
+                    @endif
 
-                    <div class="row pl-3 decisionForm" style="display: none;">
-                        <div class="col-md-12 mb-3">
-                            <label class="text-danger" for="defaultCheck1">Score Base On below Topic
-                                <code>(Check the box if the structure not applicable <input
-                                        class="form-check-input mt-1" type="checkbox" value="1" name="structure"
-                                        id="defaultCheck1" />) </code></label>
-                        </div>
-                        <div class="col-md-4 form-group mb-3 ifAcceptContents">
-                            <label for="introduction">Introduction/Background <code>*</code></label>
-                            <select name="introduction" id="introduction"
-                                class="form-control @error('introduction') is-invalid @enderror">
-                                <option value="" hidden>-- Select Score --</option>
-                                <option value="0" @selected(old('introduction') === 0)>0</option>
-                                <option value="1" @selected(old('introduction') == 1)>1</option>
-                                <option value="2" @selected(old('introduction') == 2)>2</option>
-                            </select>
-                            <p class="text-danger introduction"></p>
-                        </div>
-                        <div class="col-md-4 form-group mb-3 ifAcceptContents">
-                            <label for="method">Methods <code>*</code></label>
-                            <select name="method" id="method"
-                                class="form-control @error('method') is-invalid @enderror">
-                                <option value="" hidden>-- Select Score --</option>
-                                <option value="0" @selected(old('method') === 0)>0</option>
-                                <option value="1" @selected(old('method') == 1)>1</option>
-                                <option value="2" @selected(old('method') == 2)>2</option>
-                            </select>
-                            <p class="text-danger method"></p>
-                        </div>
-                        <div class="col-md-4 form-group mb-3 ifAcceptContents">
-                            <label for="result">Results/Findings <code>*</code></label>
-                            <select name="result" id="result"
-                                class="form-control @error('result') is-invalid @enderror">
-                                <option value="" hidden>-- Select Score --</option>
-                                <option value="0" @selected(old('result') === 0)>0</option>
-                                <option value="1" @selected(old('result') == 1)>1</option>
-                                <option value="2" @selected(old('result') == 2)>2</option>
-                            </select>
-                            <p class="text-danger result"></p>
-                        </div>
-                        <div class="col-md-5 form-group mb-3 ifAcceptContents">
-                            <label for="conclusion">Conclusion <code>*</code></label>
-                            <select name="conclusion" id="conclusion"
-                                class="form-control @error('conclusion') is-invalid @enderror">
-                                <option value="" hidden>-- Select Score --</option>
-                                <option value="0" @selected(old('conclusion') === 0)>0</option>
-                                <option value="1" @selected(old('conclusion') == 1)>1</option>
-                                <option value="2" @selected(old('conclusion') == 2)>2</option>
-                            </select>
-                            <p class="text-danger conclusion"></p>
-                        </div>
-                        <div class="col-md-5 form-group mb-3 ifAcceptContents">
-                            <label for="grammar">Grammar/Languages <code>*</code></label>
-                            <select name="grammar" id="grammar"
-                                class="form-control @error('grammar') is-invalid @enderror">
-                                <option value="" hidden>-- Select Score --</option>
-                                <option value="0" @selected(old('grammar') === 0)>0</option>
-                                <option value="1" @selected(old('grammar') == 1)>1</option>
-                                <option value="2" @selected(old('grammar') == 2)>2</option>
-                            </select>
-                            <p class="text-danger grammar"></p>
-                        </div>
-                    </div>
-                    <div class="col-md-5 overall_ratings mb-3" style="display: none;">
-                        <label for="overall_rating">Overall Rating <code>*</code></label>
-                        <input type='number' class="form-control" name="overall_rating" id="overall_rating">
-                        <p class="text-danger overall_rating"></p>
-                    </div>
                     <div class="col-md-12 form-group mb-3 decisionForm" style="display: none;" id="remarksDiv">
                         <label for="remarks">Remarks <code>*</code></label>
                         <textarea class="form-control" name="remarks" id="remarks" cols="30" rows="5">{{ isset($submission) ? $submission->remarks : old('remarks') }}</textarea>

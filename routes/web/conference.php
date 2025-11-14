@@ -84,6 +84,10 @@ Route::middleware('auth')->group(function () {
     Route::controller(ConferenceRegistrationController::class)->name('conference.conference-registration.')->middleware(['auto.conf.permission', 'feature:conference-registration-management'])->prefix('/society/{society}/conference/{conference}/conference-registration')->group(function () {
         Route::get('/registrant', 'index')->name('index');
         Route::post('/view-data', 'show')->name('show');
+        Route::get('/registrant/{registrant}/edit', 'edit')->name('edit');
+        Route::put('/registrant/{registrant}', 'update')->name('update');
+        Route::delete('/registrant/{registrant}/delete-voucher', 'deleteVoucher')->name('deleteVoucher');
+        Route::delete('/accompany-person/{accompanyPerson}', 'deleteAccompanyPerson')->name('deleteAccompanyPerson');
         Route::get('/register-for-exceptional-case', 'registerForExceptionalCase')->name('registerForExceptionalCase');
         Route::post('/register-for-exceptional-case-submit', 'registerForExceptionalCaseSubmit')->name('registerForExceptionalCaseSubmit');
         Route::post('/add-person', 'addPerson')->name('addPerson');
@@ -109,7 +113,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/participant/take-meal', 'takeMeal')->name('takeMeal');
         Route::post('/participant/take-conference-kit', 'takeConferenceKit')->name('takeConferenceKit');
     });
- 
+
     Route::controller(PassSettingController::class)->middleware('auto.conf.permission')->prefix('/society/{society}/conference/{conference}/conference-registration')->group(function () {
         Route::resource('pass-setting', PassSettingController::class);
     });
@@ -141,7 +145,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/edit/{submissionCategoryMajortrack}', 'edit')->name('edit');
         Route::patch('/update/{submissionCategoryMajortrack}', 'update')->name('update');
         Route::delete('/destroy/{submissionCategoryMajortrack}', 'destroy')->name('destroy');
-    }); 
+    });
 
 
     //Submission Route Started
@@ -268,6 +272,7 @@ Route::middleware('auth')->group(function () {
             Route::match(['put', 'patch'], '/update/{committee_member}', 'update')->name('update');
             Route::delete('/destroy/{committee_member}', 'destroy')->name('destroy');
             Route::get('/change-featured/{committee_member}', 'changeFeatured')->name('changeFeatured');
+            Route::post('get-registered-users', 'getRegisteredUsers')->name('getRegisteredUsers');
         });
     });
 
@@ -323,17 +328,21 @@ Route::middleware('auth')->group(function () {
         Route::resource('email-template', EmailTemplateController::class)->except('show');
     });
 });
-    // Accommodation routes for international participants
-    Route::group(['middleware' => ['auth']], function () {
-        Route::get('/my-society/{society}/conference/{conference}/accommodation', 
-            [App\Http\Controllers\Frontend\MainPage\AccommodationController::class, 'index'])
-            ->name('my-society.conference.accommodation');
-        
-        Route::post('/my-society/{society}/conference/{conference}/accommodation', 
-            [App\Http\Controllers\Frontend\MainPage\AccommodationController::class, 'store'])
-            ->name('my-society.conference.accommodation.store');
-    });
+// Accommodation routes for international participants
+Route::group(['middleware' => ['auth']], function () {
+    Route::get(
+        '/my-society/{society}/conference/{conference}/accommodation',
+        [App\Http\Controllers\Frontend\MainPage\AccommodationController::class, 'index']
+    )
+        ->name('my-society.conference.accommodation');
 
-    Route::get('/participant/profile/{token}', [ConferenceRegistrationController::class, 'participantProfile']);
-    Route::get('workshop/participant/profile/{token}', [WorkshopRegistrationController::class, 'participantProfile']);
-    Route::get('/sponsor/profile/{token}', [SponsorController::class, 'sponsorProfile']);
+    Route::post(
+        '/my-society/{society}/conference/{conference}/accommodation',
+        [App\Http\Controllers\Frontend\MainPage\AccommodationController::class, 'store']
+    )
+        ->name('my-society.conference.accommodation.store');
+});
+
+Route::get('/participant/profile/{token}', [ConferenceRegistrationController::class, 'participantProfile']);
+Route::get('workshop/participant/profile/{token}', [WorkshopRegistrationController::class, 'participantProfile']);
+Route::get('/sponsor/profile/{token}', [SponsorController::class, 'sponsorProfile']);

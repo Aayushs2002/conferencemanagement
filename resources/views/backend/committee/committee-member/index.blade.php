@@ -50,11 +50,20 @@
                         @if (auth()->user()->hasConferencePermissionBlade(getConference(request()->segment(4)), 'Change Featured Committee Member'))
                             <th scope="col">Is Featured ?</th>
                         @endif
+                        <th scope="col">Conference Registered</th>
+
                         <th scope="col" style="width: 12%">Action</th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach ($committee_members as $member)
+                        @php
+                            $userRegistered = \App\Models\User\ActivityLog::where('conference_id', $conference->id)
+                                ->where('user_id', $member->user_id)
+                                ->where('action', 'Registered Conference')
+                                ->orWhere('action', 'Invited Conference')
+                                ->count();
+                        @endphp
                         <tr>
                             <th scope="row">{{ $loop->iteration }}</th>
                             <td>{{ $member->user->fullName($member->user) }}</td>
@@ -72,6 +81,10 @@
                                     @endif
                                 </td>
                             @endif
+                            <td class="text-center viewData cursor-pointer" data-id="{{ $conference->id }}" data-bs-toggle="modal"
+                                data-bs-target="#pricingModal">
+                                {{ $userRegistered }}
+                            </td>
                             <td>
                                 <div class="dropdown">
                                     <button type="button" class="btn p-0 dropdown-toggle hide-arrow"
@@ -108,10 +121,39 @@
             </table>
         </div>
         <div class="modal fade" id="pricingModal" tabindex="-1" aria-hidden="true">
-            <div class="modal-dialog modal-lg modal-simple modal-pricing">
+            <div class="modal-dialog modal-xl modal-simple modal-pricing">
                 <div class="modal-content" id="modalContent">
                 </div>
             </div>
         </div>
     </div>
+@endsection
+@section('scripts')
+    <script>
+        $(document).ready(function() {
+            $(document).on("click", ".viewData", function(e) {
+                e.preventDefault();
+                var url = '{{ route('committeeMember.getRegisteredUsers', [$society, $conference]) }}';
+                var _token = '{{ csrf_token() }}';
+                var id = $(this).data('id');
+
+                $('#modalContent').html(`
+                    <div class="modal-body text-center">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                `);
+                var data = {
+                    _token: _token,
+                    id: id
+                };
+                $.post(url, data, function(response) {
+                    setTimeout(function() {
+                        $('#modalContent').html(response);
+                    }, 1000);
+                });
+            });
+        });
+    </script>
 @endsection

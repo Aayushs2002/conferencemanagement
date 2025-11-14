@@ -7,6 +7,7 @@ use App\Models\Committee\Committee;
 use App\Models\Committee\CommitteeDesignation;
 use App\Models\Committee\CommitteeMember;
 use App\Models\User;
+use App\Models\User\ActivityLog;
 use App\Models\User\Society;
 use Exception;
 use Illuminate\Http\Request;
@@ -18,6 +19,7 @@ class CommitteeMemberController extends Controller
 
         $committee = Committee::where(['slug' => $slug])->first();
         $committee_members = CommitteeMember::where(['conference_id' => $conference->id, 'committee_id' => $committee->id, 'status' => 1])->get();
+        // $activity_log = ActivityLog::where
         return view('backend.committee.committee-member.index', compact('committee_members', 'committee', 'society', 'conference'));
     }
 
@@ -146,5 +148,12 @@ class CommitteeMemberController extends Controller
         $committee_member->update(['is_featured' => $isFeatured]);
 
         return redirect()->back()->with('status', 'Committee Member featured status changed successfully.');
+    }
+
+    public function getRegisteredUsers($society, $conference, Request $request)
+    {
+        $committee_member = CommitteeMember::where('conference_id', $conference->id)->whereId($request->id)->first();
+        $activity_logs = ActivityLog::where('conference_id', $conference->id)->where('user_id', $committee_member->user_id)->orderByDesc('id')->get();
+        return view('backend.committee.committee-member.registered-users', compact('conference', 'activity_logs', 'committee_member'));
     }
 }

@@ -125,7 +125,7 @@ Route::middleware('check.subdomain')
 
 Route::prefix('conference/{conference_front:slug}')->middleware('check.subdomain')
     ->as('conference.')
-    ->group(function () {
+    ->group(function () { 
         Route::get('/', [ConferenceHomeController::class, 'index'])->name('name');
         Route::get('/speaker', [SpeakerController::class, 'index'])->name('speaker');
         Route::get('/committe', [CommitteController::class, 'index'])->name('committe');

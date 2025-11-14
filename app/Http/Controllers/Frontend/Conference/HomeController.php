@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Cache;
 class HomeController extends BaseConferenceController
 {
     public function index()
-    {
+    { 
         // dd($this->conference);  
         $submissionSetting = $this->conference->submissionSetting;
         $hotels = $this->conference->hotels;

@@ -58,7 +58,7 @@
                     @foreach ($users as $user)
                         <tr>
                             <th scope="row">{{ $loop->iteration }}</th>
-                            <td>{{ $user->fullName($user) }}</td>
+                            <td>{{$user->userDetail->namePrefix->prefix .' '. $user->fullName($user) }}</td>
                             <td>{{ $user->email }}</td>
                             <td>
                                 @if (!empty($user->conferenceRegistration->where('conference_id', $conference->id)->first()))

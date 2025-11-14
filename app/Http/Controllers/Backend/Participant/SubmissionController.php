@@ -111,13 +111,13 @@ class SubmissionController extends Controller
                 'conferenceTheme' => $conference->conference_theme,
                 'societyEmail' => $society->contact_person_email,
                 'societyName' => $society->abbreviation,
-                'conferenceDate' => $conferenceDate, 
+                'conferenceDate' => $conferenceDate,
                 'conferenceName' => $conference->conference_name
             ];
 
             $data = [
                 'submission_topic' => $validated['title'],
-                'conference_theme' => $conference->conference_theme, 
+                'conference_theme' => $conference->conference_theme,
                 'conference_date' => $conferenceDate,
                 'society_email' => $society->contact_person_email,
             ];
@@ -201,7 +201,6 @@ class SubmissionController extends Controller
             return redirect()->route('my-society.conference.submission.index',  [$society, $conference])->with('status', 'Submission Added Successfully');
         } catch (\Exception $th) {
             DB::rollBack();
-
         }
     }
 
@@ -216,31 +215,78 @@ class SubmissionController extends Controller
     {
         try {
             $submission = Submission::findOrFail($request->id);
+            $setting = SubmissionSetting::where(['conference_id' => $submission->conference_id, 'status' => 1])->first();
+
+            // Determine if scoring is required or nullable
+            $scoreRule = $setting->scoring_allowed == 1 ? 'required|integer' : 'nullable|integer';
 
             $rules = [];
 
-            // Build validation rules
-            if ($request->requestType == 1 && !$request->structure) {
-                $rules += [
-                    'introduction' => 'required|integer',
-                    'method' => 'required|integer',
-                    'result' => 'required|integer',
-                    'conclusion' => 'required|integer',
-                    'grammar' => 'required|integer',
-                    'remarks' => 'required',
-                    'abstract_content' => 'required',
-                ];
-            } elseif ($request->structure) {
-                $rules += [
-                    'overall_rating' => 'required|integer',
-                    'remarks' => 'required',
-                    'abstract_content' => 'required',
-                ];
-            }
+            // Build validation rules based on structure type
+            if ($request->requestType == 1) {
+                $rules['remarks'] = 'required';
+                $rules['abstract_content'] = 'required';
 
-            if ($request->requestType == 2) {
+                if ($request->structure) {
+                    // Structured review: single overall rating
+                    $rules['overall_rating'] = $scoreRule;
+                } else {
+                    // Detailed review: individual scores
+                    $rules['introduction'] = $scoreRule;
+                    $rules['method'] = $scoreRule;
+                    $rules['result'] = $scoreRule;
+                    $rules['conclusion'] = $scoreRule;
+                    $rules['grammar'] = $scoreRule;
+                }
+            } elseif ($request->requestType == 2) {
+                // Rejection requires only reject remarks
                 $rules['reject_remarks'] = 'required';
             }
+
+
+            //  $submission = Submission::findOrFail($request->id);
+            // $setting = SubmissionSetting::where(['conference_id' => $submission->conference_id, 'status' => 1])->first();
+            // $rules = [];
+
+            // // Build validation rules
+            // if ($request->requestType == 1 && !$request->structure) {
+            //     if ($setting->scoring_allowed == 1) {
+            //         $rules += [
+            //             'introduction' => 'required|integer',
+            //             'method' => 'required|integer',
+            //             'result' => 'required|integer',
+            //             'conclusion' => 'required|integer',
+            //             'grammar' => 'required|integer',
+            //             'remarks' => 'required',
+            //             'abstract_content' => 'required',
+            //         ];
+            //     } else {
+            //         $rules += [
+            //             'introduction' => 'nullable|integer',
+            //             'method' => 'nullable|integer',
+            //             'result' => 'nullable|integer',
+            //             'conclusion' => 'nullable|integer',
+            //             'grammar' => 'nullable|integer',
+            //             'remarks' => 'required',
+            //             'abstract_content' => 'required',
+            //         ];
+            //     }
+            // } elseif ($request->structure) {
+            //     if ($setting->scoring_allowed == 1) {
+            //         $rules += [
+            //             'overall_rating' => 'required|integer',
+            //             'remarks' => 'required',
+            //             'abstract_content' => 'required',
+            //         ];
+            //     } else {
+            //         $rules += [
+            //             'overall_rating' => 'nullable|integer',
+            //             'remarks' => 'required',
+            //             'abstract_content' => 'required',
+            //         ];
+            //     }
+            // }
+
 
             $validated = $request->validate($rules);
 

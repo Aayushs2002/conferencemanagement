@@ -174,7 +174,7 @@
                     @foreach ($registrants as $registrant)
                         <tr>
                             <th scope="row">{{ $loop->iteration }}</th>
-                            <td>{{ $registrant->user->fullName($registrant->user) }}</td>
+                            <td>{{$registrant->user->userDetail->namePrefix->prefix .' '. $registrant->user->fullName($registrant->user) }}</td>
                             @php
                                 $userSociety = $registrant->user->societies->first();
                                 $memberType = $userSociety?->pivot?->memberType;
@@ -182,17 +182,46 @@
                             <td>{{ $memberType->type ?? 'N/A' }}</td>
                             {{-- <td>{{ $registrant->user->email }}</td> --}}
                             <td>
-
                                 @if ($registrant->payment_type == 1)
                                     Fone-Pay
+                                    @if (!empty($registrant->payment_voucher))
+                                        <br><a href="{{ asset('storage/conference/payment-voucher/' . $registrant->payment_voucher) }}"
+                                            target="_blank" class="btn btn-sm btn-primary mt-1">
+                                            <i class="icon-base ti tabler-eye icon-xs"></i> View
+                                        </a>
+                                    @endif
                                 @elseif ($registrant->payment_type == 2)
                                     Moco Payment
+                                    @if (!empty($registrant->payment_voucher))
+                                        <br><a href="{{ asset('storage/conference/payment-voucher/' . $registrant->payment_voucher) }}"
+                                            target="_blank" class="btn btn-sm btn-primary mt-1">
+                                            <i class="icon-base ti tabler-eye icon-xs"></i> View
+                                        </a>
+                                    @endif
                                 @elseif ($registrant->payment_type == 3)
                                     Esewa
+                                    @if (!empty($registrant->payment_voucher))
+                                        <br><a href="{{ asset('storage/conference/payment-voucher/' . $registrant->payment_voucher) }}"
+                                            target="_blank" class="btn btn-sm btn-primary mt-1">
+                                            <i class="icon-base ti tabler-eye icon-xs"></i> View
+                                        </a>
+                                    @endif
                                 @elseif ($registrant->payment_type == 4)
                                     Khalti
+                                    @if (!empty($registrant->payment_voucher))
+                                        <br><a href="{{ asset('storage/conference/payment-voucher/' . $registrant->payment_voucher) }}"
+                                            target="_blank" class="btn btn-sm btn-primary mt-1">
+                                            <i class="icon-base ti tabler-eye icon-xs"></i> View
+                                        </a>
+                                    @endif
                                 @elseif ($registrant->payment_type == 5)
                                     Card Payment
+                                    @if (!empty($registrant->payment_voucher))
+                                        <br><a href="{{ asset('storage/conference/payment-voucher/' . $registrant->payment_voucher) }}"
+                                            target="_blank" class="btn btn-sm btn-primary mt-1">
+                                            <i class="icon-base ti tabler-eye icon-xs"></i> View
+                                        </a>
+                                    @endif
                                 @elseif (!empty($registrant->payment_voucher) && $registrant->payment_type == 6)
                                     {{-- @dd($registrant->payment_voucher) --}}
                                     @php
@@ -260,9 +289,9 @@
                                     </button>
                                     <div class="dropdown-menu">
                                         @if (auth()->user()->hasConferencePermissionBlade(getConference(request()->segment(4)), 'Edit Conference Registration'))
-                                            <a class="dropdown-item" href=""><i
+                                            <a class="dropdown-item" href="{{ route('conference.conference-registration.edit', [$society, $conference, $registrant->id]) }}"><i
                                                     class="icon-base ti tabler-pencil me-1"></i> Edit</a>
-                                        @endif
+                                        @endif 
                                         <a class="dropdown-item viewData" data-id="{{ $registrant->id }}"
                                             data-bs-toggle="modal" data-bs-target="#pricingModal"><i
                                                 class="icon-base ti tabler-eye me-1 "></i> View</a>

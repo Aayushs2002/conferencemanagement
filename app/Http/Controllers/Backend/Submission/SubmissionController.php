@@ -38,6 +38,8 @@ class SubmissionController extends Controller
         //     return redirect()->route('dashboard');
         // }
         $submissionTracks = SubmissionCategoryMajorTrack::where(['conference_id' => $conference->id, 'status' => 1])->get();
+        $submission_setting = SubmissionSetting::where('conference_id', $conference->id)->select('scoring_allowed')->first();
+        // dd($submission_setting);
         $query = Submission::with('discussions')->where(['conference_id' => $conference->id, 'status' => 1]);
         if ($request->filled('article_type')) {
             $query->where('article_type', $request->article_type);
@@ -63,7 +65,7 @@ class SubmissionController extends Controller
         }
 
         $submissions = $query->latest()->get();
-        return view('backend.submission.submission.index', compact('submissions', 'submissionTracks', 'conference', 'society'));
+        return view('backend.submission.submission.index', compact('submissions', 'submissionTracks', 'conference', 'society', 'submission_setting'));
     }
 
     public function show(Request $request)

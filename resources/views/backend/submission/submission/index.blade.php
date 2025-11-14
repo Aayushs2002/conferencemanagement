@@ -119,7 +119,8 @@
                         @if (auth()->user()->hasConferencePermissionBlade($conference, 'Expert Assign'))
                             <th>Assign to Expert ?</th>
                         @endif
-                        @if (auth()->user()->hasConferencePermissionBlade($conference, 'View Score'))
+                        @if (auth()->user()->hasConferencePermissionBlade($conference, 'View Score') &&
+                                $submission_setting->scoring_allowed == 1)
                             <th>Score</th>
                         @endif
                         <th>Action</th>
@@ -213,7 +214,8 @@
                                     @endif
                                 </td>
                             @endif
-                            @if (auth()->user()->hasConferencePermissionBlade($conference, 'View Score'))
+                            @if (auth()->user()->hasConferencePermissionBlade($conference, 'View Score') &&
+                                    $submission_setting->scoring_allowed == 1)
                                 <td>
                                     @if ($submission->submissionRating?->introduction)
                                         <a class="btn viewScore" data-id="{{ $submission->id }}" data-bs-toggle="modal"
@@ -238,7 +240,8 @@
                                     </button>
                                     <div class="dropdown-menu">
                                         @if (auth()->user()->hasConferencePermissionBlade($conference, 'Edit Submission'))
-                                            <a class="dropdown-item" href="{{ route('submission.edit',[$society, $conference, $submission]) }}"><i
+                                            <a class="dropdown-item"
+                                                href="{{ route('submission.edit', [$society, $conference, $submission]) }}"><i
                                                     class="icon-base ti tabler-pencil me-1"></i>
                                                 Edit</a>
                                         @endif

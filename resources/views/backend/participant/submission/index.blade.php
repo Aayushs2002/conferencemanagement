@@ -196,13 +196,13 @@
                                        {{ $submission->expert_id == current_user()->id ? 'hidden' : '' }}>Authors</a>
                                    @if (
                                        $submission->expert_id == current_user()->id &&
-                                           ($submission->review_status !== 1 && $submission->review_status !== 0))
+                                           ($submission->review_status == 2 || $submission->review_status == 0))
                                        <a class="reviewNow btn btn-sm btn-danger text-white"
                                            data-id="{{ $submission->id }}" data-bs-toggle="modal"
                                            data-bs-target="#pricingModal">
                                            <span id="reviewNow">
                                                Review Now
-                                           </span>
+                                           </span> 
                                        </a>
                                    @endif
                                    @if ($submission->discussions->isNotEmpty())
@@ -264,7 +264,7 @@
                var url =
                    '{{ route('my-society.conference.submission.review', [$society, $conference]) }}';
                var _token = '{{ csrf_token() }}';
-               var id = $(this).data('id');
+               var id = $(this).data('id'); 
                $('#modalContent').html(`
                     <div class="modal-body text-center">
                         <div class="spinner-border text-primary" role="status">
