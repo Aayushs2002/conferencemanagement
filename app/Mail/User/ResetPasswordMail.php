@@ -14,13 +14,15 @@ class ResetPasswordMail extends Mailable
     use Queueable, SerializesModels;
 
     public $data;
+    public $conferenceName;
 
     /**
      * Create a new message instance.
      */
-    public function __construct($data)
+    public function __construct($data, $conferenceName = null)
     {
         $this->data = $data;
+        $this->conferenceName = $conferenceName ?? config('mail.from.name');
     }
 
     /**
@@ -29,6 +31,7 @@ class ResetPasswordMail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
+            from: new \Illuminate\Mail\Mailables\Address(config('mail.from.address'), $this->conferenceName),
             subject: 'Reset Password Mail',
         );
     }

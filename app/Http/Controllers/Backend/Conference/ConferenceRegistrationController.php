@@ -486,7 +486,7 @@ class ConferenceRegistrationController extends Controller
                 'serviceCharge' =>  null
             ];
 
-            Mail::to($user->email)->send(new ExceptionalRegistrationMail($mailData));
+            Mail::to($user->email)->send(new ExceptionalRegistrationMail($mailData, $conference->conference_name));
 
             DB::beginTransaction();
             // insert table-1
@@ -645,12 +645,12 @@ class ConferenceRegistrationController extends Controller
             ];
 
             if ($request->verified_status == 1) {
-                Mail::to($conference_registration->user->email)->send(new RegistrantAcceptMail($data));
+                Mail::to($conference_registration->user->email)->send(new RegistrantAcceptMail($data, $conference->conference_name));
 
                 $conference_registration->update($validated);
             } else {
                 $data['remarks'] = $validated['remarks'];
-                Mail::to($conference_registration->user->email)->send(new RegistrantRejectMail($data));
+                Mail::to($conference_registration->user->email)->send(new RegistrantRejectMail($data, $conference->conference_name));
 
                 $conference_registration->update($validated);
             }
@@ -789,7 +789,7 @@ class ConferenceRegistrationController extends Controller
                 'invitation_token' => $invitationToken,
                 'invitation_url' => route('invitation.show', $invitationToken)
             ];
-            Mail::to($validated['email'])->send(new RegistrationMail($data));
+            Mail::to($validated['email'])->send(new RegistrationMail($data, $conference->conference_name));
 
             if ($request->has('invited_guest')) {
                 $validated['is_invited'] = 1;

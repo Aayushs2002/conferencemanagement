@@ -14,13 +14,15 @@ class SubmissionBulkMail extends Mailable implements ShouldQueue
     use Queueable, SerializesModels;
 
     public array $mailData;
+    public $conferenceName;
 
     /**
      * Create a new message instance.
      */
-    public function __construct(array $mailData)
+    public function __construct(array $mailData, $conferenceName = null)
     {
         $this->mailData = $mailData;
+        $this->conferenceName = $conferenceName ?? config('mail.from.name');
     }
 
     /**
@@ -29,6 +31,7 @@ class SubmissionBulkMail extends Mailable implements ShouldQueue
     public function envelope(): Envelope
     {
         return new Envelope(
+            from: new \Illuminate\Mail\Mailables\Address(config('mail.from.address'), $this->conferenceName),
             subject: $this->mailData['subject'] ?? 'Submission Bulk Mail',
         );
     }

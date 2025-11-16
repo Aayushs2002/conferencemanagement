@@ -66,7 +66,7 @@ Route::middleware('auth')->group(function () {
             Route::post('/create-for-invited', 'createForInvited')->name('createForInvited');
             Route::post('/store-for-invited', 'storeForInvited')->name('storeForInvited');
         });
-    });
+    }); 
     Route::get('/conference/stats', [ConferenceController::class, 'getStats'])->name('conference.stats');
 
     //conference route ended

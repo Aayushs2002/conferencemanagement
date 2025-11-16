@@ -20,11 +20,13 @@ class CertificateMail extends Mailable
     public $conference;
     public $registrant;
     public $certificatePath;
-    public function __construct($registrant, $certificatePath, $conference)
+    public $conferenceName;
+    public function __construct($registrant, $certificatePath, $conference, $conferenceName = null)
     {
         $this->registrant = $registrant;
         $this->certificatePath = $certificatePath;
         $this->conference = $conference;
+        $this->conferenceName = $conferenceName ?? config('mail.from.name');
     }
 
     /**
@@ -33,6 +35,7 @@ class CertificateMail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
+            from: new \Illuminate\Mail\Mailables\Address(config('mail.from.address'), $this->conferenceName),
             subject: 'Your Certificate for ' . $this->conference->conference_name,
         );
     }

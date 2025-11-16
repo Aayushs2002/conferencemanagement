@@ -262,7 +262,7 @@ class ConferenceRegistrationController extends Controller
                         'serviceCharge' => $authUser->userDetail->country_id != 125 ? $validated['amount'] * 0.035 : null
                     ];
 
-                    Mail::to($authUser->email)->send(new RegisteredByUserMail($mailData));
+                    Mail::to($authUser->email)->send(new RegisteredByUserMail($mailData, $conference->conference_name));
 
                     DB::beginTransaction();
 
@@ -490,7 +490,7 @@ class ConferenceRegistrationController extends Controller
             ];
             // dd($mailData);
             // Send Email
-            Mail::to($authUser->email)->send(new RegisteredByUserMail($mailData));
+            Mail::to($authUser->email)->send(new RegisteredByUserMail($mailData, $conference->conference_name));
 
             DB::beginTransaction();
 

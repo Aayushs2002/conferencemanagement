@@ -20,11 +20,13 @@ class UserCreatedMail extends Mailable
     public $email;
     public $password;
     public $loginUrl;
-    public function __construct($email, $password)
+    public $conferenceName;
+    public function __construct($email, $password, $conferenceName = null)
     {
         $this->email = $email;
         $this->password = $password;
         $this->loginUrl = route('login');
+        $this->conferenceName = $conferenceName ?? config('mail.from.name');
     }
     /**
      * Get the message envelope.
@@ -32,6 +34,7 @@ class UserCreatedMail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
+            from: new \Illuminate\Mail\Mailables\Address(config('mail.from.address'), $this->conferenceName),
             subject: 'Your Account Credentials',
         );
     }

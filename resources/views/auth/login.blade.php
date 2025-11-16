@@ -139,9 +139,9 @@
                             style="height:50px;">
                     </a>
                 @else
-                <div class="text-center">
-                    <h3>{{ $nextConference->conference_name ?? 'Upcoming Conference' }}</h3>
-                </div>
+                    <div class="text-center">
+                        <h3>{{ $nextConference->conference_name ?? 'Upcoming Conference' }}</h3>
+                    </div>
                 @endif
 
                 <br />
@@ -162,15 +162,28 @@
                         Venue details coming soon
                     @endif
                 </p>
-            @else 
+            @else
                 <p>Conference Management System</p>
             @endif
 
             <!-- Guidelines Link -->
             <div class="mt-3">
-                <a href="#" onclick="openGuidelines()" class="btn btn-outline-primary btn-sm">
-                    📋 View Registration Guidelines
-                </a>
+                @if (!empty($nextConference))
+                    @if ($nextConference->conferenceSetting && $nextConference->conferenceSetting->registration_guideline)
+                        <a href="{{ asset('storage/conference/registration-guideline/' . $nextConference->conferenceSetting->registration_guideline) }}"
+                            target="_blank" class="btn btn-outline-primary btn-sm">
+                            📋 View Registration Guidelines
+                        </a>
+                    @else
+                        <a href="#" onclick="openGuidelines()" class="btn btn-outline-primary btn-sm">
+                            📋 View Registration Guidelines
+                        </a>
+                    @endif
+                @else
+                    <a href="#" onclick="openGuidelines()" class="btn btn-outline-primary btn-sm">
+                        📋 View Registration Guidelines
+                    </a>
+                @endif
             </div>
         </div>
     </div>

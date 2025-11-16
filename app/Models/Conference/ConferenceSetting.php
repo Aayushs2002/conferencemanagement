@@ -9,6 +9,8 @@ class ConferenceSetting extends Model
     protected $fillable = [
         'conference_id',
         'name',
-        'signature'
+        'signature',
+        'registration_guideline'
     ];
 }
+ 

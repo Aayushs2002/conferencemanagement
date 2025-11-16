@@ -17,11 +17,13 @@ class SendSubmissionBulkMailJob implements ShouldQueue
     protected $user;
     protected $subject;
     protected $mailContent;
-    public function __construct($user, $subject, $mailContent)
+    protected $conferenceName;
+    public function __construct($user, $subject, $mailContent, $conferenceName = null)
     {
         $this->user = $user;
         $this->subject = $subject;
         $this->mailContent = $mailContent;
+        $this->conferenceName = $conferenceName ?? config('mail.from.name');
     }
 
     public function handle()
@@ -33,6 +35,6 @@ class SendSubmissionBulkMailJob implements ShouldQueue
             'subject' => $this->subject,
         ];
 
-        Mail::to($this->user->email)->send(new SubmissionBulkMail($mailData));
+        Mail::to($this->user->email)->send(new SubmissionBulkMail($mailData, $this->conferenceName));
     }
 }

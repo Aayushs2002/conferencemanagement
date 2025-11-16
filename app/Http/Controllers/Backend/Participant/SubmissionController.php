@@ -124,7 +124,7 @@ class SubmissionController extends Controller
 
             $subject = parseTemplate($template?->subject, $data);
             $body = parseTemplate($template?->body, $data);
-            Mail::to($authUser->email)->send(new SubmissionSubmittedToUserMail($userMailData, $subject, $body));
+            Mail::to($authUser->email)->send(new SubmissionSubmittedToUserMail($userMailData, $subject, $body, $conference->conference_name));
             DB::beginTransaction();
             $submission = Submission::create($validated);
             $validated['submission_id'] = $submission->id;

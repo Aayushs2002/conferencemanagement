@@ -13,7 +13,7 @@
 
     <meta name="description" content="" />
     <meta name="csrf-token" content="{{ csrf_token() }}">
-
+ 
     <!-- Favicon -->
     <link rel="icon" type="image/x-icon" href="{{ asset('storage/society/logo/' . getSociety(request()->segment(2))->logo) }}" />
  
