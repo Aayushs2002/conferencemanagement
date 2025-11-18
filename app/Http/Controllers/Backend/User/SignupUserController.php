@@ -143,7 +143,7 @@ class SignupUserController extends Controller
             ];
 
             // Send invitation email
-            Mail::to($user->email)->send(new RegistrationMail($data));
+            Mail::to($user->email)->send(new RegistrationMail($data, $conference->conference_name));
 
             // Log activity
             logActivity(
@@ -330,7 +330,7 @@ class SignupUserController extends Controller
                 'conference_name' => $conference->conference_name
             ];
 
-            Mail::to($user->email)->send(new ResetPasswordMail($data));
+            Mail::to($user->email)->send(new ResetPasswordMail($data, $conference->conference_name));
 
             $user->update(['password' => $hashedPassword]);
         } catch (Exception $e) {
@@ -399,7 +399,7 @@ class SignupUserController extends Controller
             $user->societies()->attach($society->id, [
                 'member_type_id' => $validated['member_type_id'],
             ]);
-            Mail::to($user->email)->send(new UserCreatedMail($user->email, $password));
+            Mail::to($user->email)->send(new UserCreatedMail($user->email, $password, $conference->conference_name));
             DB::commit();
 
             return response()->json(['type' => 'success', 'message' => 'User added successfully.']);

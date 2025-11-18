@@ -16,12 +16,14 @@ class SubmissionCorrectionMail extends Mailable
     public $data;
     public $subjectText;
     public $bodyContent;
+    public $conferenceName;
 
-    public function __construct($data, $subjectText, $bodyContent)
+    public function __construct($data, $subjectText, $bodyContent, $conferenceName = null)
     {
         $this->data = $data;
         $this->subjectText = $subjectText;
         $this->bodyContent = $bodyContent;
+        $this->conferenceName = $conferenceName ?? config('mail.from.name');
     }
     /**
      * Get the message envelope.
@@ -29,6 +31,7 @@ class SubmissionCorrectionMail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
+            from: new \Illuminate\Mail\Mailables\Address(config('mail.from.address'), $this->conferenceName),
             subject: $this->subjectText ? $this->subjectText : 'Submission Correction Mail',
         );
     }

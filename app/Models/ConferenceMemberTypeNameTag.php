@@ -11,6 +11,7 @@ class ConferenceMemberTypeNameTag extends Model
         'memper_type_id',
         'registrant_type',
         'name_tag',
+        'color',
         'status'
     ];
 }

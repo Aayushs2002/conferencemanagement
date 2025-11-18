@@ -16,7 +16,7 @@ use Illuminate\Support\Facades\DB;
 class PassSettingController extends Controller
 {
     use AuthorizesRequests;
-
+ 
     /**
      * Display a listing of the resource. 
      */
@@ -56,6 +56,8 @@ class PassSettingController extends Controller
                 'member_type_id.*' => 'required|integer',
                 'registrant_type' => 'required|array',
                 'name_tag' => 'required|array',
+                'color' => 'nullable|array',
+                'color.*' => 'nullable|string|max:7',
             ]);
             $validated['conference_id'] = $conference->id;
 
@@ -73,6 +75,7 @@ class PassSettingController extends Controller
                     'member_type_id' => $memberTypeId,
                     'registrant_type' => $request->registrant_type[$index],
                     'name_tag' => $request->name_tag[$index],
+                    'color' => $request->color[$index] ?? null,
                     'created_at' => now(),
                     'updated_at' => now(),
                 ];
@@ -127,6 +130,8 @@ class PassSettingController extends Controller
                 'member_type_id.*' => 'required|integer',
                 'registrant_type' => 'required|array',
                 'name_tag' => 'required|array',
+                'color' => 'nullable|array',
+                'color.*' => 'nullable|string|max:7',
             ]);
             if (!empty($validated['image'])) {
                 //deleting the file deleteFile function parameter required file,location
@@ -146,6 +151,7 @@ class PassSettingController extends Controller
                     'member_type_id'  => $memberTypeId,
                     'registrant_type' => $request->registrant_type[$index],
                     'name_tag'        => $request->name_tag[$index],
+                    'color'           => $request->color[$index] ?? null,
                     'updated_at'      => now(),
                 ];
 
@@ -168,6 +174,7 @@ class PassSettingController extends Controller
                             'member_type_id'  => $row['member_type_id'],
                             'registrant_type' => $row['registrant_type'],
                             'name_tag'        => $row['name_tag'],
+                            'color'           => $row['color'],
                             'updated_at'      => $row['updated_at'],
                         ]);
                 }

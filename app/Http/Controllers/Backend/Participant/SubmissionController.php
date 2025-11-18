@@ -33,7 +33,7 @@ class SubmissionController extends Controller
             })
             ->orWhere(function ($query) use ($conference) {
                 $query->where('conference_id', $conference->id)
-                    ->where('expert_id', current_user()->id);
+                    ->where('expert_id', current_user()->id); 
             })
             ->get();
         $submissionSetting = SubmissionSetting::where('conference_id', $conference->id)->first();
@@ -120,11 +120,11 @@ class SubmissionController extends Controller
                 'conference_theme' => $conference->conference_theme,
                 'conference_date' => $conferenceDate,
                 'society_email' => $society->contact_person_email,
-            ];
+            ]; 
 
             $subject = parseTemplate($template?->subject, $data);
             $body = parseTemplate($template?->body, $data);
-            Mail::to($authUser->email)->send(new SubmissionSubmittedToUserMail($userMailData, $subject, $body));
+            Mail::to($authUser->email)->send(new SubmissionSubmittedToUserMail($userMailData, $subject, $body, $conference->conference_name));
             DB::beginTransaction();
             $submission = Submission::create($validated);
             $validated['submission_id'] = $submission->id;

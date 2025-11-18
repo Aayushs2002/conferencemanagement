@@ -57,7 +57,7 @@ class HomeController extends Controller
         $cacheKey = sprintf('home.conferences.%s', app()->environment());
 
         try {
-            return Cache::remember($cacheKey, self::CACHE_TTL, function () {
+            // return Cache::remember($cacheKey, self::CACHE_TTL, function () {
                 return $this->conference
                     ->with(['ConferenceVenueDetail', 'society'])
                     ->where('status', 1)
@@ -65,7 +65,7 @@ class HomeController extends Controller
                     ->orderBy('start_date', 'asc')
                     ->limit(3)
                     ->get();
-            });
+            // });
         } catch (\Throwable $e) {
             Log::warning('Cache failed for home.conferences; falling back to DB query', [
                 'error' => $e->getMessage()

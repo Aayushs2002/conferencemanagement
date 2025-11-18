@@ -111,7 +111,7 @@ class WorkshopRegistrationController extends Controller
                 'accompany' => null
             ];
 
-            Mail::to($authUser->email)->send(new UserRegistrationMail($mailData));
+            Mail::to($authUser->email)->send(new UserRegistrationMail($mailData, $conference->conference_name));
 
             WorkshopRegistration::create($validated);
 
@@ -177,7 +177,7 @@ class WorkshopRegistrationController extends Controller
                 'workshop'         => $workshopData,
                 'accompany' => null
             ];
-            Mail::to($authUser->email)->send(new UserRegistrationMail($mailData));
+            Mail::to($authUser->email)->send(new UserRegistrationMail($mailData, $conference->conference_name));
 
             if (!empty($validated['payment_voucher'])) {
                 $validated['payment_voucher'] = $this->file_service->fileUpload($validated['payment_voucher'], 'payment_voucher', 'workshop/payment-voucher');

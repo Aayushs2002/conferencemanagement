@@ -76,11 +76,11 @@ class WorkshopRegistrationController extends Controller
             ];
 
             if ($request->verified_status == 1) {
-                Mail::to($workshopRegistration->user->email)->send(new AcceptMail($mailData));
+                Mail::to($workshopRegistration->user->email)->send(new AcceptMail($mailData, $conference->conference_name));
                 $message = 'Registrant Accepted Successfully.';
             } else {
                 $mailData['remarks'] = $validated['remarks'];
-                Mail::to($workshopRegistration->user->email)->send(new RejectMail($mailData));
+                Mail::to($workshopRegistration->user->email)->send(new RejectMail($mailData, $conference->conference_name));
                 $message = 'Registrant Rejected Successfully.';
             }
             $workshopRegistration->update($validated);
@@ -169,7 +169,7 @@ class WorkshopRegistrationController extends Controller
 
                 DB::beginTransaction();
 
-                Mail::to($user->email)->send(new RegistrationByAdminMail($mailData));
+                Mail::to($user->email)->send(new RegistrationByAdminMail($mailData, $conference->conference_name));
 
                 WorkshopRegistration::create($validated);
                 logActivity($conference->id, 'Registered Workshop', $user->fullName($user) . ' is registered to workshop');
@@ -290,7 +290,7 @@ class WorkshopRegistrationController extends Controller
                 'accompany' => null,
                 'type' => 1,
             ];
-            Mail::to($request->email)->send(new RegistrationByAdminMail($mailData));
+            Mail::to($request->email)->send(new RegistrationByAdminMail($mailData, $conference->conference_name));
 
             // insert table-3
             WorkshopRegistration::create($validated);

@@ -139,9 +139,9 @@
                             style="height:50px;">
                     </a>
                 @else
-                <div class="text-center">
-                    <h3>{{ $nextConference->conference_name ?? 'Upcoming Conference' }}</h3>
-                </div>
+                    <div class="text-center">
+                        <h3>{{ $nextConference->conference_name ?? 'Upcoming Conference' }}</h3>
+                    </div>
                 @endif
 
                 <br />
@@ -162,28 +162,166 @@
                         Venue details coming soon
                     @endif
                 </p>
-            @else 
-                <p>Conference Management System</p>
+            @else
+                <h3>Medcon Alert</h3>
             @endif
 
-            <!-- Guidelines Link -->
-            <div class="mt-3">
-                <a href="#" onclick="openGuidelines()" class="btn btn-outline-primary btn-sm">
-                    📋 View Registration Guidelines
-                </a>
-            </div>
+            <!-- Guidelines Section -->
+            @php
+                $conferenceSetting = $nextConference->conferenceSetting ?? null;
+                $hasGuidelines = false;
+                if ($conferenceSetting) {
+                    $hasGuidelines =
+                        $conferenceSetting->registration_guideline ||
+                        $conferenceSetting->registration_guideline_youtube;
+                }
+            @endphp
+
+            @if ($hasGuidelines)
+                <div class="mt-4">
+                    <h6 class="mb-3"><strong>📚 Guidelines & Resources</strong></h6>
+
+                    <!-- PDF Guideline Button -->
+                    @if ($conferenceSetting->registration_guideline)
+                        <div class="mb-2">
+                            <a href="{{ asset('storage/conference/registration-guideline/' . $conferenceSetting->registration_guideline) }}"
+                                target="_blank" class="btn btn-outline-primary btn-sm w-100">
+                                <i class="ti ti-file-text me-1"></i> Download PDF Guidelines
+                            </a>
+                        </div>
+                    @endif
+
+                    <!-- Video Guidelines Buttons -->
+                    @if ($conferenceSetting->registration_guideline_youtube)
+                        <div class="mb-2">
+                            <button type="button" class="btn btn-outline-danger btn-sm w-100"
+                                onclick="showVideoModal('registration', '{{ $conferenceSetting->registration_guideline_youtube }}')">
+                                <i class="ti ti-video me-1"></i> Registration Video Guide
+                            </button>
+                        </div>
+                    @endif
+                </div>
+            @else
+                <div class="mt-4">
+                    <a href="#" onclick="openGuidelines()" class="btn btn-outline-primary btn-sm">
+                        <i class="ti ti-file-text me-1"></i> View Guidelines
+                    </a>
+                </div>
+            @endif
         </div>
     </div>
     </div>
 
-    <script>
-        function openGuidelines() {
-            // Option 1: Open in a new window/tab
-            window.open("{{ asset('backend/guideline/Steps_for_Registering_in_SAFOGCON.pdf') }}", '_blank');
+    <!-- Video Modal -->
+    <div class="modal fade" id="videoGuidelineModal" tabindex="-1" aria-labelledby="videoGuidelineModalLabel"
+        aria-hidden="true" data-bs-backdrop="true" data-bs-keyboard="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header mb-3">
+                    <h5 class="modal-title" id="videoGuidelineModalLabel">Video Guidelines</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"
+                        onclick="closeVideoModal()"></button>
+                </div>
+                <div class="modal-body p-0">
+                    <div class="ratio ratio-16x9">
+                        <iframe id="videoGuidelineFrame" src="" frameborder="0"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allowfullscreen>
+                        </iframe>
+                    </div>
+                </div>
+                <div class="modal-footer mt-3">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"
+                        onclick="closeVideoModal()">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
-            // Option 2: If you prefer to show the modal instead, uncomment below and comment above
-            // var guidelineModal = new bootstrap.Modal(document.getElementById('guidelineModal'));
-            // guidelineModal.show();
+    <script>
+        let videoModalInstance = null;
+
+        function openGuidelines() {
+            window.open("{{ asset('backend/guideline/Steps_for_Registering_in_SAFOGCON.pdf') }}", '_blank');
         }
+
+        function showVideoModal(type, url) {
+            // Convert YouTube URL to embed format
+            let embedUrl = convertToEmbedUrl(url);
+
+            // Update modal title based on type
+            let titles = {
+                'registration': 'Registration Video Guidelines',
+                'submission': 'Submission Video Guidelines',
+                'expert': 'Expert Video Guidelines'
+            };
+
+            document.getElementById('videoGuidelineModalLabel').textContent = titles[type] || 'Video Guidelines';
+
+            // Set iframe source
+            document.getElementById('videoGuidelineFrame').src = embedUrl; 
+
+            // Show modal
+            if (videoModalInstance) {
+                videoModalInstance.dispose();
+            }
+            videoModalInstance = new bootstrap.Modal(document.getElementById('videoGuidelineModal'), {
+                backdrop: true,
+                keyboard: true,
+                focus: true
+            });
+            videoModalInstance.show();
+        }
+
+        function closeVideoModal() {
+            // Clear iframe to stop video
+            document.getElementById('videoGuidelineFrame').src = '';
+
+            // Hide modal
+            if (videoModalInstance) {
+                videoModalInstance.hide();
+            }
+        }
+
+        function convertToEmbedUrl(url) {
+            // Handle various YouTube URL formats
+            let videoId = '';
+
+            // Standard watch URL: https://www.youtube.com/watch?v=VIDEO_ID
+            if (url.includes('youtube.com/watch?v=')) {
+                videoId = url.split('watch?v=')[1].split('&')[0];
+            }
+            // Short URL: https://youtu.be/VIDEO_ID
+            else if (url.includes('youtu.be/')) {
+                videoId = url.split('youtu.be/')[1].split('?')[0];
+            }
+            // Already embed URL
+            else if (url.includes('youtube.com/embed/')) {
+                return url;
+            }
+
+            return `https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0`;
+        }
+
+        // Clear iframe when modal is closed to stop video
+        document.addEventListener('DOMContentLoaded', function() {
+            var videoModal = document.getElementById('videoGuidelineModal');
+            if (videoModal) {
+                videoModal.addEventListener('hidden.bs.modal', function() {
+                    document.getElementById('videoGuidelineFrame').src = '';
+                    if (videoModalInstance) {
+                        videoModalInstance.dispose();
+                        videoModalInstance = null;
+                    }
+                });
+
+                // Allow clicking backdrop to close
+                videoModal.addEventListener('click', function(e) {
+                    if (e.target === videoModal) {
+                        closeVideoModal();
+                    }
+                });
+            }
+        });
     </script>
 </x-guest-layout>

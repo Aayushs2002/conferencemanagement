@@ -90,12 +90,14 @@ class User extends Authenticatable
 
     public function societies()
     {
-        return $this->belongsToMany(Society::class, 'user_societies', 'user_id', 'society_id')->using(UserSociety::class)->withPivot('member_type_id');
+        return $this->belongsToMany(Society::class, 'user_societies', 'user_id', 'society_id')
+            ->using(UserSociety::class)
+            ->withPivot('member_type_id');
     }
 
     public function societyUsers()
     {
-        return $this->hasMany(UserSociety::class);
+        return $this->hasMany(UserSociety::class, 'user_id');
     }
 
     public function conferenceRegistrations()
@@ -136,10 +138,17 @@ class User extends Authenticatable
 
     public function hasConferencePermission($conferenceId, $permissionName)
     {
-        return $this->conferencePermissions()
-            ->wherePivot('conference_id', $conferenceId)
-            ->where('name', $permissionName)
-            ->exists();
+        static $permissionCache = [];
+        $cacheKey = $this->id . '_' . $conferenceId . '_' . $permissionName;
+        
+        if (!isset($permissionCache[$cacheKey])) {
+            $permissionCache[$cacheKey] = $this->conferencePermissions()
+                ->wherePivot('conference_id', $conferenceId)
+                ->where('name', $permissionName)
+                ->exists();
+        }
+        
+        return $permissionCache[$cacheKey];
     }
 
     public function hasConferencePermissionBlade($conference, $permission)

@@ -54,7 +54,7 @@ class SendCertificates extends Command
                 $pdf->save($filePath);
 
 
-                Mail::to($registrant->user->email)->send(new CertificateMail($registrant, $filePath, $conference));
+                Mail::to($registrant->user->email)->send(new CertificateMail($registrant, $filePath, $conference, $conference->conference_name));
 
                 if (file_exists($filePath)) {
                     unlink($filePath);

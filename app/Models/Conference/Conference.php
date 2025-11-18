@@ -32,7 +32,7 @@ class Conference extends Model
 
 
     public function getRouteKey()
-    { 
+    {
         return Hashids::encode($this->attributes['id']);
     }
 
@@ -84,5 +84,10 @@ class Conference extends Model
     public function officialMessages()
     {
         return $this->hasMany(OfficialMessage::class, 'conference_id', 'id')->where('status', 1);
+    }
+
+    public function conferenceSetting()
+    {
+        return $this->hasOne(ConferenceSetting::class);
     }
 }

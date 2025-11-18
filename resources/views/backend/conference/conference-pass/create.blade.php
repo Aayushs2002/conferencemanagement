@@ -105,7 +105,7 @@
                         </div>
 
                         <div class="col-12 mt-4">
-                            <h6>2. Pass Name Tag Configuration</h6>
+                            <h6>2. Pass Name Tag Configuration</h6> 
                             <hr class="mt-0" style="height:1px;border:none;color:#333;background-color:#333;" />
                         </div>
 
@@ -116,6 +116,7 @@
                                     <th>Member Type</th>
                                     <th>Registrant Type</th>
                                     <th>Name Tag</th>
+                                    <th>Color</th>
                                     <th>Action</th>
                                 </tr>
                             </thead>
@@ -142,6 +143,9 @@
                                         $nameTag =
                                             old("name_tag.$i") ??
                                             (isset($passNameTags[$i]) ? $passNameTags[$i]->name_tag : '');
+                                        $color =
+                                            old("color.$i") ??
+                                            (isset($passNameTags[$i]) ? $passNameTags[$i]->color : '#7367f0');
                                         $id = $passNameTags[$i]->id ?? null;
                                     @endphp
                                     <tr id="row{{ $i + 1 }}">
@@ -174,6 +178,10 @@
                                         <td>
                                             <input type="text" name="name_tag[{{ $i }}]" class="form-control"
                                                 placeholder="Enter Name Tag" value="{{ $nameTag }}" required>
+                                        </td>
+                                        <td>
+                                            <input type="color" name="color[{{ $i }}]" class="form-control color-picker"
+                                                value="{{ $color }}" style="height: 40px;">
                                         </td>
                                         <td>
                                             @if ($i == 0)
@@ -215,6 +223,10 @@
                                         <td>
                                             <input type="text" name="name_tag[0]" class="form-control"
                                                 placeholder="Enter Name Tag" required>
+                                        </td>
+                                        <td>
+                                            <input type="color" name="color[0]" class="form-control color-picker"
+                                                value="#7367f0" style="height: 40px;">
                                         </td>
                                         <td>
                                             <button type="button" name="add" id="add"
@@ -309,6 +321,9 @@
             </td>
             <td>
                 <input type="text" name="name_tag[${i - 1}]" class="form-control" placeholder="Enter Name Tag" required>
+            </td>
+            <td>
+                <input type="color" name="color[${i - 1}]" class="form-control color-picker" value="#7367f0" style="height: 40px;">
             </td>
             <td>
                 <button type="button" name="remove" class="btn btn-danger btn_remove">Remove</button>

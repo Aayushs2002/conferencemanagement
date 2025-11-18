@@ -105,6 +105,90 @@
        </div>
    @endif
 
+   {{-- Video Guidelines Section --}}
+   @php
+       $conferenceSettings = $conference->conferenceSetting ?? null;
+       $hasVideoGuidelines = false;
+       if ($conferenceSettings) {
+           $hasVideoGuidelines = $conferenceSettings->submission_guideline_youtube || 
+                                 $conferenceSettings->expert_guideline_youtube;
+       }
+   @endphp
+
+   @if ($hasVideoGuidelines)
+       <div class="card mb-4">
+           <div class="card-body">
+               <div class="d-flex align-items-center mb-3">
+                   <i class="ti ti-video" style="font-size: 24px; margin-right: 10px; color: #7367f0;"></i>
+                   <h5 class="mb-0">Video Guidelines</h5>
+               </div>
+               <div class="row g-3">
+                   @if ($conferenceSettings->submission_guideline_youtube)
+                       <div class="col-md-6">
+                           <div class="guideline-video-card"  
+                                style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; padding: 20px; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 4px 6px rgba(0,0,0,0.1);"
+                                onclick="showSubmissionVideoModal('{{ $conferenceSettings->submission_guideline_youtube }}')">
+                               <div class="d-flex align-items-center text-white">
+                                   <div style="background: rgba(255,255,255,0.2); width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 15px;">
+                                       <i class="ti tabler-player-play" style="font-size: 30px;"></i>
+                                   </div>
+                                   <div>
+                                       <h6 class="text-white mb-1" style="font-weight: 600;">Submission Guidelines</h6>
+                                       <p class="mb-0" style="font-size: 13px; opacity: 0.9;">Watch video tutorial</p>
+                                   </div>
+                               </div>
+                           </div>
+                       </div>
+                   @endif
+
+                   @if ($submissions->where('expert_id', current_user()->id)->where('presentation_type', 1)->isNotEmpty() &&$conferenceSettings->expert_guideline_youtube)
+                       <div class="col-md-6">
+                           <div class="guideline-video-card" 
+                                style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); border-radius: 12px; padding: 20px; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 4px 6px rgba(0,0,0,0.1);"
+                                onclick="showExpertVideoModal('{{ $conferenceSettings->expert_guideline_youtube }}')">
+                               <div class="d-flex align-items-center text-white">
+                                   <div style="background: rgba(255,255,255,0.2); width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 15px;">
+                                       <i class="ti tabler-player-play" style="font-size: 30px;"></i>
+                                   </div>
+                                   <div>
+                                       <h6 class="text-white mb-1" style="font-weight: 600;">Expert/Reviewer Guidelines</h6>
+                                       <p class="mb-0" style="font-size: 13px; opacity: 0.9;">Watch video tutorial</p>
+                                   </div>
+                               </div>
+                           </div>
+                       </div>
+                   @endif
+               </div>
+           </div>
+       </div>
+
+       {{-- Video Modal for Submission and Expert Guidelines --}}
+       <div class="modal fade" id="videoGuideModal" tabindex="-1" aria-labelledby="videoGuideModalLabel"
+           aria-hidden="true" data-bs-backdrop="true" data-bs-keyboard="true">
+           <div class="modal-dialog modal-xl modal-dialog-centered">
+               <div class="modal-content">
+                   <div class="modal-header">
+                       <h5 class="modal-title" id="videoGuideModalLabel">Video Guidelines</h5>
+                       <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"
+                           onclick="closeGuideVideoModal()"></button>
+                   </div>
+                   <div class="modal-body p-0">
+                       <div class="ratio ratio-16x9">
+                           <iframe id="videoGuideFrame" src="" frameborder="0"
+                               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                               allowfullscreen>
+                           </iframe>
+                       </div>
+                   </div>
+                   <div class="modal-footer">
+                       <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"
+                           onclick="closeGuideVideoModal()">Close</button>
+                   </div>
+               </div>
+           </div>
+       </div>
+   @endif
+
    <div class="card mb-6">
 
        <div class="card-datatable table-responsive pt-0">
@@ -231,6 +315,78 @@
 
 @section('scripts')
    <script>
+       let guideVideoModalInstance = null;
+
+       function showSubmissionVideoModal(url) {
+           showGuideVideo('Submission Video Guidelines', url);
+       }
+
+       function showExpertVideoModal(url) {
+           showGuideVideo('Expert/Reviewer Video Guidelines', url);
+       }
+
+       function showGuideVideo(title, url) {
+           let embedUrl = convertYoutubeToEmbed(url);
+           document.getElementById('videoGuideModalLabel').textContent = title;
+           document.getElementById('videoGuideFrame').src = embedUrl;
+           
+           if (guideVideoModalInstance) {
+               guideVideoModalInstance.dispose();
+           }
+           guideVideoModalInstance = new bootstrap.Modal(document.getElementById('videoGuideModal'), {
+               backdrop: true,
+               keyboard: true,
+               focus: true
+           });
+           guideVideoModalInstance.show();
+       }
+
+       function closeGuideVideoModal() {
+           document.getElementById('videoGuideFrame').src = '';
+           if (guideVideoModalInstance) {
+               guideVideoModalInstance.hide();
+           }
+       }
+
+       function convertYoutubeToEmbed(url) {
+           let videoId = '';
+           if (url.includes('youtube.com/watch?v=')) {
+               videoId = url.split('watch?v=')[1].split('&')[0];
+           } else if (url.includes('youtu.be/')) {
+               videoId = url.split('youtu.be/')[1].split('?')[0];
+           } else if (url.includes('youtube.com/embed/')) {
+               return url;
+           }
+           return `https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0`;
+       }
+
+       // Add hover effect to guideline cards
+       document.addEventListener('DOMContentLoaded', function() {
+           const cards = document.querySelectorAll('.guideline-video-card');
+           cards.forEach(card => {
+               card.addEventListener('mouseenter', function() {
+                   this.style.transform = 'translateY(-5px)';
+                   this.style.boxShadow = '0 8px 16px rgba(0,0,0,0.2)';
+               });
+               card.addEventListener('mouseleave', function() {
+                   this.style.transform = 'translateY(0)';
+                   this.style.boxShadow = '0 4px 6px rgba(0,0,0,0.1)';
+               });
+           });
+
+           // Clear iframe when modal is closed
+           const videoModal = document.getElementById('videoGuideModal');
+           if (videoModal) {
+               videoModal.addEventListener('hidden.bs.modal', function() {
+                   document.getElementById('videoGuideFrame').src = '';
+                   if (guideVideoModalInstance) {
+                       guideVideoModalInstance.dispose();
+                       guideVideoModalInstance = null;
+                   }
+               });
+           }
+       });
+
        $(document).ready(function() {
            $(document).off("click", ".viewData");
            $(document).on("click", ".viewData", function(e) {
@@ -264,7 +420,7 @@
                var url =
                    '{{ route('my-society.conference.submission.review', [$society, $conference]) }}';
                var _token = '{{ csrf_token() }}';
-               var id = $(this).data('id'); 
+               var id = $(this).data('id');  
                $('#modalContent').html(`
                     <div class="modal-body text-center">
                         <div class="spinner-border text-primary" role="status">

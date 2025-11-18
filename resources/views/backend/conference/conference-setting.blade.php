@@ -11,7 +11,7 @@
             <input type="hidden" name="id" value="{{ $conferenceSetting?->id }}">
             <input type="hidden" name="conference_id" value="{{ $conference?->id }}">
 
-            <div class="col-12">
+            <div class="col-12"> 
                 <h6>1. Payment Voucher Details</h6>
                 <hr class="mt-0" style="height:1px;border:none;color:#333;background-color:#333;" />
             </div>
@@ -35,12 +35,60 @@
                     @endif
                 </div>
             </div>
-        </div>
+
+            <div class="col-12 mt-3"> 
+                <h6>2. Conference Registration Guideline</h6>
+                <hr class="mt-0" style="height:1px;border:none;color:#333;background-color:#333;" />
+            </div>
+
+            <div class="col-md-4 mb-4">
+                <label>Registration Guideline <code>(Only PDF, Max: 5MB)</code></label>
+                <input type="file" class="form-control" name="registration_guideline"
+                    id="registration_guideline" accept=".pdf">
+                <div class="row" id="guidelinePreview">
+                    @if ($conferenceSetting?->registration_guideline)
+                        <div class="col-3 mt-2">
+                            <a href="{{ asset('storage/conference/registration-guideline/' . $conferenceSetting->registration_guideline) }}"
+                                target="_blank">
+                                <img src="{{ asset('default-image/pdf.png') }}" class="img-fluid" alt="PDF">
+                                <p class="text-center small mt-1">View PDF</p>
+                            </a>
+                        </div>
+                    @endif
+                </div>
+            </div>
+
+            <div class="col-12 mt-3"> 
+                <h6>3. YouTube Guideline Links</h6>
+                <hr class="mt-0" style="height:1px;border:none;color:#333;background-color:#333;" />
+            </div>
+
+            <div class="col-md-4 mb-4">
+                <label>Registration Guideline YouTube Link</label>
+                <input type="url" class="form-control" name="registration_guideline_youtube" 
+                    value="{{ $conferenceSetting?->registration_guideline_youtube }}" 
+                    placeholder="https://www.youtube.com/watch?v=...">
+            </div>
+
+            <div class="col-md-4 mb-4">
+                <label>Submission Guideline YouTube Link</label>
+                <input type="url" class="form-control" name="submission_guideline_youtube" 
+                    value="{{ $conferenceSetting?->submission_guideline_youtube }}" 
+                    placeholder="https://www.youtube.com/watch?v=...">
+            </div>
+
+            <div class="col-md-4 mb-4">
+                <label>Expert Guideline YouTube Link</label>
+                <input type="url" class="form-control" name="expert_guideline_youtube" 
+                    value="{{ $conferenceSetting?->expert_guideline_youtube }}" 
+                    placeholder="https://www.youtube.com/watch?v=...">
+            </div>
+        </div> 
         <div class="text-end mt-4">
             <button type="submit" class="btn btn-primary"
                 id="submitData">{{ empty($conferenceSetting?->id) ? 'Submit' : 'Update' }}</button>
         </div>
-    </form>
+    </form> 
 
 </div>
 
@@ -89,6 +137,23 @@
 
             reader.readAsDataURL(this.files[0]);
         });
+
+    $("#registration_guideline").change(function() {
+        $("#guidelinePreview").html('');
+        
+        if (this.files && this.files[0]) {
+            let fileExtension = $("#registration_guideline").val().split('.').pop().toLowerCase();
+            
+            if (fileExtension === 'pdf') {
+                $("#guidelinePreview").append(
+                    '<div class="col-3 mt-2">' +
+                    '<img src="{{ asset('default-image/pdf.png') }}" class="img-fluid" />' +
+                    '<p class="text-center small mt-1">PDF Selected</p>' +
+                    '</div>'
+                );
+            }
+        }
+    });
 
     $("#submitData").on('click', function(e) {
         e.preventDefault();
