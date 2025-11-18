@@ -46,10 +46,24 @@ class ConferenceRegistrationController extends Controller
     {
         $society_id = $society->id;
         $query = ConferenceRegistration::with([
-            'user.societies' => function ($query) use ($society_id) {
-                $query->where('society_id', $society_id);
+            'user' => function ($query) use ($society_id) {
+                $query->with([
+                    'userDetail.namePrefix',
+                    'userDetail.country',
+                    'userDetail.designation',
+                    'userDetail.institution',
+                    'societies' => function ($q) use ($society_id) {
+                        $q->where('society_id', $society_id)
+                          ->withPivot('member_type_id');
+                    },
+                    'societyUsers.memberType' => function ($q) use ($society_id) {
+                        $q->where('society_id', $society_id);
+                    }
+                ]);
             },
-            'user.userDetail'
+            'conference',
+            'accompanyPersons',
+            'addons'
         ])
             ->where('conference_id', $conference->id)
             ->where('status', 1);

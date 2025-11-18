@@ -57,12 +57,38 @@
                     @endif
                 </div>
             </div>
-        </div>
+
+            <div class="col-12 mt-3"> 
+                <h6>3. YouTube Guideline Links</h6>
+                <hr class="mt-0" style="height:1px;border:none;color:#333;background-color:#333;" />
+            </div>
+
+            <div class="col-md-4 mb-4">
+                <label>Registration Guideline YouTube Link</label>
+                <input type="url" class="form-control" name="registration_guideline_youtube" 
+                    value="{{ $conferenceSetting?->registration_guideline_youtube }}" 
+                    placeholder="https://www.youtube.com/watch?v=...">
+            </div>
+
+            <div class="col-md-4 mb-4">
+                <label>Submission Guideline YouTube Link</label>
+                <input type="url" class="form-control" name="submission_guideline_youtube" 
+                    value="{{ $conferenceSetting?->submission_guideline_youtube }}" 
+                    placeholder="https://www.youtube.com/watch?v=...">
+            </div>
+
+            <div class="col-md-4 mb-4">
+                <label>Expert Guideline YouTube Link</label>
+                <input type="url" class="form-control" name="expert_guideline_youtube" 
+                    value="{{ $conferenceSetting?->expert_guideline_youtube }}" 
+                    placeholder="https://www.youtube.com/watch?v=...">
+            </div>
+        </div> 
         <div class="text-end mt-4">
             <button type="submit" class="btn btn-primary"
                 id="submitData">{{ empty($conferenceSetting?->id) ? 'Submit' : 'Update' }}</button>
         </div>
-    </form>
+    </form> 
 
 </div>
 

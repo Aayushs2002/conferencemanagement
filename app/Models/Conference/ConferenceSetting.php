@@ -10,7 +10,10 @@ class ConferenceSetting extends Model
         'conference_id',
         'name',
         'signature',
-        'registration_guideline'
+        'registration_guideline',
+        'registration_guideline_youtube',
+        'submission_guideline_youtube',
+        'expert_guideline_youtube'
     ];
 }
  

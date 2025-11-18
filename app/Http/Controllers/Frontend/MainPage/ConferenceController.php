@@ -58,7 +58,7 @@ class ConferenceController extends Controller
     {
         $cacheKey = $this->generateCacheKey($request); 
 
-        return Cache::remember($cacheKey, self::CACHE_TTL, function () use ($request) {
+        // return Cache::remember($cacheKey, self::CACHE_TTL, function () use ($request) {
             $query = $this->conference
                 ->with(['society', 'ConferenceVenueDetail'])
                 ->where('status', 1);
@@ -66,7 +66,7 @@ class ConferenceController extends Controller
             $this->applyFilters($query, $request);
 
             return $query->orderBy('start_date', 'desc')->get();
-        });
+        // });
     }
 
     private function applyFilters($query, ConferenceFilterRequest $request): void

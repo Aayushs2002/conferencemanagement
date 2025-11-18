@@ -6,8 +6,8 @@
                 <div class="col-lg-8">
                     <nav aria-label="breadcrumb" class="mb-3">
                         <ol class="breadcrumb">
-                            <li class="breadcrumb-item"><a href="index.html">Home</a></li>
-                            <li class="breadcrumb-item"><a href="index.html">Our Clients</a></li>
+                            <li class="breadcrumb-item"><a href="{{ route('home') }}">Home</a></li>
+                            <li class="breadcrumb-item"><a href="{{ route('our-client') }}">Our Clients</a></li>
                             <li class="breadcrumb-item active" aria-current="page">{{ $society->abbreviation }}</li>
                         </ol>
                     </nav>

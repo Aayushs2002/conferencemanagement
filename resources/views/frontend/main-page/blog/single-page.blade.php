@@ -7,7 +7,7 @@
                     <nav aria-label="breadcrumb" class="mb-3">
                         <ol class="breadcrumb">
                             <li class="breadcrumb-item"><a href="{{ route('home') }}">Home</a></li>
-                            <li class="breadcrumb-item active" aria-current="page">Blogs</li>
+                            <li class="breadcrumb-item active" aria-current="page"><a href="{{ route('blog.index') }}">Blogs</a></li>
                         </ol>
                     </nav>
                     <h1 class="banner-title">MedConAlert: Sharing Ideas,</br> Inspiring Change</h1>

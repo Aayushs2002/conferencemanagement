@@ -1,4 +1,4 @@
-@extends('backend.layouts.main')
+@extends('backend.layouts.conference.main')
 @section('title')
     Officail Message
 @endsection

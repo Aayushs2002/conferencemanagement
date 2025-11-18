@@ -72,27 +72,31 @@ if (!function_exists('checkRegistrations')) {
 if (!function_exists('getConference')) {
     function getConference($conference)
     {
-        $conference_id =  Hashids::decode($conference);
-
-        $conference = Conference::where('id', $conference_id)->first();
-
-        if (!$conference) {
-            return false;
+        static $cache = [];
+        
+        $conference_id = Hashids::decode($conference);
+        $key = is_array($conference_id) ? $conference_id[0] : $conference_id;
+        
+        if (!isset($cache[$key])) {
+            $cache[$key] = Conference::where('id', $key)->first();
         }
-        return $conference;
+        
+        return $cache[$key] ?: false;
     }
 }
 if (!function_exists('getSociety')) {
     function getSociety($society)
     {
-        $society_id =  Hashids::decode($society);
-
-        $society = Society::where('id', $society_id)->first();
-
-        if (!$society) {
-            return false;
+        static $cache = [];
+        
+        $society_id = Hashids::decode($society);
+        $key = is_array($society_id) ? $society_id[0] : $society_id;
+        
+        if (!isset($cache[$key])) {
+            $cache[$key] = Society::where('id', $key)->first();
         }
-        return $society;
+        
+        return $cache[$key] ?: false;
     }
 }
 
