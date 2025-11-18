@@ -64,16 +64,15 @@
             </h2>
             <div class="row g-4 text-center justify-content-center ">
                 @foreach ($societies as $society)
-                    <a href="{{ route('our-client.detail', $society->slug) }}">
-
-                        <div class="col-6 col-md-4 col-lg-2">
+                    <div class="col-6 col-md-4 col-lg-2">
+                        <a href="{{ route('our-client.detail', $society->slug) }}">
                             <div class="partner-card ">
                                 <img src="{{ Storage::url('society/logo/' . $society->logo) }}" alt="{{ $society->name }}"
                                     class="img-fluid mb-3">
                                 <h6 class="partner-name text-white ">{{ $society->users->value('f_name') }}</h6>
                             </div>
-                        </div>
-                    </a>
+                        </a>
+                    </div>
                 @endforeach
                 {{-- <div class="col-6 col-md-4 col-lg-2">
                     <div class="partner-card ">
