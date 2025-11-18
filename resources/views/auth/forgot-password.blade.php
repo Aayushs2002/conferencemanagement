@@ -28,12 +28,14 @@
 
     <!-- Logo -->
     <div class="app-brand justify-content-center mb-6">
-        <a href="" class="app-brand-link">
+        {{-- <a href="" class="app-brand-link">
             <a href="#" class="app-brand-link">
 
                 <img src="{{ asset('frontend/assets/img/MEDCON-LOGO.png') }}" style="height: 60px;">
             </a>
-        </a>
+        </a> --}}
+                    <h1>Medcon Alert</h1>
+
     </div>
     <!-- /Logo -->
     <h4 class="mb-1">Forgot Password? 🔒</h4>

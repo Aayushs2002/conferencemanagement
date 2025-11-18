@@ -408,7 +408,8 @@
                 </div>
             @endif
         @else
-            <h3>Conference Management System</h3>
+            <h3>Medcon Alert</h3>
+
         @endif
     </div>
     <!-- /Logo -->

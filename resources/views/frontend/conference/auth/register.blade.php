@@ -106,36 +106,36 @@
                         @error('country_id')
                             <p class="text-danger">{{ $message }}</p>
                         @enderror
-                    
-                                <div class=" form-card ">
-                                    <label for="password" class="form-label">Password<code>* (Must be atleat 6
-                                            characters)</code></label>
-                                    <div class="input-group">
-                                        <input type="password" class="form-control @error('password') is-invalid @enderror"
-                                            id="password" placeholder="Enter your password..." name="password">
-                                        <span class="input-group-text toggle-password" style="cursor:pointer;">
-                                            <i class="fa-solid fa-eye"></i>
-                                        </span>
-                                    </div>
-                                </div>
-                                @error('password')
-                                    <p class="text-danger">{{ $message }}</p>
-                                @enderror
-                                <div class=" form-card">
-                                    <label for="password_confirmation" class="form-label">Confirm Password</label>
-                                    <div class="input-group">
-                                        <input type="password"
-                                            class="form-control @error('password_confirmation') is-invalid @enderror"
-                                            id="password_confirmation" name="password_confirmation"
-                                            placeholder="Rewrite your password...">
-                                        <span class="input-group-text toggle-password" style="cursor:pointer;">
-                                            <i class="fa-solid fa-eye"></i>
-                                        </span>
-                                    </div>
-                                </div>
-                                @error('password_confirmation')
-                                    <p class="text-danger">{{ $message }}</p>
-                                @enderror
+
+                        <div class=" form-card ">
+                            <label for="password" class="form-label">Password<code>* (Must be atleat 6
+                                    characters)</code></label>
+                            <div class="input-group">
+                                <input type="password" class="form-control @error('password') is-invalid @enderror"
+                                    id="password" placeholder="Enter your password..." name="password">
+                                <span class="input-group-text toggle-password" style="cursor:pointer;">
+                                    <i class="fa-solid fa-eye"></i>
+                                </span>
+                            </div>
+                        </div>
+                        @error('password')
+                            <p class="text-danger">{{ $message }}</p>
+                        @enderror
+                        <div class=" form-card">
+                            <label for="password_confirmation" class="form-label">Confirm Password</label>
+                            <div class="input-group">
+                                <input type="password"
+                                    class="form-control @error('password_confirmation') is-invalid @enderror"
+                                    id="password_confirmation" name="password_confirmation"
+                                    placeholder="Rewrite your password...">
+                                <span class="input-group-text toggle-password" style="cursor:pointer;">
+                                    <i class="fa-solid fa-eye"></i>
+                                </span>
+                            </div>
+                        </div>
+                        @error('password_confirmation')
+                            <p class="text-danger">{{ $message }}</p>
+                        @enderror
                         <button type="submit" class="btn btn-primary">Submit</button>
                     </form>
                 </div>

@@ -172,7 +172,8 @@ class ConferenceRegistationImport implements ToCollection, WithHeadingRow, WithC
                     'm_name' => $row['middle_name'],
                     'l_name' => $row['last_name'],
                     'email' => $email,
-                    'password' => $this->defaultPasswordHash 
+                    'password' => $this->defaultPasswordHash,
+                    'type' => 3
                 ]);
 
                 UserDetail::create([
