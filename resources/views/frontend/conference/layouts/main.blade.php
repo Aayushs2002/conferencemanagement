@@ -33,7 +33,7 @@
             --body-color: #555;
             --blue01-color: #CEDDFF;
             --blue02-color: #F1F4FC;
-            --Secondary-color: {{$conference->secendary_color}};
+            --Secondary-color: {{ $conference->secendary_color }};
             --black-01_color: #131313;
             --black-02_color: #00001B;
             --gray-03-color: #888888;
@@ -71,9 +71,9 @@
                 </div>
 
                 <div class="col-auto">
-                    @if ($conference->conference_logo)     
-                    <img src="{{ Storage::url('conference/conference/logo/' . $conference->conference_logo) }}"
-                        alt="SAFOG Logo" class="hero-logo">
+                    @if ($conference->conference_logo)
+                        <img src="{{ Storage::url('conference/conference/logo/' . $conference->conference_logo) }}"
+                            alt="SAFOG Logo" class="hero-logo">
                     @endif
                 </div>
             </div>
@@ -146,7 +146,7 @@
     </section>
     <section class="main-section">
         <section class="container">
-            <div class="row g-4 text-center dashboard-cards mb-5 align-items-center">
+            <div class="row g-4 text-center dashboard-cards mb-5 align-items-center justify-content-center">
                 <div class="col-md-3 col-6 position-relative">
                     <div class="dash-card p-4 rounded-4 shadow-sm">
                         <div class="dash-icon mb-2">
@@ -191,23 +191,35 @@
 
                         </p>
                     </div>
-                    <i class="fa-solid fa-arrow-right-long dash-arrow d-none d-md-block"></i>
+                    @php
+                        $workshop = $conference->workshops?->where('conference_id', $conference->id)->first();
+                    @endphp
+                    @if ($workshop)
+                        <i class="fa-solid fa-arrow-right-long dash-arrow d-none d-md-block"></i>
+                    @endif
                 </div>
+                @if ($workshop)
+                    <div class="col-md-3 col-6">
+                        <div class="dash-card p-4 rounded-4 shadow-sm">
+                            <div class="dash-icon mb-2">
+                                <img src="{{ asset('frontend/assets/img/frame 4.png') }}"
+                                    alt="Workshops Registration" />
+                            </div>
+                            <h5 class="dash-title mb-2">Workshops Registration Open</h5>
+                            <p class="dash-date mb-0">
+                                <i class="fa-regular fa-calendar me-1"></i>
 
-                <div class="col-md-3 col-6">
-                    <div class="dash-card p-4 rounded-4 shadow-sm">
-                        <div class="dash-icon mb-2">
-                            <img src="{{ asset('frontend/assets/img/frame 4.png') }}" alt="Workshops Registration" />
+                                {{-- @php
+                                $workshop = $conference->workshops?->where('conference_id', $conference->id)->first();
+                            @endphp --}}
+
+                                {{ $workshop?->created_at ? $workshop->created_at->format('F j, Y') : 'N/A' }}
+
+
+                            </p>
                         </div>
-                        <h5 class="dash-title mb-2">Workshops Registration Open</h5>
-                        <p class="dash-date mb-0">
-                            <i class="fa-regular fa-calendar me-1"></i>
-                            {{-- July 1, 2025 --}}
-                            {{ \Carbon\Carbon::parse($conference->workshops?->first()?->created_at)->format('F j, Y') }}
-
-                        </p>
                     </div>
-                </div>
+                @endif
             </div>
         </section>
     </section>

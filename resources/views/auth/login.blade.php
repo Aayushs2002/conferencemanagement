@@ -201,12 +201,7 @@
                         </div>
                     @endif
                 </div>
-            @else
-                <div class="mt-4">
-                    <a href="#" onclick="openGuidelines()" class="btn btn-outline-primary btn-sm">
-                        <i class="ti ti-file-text me-1"></i> View Guidelines
-                    </a>
-                </div>
+
             @endif
         </div>
     </div>
@@ -259,7 +254,7 @@
             document.getElementById('videoGuidelineModalLabel').textContent = titles[type] || 'Video Guidelines';
 
             // Set iframe source
-            document.getElementById('videoGuidelineFrame').src = embedUrl; 
+            document.getElementById('videoGuidelineFrame').src = embedUrl;
 
             // Show modal
             if (videoModalInstance) {
