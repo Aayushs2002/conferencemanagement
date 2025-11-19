@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Models\User\NamePrefix;
 use App\Models\User\UserDetail;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
@@ -22,7 +23,17 @@ class RegisteredUserController extends Controller
     public function create(Request $request): View
     {
         $society = $request->attributes->get('societyDomainDetail');
-        return view('auth.register', compact('society'));
+        
+        // Get only the name prefixes that the society has selected
+        if ($society && $society->namePrefixes()->exists()) {
+            $name_prefiexs = $society->namePrefixes()->where('status', 1)->get();
+            // dd($name_prefiexs);
+        } else {
+            // Fallback to all active prefixes if society hasn't selected any
+            $name_prefiexs = NamePrefix::whereStatus(1)->get();
+        }
+        
+        return view('auth.register', compact('society', 'name_prefiexs'));
     }
 
     /**

@@ -1,14 +1,14 @@
 @extends('backend.layouts.conference.main')
 
 @section('title')
-    {{ isset($official_message) ? 'Edit' : 'Add' }} News/Notice
+    {{ isset($official_message) ? 'Edit' : 'Add' }} Official Message
 @endsection
 @section('content')
     <div class="col-md">
         <div class="card">
             <h4 class="card-header"><a href="{{ route('official-message.index', [$society, $conference]) }}"><i
                         class="ti tabler-arrow-narrow-left"></i></a>
-                {{ isset($official_message) ? 'Edit' : 'Add' }} News/Notice</h4>
+                {{ isset($official_message) ? 'Edit' : 'Add' }} Official Message</h4>
             <div class="card-body">
                 <form class="needs-validation"
                     action="{{ isset($official_message) ? route('official-message.update', [$society, $conference, $official_message->id]) : route('official-message.store', [$society, $conference]) }}"
@@ -63,6 +63,14 @@
                                 @endif
                             </div>
                             @error('image')
+                                <p class="text-danger">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        <div class="mb-6">
+                            <label class="form-label" for="description">Message <code>*</code></label>
+                            <textarea class="form-control ckeditor" id="message" name="message" rows="5" cols="30" required>{{ !empty(old('message')) ? old('message') : @$official_message->message }}</textarea>
+                            @error('message')
                                 <p class="text-danger">{{ $message }}</p>
                             @enderror
                         </div>

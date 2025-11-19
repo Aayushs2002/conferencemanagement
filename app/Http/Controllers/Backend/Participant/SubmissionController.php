@@ -44,7 +44,7 @@ class SubmissionController extends Controller
     {
 
         $setting = SubmissionSetting::where('conference_id', $conference->id)
-            ->select('abstract_word_limit', 'key_word_limit', 'deadline', 'attachment_name')
+            ->select('abstract_word_limit', 'key_word_limit', 'deadline', 'attachment_name','attachment_required')
             ->first();
         if (!$setting) {
             return redirect()->back()->with('delete', 'Submission settings not found.');
@@ -60,7 +60,7 @@ class SubmissionController extends Controller
     public function store(SubmissionRequest $request, $society, $conference)
     {
         try {
-            $validated = $request->all();
+            $validated = $request->all(); 
             // dd($validated);
             $setting = SubmissionSetting::where('conference_id', $conference->id)->select('abstract_word_limit', 'key_word_limit')->first();
             if (!empty($validated['keywords']) && !empty($setting->key_word_limit)) {
@@ -114,7 +114,7 @@ class SubmissionController extends Controller
                 'conferenceDate' => $conferenceDate,
                 'conferenceName' => $conference->conference_name
             ];
-
+ 
             $data = [
                 'submission_topic' => $validated['title'],
                 'conference_theme' => $conference->conference_theme,
@@ -155,7 +155,7 @@ class SubmissionController extends Controller
     public function edit($society, $conference, $submission)
     {
         $setting = SubmissionSetting::where('conference_id', $conference->id)
-            ->select('abstract_word_limit', 'key_word_limit', 'deadline', 'attachment_name')
+            ->select('abstract_word_limit', 'key_word_limit', 'deadline', 'attachment_name', 'attachment_required')
             ->first();
         if (!$setting) {
             return redirect()->back()->with('delete', 'Submission settings not found.');

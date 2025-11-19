@@ -401,7 +401,7 @@
                 <a href="#" class="app-brand-link">
                     <img src="{{ asset('storage/conference/conference/logo/' . $nextConference->conference_logo) }}"
                         style="height:50px;">
-                </a>
+                </a> 
             @else
                 <div class="text-center">
                     <h3>{{ $nextConference->conference_name ?? 'Upcoming Conference' }}</h3>
@@ -447,7 +447,7 @@
                         @foreach ($name_prefiexs as $name_prefix)
                             <option value="{{ $name_prefix->id }}" @selected(old('name_prefix_id') == $name_prefix->id)>
                                 {{ $name_prefix->prefix }}</option>
-                        @endforeach
+                        @endforeach 
                     </select>
                     @error('name_prefix_id')
                         <p class="text-danger">{{ $message }}</p>

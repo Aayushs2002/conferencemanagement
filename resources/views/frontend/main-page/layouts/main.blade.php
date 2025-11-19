@@ -13,9 +13,9 @@
     @php
         $segment = request()->segment(1);
         $meta = getMetas(Request::segment(1), Request::segment(2));
-    @endphp
+    @endphp 
     <!-- Favicon Icon -->
-    <link rel="icon" href="assets/img/MEDCON-LOGO.png">
+    <link rel="icon" href="{{asset('frontend/assets/img/MEDCON-Favicon.png')}}" type="image/x-icon">
     <!-- Site Title -->
     <title>{{ $meta->title ?? 'Medcon Alert' }}</title>
     

@@ -12,7 +12,7 @@
                                     <i class="icon-base ti tabler-truck text-primary fs-4"></i>
                                 </div>
                                 <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2 rounded-pill">Total</span>
-                            </div> 
+                            </div>
                             <a href="{{ route('conference.conference-registration.index', [$society, $conference]) }}">
                                 <h3 class="fw-bold text-dark mb-2">{{ $conferenceRegistrationCount }}</h3>
                             </a>
@@ -448,25 +448,29 @@
                             </div>
                             <h4 class="mb-0">{{ $submissionCount }}</h4>
                         </div>
-                        <p class="mb-1">Submission</p>
-
+                        <p class="mb-1">Abstract Submission</p>
+                        <a href="{{ route('my-society.conference.submission.create', [$society, $conference]) }}">
+                            <span class="badge bg-danger">Submit Now</span>
+                        </a>
                     </div>
                 </div>
             </div>
-            <div class="col-lg-3 col-sm-6">
-                <div class="card">
-                    <div class="card-body">
-                        <div class="d-flex align-items-center mb-1">
-                            <div class="avatar me-4">
-                                <span class="avatar-initial rounded bg-label-danger"><i
-                                        class="icon-base ti tabler-git-fork icon-28px"></i></span>
+            @if (feature_enabled('workshop-management', getSociety(request()->segment(2))))
+                <div class="col-lg-3 col-sm-6">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center mb-1">
+                                <div class="avatar me-4">
+                                    <span class="avatar-initial rounded bg-label-danger"><i
+                                            class="icon-base ti tabler-git-fork icon-28px"></i></span>
+                                </div>
+                                <h4 class="mb-0">{{ $workshopRegistrationCount }}</h4>
                             </div>
-                            <h4 class="mb-0">{{ $workshopRegistrationCount }}</h4>
+                            <p class="mb-1">WorkShop Registration</p>
                         </div>
-                        <p class="mb-1">WorkShop Registration</p>
                     </div>
                 </div>
-            </div>
+            @endif
         </div>
     @endif
 @endsection

@@ -12,7 +12,7 @@ class NamePrefixController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index() 
     {
 
         $name_prefixs = NamePrefix::where([

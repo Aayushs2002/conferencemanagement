@@ -11,6 +11,7 @@ class OfficialMessage extends Model
         'full_name',
         'designation',
         'image',
+        'message',
         'is_featured',
         'status'
     ];

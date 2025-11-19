@@ -7,7 +7,7 @@ use App\Models\Conference\Conference;
 use App\Models\SubmissionSetting;
 use App\Services\File\FileService;
 use Exception;
-use Illuminate\Http\Request;
+use Illuminate\Http\Request; 
 
 class SubmissionSettingController extends Controller
 {
@@ -35,6 +35,7 @@ class SubmissionSettingController extends Controller
                 'oral_reviewer_guide' => 'nullable',
                 'poster_reviewer_guide' => 'nullable',
                 'attachment_name' => 'nullable',
+                'attachment_required' => 'nullable|boolean',
                 'signature' => 'nullable|mimes:png,jpg',
 
             ]);

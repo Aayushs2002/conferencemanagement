@@ -163,7 +163,11 @@
                     @endif
                 </p>
             @else
-                <h3>Medcon Alert</h3>
+                {{-- <h3>Medcon Alert</h3> --}}
+                <div class="text-center">
+                    <img src="{{ asset('frontend/assets/img/MEDCON-LOGO-blue.png') }}" 
+                        alt="Medcon Alert">
+                </div>
             @endif
 
             <!-- Guidelines Section -->

@@ -120,12 +120,12 @@
                                <textarea class="form-control" name="abstract_content" id="description2" cols="30" rows="5">{{ !empty(old('abstract_content')) ? old('abstract_content') : @$submission->abstract_content }}</textarea>
                                @error('abstract_content')
                                    <p class="text-danger">{{ $message }}</p>
-                               @enderror
+                               @enderror 
                            </div>
                            @if ($setting->attachment_name)
                                <div class="mb-6 col-md-6">
                                    <label class="form-label" for="image">{{ $setting->attachment_name }}
-                                       <code>(optional)</code></label>
+                                       <code>{{ $setting->attachment_required == true ? '*' : '(optional)' }}</code></label>
                                    <input type="file" class="form-control" name="image" id="image"
                                        value="{{ !empty(old('image')) ? old('image') : @$submission->image }}" />
                                    <div class="row" id="imgPreview">
@@ -140,7 +140,7 @@
                                    </div>
                                    @error('image')
                                        <p class="text-danger">{{ $message }}</p>
-                                   @enderror
+                                   @enderror 
                                </div>
                            @endif
 
