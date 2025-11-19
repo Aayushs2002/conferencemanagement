@@ -8,7 +8,7 @@
         <div class="breadcrumb">
             <h1>Submission Setting</h1>
         </div>
-        <div class="separator-breadcrumb border-top"></div>
+        <div class="separator-breadcrumb border-top"></div> 
         <div class="col-md-12">
             <div class="card mb-4">
                 <div class="card-body">
@@ -65,6 +65,21 @@
                                     name="attachment_name" id="attachment_name"
                                     value="{{ !empty($conference->submissionSetting) ? $conference->submissionSetting->attachment_name : '' }}" />
                                 @error('attachment_name')
+                                    <p class="text-danger">{{ $message }}</p>
+                                @enderror
+                            </div>
+                            <div class="col-md-4 form-group mb-3" id="attachment_required_wrapper" style="display: none;">
+                                <label for="attachment_required">Is Attachment Mandatory?</label>
+                                <select name="attachment_required" id="attachment_required"
+                                    class="form-control @error('attachment_required') is-invalid @enderror">
+                                    <option value="0"
+                                        {{ !empty($conference->submissionSetting) && $conference->submissionSetting->attachment_required == 0 ? 'selected' : '' }}>
+                                        No</option>
+                                    <option value="1"
+                                        {{ !empty($conference->submissionSetting) && $conference->submissionSetting->attachment_required == 1 ? 'selected' : '' }}>
+                                        Yes</option>
+                                </select>
+                                @error('attachment_required')
                                     <p class="text-danger">{{ $message }}</p>
                                 @enderror
                             </div>
@@ -183,6 +198,25 @@
                 e.preventDefault();
                 $(this).attr('disabled', true);
                 $("#submissionSettingForm").submit();
+            });
+
+            // Toggle attachment_required field based on attachment_name
+            function toggleAttachmentRequired() {
+                var attachmentName = $('#attachment_name').val();
+                if (attachmentName && attachmentName.trim() !== '') {
+                    $('#attachment_required_wrapper').show();
+                } else {
+                    $('#attachment_required_wrapper').hide();
+                    $('#attachment_required').val('0');
+                }
+            }
+
+            // Check on page load
+            toggleAttachmentRequired();
+
+            // Check when attachment_name field changes
+            $('#attachment_name').on('input', function() {
+                toggleAttachmentRequired();
             });
         });
     </script>

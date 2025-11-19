@@ -38,7 +38,8 @@ class OfficialMessageController extends Controller
             $rules = [
                 'full_name' => 'required',
                 'designation' => 'required',
-                'image' => 'required|mimes:jpg,png',
+                'image' => 'nullable|mimes:jpg,png',
+                'message' => 'required',
             ];
 
             $validated = $request->validate($rules);
@@ -86,6 +87,7 @@ class OfficialMessageController extends Controller
                 'full_name' => 'required',
                 'designation' => 'required',
                 'image' => 'nullable|mimes:jpg,png',
+                'message' => 'required',
             ];
 
 

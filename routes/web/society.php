@@ -8,6 +8,7 @@ use App\Http\Controllers\Backend\Society\InstitutionController;
 use App\Http\Controllers\Backend\Society\MemberTypeController;
 use App\Http\Controllers\Backend\Society\NamePrefixController;
 use App\Http\Controllers\Backend\Society\SocietyController;
+use App\Http\Controllers\Backend\Society\SocietyNamePrefixController;
 use App\Http\Controllers\Backend\Society\SocietySettingController;
 use Illuminate\Support\Facades\Route;
 
@@ -28,6 +29,12 @@ Route::middleware('auth')->group(function () {
         Route::resource('/memberType', MemberTypeController::class)->middleware('check.societyadmin')->except('show', 'destroy');
         Route::get('/fetch-member-types', [MemberTypeController::class, 'fetchExternalMemberTypes'])
             ->name('memberType.fetch');
+        
+        // Society Name Prefix routes
+        Route::controller(SocietyNamePrefixController::class)->middleware('check.societyadmin')->group(function () {
+            Route::get('/name-prefix', 'index')->name('society.name-prefix.index');
+            Route::post('/name-prefix', 'update')->name('society.name-prefix.update');
+        });
     });
     //society member type end 
 

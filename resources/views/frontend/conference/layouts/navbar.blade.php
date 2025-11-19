@@ -46,7 +46,7 @@
                 <a href="{{ route('login') }}">
                     <button class="btn btn-primary ">Login</button>
                 </a>
-                <a href="{{ route('conference.register', $conference->slug) }}" class="btn btn-outline-primary">
+                <a href="{{ route('register') }}" class="btn btn-outline-primary">
                     Register
                 </a>
 

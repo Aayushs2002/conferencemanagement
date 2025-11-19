@@ -35,7 +35,7 @@ class AppServiceProvider extends ServiceProvider
             'designations' => Designation::whereStatus(1)->get(),
             'institutions' => Institution::whereStatus(1)->get(),
             'societies' => Society::whereStatus(1)->get(),
-        ];
+        ]; 
 
         View::share($sharedData);
 

@@ -17,7 +17,7 @@
             <div class="col-lg-3 col-md-6 col-6">
                 <div class="stat-card p-4 rounded-4 shadow-sm">
                     <h2 class="stat-number" data-target="{{ $stats['international_participants'] }}">0</h2>
-                    <p class="stat-label mb-0">International Participants</p> 
+                    <p class="stat-label mb-0">International Participants</p>
                 </div>
             </div>
             <div class="col-lg-3 col-md-6 col-6">
@@ -74,36 +74,38 @@
 
                     <div class="payment-box p-3 rounded-4 text-center d-none d-lg-block">
                         <h4 class="box-title">Payment Methods</h4>
-                        <h6 class="mb-2 fw-600">For International Delegates</h6>
-                        <div class="d-flex justify-content-between align-items-center mb-3 payment-logos">
-                            <div class="logo-item"><img
-                                    src="{{ asset('frontend/assets/img/international_delegate_1.png') }}" alt="Visa"
-                                    class="logo-img">
+                        @if ($conference->society->internationalPaymentSetting)
+                            <h6 class="mb-2 fw-600">For International Delegates</h6>
+                            <div class="d-flex justify-content-between align-items-center mb-3 payment-logos">
+                                <div class="logo-item"><img
+                                        src="{{ asset('frontend/assets/img/international_delegate_1.png') }}" alt="Visa"
+                                        class="logo-img">
+                                </div>
+                                <div class="logo-item"><img
+                                        src="{{ asset('frontend/assets/img/international_delegate_2.png') }}"
+                                        alt="Mastercard" class="logo-img"></div>
+                                <div class="logo-item"><img
+                                        src="{{ asset('frontend/assets/img/international_delegate_3.png') }}" alt="PayPal"
+                                        class="logo-img">
+                                </div>
+                                <div class="logo-item"><img
+                                        src="{{ asset('frontend/assets/img/international_delegate_4.png') }}" alt="Amex"
+                                        class="logo-img">
+                                </div>
                             </div>
-                            <div class="logo-item"><img
-                                    src="{{ asset('frontend/assets/img/international_delegate_2.png') }}" alt="Mastercard"
-                                    class="logo-img"></div>
-                            <div class="logo-item"><img
-                                    src="{{ asset('frontend/assets/img/international_delegate_3.png') }}" alt="PayPal"
-                                    class="logo-img">
+                            <h6 class="mb-2 fw-600">For Indian Delegates</h6>
+                            <div class="d-flex justify-content-between align-items-center mb-3 payment-logos">
+                                <div class="logo-item"><img
+                                        src="{{ asset('frontend/assets/img/international_delegate_4.png') }}"
+                                        alt="Payment Method 1" class="logo-img"></div>
+                                <div class="logo-item"><img
+                                        src="{{ asset('frontend/assets/img/international_delegate_2.png') }}"
+                                        alt="Payment Method 2" class="logo-img"></div>
+                                <div class="logo-item"><img
+                                        src="{{ asset('frontend/assets/img/international_delegate_3.png') }}"
+                                        alt="Payment Method 3" class="logo-img"></div>
                             </div>
-                            <div class="logo-item"><img
-                                    src="{{ asset('frontend/assets/img/international_delegate_4.png') }}" alt="Amex"
-                                    class="logo-img">
-                            </div>
-                        </div>
-                        <h6 class="mb-2 fw-600">For Indian Delegates</h6>
-                        <div class="d-flex justify-content-between align-items-center mb-3 payment-logos">
-                            <div class="logo-item"><img
-                                    src="{{ asset('frontend/assets/img/international_delegate_4.png') }}"
-                                    alt="Payment Method 1" class="logo-img"></div>
-                            <div class="logo-item"><img
-                                    src="{{ asset('frontend/assets/img/international_delegate_2.png') }}"
-                                    alt="Payment Method 2" class="logo-img"></div>
-                            <div class="logo-item"><img
-                                    src="{{ asset('frontend/assets/img/international_delegate_3.png') }}"
-                                    alt="Payment Method 3" class="logo-img"></div>
-                        </div>
+                        @endif
                         <h6 class="mb-2 fw-600">For Nepali Delegates</h6>
                         <div class="d-flex justify-content-between align-items-center payment-logos">
                             @if ($conference->society->nationalPaymentSetting?->esewa_product_key)
@@ -119,6 +121,12 @@
                             @if ($conference->society->nationalPaymentSetting?->moco_shared_key)
                                 <div class="logo-item"><img src="{{ asset('frontend/assets/img/logo-1 (1).png') }}"
                                         alt="Bank Transfer" class="logo-img"></div>
+                            @endif
+                            @if (
+                                $conference->society->nationalPaymentSetting?->profile_id &&
+                                    $conference->society->nationalPaymentSetting?->secret_key)
+                                <div class="logo-item"><img src="{{ asset('frontend/assets/img/unnamed.png') }}"
+                                        alt="Fone Pay" class="logo-img"></div>
                             @endif
                         </div>
                     </div>
@@ -142,7 +150,9 @@
                                             alt="{{ $offical_message->full_name }}" class="profile-img mb-3">
                                         <div class="w-100 d-flex align-items-center">
                                             <h6 class="card-title mb-0">{{ $offical_message->full_name }}</h6>
-                                            <a href="#" class="default-btn ms-auto" target="_blank">
+                                            <a href="#" class="default-btn ms-auto" data-bs-toggle="modal"
+                                                data-bs-target="#officialMessageModal" {{-- data-name="{{ $offical_message->full_name }}" --}}
+                                                {{-- data-designation="{{ $offical_message->designation }}" --}} data-message="{!! $offical_message->message !!}">
                                                 <i class="fa-solid fa-arrow-up-right-from-square"></i>
                                             </a>
                                         </div>
@@ -262,52 +272,6 @@
                                     </div>
                                 </div>
                             @endforeach
-
-                            {{-- <div class="col-md-4">
-                                <div class="accom-card p-3 rounded-4 shadow-sm d-flex flex-column">
-                                    <img src="assets/img/venue2.png" alt="Holiday Inn Resort" class="accom-img mb-3">
-                                    <div class="d-flex justify-content-between align-items-start">
-                                        <div>
-                                            <h6 class="card-title">Holiday Inn Resort</h6>
-                                            <small class="text-muted">Budhanilkantha, Kathmandu, Nepal</small>
-                                        </div>
-                                        <a href="AccomadationDetail.html" class="default-btn">
-                                            <i class="fa-solid fa-arrow-up-right-from-square"></i>
-                                        </a>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="col-md-4">
-                                <div class="accom-card p-3 rounded-4 shadow-sm d-flex flex-column">
-                                    <img src="assets/img/venue3.jpg" alt="Lemon Tree Premier" class="accom-img mb-3">
-                                    <div class="d-flex justify-content-between align-items-start">
-                                        <div>
-                                            <h6 class="card-title">Lemon Tree Premier</h6>
-                                            <small class="text-muted">Budhanilkantha, Kathmandu, Nepal</small>
-                                        </div>
-                                        <a href="AccomadationDetail.html" class="default-btn">
-                                            <i class="fa-solid fa-arrow-up-right-from-square"></i>
-                                        </a>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="col-md-4">
-                                <div class="accom-card p-3 rounded-4 shadow-sm d-flex flex-column">
-                                    <img src="assets/img/parbera.jpg" alt="Parbera Heritage Resort"
-                                        class="accom-img mb-3">
-                                    <div class="d-flex justify-content-between align-items-start">
-                                        <div>
-                                            <h6 class="card-title">Parbera Heritage Resort</h6>
-                                            <small class="text-muted">Budhanilkantha, Kathmandu, Nepal</small>
-                                        </div>
-                                        <a href="Acomandationdetails.html" class="default-btn">
-                                            <i class="fa-solid fa-arrow-up-right-from-square"></i>
-                                        </a>
-                                    </div>
-                                </div>
-                            </div> --}}
                         </div>
                     </div>
 
@@ -335,28 +299,6 @@
                                 </div>
                             @endforeach
                         @endforeach
-
-                        {{-- <h4 class="sponsor-type mb-3 mt-5">Platinum</h4>
-                        <div class="row g-4 mb-4">
-                            <div class="col-lg-4 col-md-6">
-                                <div class="sponsor-card p-3 text-center rounded-4 shadow-sm">
-                                    <div class="sponsor-logo mb-2">
-                                        <img src="assets/img/sponser1.png" alt="DKM Pharmaceuticals" class="logo-img"
-                                            style="border-radius: 60px;">
-                                    </div>
-                                    <h6 class="sponsor-name mb-0">DKM Pharmaceuticals Pvt. Ltd.</h6>
-                                </div>
-                            </div>
-                            <div class="col-lg-4 col-md-6">
-                                <div class="sponsor-card p-3 text-center rounded-4 shadow-sm">
-                                    <div class="sponsor-logo mb-2">
-                                        <img src="assets/img/sponser.2.png" alt="Rishav Group" class="logo-img"
-                                            style="border-radius: 80px;">
-                                    </div>
-                                    <h6 class="sponsor-name mb-0">Rishav Group of Company Pvt.Ltd</h6>
-                                </div>
-                            </div>
-                        </div> --}}
                     </div>
 
                     <div class="tab-pane fade" id="downloads" role="tabpanel"
@@ -431,32 +373,41 @@
 
                 <div class="payment-box p-3 rounded-4 text-center d-lg-none mt-4">
                     <h4 class="box-title">Payment Methods</h4>
-                    <h6 class="mb-2 fw-600">For International Delegates</h6>
-                    <div class="d-flex justify-content-between align-items-center mb-3 payment-logos">
-                        <div class="logo-item"><img src="{{ asset('frontend/assets/img/international_delegate_1.png') }}"
-                                alt="Visa" class="logo-img"></div>
-                        <div class="logo-item"><img src="{{ asset('frontend/assets/img/international_delegate_2.png') }}"
-                                alt="Mastercard" class="logo-img">
+                    @if ($conference->society->internationalPaymentSetting)
+                        <h6 class="mb-2 fw-600">For International Delegates</h6>
+                        <div class="d-flex justify-content-between align-items-center mb-3 payment-logos">
+                            <div class="logo-item"><img
+                                    src="{{ asset('frontend/assets/img/international_delegate_1.png') }}" alt="Visa"
+                                    class="logo-img"></div>
+                            <div class="logo-item"><img
+                                    src="{{ asset('frontend/assets/img/international_delegate_2.png') }}"
+                                    alt="Mastercard" class="logo-img">
+                            </div>
+                            <div class="logo-item"><img
+                                    src="{{ asset('frontend/assets/img/international_delegate_3.png') }}" alt="PayPal"
+                                    class="logo-img">
+                            </div>
+                            <div class="logo-item"><img
+                                    src="{{ asset('frontend/assets/img/international_delegate_4.png') }}" alt="Amex"
+                                    class="logo-img"></div>
                         </div>
-                        <div class="logo-item"><img src="{{ asset('frontend/assets/img/international_delegate_3.png') }}"
-                                alt="PayPal" class="logo-img">
+                        <h6 class="mb-2 fw-600">For Indian Delegates</h6>
+                        <div class="d-flex justify-content-between align-items-center mb-3 payment-logos">
+                            <div class="logo-item"><img
+                                    src="{{ asset('frontend/assets/img/international_delegate_4.png') }}"
+                                    alt="Payment Method 1" class="logo-img"></div>
+                            <div class="logo-item"><img
+                                    src="{{ asset('frontend/assets/img/international_delegate_2.png') }}"
+                                    alt="Payment Method 2" class="logo-img"></div>
+                            <div class="logo-item"><img
+                                    src="{{ asset('frontend/assets/img/international_delegate_3.png') }}"
+                                    alt="Payment Method 3" class="logo-img"></div>
                         </div>
-                        <div class="logo-item"><img src="{{ asset('frontend/assets/img/international_delegate_4.png') }}"
-                                alt="Amex" class="logo-img"></div>
-                    </div>
-                    <h6 class="mb-2 fw-600">For Indian Delegates</h6>
-                    <div class="d-flex justify-content-between align-items-center mb-3 payment-logos">
-                        <div class="logo-item"><img src="{{ asset('frontend/assets/img/international_delegate_4.png') }}"
-                                alt="Payment Method 1" class="logo-img"></div>
-                        <div class="logo-item"><img src="{{ asset('frontend/assets/img/international_delegate_2.png') }}"
-                                alt="Payment Method 2" class="logo-img"></div>
-                        <div class="logo-item"><img src="{{ asset('frontend/assets/img/international_delegate_3.png') }}"
-                                alt="Payment Method 3" class="logo-img"></div>
-                    </div>
+                    @endif
                     <h6 class="mb-2 fw-600">For Nepali Delegates</h6>
                     <div class="d-flex justify-content-between align-items-center payment-logos">
                         @if ($conference->society->nationalPaymentSetting?->esewa_product_key)
-                            <div class="logo-item"><img src="{{ asset('frontend/assets/img/esewa-icon-large.png') }}" 
+                            <div class="logo-item"><img src="{{ asset('frontend/assets/img/esewa-icon-large.png') }}"
                                     alt="eSewa" class="logo-img">
                             </div>
                         @endif
@@ -468,6 +419,12 @@
                         @if ($conference->society->nationalPaymentSetting?->moco_shared_key)
                             <div class="logo-item"><img src="{{ asset('frontend/assets/img/logo-1 (1).png') }}"
                                     alt="Bank Transfer" class="logo-img"></div>
+                        @endif
+                        @if (
+                            $conference->society->nationalPaymentSetting?->profile_id &&
+                                $conference->society->nationalPaymentSetting?->secret_key)
+                            <div class="logo-item"><img src="{{ asset('frontend/assets/img/unnamed.png') }}"
+                                    alt="Fone Pay" class="logo-img"></div>
                         @endif
                     </div>
                 </div>
@@ -488,17 +445,20 @@
                                 </tr>
                             </thead>
                             <tbody>
+                                {{-- @dd($memberTypes) --}}
                                 @foreach ($memberTypes as $memberType)
-                                    <tr>
-                                        <td>{{ $memberType->type }}
-                                            {{ $memberType->delegate == 1 ? '(Nepal)' : '(International)' }}</td>
-                                        <td>{{ $memberType->early_bird_amount ?? 'N/A' }}
-                                            {{ $memberType->delegate == 1 ? '(NRs)' : '(USD)' }}</td>
-                                        <td>{{ $memberType->regular_amount ?? 'N/A' }}
-                                            {{ $memberType->delegate == 1 ? '(NRs)' : '(USD)' }}</td>
-                                        <td>{{ $memberType->on_site_amount ?? 'N/A' }}
-                                            {{ $memberType->delegate == 1 ? '(NRs)' : '(USD)' }}</td>
-                                    </tr>
+                                    @if ($memberType->early_bird_amount || $memberType->regular_amount || $memberType->on_site_amount)
+                                        <tr>
+                                            <td>{{ $memberType->type }}
+                                                {{ $memberType->delegate == 1 ? '(Nepal)' : '(International)' }}</td>
+                                            <td>{{ $memberType->early_bird_amount ?? 'N/A' }}
+                                                {{ $memberType->delegate == 1 ? '(NRs)' : '(USD)' }}</td>
+                                            <td>{{ $memberType->regular_amount ?? 'N/A' }}
+                                                {{ $memberType->delegate == 1 ? '(NRs)' : '(USD)' }}</td>
+                                            <td>{{ $memberType->on_site_amount ?? 'N/A' }}
+                                                {{ $memberType->delegate == 1 ? '(NRs)' : '(USD)' }}</td>
+                                        </tr>
+                                    @endif
                                 @endforeach
                                 {{-- <tr>
                                     <td>International Participants</td>
@@ -587,4 +547,53 @@
 
     <div class="sidebar-overlay" id="sidebarOverlay"></div>
     <div class="td_height_60 td_height_lg_60"></div>
+
+    <!-- Official Message Modal -->
+    <div class="modal fade" id="officialMessageModal" tabindex="-1" aria-labelledby="officialMessageModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="officialMessageModalLabel">Official Message</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    {{-- <div class="text-center mb-3">
+                        <img id="modalImage" src="" alt="" class="img-fluid rounded-circle"
+                            style="width: 150px; height: 150px; object-fit: cover;">
+                    </div> --}}
+                    {{-- <h5 id="modalName" class="text-center mb-2"></h5> --}}
+                    {{-- <p id="modalDesignation" class="text-center text-muted mb-4"></p> --}}
+                    <div id="modalMessage" class="text-justify"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        // Official Message Modal Handler
+        document.addEventListener('DOMContentLoaded', function() {
+            const officialMessageModal = document.getElementById('officialMessageModal');
+            if (officialMessageModal) {
+                officialMessageModal.addEventListener('show.bs.modal', function(event) {
+                    const button = event.relatedTarget;
+                    // const name = button.getAttribute('data-name');
+                    // const designation = button.getAttribute('data-designation');
+                    const message = button.getAttribute('data-message');
+                    console.log(message,'sas');
+                    // const image = button.getAttribute('data-image');
+
+                    // Update modal content
+                    // document.getElementById('modalName').textContent = name;
+                    // document.getElementById('modalDesignation').textContent = designation;
+                    document.getElementById('modalMessage').innerHTML = message;
+                    // document.getElementById('modalImage').src = image;
+                    // document.getElementById('modalImage').alt = name;
+                });
+            }
+        });
+    </script>
 @endsection
+

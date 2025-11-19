@@ -204,7 +204,7 @@
                        <a href="{{ route('my-society.conference.submission.create', [$society, $conference]) }}"
                            class="btn btn-primary" tabindex="0">
                            <i class="icon-base ti tabler-plus icon-xs me-sm-1"></i>
-                           <span class="d-none d-sm-inline-block">Add New</span>
+                           <span class="d-none d-sm-inline-block">New Submission</span>
                        </a>
                    </div>
                </div>

@@ -8,7 +8,7 @@ class SubmissionRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
-     */
+     */ 
     public function authorize(): bool
     {
         return true;
@@ -21,13 +21,25 @@ class SubmissionRequest extends FormRequest
      */
     public function rules(): array
     {
+        $conferenceId = $this->route('conference')->id;
+        // dd(  $this->route('conference'));
+        $setting = \App\Models\SubmissionSetting::where('conference_id', $conferenceId)
+            ->select('attachment_name', 'attachment_required')
+            ->first();
+
+        $imageRule = 'nullable|mimes:jpg,jpeg,png,pdf|max:250';
+        
+        if ($setting && $setting->attachment_name && $setting->attachment_required == 1) {
+            $imageRule = 'required|mimes:jpg,jpeg,png,pdf|max:250';
+        }
+
         return [
             'title' => 'required',
             'article_type' => 'required',
             'submission_category_major_track_id' => 'required',
             'presentation_type' => 'required',
             'keywords' => 'required',
-            'image' => 'nullable|mimes:jpg,jpeg,png|max:250'
+            'image' => $imageRule
         ];
     }
 }

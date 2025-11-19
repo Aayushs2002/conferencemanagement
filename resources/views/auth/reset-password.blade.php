@@ -45,8 +45,9 @@
         {{-- <a href="#" class="app-brand-link">
             <img src="{{ asset('frontend/assets/img/MEDCON-LOGO.png') }}" style="height: 60px;">
         </a> --}}
-        <h1>Medcon Alert</h1>
-
+        <div class="text-center">
+            <img src="{{ asset('frontend/assets/img/MEDCON-LOGO-blue.png') }}" alt="Medcon Alert">
+        </div>
     </div>
     <!-- /Logo -->
     <h4 class="mb-1">Reset Password 🔒</h4>

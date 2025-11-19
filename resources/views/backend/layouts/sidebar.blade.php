@@ -31,7 +31,10 @@
                     <img src="{{ asset('storage/society/logo/' . $societyDomainDetail->logo) }}" height="65">
                 @else
                     {{-- <img src="{{ asset('default-image/NESOG.png') }}" height="65"> --}}
-                    <h3>Medcon Alert</h3>
+                    <div class="text-center">
+                        <img src="{{ asset('frontend/assets/img/MEDCON-LOGO-blue.png') }}" alt="Medcon Alert">
+                    </div>
+                    {{-- <h3>Medcon Alert</h3> --}}
                 @endif
             </span>
         </a>
@@ -170,7 +173,7 @@
                     <div data-i18n="My Society">My Society</div>
                 </a>
             </li>
-        @endif --}} 
+        @endif --}}
     </ul>
 </aside>
 
@@ -178,5 +181,5 @@
     <a href="javascript:void(0);" class="layout-menu-toggle menu-link text-large text-bg-secondary p-2 rounded-1">
         <i class="ti tabler-menu icon-base"></i>
         <i class="ti tabler-chevron-right icon-base"></i>
-    </a> 
+    </a>
 </div>

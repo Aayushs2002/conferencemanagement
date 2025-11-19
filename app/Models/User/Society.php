@@ -4,6 +4,7 @@ namespace App\Models\User;
 
 use App\Models\Cms\Feature;
 use App\Models\Conference\Conference;
+use App\Models\Payment\InternationalPayment;
 use App\Models\Payment\NationalPayment;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
@@ -55,5 +56,15 @@ class Society extends Model
     public function nationalPaymentSetting()
     {
         return $this->hasOne(NationalPayment::class, 'society_id', 'id');
+    }
+
+    public function internationalPaymentSetting()
+    {
+        return $this->hasOne(InternationalPayment::class, 'society_id', 'id');
+    }
+
+    public function namePrefixes()
+    {
+        return $this->belongsToMany(NamePrefix::class, 'society_name_prefixes');
     }
 }

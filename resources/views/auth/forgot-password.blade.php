@@ -34,7 +34,9 @@
                 <img src="{{ asset('frontend/assets/img/MEDCON-LOGO.png') }}" style="height: 60px;">
             </a>
         </a> --}}
-                    <h1>Medcon Alert</h1>
+        <div class="text-center" class="app-brand-link">
+            <img src="{{ asset('frontend/assets/img/MEDCON-LOGO-blue.png') }}" alt="Medcon Alert">
+        </div>
 
     </div>
     <!-- /Logo -->

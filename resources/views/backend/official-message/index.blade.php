@@ -22,7 +22,7 @@
                 <thead>
                     <tr>
                         <th>SN</th>
-                        <th>Full Name</th>
+                        <th>Full Name</th> 
                         <th>Image</th>
                         <th>Designation</th>
                         <th>Action</th>
