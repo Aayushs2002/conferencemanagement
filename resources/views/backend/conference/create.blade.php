@@ -38,6 +38,15 @@
                             @enderror
                         </div>
                         <div class="mb-6 col-md-4">
+                            <label class="form-label" for="abbreviation">Conference Abbreviation</label>
+                            <input type="text" class="form-control @error('abbreviation') is-invalid @enderror"
+                                id="abbreviation" placeholder="Enter Conference Abbreviation" name="abbreviation"
+                                value="{{ !empty(old('abbreviation')) ? old('abbreviation') : @$conference->abbreviation }}" />
+                            @error('abbreviation')
+                                <p class="text-danger">{{ $message }}</p>
+                            @enderror
+                        </div>
+                        <div class="mb-6 col-md-4">
                             <label class="form-label" for="conference_theme">Conference Theme</label>
                             <input type="text" class="form-control @error('conference_theme') is-invalid @enderror"
                                 id="conference_theme" placeholder="Enter Conference Theme" name="conference_theme"
@@ -189,7 +198,7 @@
                                 <p class="text-danger">{{ $message }}</p>
                             @enderror
                         </div>
-
+ 
                         <div class="col-12">
                             <h6>2. Venue Details</h6>
                             <hr class="mt-0" style="height:1px;border:none;color:#333;background-color:#333;" />
@@ -276,7 +285,7 @@
                             @enderror
                         </div>
 
-                        <div class="col-12">
+                        {{-- <div class="col-12">
                             <h6>3. Organizer Details</h6>
                             <hr class="mt-0" style="height:1px;border:none;color:#333;background-color:#333;" />
                         </div>
@@ -367,7 +376,7 @@
                             @error('organizer_description')
                                 <p class="text-danger">{{ $message }}</p>
                             @enderror
-                        </div>
+                        </div> --}}
 
                         <div class="row">
                             <div class="col-12 text-end">

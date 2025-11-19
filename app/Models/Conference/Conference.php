@@ -15,6 +15,7 @@ class Conference extends Model
     protected $fillable = [
         'society_id',
         'conference_name',
+        'abbreviation',
         'conference_theme',
         'conference_logo',
         'start_date',

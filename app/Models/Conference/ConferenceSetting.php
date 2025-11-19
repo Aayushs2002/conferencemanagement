@@ -13,7 +13,8 @@ class ConferenceSetting extends Model
         'registration_guideline',
         'registration_guideline_youtube',
         'submission_guideline_youtube',
-        'expert_guideline_youtube'
+        'expert_guideline_youtube',
+        'logo_display_type'
     ];
 }
  

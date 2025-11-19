@@ -83,6 +83,24 @@
                     value="{{ $conferenceSetting?->expert_guideline_youtube }}" 
                     placeholder="https://www.youtube.com/watch?v=...">
             </div>
+
+            <div class="col-12 mt-3"> 
+                <h6>4. Navbar Display Settings</h6>
+                <hr class="mt-0" style="height:1px;border:none;color:#333;background-color:#333;" />
+            </div>
+
+            <div class="col-md-6 mb-4">
+                <label>What to Display in Navbar <code>*</code></label>
+                <select class="form-control" name="logo_display_type">
+                    <option value="logo" {{ $conferenceSetting?->logo_display_type == 'logo' ? 'selected' : '' }}>
+                        Conference Logo
+                    </option>
+                    <option value="abbreviation" {{ $conferenceSetting?->logo_display_type == 'abbreviation' ? 'selected' : '' }}>
+                        Conference Abbreviation
+                    </option>
+                </select>
+                <small class="text-muted">If both logo and abbreviation are empty, society logo will be shown</small>
+            </div>
         </div> 
         <div class="text-end mt-4">
             <button type="submit" class="btn btn-primary"

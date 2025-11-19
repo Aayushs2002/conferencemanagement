@@ -1,11 +1,24 @@
 <nav class="navbar navbar-expand-lg navbar-light">
     <div class="container">
         <a class="navbar-brand" href="{{ route('conference.name', $conference->slug) }}">
-            <img src="{{ Storage::url('society/logo/' . $conference->society->logo) }}" alt="NESOG Logo"
-                style="max-height: 50px;">
+            @php
+                $setting = $conference->conferenceSetting;
+                $displayType = $setting?->logo_display_type ?? 'logo';
+            @endphp
+
+            @if ($displayType == 'abbreviation' && !empty($conference->abbreviation))
+                <span style="font-size: 1.5rem; font-weight: bold; text-transform: uppercase">{{ $conference->abbreviation }}</span>
+            @elseif($displayType == 'logo' && !empty($conference->conference_logo))
+                <img src="{{ Storage::url('conference/conference/logo/' . $conference->conference_logo) }}"
+                    alt="{{ $conference->conference_name }}" style="max-height: 50px;">
+            @else
+                <img src="{{ Storage::url('society/logo/' . $conference->society->logo) }}"
+                    alt="{{ $conference->society->abbreviation }}" style="max-height: 50px;">
+            @endif
         </a>
 
-        <button class="navbar-toggler collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
+        <button class="navbar-toggler collapsed" type="button" data-bs-toggle="collapse"
+            data-bs-target="#navbarContent">
             <span></span>
             <span></span>
             <span></span>

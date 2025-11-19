@@ -26,7 +26,7 @@ Route::middleware('auth')->group(function () {
 
     //society member type start
     Route::prefix('/society/{society}')->group(function () {
-        Route::resource('/memberType', MemberTypeController::class)->middleware('check.societyadmin')->except('show', 'destroy');
+        Route::resource('/memberType', MemberTypeController::class)->middleware('check.societyadmin')->except('show',);
         Route::get('/fetch-member-types', [MemberTypeController::class, 'fetchExternalMemberTypes'])
             ->name('memberType.fetch');
         
