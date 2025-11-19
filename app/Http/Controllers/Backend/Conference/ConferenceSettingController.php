@@ -9,8 +9,8 @@ use App\Services\File\FileService;
 use Exception;
 use Illuminate\Http\Request;
 
-class ConferenceSettingController extends Controller 
-{ 
+class ConferenceSettingController extends Controller
+{
     public function __construct(protected FileService $file_service) {}
 
     public function conferenceSetting(Request $request)
@@ -31,6 +31,7 @@ class ConferenceSettingController extends Controller
                 'registration_guideline_youtube' => 'nullable|url|max:500',
                 'submission_guideline_youtube' => 'nullable|url|max:500',
                 'expert_guideline_youtube' => 'nullable|url|max:500',
+                'logo_display_type' => 'nullable'
             ]);
 
             $type = 'success';
@@ -45,7 +46,10 @@ class ConferenceSettingController extends Controller
                     $this->file_service->deleteFile($signaturePath, 'conference/voucher/signature/');
                 }
 
-                $signaturePath = $this->file_service->fileUpload($request->file('signature'),'voucher_signature','conference/voucher/signature/'
+                $signaturePath = $this->file_service->fileUpload(
+                    $request->file('signature'),
+                    'voucher_signature',
+                    'conference/voucher/signature/'
                 );
             }
 
@@ -54,7 +58,10 @@ class ConferenceSettingController extends Controller
                     $this->file_service->deleteFile($guidelinePath, 'conference/registration-guideline/');
                 }
 
-                $guidelinePath = $this->file_service->fileUpload($request->file('registration_guideline'),'registration_guideline','conference/registration-guideline/'
+                $guidelinePath = $this->file_service->fileUpload(
+                    $request->file('registration_guideline'),
+                    'registration_guideline',
+                    'conference/registration-guideline/'
                 );
             }
 
@@ -66,6 +73,7 @@ class ConferenceSettingController extends Controller
                 'registration_guideline_youtube' => $request->registration_guideline_youtube,
                 'submission_guideline_youtube' => $request->submission_guideline_youtube,
                 'expert_guideline_youtube' => $request->expert_guideline_youtube,
+                'logo_display_type' => $request->logo_display_type,
             ];
 
             if ($conferenceSetting) {

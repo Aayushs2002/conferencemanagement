@@ -1,7 +1,7 @@
 <aside id="layout-menu" class="layout-menu menu-vertical menu">
     <div class="app-brand demo">
 
-        <a href="index.html" class="app-brand-link">
+        <a href="{{ route('dashboard') }}" class="app-brand-link">
             {{-- <span class="app-brand-logo demo">
                 <span class="text-primary">
                     <svg width="32" height="22" viewBox="0 0 32 22" fill="none"
@@ -32,7 +32,7 @@
                 @else
                     {{-- <img src="{{ asset('default-image/NESOG.png') }}" height="65"> --}}
                     <div class="text-center">
-                        <img src="{{ asset('frontend/assets/img/MEDCON-LOGO-blue.png') }}" alt="Medcon Alert">
+                        <img src="{{ asset('frontend/assets/img/MEDCON-LOGO-blue.png') }}" height="21" alt="Medcon Alert">
                     </div>
                     {{-- <h3>Medcon Alert</h3> --}}
                 @endif

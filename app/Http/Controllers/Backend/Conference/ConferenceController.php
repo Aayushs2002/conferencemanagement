@@ -9,7 +9,7 @@ use App\Models\Conference\Conference;
 use App\Models\Conference\ConferenceOrganizer;
 use App\Models\Conference\ConferenceRegistration;
 use App\Models\Conference\ConferenceVenueDetail;
-use App\Models\Conference\Submission;
+use App\Models\Conference\Submission; 
 use App\Models\Conference\SubmissionCategoryMajorTrack;
 use App\Models\User;
 use App\Models\User\Society;

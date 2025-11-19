@@ -71,6 +71,16 @@ class MemberTypeController extends Controller
         }
     }
 
+    public function destroy($society, MemberType $memberType)
+    {
+        try {
+            $memberType->update(['status' => 0]);
+            return redirect()->route('memberType.index', $society)->with('status', 'Member Type Deleted Successfully');
+        } catch (Exception $e) {
+            return redirect()->back()->with('delete', 'Internal Server Error');
+        }
+    }
+
     public function fetchExternalMemberTypes($society)
     {
         try {

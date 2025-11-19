@@ -44,4 +44,6 @@ class SocietyNamePrefixController extends Controller
             return redirect()->back()->with('delete', 'Internal Server Error');
         }
     }
+
+    
 }

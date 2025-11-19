@@ -58,6 +58,13 @@
                                         <i class="icon-base ti tabler-dots-vertical"></i>
                                     </button>
                                     <div class="dropdown-menu">
+                                        <form action="{{ route('memberType.destroy', [$society, $type->id]) }}"
+                                            method="POST">
+                                            @method('delete')
+                                            @csrf
+                                            <a class="dropdown-item text-danger delete" href="javascript:void(0);"><i
+                                                    class="icon-base ti tabler-trash me-1"></i> Delete</a>
+                                        </form>
                                         <a class="dropdown-item"
                                             href="{{ route('memberType.edit', [$society, $type->id]) }}"><i
                                                 class="icon-base ti tabler-pencil me-1"></i> Edit</a>
