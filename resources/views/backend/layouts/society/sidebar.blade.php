@@ -70,7 +70,13 @@
             <li class="menu-item {{ request()->segment(4) == 'payment-setting' ? 'active' : '' }}">
                 <a href="{{ route('payment.setting', request()->segment(2)) }}" class="menu-link ">
                     <i class="menu-icon icon-base ti tabler-cash"></i>
-                    <div data-i18n="Payment Setting">Payment Setting</div>
+                    <div data-i18n="Payment Setting">Payment Setting</div> 
+                </a>
+            </li>
+            <li class="menu-item">
+                <a href="javascript:void(0);" class="menu-link societySetting" data-id="{{ request()->segment(2) }}" data-bs-toggle="modal" data-bs-target="#generalModal">
+                    <i class="menu-icon icon-base ti tabler-settings"></i>
+                    <div data-i18n="Society Setting">Society Setting</div>
                 </a>
             </li>
         @else

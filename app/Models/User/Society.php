@@ -67,4 +67,9 @@ class Society extends Model
     {
         return $this->belongsToMany(NamePrefix::class, 'society_name_prefixes');
     }
+
+    public function societySetting()
+    {
+        return $this->hasOne(\App\Models\Society\SocietySetting::class, 'society_id', 'id');
+    }
 }
