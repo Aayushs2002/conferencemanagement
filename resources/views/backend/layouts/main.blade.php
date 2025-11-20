@@ -113,11 +113,11 @@
 
                         @yield('content')
 
-                        @if (session('show_profile_update_modal'))
+                        @if (session('show_profile_update_modal')) 
                             @include('backend.users.profile.update-profie')
                         @endif
                     </div>
-                    <!-- / Content -->
+                    <!-- / Content --> 
 
                     <!-- Footer -->
                     @include('backend.layouts.footer')

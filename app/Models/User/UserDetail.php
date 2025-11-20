@@ -22,6 +22,7 @@ class UserDetail extends Model
         'gender',
         'phone',
         'image',
+        'dob_ad',
         'council_number',
         'status'
     ];
