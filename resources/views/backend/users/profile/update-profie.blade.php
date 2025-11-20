@@ -17,7 +17,7 @@
                             <select class="form-select" name="institution_id" id="institution_id" required>
                                 <option value="" hidden>-- Select Institution Name --</option>
                                 @foreach ($institutions as $institution)
-                                    <option value="{{ $institution->id }}" @selected(old('institution_id') == $institution->id)>
+                                    <option value="{{ $institution->id }}" @selected(old('institution_id', current_user()?->userDetail?->institution_id) == $institution->id)>
                                         {{ $institution->name }}
                                     </option>
                                 @endforeach
@@ -53,7 +53,7 @@
                             <select class="form-select" name="designation_id" id="designation_id" required>
                                 <option value="" hidden>-- Select Designation --</option>
                                 @foreach ($designations as $designation)
-                                    <option value="{{ $designation->id }}" @selected(old('designation_id') == $designation->id)>
+                                    <option value="{{ $designation->id }}" @selected(old('designation_id', current_user()?->userDetail?->designation_id) == $designation->id)>
                                         {{ $designation->designation }}
                                     </option>
                                 @endforeach
@@ -84,7 +84,7 @@
                             <select class="form-select" name="department_id" id="department_id" required>
                                 <option value="" hidden>-- Select Department --</option>
                                 @foreach ($departments as $department)
-                                    <option value="{{ $department->id }}" @selected(old('department_id') == $department->id)>
+                                    <option value="{{ $department->id }}" @selected(old('department_id', current_user()?->userDetail?->department_id) == $department->id)>
                                         {{ $department->name }}
                                     </option>
                                 @endforeach
@@ -113,7 +113,7 @@
                             <label class="form-label" for="institute_address">Institution Address<code>*</code></label>
                             <input type="text" id="institute_address" name="institute_address" class="form-control"
                                 required placeholder="Enter Institution Address"
-                                value="{{ old('institute_address') }}">
+                                value="{{ old('institute_address', current_user()?->userDetail?->institute_address) }}">
                             @error('institute_address')
                                 <p class="text-danger">{{ $message }}</p>
                             @enderror
@@ -123,7 +123,8 @@
                         <div class="col-12 col-md-6">
                             <label class="form-label" for="dob_ad">Date of Birth<code>*(AD)</code></label>
                             <input type="date" id="dob_ad" name="dob_ad" class="form-control" required
-                                placeholder="Enter Institution Address" value="{{ old('dob_ad') }}">
+                                placeholder="Enter Institution Address"
+                                value="{{ old('dob_ad', current_user()?->userDetail?->dob_ad) }}">
                             @error('dob_ad')
                                 <p class="text-danger">{{ $message }}</p>
                             @enderror
@@ -138,7 +139,7 @@
                                     Number<code>*</code></label>
                                 <input type="text" id="council_number" name="council_number" class="form-control"
                                     required placeholder="Enter Medical Council Number"
-                                    value="{{ old('council_number') }}">
+                                    value="{{ old('council_number', current_user()?->userDetail?->council_number) }}">
                                 @error('council_number')
                                     <p class="text-danger">{{ $message }}</p>
                                 @enderror
