@@ -10,7 +10,7 @@ use App\Mail\Conference\ExceptionalRegistrationMail;
 use App\Mail\Conference\RegistrantAcceptMail;
 use App\Mail\Conference\RegistrantRejectMail;
 use App\Mail\Conference\RegistrationMail;
-use App\Models\Conference\AccompanyPerson; 
+use App\Models\Conference\AccompanyPerson;
 use App\Models\Conference\Attendance;
 use App\Models\Conference\ConferenceAddon;
 use App\Models\Conference\ConferenceMemberTypePrice;
@@ -54,7 +54,7 @@ class ConferenceRegistrationController extends Controller
                     'userDetail.institution',
                     'societies' => function ($q) use ($society_id) {
                         $q->where('society_id', $society_id)
-                          ->withPivot('member_type_id');
+                            ->withPivot('member_type_id');
                     },
                     'societyUsers.memberType' => function ($q) use ($society_id) {
                         $q->where('society_id', $society_id);
@@ -128,7 +128,14 @@ class ConferenceRegistrationController extends Controller
 
     public function edit($society, $conference, ConferenceRegistration $registrant)
     {
-        $prefixesAll = NamePrefix::whereStatus(1)->get();
+        // $prefixesAll = NamePrefix::whereStatus(1)->get();
+        if ($society && $society->namePrefixes()->exists()) {
+            $prefixesAll = $society->namePrefixes()->where('status', 1)->get();
+            // dd($prefixesAll);
+        } else {
+            // Fallback to all active prefixes if society hasn't selected any
+            $prefixesAll = NamePrefix::whereStatus(1)->get();
+        }
         $conferenceAddons = ConferenceAddon::where('conference_id', $conference->id)->get();
         $memberTypes = MemberType::where(['society_id' => $society->id, 'status' => 1])->get();
         $countries = \App\Models\User\Country::where('status', 1)->get();
@@ -253,7 +260,7 @@ class ConferenceRegistrationController extends Controller
             if ($request->additional_guests >= 1) {
                 // Delete existing accompany persons
                 AccompanyPerson::where('conference_registration_id', $registrant->id)->delete();
-                
+
                 // Insert new ones
                 $insertArray = [];
                 foreach ($validated['person_name'] as $key => $value) {
@@ -273,7 +280,7 @@ class ConferenceRegistrationController extends Controller
             if ($request->conference_addon_id) {
                 // Delete existing addons
                 ConferenceRegistration_addon::where('conference_registration_id', $registrant->id)->delete();
-                
+
                 // Insert new ones
                 foreach ($request->conference_addon_id as $addon_id) {
                     $addon = ConferenceAddon::findOrFail($addon_id);
@@ -290,7 +297,7 @@ class ConferenceRegistrationController extends Controller
 
             $middleName = !empty($validated['m_name']) ? $validated['m_name'] . ' ' : '';
             logActivity($conference->id, 'Updated Conference Registration', $validated['f_name'] . ' ' . $middleName . $validated['l_name'] . ' registration updated');
-            
+
             DB::commit();
 
             return redirect()->route('conference.conference-registration.index', [$society, $conference])
@@ -307,13 +314,13 @@ class ConferenceRegistrationController extends Controller
             if ($registrant->payment_voucher) {
                 $this->file_service->deleteFile($registrant->payment_voucher, 'conference/payment-voucher');
                 $registrant->update(['payment_voucher' => null]);
-                
+
                 return response()->json([
                     'success' => true,
                     'message' => 'Payment voucher deleted successfully.'
                 ]);
             }
-            
+
             return response()->json([
                 'success' => false,
                 'message' => 'No voucher found to delete.'
@@ -331,19 +338,19 @@ class ConferenceRegistrationController extends Controller
         try {
             $registration = ConferenceRegistration::findOrFail($accompanyPerson->conference_registration_id);
             $personName = $accompanyPerson->person_name;
-            
+
             // Hard delete the accompany person
             $accompanyPerson->delete();
-            
+
             // Update total attendee count
             $activeAccompanyCount = AccompanyPerson::where('conference_registration_id', $registration->id)->count();
-            
+
             $registration->update([
                 'total_attendee' => $activeAccompanyCount + 1 // +1 for the registrant
             ]);
-            
+
             logActivity($conference->id, 'Deleted Accompany Person', 'Deleted accompany person: ' . $personName . ' from ' . $registration->user->fullName($registration->user) . ' registration');
-            
+
             return response()->json([
                 'success' => true,
                 'message' => 'Accompany person deleted successfully.'
@@ -583,7 +590,7 @@ class ConferenceRegistrationController extends Controller
                 AccompanyPerson::insert($insertArray);
             }
 
-            logActivity($registration->conference_id, 'Add Person','Added ' .$validated['additional_guests'] . ' Guests to ' . $registration->user->fullName($registration->user) . ' is registered to conference');
+            logActivity($registration->conference_id, 'Add Person', 'Added ' . $validated['additional_guests'] . ' Guests to ' . $registration->user->fullName($registration->user) . ' is registered to conference');
 
             $type = 'success';
             $message = "Successfully Added";
@@ -684,8 +691,15 @@ class ConferenceRegistrationController extends Controller
 
     public function registrationOrInvitation($society, $conference)
     {
-        $prefixesAll = NamePrefix::whereStatus(1)->get();
+        // $prefixesAll = NamePrefix::whereStatus(1)->get();
         $conferenceAddons = ConferenceAddon::where('conference_id', $conference->id)->get();
+        if ($society && $society->namePrefixes()->exists()) {
+            $prefixesAll = $society->namePrefixes()->where('status', 1)->get();
+            // dd($prefixesAll);
+        } else {
+            // Fallback to all active prefixes if society hasn't selected any
+            $prefixesAll = NamePrefix::whereStatus(1)->get();
+        }
 
         return view('backend.conference.conference-registration.registration-or-invitation', compact('prefixesAll', 'society', 'conference', 'conferenceAddons'));
     }

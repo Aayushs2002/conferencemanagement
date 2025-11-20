@@ -11,8 +11,9 @@
                       <li><a href="{{ route('conference.news-and-notice', $conference->slug) }}"
                               class="footer-link">News
                               & Notices</a></li>
-                      <li><a href="{{ route('conference.register', $conference->slug) }}"
-                              class="footer-link">Registration Form</a></li>
+                      <li><a href="{{ route('conference.register', $conference->slug) }}" class="footer-link">Conference
+                              registration
+                          </a></li>
                   </ul>
               </div>
               <div class="col-lg-3 col-md-6">
