@@ -80,7 +80,7 @@
                                 <div class="logo-item"><img src="{{ asset('frontend/assets/img/esewa-icon-large.png') }}"
                                         alt="eSewa" class="logo-img">
                                 </div>
-                            @endif 
+                            @endif
                             @if ($conference->society->nationalPaymentSetting?->khalti_live_secret_key)
                                 <div class="logo-item"><img src="{{ asset('frontend/assets/img/khalti-ime-logo.png') }}"
                                         alt="Khalti" class="logo-img">
@@ -93,8 +93,9 @@
                             @if (
                                 $conference->society->nationalPaymentSetting?->profile_id &&
                                     $conference->society->nationalPaymentSetting?->secret_key)
-                                <div class=""><img style="height: 80px !important;" src="{{ asset('frontend/assets/img/unnamed.png') }}"
-                                        alt="Fone Pay" class=""></div>
+                                <div class=""><img style="height: 80px !important;"
+                                        src="{{ asset('frontend/assets/img/unnamed.png') }}" alt="Fone Pay" class="">
+                                </div>
                             @endif
                         </div>
                         @if ($conference->society->internationalPaymentSetting)
@@ -334,8 +335,9 @@
                         @if (
                             $conference->society->nationalPaymentSetting?->profile_id &&
                                 $conference->society->nationalPaymentSetting?->secret_key)
-                            <div class=""><img style="height: 80px !important;" src="{{ asset('frontend/assets/img/unnamed.png') }}"
-                                    alt="Fone Pay" class=""></div>
+                            <div class=""><img style="height: 80px !important;"
+                                    src="{{ asset('frontend/assets/img/unnamed.png') }}" alt="Fone Pay" class="">
+                            </div>
                         @endif
                     </div>
                     @if ($conference->society->internationalPaymentSetting)
@@ -381,9 +383,11 @@
                                 <tr>
                                     <th scope="col">Description</th>
                                     <th scope="col">Early Bird (till
-                                        {{ \Carbon\Carbon::parse($conference->early_bird_registration_deadline)->format('F j') }})
+                                        {{ \Carbon\Carbon::parse($conference->early_bird_registration_deadline)->format('M j') }})
                                     </th>
-                                    <th scope="col">Regular</th>
+                                    <th scope="col">Regular (till
+                                        {{ \Carbon\Carbon::parse($conference->regular_registration_deadline)->format('M j') }})
+                                    </th>
                                     <th scope="col">Spot Registration</th>
                                 </tr>
                             </thead>

@@ -60,7 +60,7 @@
                     <button class="btn btn-primary ">Login</button>
                 </a>
                 <a href="{{ route('register') }}" class="btn btn-outline-primary">
-                    Register
+                    Conference Register
                 </a>
 
             </div>

@@ -173,7 +173,14 @@ class SignupUserController extends Controller
     public function editProfile(Request $request, $society, $conference)
     {
         $user = User::whereId($request->id)->first();
-        $prefixesAll = NamePrefix::whereStatus(1)->get();
+        // $prefixesAll = NamePrefix::whereStatus(1)->get();
+         if ($society && $society->namePrefixes()->exists()) {
+            $prefixesAll = $society->namePrefixes()->where('status', 1)->get();
+            // dd($prefixesAll);
+        } else {
+            // Fallback to all active prefixes if society hasn't selected any
+            $prefixesAll = NamePrefix::whereStatus(1)->get();
+        }
         return view('backend.users.signup-user.edit-user-profile', compact('user', 'prefixesAll', 'society', 'conference'));
     }
 
