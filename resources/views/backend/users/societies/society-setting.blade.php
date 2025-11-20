@@ -41,7 +41,8 @@
 
             <div class="col-md-12 mb-4">
                 <label>Banner Subtitle</label>
-                <textarea class="form-control" name="banner_subtitle" rows="3" placeholder="e.g., NESOG's conferences empower obstetricians and gynecologists...">{{ $societySetting?->banner_subtitle }}</textarea>
+                <textarea class="form-control" name="banner_subtitle" rows="3"
+                    placeholder="e.g., Institution conferences empower obstetricians and gynecologists...">{{ $societySetting?->banner_subtitle }}</textarea>
             </div>
 
         </div>

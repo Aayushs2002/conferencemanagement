@@ -55,7 +55,7 @@
             'info_box' => $conference->getCustomCss('info_box'),
             'countdown' => $conference->getCustomCss('countdown'),
             'dashboard_cards' => $conference->getCustomCss('dashboard_cards'),
-            'footer' => $conference->getCustomCss('footer')
+            'footer' => $conference->getCustomCss('footer') 
         ];
     @endphp
     
@@ -173,14 +173,14 @@
                     </div>
                 </div>
 
-                <div class="col-lg-4 position-absolute end-0 top-50 translate-middle-y text-center">
+                <div class="col-lg-4 position-absolute end-0 top-50 translate-middle-y text-center" >
                     <div class="countdown-container">
                         <h3 class="countdown-title">Conference Countdown:</h3>
                         <div class="countdown-box mt-0" data-start="{{ $conference->start_date }}"
                             data-end="{{ $conference->end_date }}">
                             <div class="time-wrapper">
                                 <div class="time-box days" id="days">00</div>
-                                <span class="time-label">Days</span>
+                                <span class="time-label" >Days</span>
                             </div>
                             <span class="time-sep">:</span>
                             <div class="time-wrapper">
