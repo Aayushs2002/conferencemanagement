@@ -15,7 +15,7 @@
                               registration
                           </a></li>
                   </ul>
-              </div>
+              </div> 
               <div class="col-lg-3 col-md-6">
                   <h5 class="footer-title mb-3">About Conference</h5>
                   <ul class="list-unstyled footer-links">
@@ -37,8 +37,8 @@
               </div>
               <div class="col-lg-3 col-md-6">
                   <ul class="list-unstyled footer-links mt-4 mt-lg-0">
-                      <li><a href="#" class="footer-link">Terms & Conditions</a></li>
-                      <li><a href="#" class="footer-link">Privacy Policy</a></li>
+                      <li><a href="{{ route('conference.terms-conditions', $conference->slug) }}" class="footer-link">Terms & Conditions</a></li>
+                      <li><a href="{{ route('conference.privacy-policy', $conference->slug) }}" class="footer-link">Privacy Policy</a></li>
                   </ul>
               </div>
           </div>

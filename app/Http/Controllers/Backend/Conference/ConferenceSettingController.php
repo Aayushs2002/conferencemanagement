@@ -33,7 +33,9 @@ class ConferenceSettingController extends Controller
                 'submission_guideline_youtube' => 'nullable|url|max:500',
                 'expert_guideline_youtube' => 'nullable|url|max:500',
                 'logo_display_type' => 'nullable',
-                'payment_instruction' => 'nullable|string'
+                'payment_instruction' => 'nullable|string',
+                'terms_conditions' => 'nullable|string',
+                'privacy_policy' => 'nullable|string'
             ]);
 
             $type = 'success';
@@ -77,6 +79,8 @@ class ConferenceSettingController extends Controller
                 'expert_guideline_youtube' => $request->expert_guideline_youtube,
                 'logo_display_type' => $request->logo_display_type,
                 'payment_instruction' => $request->payment_instruction,
+                'terms_conditions' => $request->terms_conditions,
+                'privacy_policy' => $request->privacy_policy,
             ];
 
             if ($conferenceSetting) {

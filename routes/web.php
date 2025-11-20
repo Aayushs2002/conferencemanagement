@@ -134,4 +134,6 @@ Route::prefix('conference/{conference_front:slug}')->middleware('check.subdomain
         Route::get('/scientific-session', [ScientificSessionController::class, 'index'])->name('scientific-session');
         Route::get('/news-and-notice', [NewsAndNoticeController::class, 'index'])->name('news-and-notice');
         Route::get('/register', [AuthController::class, 'register'])->name('register');
+        Route::get('/terms-conditions', [ConferenceHomeController::class, 'termsConditions'])->name('terms-conditions');
+        Route::get('/privacy-policy', [ConferenceHomeController::class, 'privacyPolicy'])->name('privacy-policy');
     });

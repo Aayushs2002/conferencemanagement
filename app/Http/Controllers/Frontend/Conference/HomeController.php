@@ -75,4 +75,14 @@ class HomeController extends BaseConferenceController
         }
         return view('frontend.conference.home.index', compact('submissionSetting', 'hotels', 'sponsorCategories', 'downloads', 'memberTypes', 'faqs', 'stats'));
     }
+
+    public function termsConditions()
+    {
+        return view('frontend.conference.terms-conditions');
+    }
+
+    public function privacyPolicy()
+    {
+        return view('frontend.conference.privacy-policy');
+    }
 }

@@ -15,7 +15,9 @@ class ConferenceSetting extends Model
         'submission_guideline_youtube',
         'expert_guideline_youtube',
         'logo_display_type',
-        'payment_instruction'
+        'payment_instruction',
+        'terms_conditions',
+        'privacy_policy'
     ];
 }
  

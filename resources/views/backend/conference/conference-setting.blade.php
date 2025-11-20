@@ -114,7 +114,22 @@
             </div>
 
             <div class="col-12 mt-3">
-                <h6>6. Custom CSS for Sections</h6>
+                <h6>6. Terms & Conditions and Privacy Policy</h6>
+                <hr class="mt-0" style="height:1px;border:none;color:#333;background-color:#333;" />
+            </div>
+
+            <div class="col-md-12 mb-4">
+                <label>Terms & Conditions</label>
+                <textarea class="form-control ckeditor" name="terms_conditions" id="terms_conditions" rows="8">{{ $conferenceSetting?->terms_conditions }}</textarea>
+            </div>
+
+            <div class="col-md-12 mb-4">
+                <label>Privacy Policy</label>
+                <textarea class="form-control ckeditor" name="privacy_policy" id="privacy_policy" rows="8">{{ $conferenceSetting?->privacy_policy }}</textarea>
+            </div>
+
+            <div class="col-12 mt-3">
+                <h6>7. Custom CSS for Sections</h6>
                 <hr class="mt-0" style="height:1px;border:none;color:#333;background-color:#333;" />
                 <p class="text-muted small">Add custom CSS for specific sections. Each section can have its own styling.
                 </p>
@@ -154,7 +169,7 @@
                                         value="1" {{ $existingCss[$key]->status ?? 0 ? 'checked' : '' }}>
                                     <label class="form-check-label" for="status{{ $key }}">
                                         Enable Custom CSS for this section
-                                    </label>
+                                    </label> 
                                 </div>
                                 <label class="form-label">CSS Code:</label>
                                 <textarea class="form-control font-monospace css-editor" name="custom_css[{{ $key }}]" rows="6"
@@ -207,24 +222,32 @@
 <script>
     // Initialize CKEditor for payment instruction
     if (typeof CKEDITOR !== 'undefined') {
-        // Destroy existing instance if any
+        // Destroy existing instances if any
         if (CKEDITOR.instances['payment_instruction']) {
             CKEDITOR.instances['payment_instruction'].destroy(true);
         }
+        if (CKEDITOR.instances['terms_conditions']) {
+            CKEDITOR.instances['terms_conditions'].destroy(true);
+        }
+        if (CKEDITOR.instances['privacy_policy']) {
+            CKEDITOR.instances['privacy_policy'].destroy(true);
+        }
 
-        // Initialize CKEditor
-        CKEDITOR.replace('payment_instruction', {
-            filebrowserUploadUrl: '{{ route('ckeditor.fileUpload', ['_token' => csrf_token()]) }}',
-            filebrowserUploadMethod: "form",
-            extraPlugins: 'wordcount',
-            wordcount: {
-                showWordCount: true,
-                showCharCount: true,
-                countSpacesAsChars: true,
-                countHTML: false,
-                maxCharCount: -1,
-                maxWordCount: -1
-            }
+        // Initialize CKEditor for all textareas
+        ['payment_instruction', 'terms_conditions', 'privacy_policy'].forEach(function(editorId) {
+            CKEDITOR.replace(editorId, {
+                filebrowserUploadUrl: '{{ route('ckeditor.fileUpload', ['_token' => csrf_token()]) }}',
+                filebrowserUploadMethod: "form",
+                extraPlugins: 'wordcount',
+                wordcount: {
+                    showWordCount: true,
+                    showCharCount: true,
+                    countSpacesAsChars: true,
+                    countHTML: false,
+                    maxCharCount: -1,
+                    maxWordCount: -1
+                }
+            });
         });
     }
 
@@ -296,6 +319,12 @@
         // Update CKEditor data before submitting
         if (CKEDITOR.instances['payment_instruction']) {
             CKEDITOR.instances['payment_instruction'].updateElement();
+        }
+        if (CKEDITOR.instances['terms_conditions']) {
+            CKEDITOR.instances['terms_conditions'].updateElement();
+        }
+        if (CKEDITOR.instances['privacy_policy']) {
+            CKEDITOR.instances['privacy_policy'].updateElement();
         }
 
         var data = new FormData($('#conferenceSettingForm')[0]);
