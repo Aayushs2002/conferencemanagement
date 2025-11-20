@@ -9,9 +9,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="author" content="">
     <!-- Favicon Icon -->
-    <link rel="icon" href="assets/img/NESOG-logo.png">
+    <link rel="icon" href="{{ Storage::url('society/logo/' . $conference->society->logo) }}">
     <!-- Site Title -->
-    <title>{{ $conference->society->abbreviation }}</title>
+    <title>{{ $conference->abbreviation ? $conference->abbreviation : $conference->society->abbreviation }}</title>
     <link rel="stylesheet" href="{{ asset('frontend/assets/css/bootstrap.min.css') }}">
     <link rel="stylesheet" href="{{ asset('frontend/assets/css/fontawesome.min.css') }}">
     <link rel="stylesheet" href="{{ asset('frontend/assets/css/slick.min.css') }}">
@@ -49,7 +49,8 @@
 
 <body>
     @include('frontend.conference.layouts.navbar')
-    <section class="conference-hero" style="background-image: url('{{ asset('frontend/assets/img/BANNER.jpg') }}');">
+    <section class="conference-hero"
+        style="background-image: url('{{ $conference->conference_banner ? Storage::url('conference/conference/banner/' . $conference->conference_banner) : asset('frontend/assets/img/BANNER.jpg') }}');">
         <div class="overlay"></div>
         <div class="container position-relative">
 

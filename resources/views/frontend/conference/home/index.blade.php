@@ -18,7 +18,7 @@
                 <div class="stat-card p-4 rounded-4 shadow-sm">
                     <h2 class="stat-number" data-target="{{ $stats['international_participants'] }}">0</h2>
                     <p class="stat-label mb-0">International Participants</p>
-                </div>
+                </div> 
             </div>
             <div class="col-lg-3 col-md-6 col-6">
                 <div class="stat-card p-4 rounded-4 shadow-sm">
@@ -181,66 +181,7 @@
                     <div class="tab-pane fade" id="abstract" role="tabpanel"
                         style="background-color: #F1F4FC; padding: 40px; border-radius: 20px;">
                         <h2 class="section-title">Abstract Submission Guidelines</h2>
-                        {{-- <p class="span-text mt-5">Submission</p>
-                        <p>All abstracts must be uploaded via the <a href="#"
-                                style="color: rgba(1, 36, 140, 1); text-decoration: underline;">Online Abstract Submission
-                                Portal.</a>
-                        </p>
-
-                        <p class="span-text mt-4">Language</p>
-                        <p>All abstracts are to be written in English. The Scientific Committee reserves the right to edit
-                            abstracts
-                            where the English structure makes comprehension difficult.</p>
-
-                        <p class="span-text mt-4">Abstract Preparation</p>
-                        <p>This should be limited to a maximum of 250 words and should include the following:</p>
-                        <ul class="payment-list">
-                            <li>Title of Abstract.</li>
-                            <li>Names and contact details of author(s) {organization, city and country, email, phone
-                                numbers, and
-                                mailing address}. Please underline the name of the presenter/s clearly and provide a 3-line
-                                biography of
-                                the author/s with your abstract (not included in the word limit).</li>
-                            <li>The abstract must include the following headings clearly: Background, Methods, Results and
-                                Discussion.
-                            </li>
-                            <li>Please provide evidence of ethical approval and funding acknowledgements, if any.</li>
-                            <li>Limited to twelve words (exceeding titles will be edited).</li>
-                            <li>Any graphs, charts, diagrams, photos or other forms of display of results can be uploaded in
-                                word file
-                                format.</li>
-                            <li>Abstract submission will be acknowledged via email. If you do not receive an email within
-                                two (2)
-                                weeks of submission or have any additional queries, please contact us by email at
-                                safogcon2025@nesog.org.np.</li>
-                            <li>Omit academic degrees and titles.</li>
-                            <li>Group affiliated institutions with names and addresses.</li>
-                            <li>All abstracts must be submitted on or before October 25, 2025.</li>
-                        </ul>
-
-                        <p class="span-text mt-4">Please Note</p>
-                        <p>Scientific Topics are open to all Obstetricians and Gynecologists related topics Abstracts must
-                            contain
-                            original scientific data collected by the author(s). All reports must be based on work that has
-                            already
-                            been completed. No studies "in progress" will be accepted. Any established research design or
-                            method may
-                            be used.</p>
-
-                        <p class="span-text mt-4">Selection Criteria</p>
-                        <p>Abstracts will be evaluated through a blind review process and scored based upon the following
-                            criteria
-                            to be selected for Oral (8 minutes), Poster, Oral and Poster Presentation:</p>
-                        <ul class="payment-list">
-                            <li>Originality</li>
-                            <li>Concept and Design</li>
-                            <li>Presentation</li>
-                            <li>Clinical Applicability</li>
-                            <li>Limited to twelve words (exceeding titles will be edited).</li>
-                            <li>Any graphs, charts, diagrams, photos or other forms of display of results can be uploaded in
-                                word file
-                                format.</li>
-                        </ul> --}}
+                    
                         {!! $submissionSetting?->abstract_guidelines !!}
                     </div>
 
@@ -470,14 +411,18 @@
                         </table>
                     </div>
                     <p class="span-text mt-3">Payment Instructions</p>
-                    <ul class="payment-list">
-                        <li>Local payments in NPR through Nepali payment gateways.</li>
-                        <li>International payment in USD through International gateways.</li>
-                        <li>Early registration recommended for all participants till:
-                            {{ \Carbon\Carbon::parse($conference->early_bird_registration_deadline)->format('F j, Y') }}.
-                        </li>
-                        <li>Payments will be accessible as soon as registration starts.</li>
-                    </ul>
+                    @if($conference->conferenceSetting?->payment_instruction)
+                        {!! $conference->conferenceSetting->payment_instruction !!}
+                    @else
+                        <ul class="payment-list">
+                            <li>Local payments in NPR through Nepali payment gateways.</li>
+                            <li>International payment in USD through International gateways.</li>
+                            <li>Early registration recommended for all participants till:
+                                {{ \Carbon\Carbon::parse($conference->early_bird_registration_deadline)->format('F j, Y') }}.
+                            </li>
+                            <li>Payments will be accessible as soon as registration starts.</li>
+                        </ul>
+                    @endif
 
                     <h3 class="section-title mb-4 mt-5">Frequently Asked Questions</h3>
                     <div class="accordion" id="faqAccordion">

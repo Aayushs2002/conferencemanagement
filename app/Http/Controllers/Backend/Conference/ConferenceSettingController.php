@@ -14,7 +14,7 @@ class ConferenceSettingController extends Controller
     public function __construct(protected FileService $file_service) {}
 
     public function conferenceSetting(Request $request)
-    {
+    { 
         $conference = Conference::where('id', $request->id)->first();
         $conferenceSetting = ConferenceSetting::where('conference_id', $conference->id)->first();
         return view('backend.conference.conference-setting', compact('conference', 'conferenceSetting'));
@@ -31,7 +31,8 @@ class ConferenceSettingController extends Controller
                 'registration_guideline_youtube' => 'nullable|url|max:500',
                 'submission_guideline_youtube' => 'nullable|url|max:500',
                 'expert_guideline_youtube' => 'nullable|url|max:500',
-                'logo_display_type' => 'nullable'
+                'logo_display_type' => 'nullable',
+                'payment_instruction' => 'nullable|string'
             ]);
 
             $type = 'success';
@@ -74,6 +75,7 @@ class ConferenceSettingController extends Controller
                 'submission_guideline_youtube' => $request->submission_guideline_youtube,
                 'expert_guideline_youtube' => $request->expert_guideline_youtube,
                 'logo_display_type' => $request->logo_display_type,
+                'payment_instruction' => $request->payment_instruction,
             ];
 
             if ($conferenceSetting) {
