@@ -24,37 +24,6 @@
                     {{-- Payment Box (static) --}}
                     <div class="payment-box p-3 rounded-4 text-center d-none d-lg-block">
                         <h4 class="box-title">Payment Methods</h4>
-                        @if ($conference->society->internationalPaymentSetting)
-                            <h6 class="mb-2 fw-600">For International Delegates</h6>
-                            <div class="d-flex justify-content-between align-items-center mb-3 payment-logos">
-                                <div class="logo-item"><img
-                                        src="{{ asset('frontend/assets/img/international_delegate_1.png') }}" alt="Visa"
-                                        class="logo-img"></div>
-                                <div class="logo-item"><img
-                                        src="{{ asset('frontend/assets/img/international_delegate_2.png') }}"
-                                        alt="Mastercard" class="logo-img"></div>
-                                <div class="logo-item"><img
-                                        src="{{ asset('frontend/assets/img/international_delegate_3.png') }}" alt="PayPal"
-                                        class="logo-img"></div>
-                                <div class="logo-item"><img
-                                        src="{{ asset('frontend/assets/img/international_delegate_4.png') }}" alt="Amex"
-                                        class="logo-img"></div>
-                            </div>
-
-                            <h6 class="mb-2 fw-600">For Indian Delegates</h6>
-                            <div class="d-flex justify-content-between align-items-center mb-3 payment-logos">
-                                <div class="logo-item"><img
-                                        src="{{ asset('frontend/assets/img/international_delegate_4.png') }}"
-                                        alt="Payment Method 1" class="logo-img"></div>
-                                <div class="logo-item"><img
-                                        src="{{ asset('frontend/assets/img/international_delegate_2.png') }}"
-                                        alt="Payment Method 2" class="logo-img"></div>
-                                <div class="logo-item"><img
-                                        src="{{ asset('frontend/assets/img/international_delegate_3.png') }}"
-                                        alt="Payment Method 3" class="logo-img"></div>
-                            </div>
-                        @endif
-
                         <h6 class="mb-2 fw-600">For Nepali Delegates</h6>
                         <div class="d-flex justify-content-between align-items-center payment-logos">
                             {{--                             
@@ -66,7 +35,7 @@
                             </div>
                             <div class="logo-item"><img src="{{ asset('frontend/assets/img/logo-1 (1).png') }}"
                                     alt="Bank Transfer" class="logo-img"></div> --}}
-                            @if ($conference->society->nationalPaymentSetting?->esewa_product_key)
+                            @if ($conference->society->nationalPaymentSetting?->esewa_product_code)
                                 <div class="logo-item"><img src="{{ asset('frontend/assets/img/esewa-icon-large.png') }}"
                                         alt="eSewa" class="logo-img">
                                 </div>
@@ -83,12 +52,45 @@
                             @if (
                                 $conference->society->nationalPaymentSetting?->profile_id &&
                                     $conference->society->nationalPaymentSetting?->secret_key)
-                                <div class="logo-item"><img src="{{ asset('frontend/assets/img/unnamed.png') }}"
-                                        alt="Fone Pay" class="logo-img"></div>
+                                <div class=""><img style="height: 80px !important;"
+                                        src="{{ asset('frontend/assets/img/unnamed.png') }}" alt="Fone Pay" class="">
+                                </div>
                             @endif
 
 
                         </div>
+                        @if ($conference->society->internationalPaymentSetting)
+                            <h6 class="mb-2 fw-600">For International Delegates</h6>
+                            <div class="d-flex justify-content-between align-items-center mb-3 payment-logos">
+                                <div class="logo-item"><img
+                                        src="{{ asset('frontend/assets/img/international_delegate_1.png') }}"
+                                        alt="Visa" class="logo-img"></div>
+                                <div class="logo-item"><img
+                                        src="{{ asset('frontend/assets/img/international_delegate_2.png') }}"
+                                        alt="Mastercard" class="logo-img"></div>
+                                <div class="logo-item"><img
+                                        src="{{ asset('frontend/assets/img/international_delegate_3.png') }}"
+                                        alt="PayPal" class="logo-img"></div>
+                                <div class="logo-item"><img
+                                        src="{{ asset('frontend/assets/img/international_delegate_4.png') }}"
+                                        alt="Amex" class="logo-img"></div>
+                            </div>
+
+                            <h6 class="mb-2 fw-600">For Indian Delegates</h6>
+                            <div class="d-flex justify-content-between align-items-center mb-3 payment-logos">
+                                <div class="logo-item"><img
+                                        src="{{ asset('frontend/assets/img/international_delegate_4.png') }}"
+                                        alt="Payment Method 1" class="logo-img"></div>
+                                <div class="logo-item"><img
+                                        src="{{ asset('frontend/assets/img/international_delegate_2.png') }}"
+                                        alt="Payment Method 2" class="logo-img"></div>
+                                <div class="logo-item"><img
+                                        src="{{ asset('frontend/assets/img/international_delegate_3.png') }}"
+                                        alt="Payment Method 3" class="logo-img"></div>
+                            </div>
+                        @endif
+
+
                     </div>
                 </div>
 
@@ -143,6 +145,31 @@
 
                 <div class="payment-box p-3 rounded-4 text-center d-lg-none mt-4">
                     <h4 class="box-title">Payment Methods</h4>
+                    <h6 class="mb-2 fw-600">For Nepali Delegates</h6>
+                    <div class="d-flex justify-content-between align-items-center payment-logos">
+                        @if ($conference->society->nationalPaymentSetting?->esewa_product_code)
+                            <div class="logo-item"><img src="{{ asset('frontend/assets/img/esewa-icon-large.png') }}"
+                                    alt="eSewa" class="logo-img">
+                            </div>
+                        @endif
+                        @if ($conference->society->nationalPaymentSetting?->khalti_live_secret_key)
+                            <div class="logo-item"><img src="{{ asset('frontend/assets/img/khalti-ime-logo.png') }}"
+                                    alt="Khalti" class="logo-img">
+                            </div>
+                        @endif
+                        @if ($conference->society->nationalPaymentSetting?->moco_shared_key)
+                            <div class="logo-item"><img src="{{ asset('frontend/assets/img/logo-1 (1).png') }}"
+                                    alt="Bank Transfer" class="logo-img"></div>
+                        @endif
+                        @if (
+                            $conference->society->nationalPaymentSetting?->profile_id &&
+                                $conference->society->nationalPaymentSetting?->secret_key)
+                            <div class=""><img style="height: 80px !important;"
+                                    src="{{ asset('frontend/assets/img/unnamed.png') }}" alt="Fone Pay" class="">
+                            </div>
+                        @endif
+
+                    </div>
                     @if ($conference->society->internationalPaymentSetting)
                         <h6 class="mb-2 fw-600">For International Delegates</h6>
                         <div class="d-flex justify-content-between align-items-center mb-3 payment-logos">
@@ -150,8 +177,8 @@
                                     src="{{ asset('frontend/assets/img/international_delegate_1.png') }}" alt="Visa"
                                     class="logo-img"></div>
                             <div class="logo-item"><img
-                                    src="{{ asset('frontend/assets/img/international_delegate_2.png') }}" alt="Mastercard"
-                                    class="logo-img"></div>
+                                    src="{{ asset('frontend/assets/img/international_delegate_2.png') }}"
+                                    alt="Mastercard" class="logo-img"></div>
                             <div class="logo-item"><img
                                     src="{{ asset('frontend/assets/img/international_delegate_3.png') }}" alt="PayPal"
                                     class="logo-img"></div>
@@ -173,30 +200,7 @@
                                     alt="Payment Method 3" class="logo-img"></div>
                         </div>
                     @endif
-                    <h6 class="mb-2 fw-600">For Nepali Delegates</h6>
-                    <div class="d-flex justify-content-between align-items-center payment-logos">
-                        @if ($conference->society->nationalPaymentSetting?->esewa_product_key)
-                            <div class="logo-item"><img src="{{ asset('frontend/assets/img/esewa-icon-large.png') }}"
-                                    alt="eSewa" class="logo-img">
-                            </div>
-                        @endif
-                        @if ($conference->society->nationalPaymentSetting?->khalti_live_secret_key)
-                            <div class="logo-item"><img src="{{ asset('frontend/assets/img/khalti-ime-logo.png') }}"
-                                    alt="Khalti" class="logo-img">
-                            </div>
-                        @endif
-                        @if ($conference->society->nationalPaymentSetting?->moco_shared_key)
-                            <div class="logo-item"><img src="{{ asset('frontend/assets/img/logo-1 (1).png') }}"
-                                    alt="Bank Transfer" class="logo-img"></div>
-                        @endif
-                        @if (
-                            $conference->society->nationalPaymentSetting?->profile_id &&
-                                $conference->society->nationalPaymentSetting?->secret_key)
-                            <div class="logo-item"><img src="{{ asset('frontend/assets/img/unnamed.png') }}"
-                                    alt="Fone Pay" class="logo-img"></div>
-                        @endif
 
-                    </div>
                 </div>
             </main>
         </div>
