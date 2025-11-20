@@ -80,7 +80,7 @@
                                 <div class="logo-item"><img src="{{ asset('frontend/assets/img/esewa-icon-large.png') }}"
                                         alt="eSewa" class="logo-img">
                                 </div>
-                            @endif
+                            @endif 
                             @if ($conference->society->nationalPaymentSetting?->khalti_live_secret_key)
                                 <div class="logo-item"><img src="{{ asset('frontend/assets/img/khalti-ime-logo.png') }}"
                                         alt="Khalti" class="logo-img">
