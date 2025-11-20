@@ -18,6 +18,7 @@ class Conference extends Model
         'abbreviation',
         'conference_theme',
         'conference_logo',
+        'conference_banner',
         'start_date',
         'end_date',
         'start_time',

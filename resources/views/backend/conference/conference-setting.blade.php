@@ -15,7 +15,7 @@
                 <h6>1. Payment Voucher Details</h6>
                 <hr class="mt-0" style="height:1px;border:none;color:#333;background-color:#333;" />
             </div>
-
+ 
             <div class="col-md-4 mb-4">
                 <label>Name</label>
                 <input type="text" class="form-control" name="name" value="{{ $conferenceSetting?->name }}">
@@ -101,6 +101,16 @@
                 </select>
                 <small class="text-muted">If both logo and abbreviation are empty, society logo will be shown</small>
             </div>
+
+            <div class="col-12 mt-3"> 
+                <h6>5. Payment Instruction</h6>
+                <hr class="mt-0" style="height:1px;border:none;color:#333;background-color:#333;" />
+            </div>
+
+            <div class="col-md-12 mb-4">
+                <label>Payment Instruction</label>
+                <textarea class="form-control ckeditor" name="payment_instruction" id="payment_instruction" rows="5">{{ $conferenceSetting?->payment_instruction }}</textarea>
+            </div>
         </div> 
         <div class="text-end mt-4">
             <button type="submit" class="btn btn-primary"
@@ -111,6 +121,29 @@
 </div>
 
 <script>
+    // Initialize CKEditor for payment instruction
+    if (typeof CKEDITOR !== 'undefined') {
+        // Destroy existing instance if any
+        if (CKEDITOR.instances['payment_instruction']) {
+            CKEDITOR.instances['payment_instruction'].destroy(true);
+        }
+        
+        // Initialize CKEditor
+        CKEDITOR.replace('payment_instruction', {
+            filebrowserUploadUrl: '{{ route('ckeditor.fileUpload', ['_token' => csrf_token()]) }}',
+            filebrowserUploadMethod: "form",
+            extraPlugins: 'wordcount',
+            wordcount: {
+                showWordCount: true,
+                showCharCount: true,
+                countSpacesAsChars: true,
+                countHTML: false,
+                maxCharCount: -1,
+                maxWordCount: -1
+            }
+        });
+    }
+
     $(".numericValue").on("keydown", function(event) {
         // Allow backspace, delete, tab, escape, and enter keys
         if (event.keyCode == 46 || event.keyCode == 8 || event.keyCode == 9 || event.keyCode == 27 || event
@@ -175,6 +208,12 @@
 
     $("#submitData").on('click', function(e) {
         e.preventDefault();
+        
+        // Update CKEditor data before submitting
+        if (CKEDITOR.instances['payment_instruction']) {
+            CKEDITOR.instances['payment_instruction'].updateElement();
+        }
+        
         var data = new FormData($('#conferenceSettingForm')[0]);
         $.ajaxSetup({
             headers: {

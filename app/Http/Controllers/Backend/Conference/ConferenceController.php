@@ -75,6 +75,12 @@ class ConferenceController extends Controller
                 $req['conference_logo'] = $this->file_service->fileUpload($req['conference_logo'], 'conference_logo', 'conference/conference/logo');
             }
 
+            //uploading the conference banner
+            if (!empty($req['conference_banner'])) {
+                //file uplaod function parameter required file,name,location
+                $req['conference_banner'] = $this->file_service->fileUpload($req['conference_banner'], 'conference_banner', 'conference/conference/banner');
+            }
+
             //uploading the organizer logo
             if (!empty($req['organizer_logo'])) {
                 //file uplaod function parameter required file,name,location
@@ -86,7 +92,7 @@ class ConferenceController extends Controller
             $req['conference_id'] = $Conference->id;
 
             //inserting in conference organizer table
-            ConferenceOrganizer::create($req);
+            ConferenceOrganizer::create($req); 
 
             //inserting in conference venue details table
             ConferenceVenueDetail::create($req);
@@ -172,6 +178,13 @@ class ConferenceController extends Controller
                 $this->file_service->deleteFile($conference->conference_logo, 'conference/conference/logo');
                 //file uplaod function parameter required file,name,location
                 $req['conference_logo'] = $this->file_service->fileUpload($req['conference_logo'], 'conference_logo', 'conference/conference/logo');
+            }
+
+            //uploading the conference banner
+            if (!empty($req['conference_banner'])) {
+                $this->file_service->deleteFile($conference->conference_banner, 'conference/conference/banner');
+                //file uplaod function parameter required file,name,location
+                $req['conference_banner'] = $this->file_service->fileUpload($req['conference_banner'], 'conference_banner', 'conference/conference/banner');
             }
 
             //uploading the organizer logo

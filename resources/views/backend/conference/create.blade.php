@@ -157,7 +157,7 @@
                             <label class="form-label" for="conference_logo">Conference Logo <code> (Only JPG/PNG) (Max:
                                     250
                                     KB)</code></label>
-                            <input type="file" class="form-control" name="conference_logo" id="image"
+            <input type="file" class="form-control" name="conference_logo" id="image"
                                 value="{{ !empty(old('conference_logo')) ? old('conference_logo') : @$conference->conference_logo }}" />
                             <div class="row" id="imgPreview">
                                 @if (isset($conference))
@@ -170,6 +170,24 @@
                                 @endif
                             </div>
                             @error('conference_logo')
+                                <p class="text-danger">{{ $message }}</p>
+                            @enderror
+                        </div>
+                        <div class="mb-6 col-md-4">
+                            <label class="form-label" for="conference_banner">Conference Banner <code> (Only JPG/PNG) (Dimension: 1680 x 478)</code></label>
+                            <input type="file" class="form-control" name="conference_banner" id="image3"
+                                value="{{ !empty(old('conference_banner')) ? old('conference_banner') : @$conference->conference_banner }}" />
+                            <div class="row" id="imgPreview3">
+                                @if (isset($conference) && $conference->conference_banner)
+                                    <div class="col-3 mt-2">
+                                        <a href="{{ asset('storage/conference/conference/banner/' . $conference->conference_banner) }}"
+                                            target="_blank"><img
+                                                src="{{ asset('storage/conference/conference/banner/' . $conference->conference_banner) }}"
+                                                class="img-fluid" alt="banner"></a>
+                                    </div>
+                                @endif
+                            </div>
+                            @error('conference_banner')
                                 <p class="text-danger">{{ $message }}</p>
                             @enderror
                         </div>
@@ -317,7 +335,7 @@
                                 <p class="text-danger">{{ $message }}</p>
                             @enderror
                         </div>
-
+ 
                         <div class="mb-6 col-md-4">
                             <label class="form-label" for="organizer_phone_number">Organizer Phone Number
                                 <code>*</code></label>
@@ -420,6 +438,19 @@
             if (keywordInput) {
                 new Tagify(keywordInput);
             }
+
+            // Image preview for conference banner
+            $("#image3").change(function() {
+                let reader = new FileReader();
+                $("#imgPreview3").html('');
+
+                reader.onload = function(e) {
+                    $("#imgPreview3").append('<div class="col-3 mt-2"><img src="' + e.target.result +
+                        '" class="img-fluid" /></div>');
+                };
+
+                reader.readAsDataURL(this.files[0]);
+            });
         });
     </script>
 @endsection
