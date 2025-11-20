@@ -11,11 +11,11 @@
             <input type="hidden" name="id" value="{{ $conferenceSetting?->id }}">
             <input type="hidden" name="conference_id" value="{{ $conference?->id }}">
 
-            <div class="col-12"> 
+            <div class="col-12">
                 <h6>1. Payment Voucher Details</h6>
                 <hr class="mt-0" style="height:1px;border:none;color:#333;background-color:#333;" />
             </div>
- 
+
             <div class="col-md-4 mb-4">
                 <label>Name</label>
                 <input type="text" class="form-control" name="name" value="{{ $conferenceSetting?->name }}">
@@ -36,15 +36,15 @@
                 </div>
             </div>
 
-            <div class="col-12 mt-3"> 
+            <div class="col-12 mt-3">
                 <h6>2. Conference Registration Guideline</h6>
                 <hr class="mt-0" style="height:1px;border:none;color:#333;background-color:#333;" />
             </div>
 
             <div class="col-md-4 mb-4">
                 <label>Registration Guideline <code>(Only PDF, Max: 5MB)</code></label>
-                <input type="file" class="form-control" name="registration_guideline"
-                    id="registration_guideline" accept=".pdf">
+                <input type="file" class="form-control" name="registration_guideline" id="registration_guideline"
+                    accept=".pdf">
                 <div class="row" id="guidelinePreview">
                     @if ($conferenceSetting?->registration_guideline)
                         <div class="col-3 mt-2">
@@ -58,33 +58,33 @@
                 </div>
             </div>
 
-            <div class="col-12 mt-3"> 
+            <div class="col-12 mt-3">
                 <h6>3. YouTube Guideline Links</h6>
                 <hr class="mt-0" style="height:1px;border:none;color:#333;background-color:#333;" />
             </div>
 
             <div class="col-md-4 mb-4">
                 <label>Registration Guideline YouTube Link</label>
-                <input type="url" class="form-control" name="registration_guideline_youtube" 
-                    value="{{ $conferenceSetting?->registration_guideline_youtube }}" 
+                <input type="url" class="form-control" name="registration_guideline_youtube"
+                    value="{{ $conferenceSetting?->registration_guideline_youtube }}"
                     placeholder="https://www.youtube.com/watch?v=...">
             </div>
 
             <div class="col-md-4 mb-4">
                 <label>Submission Guideline YouTube Link</label>
-                <input type="url" class="form-control" name="submission_guideline_youtube" 
-                    value="{{ $conferenceSetting?->submission_guideline_youtube }}" 
+                <input type="url" class="form-control" name="submission_guideline_youtube"
+                    value="{{ $conferenceSetting?->submission_guideline_youtube }}"
                     placeholder="https://www.youtube.com/watch?v=...">
             </div>
 
             <div class="col-md-4 mb-4">
                 <label>Expert Guideline YouTube Link</label>
-                <input type="url" class="form-control" name="expert_guideline_youtube" 
-                    value="{{ $conferenceSetting?->expert_guideline_youtube }}" 
+                <input type="url" class="form-control" name="expert_guideline_youtube"
+                    value="{{ $conferenceSetting?->expert_guideline_youtube }}"
                     placeholder="https://www.youtube.com/watch?v=...">
             </div>
 
-            <div class="col-12 mt-3"> 
+            <div class="col-12 mt-3">
                 <h6>4. Navbar Display Settings</h6>
                 <hr class="mt-0" style="height:1px;border:none;color:#333;background-color:#333;" />
             </div>
@@ -95,14 +95,15 @@
                     <option value="logo" {{ $conferenceSetting?->logo_display_type == 'logo' ? 'selected' : '' }}>
                         Conference Logo
                     </option>
-                    <option value="abbreviation" {{ $conferenceSetting?->logo_display_type == 'abbreviation' ? 'selected' : '' }}>
+                    <option value="abbreviation"
+                        {{ $conferenceSetting?->logo_display_type == 'abbreviation' ? 'selected' : '' }}>
                         Conference Abbreviation
                     </option>
                 </select>
                 <small class="text-muted">If both logo and abbreviation are empty, society logo will be shown</small>
             </div>
 
-            <div class="col-12 mt-3"> 
+            <div class="col-12 mt-3">
                 <h6>5. Payment Instruction</h6>
                 <hr class="mt-0" style="height:1px;border:none;color:#333;background-color:#333;" />
             </div>
@@ -111,14 +112,97 @@
                 <label>Payment Instruction</label>
                 <textarea class="form-control ckeditor" name="payment_instruction" id="payment_instruction" rows="5">{{ $conferenceSetting?->payment_instruction }}</textarea>
             </div>
-        </div> 
+
+            <div class="col-12 mt-3">
+                <h6>6. Custom CSS for Sections</h6>
+                <hr class="mt-0" style="height:1px;border:none;color:#333;background-color:#333;" />
+                <p class="text-muted small">Add custom CSS for specific sections. Each section can have its own styling.
+                </p>
+            </div>
+
+            @php
+                $sections = [
+                    'navbar_logo' => 'Navbar Logo',
+                    'banner' => 'Conference Banner',
+                    'hero_section' => 'Hero Section', 
+                    'info_box' => 'Conference Info Box',
+                    'countdown' => 'Countdown Timer',
+                    'dashboard_cards' => 'Dashboard Cards',
+                    'footer' => 'Footer Section',
+                ];
+                $existingCss = $conference->customCss->keyBy('section_name');
+            @endphp
+
+            <div class="accordion" id="customCssAccordion">
+                @foreach ($sections as $key => $label)
+                    <div class="accordion-item mb-3">
+                        <h2 class="accordion-header" id="heading{{ $key }}">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                                data-bs-target="#collapse{{ $key }}" aria-expanded="false"
+                                aria-controls="collapse{{ $key }}">
+                                <i class="ti tabler-palette me-2"></i> {{ $label }}
+                            </button>
+                        </h2>
+                        <div id="collapse{{ $key }}" class="accordion-collapse collapse"
+                            aria-labelledby="heading{{ $key }}" data-bs-parent="#customCssAccordion">
+                            <div class="accordion-body">
+                                <input type="hidden" name="css_ids[{{ $key }}]"
+                                    value="{{ $existingCss[$key]->id ?? '' }}">
+                                <div class="form-check form-switch mb-3">
+                                    <input class="form-check-input" type="checkbox"
+                                        name="css_status[{{ $key }}]" id="status{{ $key }}"
+                                        value="1" {{ $existingCss[$key]->status ?? 0 ? 'checked' : '' }}>
+                                    <label class="form-check-label" for="status{{ $key }}">
+                                        Enable Custom CSS for this section
+                                    </label>
+                                </div>
+                                <label class="form-label">CSS Code:</label>
+                                <textarea class="form-control font-monospace css-editor" name="custom_css[{{ $key }}]" rows="6"
+                                    placeholder="/* Enter CSS here - Example: */&#10;{{ $key == 'navbar_logo' ? 'color: red;&#10;font-size: 1.8rem;' : 'max-height: 60px;&#10;border-radius: 8px;' }}&#10;box-shadow: 0 2px 4px rgba(0,0,0,0.1);">{{ $existingCss[$key]->custom_css ?? '' }}</textarea>
+                                <small class="text-muted">
+                                    <i class="ti tabler-info-circle"></i>
+                                    Example for {{ $label }}: 
+                                    @if($key == 'navbar_logo')
+                                        Add properties like color, font-size, font-weight, max-height, border-radius, etc.
+                                    @else
+                                        Add properties like max-height, border-radius, box-shadow, etc.
+                                    @endif
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+
+        </div>
         <div class="text-end mt-4">
             <button type="submit" class="btn btn-primary"
                 id="submitData">{{ empty($conferenceSetting?->id) ? 'Submit' : 'Update' }}</button>
         </div>
-    </form> 
+    </form>
 
 </div>
+
+<style>
+    .css-editor {
+        background-color: #f8f9fa;
+        font-family: 'Courier New', Courier, monospace;
+        font-size: 13px;
+        line-height: 1.5;
+        border: 1px solid #dee2e6;
+    }
+
+    .css-editor:focus {
+        background-color: #fff;
+        border-color: #80bdff;
+        box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, .25);
+    }
+
+    .accordion-button:not(.collapsed) {
+        background-color: #e7f3ff;
+        color: #0056b3;
+    }
+</style>
 
 <script>
     // Initialize CKEditor for payment instruction
@@ -127,7 +211,7 @@
         if (CKEDITOR.instances['payment_instruction']) {
             CKEDITOR.instances['payment_instruction'].destroy(true);
         }
-        
+
         // Initialize CKEditor
         CKEDITOR.replace('payment_instruction', {
             filebrowserUploadUrl: '{{ route('ckeditor.fileUpload', ['_token' => csrf_token()]) }}',
@@ -160,41 +244,41 @@
         }
     });
 
-     $("#image").change(function() {
-            let reader = new FileReader();
+    $("#image").change(function() {
+        let reader = new FileReader();
 
-            $("#imgPreview").html('');
+        $("#imgPreview").html('');
 
-            reader.onload = function(e) {
-                let fileExtension = $("#image").val().split('.').pop().toLowerCase();
+        reader.onload = function(e) {
+            let fileExtension = $("#image").val().split('.').pop().toLowerCase();
 
-                if (fileExtension === 'pdf') {
-                    $("#imgPreview").append(
-                        '<div class="col-3 mt-2"><img src="{{ asset('default-image/pdf.png') }}" class="img-fluid" /></div>'
-                    );
-                } else if (fileExtension === 'ppt' || fileExtension === 'pptx' || fileExtension === 'pptm') {
-                    $("#imgPreview").append(
-                        '<div class="col-3 mt-2"><img src="{{ asset('default-image/ppt.png') }}" class="img-fluid" /></div>'
-                    );
-                } else if (fileExtension === 'doc' || fileExtension === 'docx') {
-                    $("#imgPreview").append(
-                        '<div class="col-3 mt-2"><img src="{{ asset('default-image/word.png') }}" class="img-fluid" /></div>'
-                    );
-                } else {
-                    $("#imgPreview").append('<div class="col-3 mt-2"><img src="' + e.target.result +
-                        '" class="img-fluid" /></div>');
-                }
-            };
+            if (fileExtension === 'pdf') {
+                $("#imgPreview").append(
+                    '<div class="col-3 mt-2"><img src="{{ asset('default-image/pdf.png') }}" class="img-fluid" /></div>'
+                );
+            } else if (fileExtension === 'ppt' || fileExtension === 'pptx' || fileExtension === 'pptm') {
+                $("#imgPreview").append(
+                    '<div class="col-3 mt-2"><img src="{{ asset('default-image/ppt.png') }}" class="img-fluid" /></div>'
+                );
+            } else if (fileExtension === 'doc' || fileExtension === 'docx') {
+                $("#imgPreview").append(
+                    '<div class="col-3 mt-2"><img src="{{ asset('default-image/word.png') }}" class="img-fluid" /></div>'
+                );
+            } else {
+                $("#imgPreview").append('<div class="col-3 mt-2"><img src="' + e.target.result +
+                    '" class="img-fluid" /></div>');
+            }
+        };
 
-            reader.readAsDataURL(this.files[0]);
-        });
+        reader.readAsDataURL(this.files[0]);
+    });
 
     $("#registration_guideline").change(function() {
         $("#guidelinePreview").html('');
-        
+
         if (this.files && this.files[0]) {
             let fileExtension = $("#registration_guideline").val().split('.').pop().toLowerCase();
-            
+
             if (fileExtension === 'pdf') {
                 $("#guidelinePreview").append(
                     '<div class="col-3 mt-2">' +
@@ -208,12 +292,12 @@
 
     $("#submitData").on('click', function(e) {
         e.preventDefault();
-        
+
         // Update CKEditor data before submitting
         if (CKEDITOR.instances['payment_instruction']) {
             CKEDITOR.instances['payment_instruction'].updateElement();
         }
-        
+
         var data = new FormData($('#conferenceSettingForm')[0]);
         $.ajaxSetup({
             headers: {

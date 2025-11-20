@@ -3,7 +3,7 @@
 @section('title')
     Conference
 @endsection
-@section('content')
+@section('content') 
     <div class="card">
         <div class="card-datatable table-responsive pt-0">
             <div class="row card-header flex-column flex-md-row border-bottom mx-0 px-3">

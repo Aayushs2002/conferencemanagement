@@ -45,6 +45,67 @@
 
         }
     </style>
+    
+    @php
+        // Apply custom CSS for different sections
+        $customCssSections = [
+            'navbar_logo' => $conference->getCustomCss('navbar_logo'),
+            'banner' => $conference->getCustomCss('banner'),
+            'hero_section' => $conference->getCustomCss('hero_section'),
+            'info_box' => $conference->getCustomCss('info_box'),
+            'countdown' => $conference->getCustomCss('countdown'),
+            'dashboard_cards' => $conference->getCustomCss('dashboard_cards'),
+            'footer' => $conference->getCustomCss('footer')
+        ];
+    @endphp
+    
+    @if(array_filter($customCssSections))
+    <style>
+        /* Custom CSS from Conference Settings */
+        @if($customCssSections['navbar_logo'])
+        .navbar-brand span,
+        .navbar-brand img {
+            {{ $customCssSections['navbar_logo'] }}
+        }
+        @endif
+        
+        @if($customCssSections['banner'])
+        .conference-hero {
+            {{ $customCssSections['banner'] }}
+        }
+        @endif
+        
+        @if($customCssSections['hero_section'])
+        .hero-header {
+            {{ $customCssSections['hero_section'] }}
+        }
+        @endif
+        
+        @if($customCssSections['info_box'])
+        .info-box {
+            {{ $customCssSections['info_box'] }}
+        }
+        @endif
+        
+        @if($customCssSections['countdown'])
+        .countdown-box {
+            {{ $customCssSections['countdown'] }}
+        }
+        @endif
+        
+        @if($customCssSections['dashboard_cards'])
+        .dash-card {
+            {{ $customCssSections['dashboard_cards'] }}
+        }
+        @endif
+        
+        @if($customCssSections['footer'])
+        footer {
+            {{ $customCssSections['footer'] }}
+        }
+        @endif
+    </style>
+    @endif
 </head>
 
 <body>

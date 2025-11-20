@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Backend\Conference;
 use App\Http\Controllers\Controller;
 use App\Models\Conference\Conference;
 use App\Models\Conference\ConferenceSetting;
+use App\Models\Conference\ConferenceCustomCss;
 use App\Services\File\FileService;
 use Exception;
 use Illuminate\Http\Request;
@@ -85,6 +86,34 @@ class ConferenceSettingController extends Controller
                 ConferenceSetting::create($data);
                 $message = "Conference Setting created successfully";
             }
+
+            // Handle Custom CSS
+            if ($request->has('custom_css')) {
+                foreach ($request->custom_css as $sectionName => $cssCode) {
+                    $cssId = $request->css_ids[$sectionName] ?? null;
+                    $status = isset($request->css_status[$sectionName]) ? 1 : 0;
+                    
+                    $cssData = [
+                        'conference_id' => $request->conference_id,
+                        'section_name' => $sectionName,
+                        'custom_css' => $cssCode,
+                        'status' => $status
+                    ];
+                    
+                    if ($cssId) {
+                        ConferenceCustomCss::where('id', $cssId)->update($cssData);
+                    } else {
+                        ConferenceCustomCss::updateOrCreate(
+                            [
+                                'conference_id' => $request->conference_id,
+                                'section_name' => $sectionName
+                            ],
+                            $cssData
+                        );
+                    }
+                }
+            }
+
         } catch (\Exception $e) {
             $type = 'error';
             $message = $e->getMessage();

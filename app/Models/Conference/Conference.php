@@ -92,4 +92,15 @@ class Conference extends Model
     {
         return $this->hasOne(ConferenceSetting::class);
     }
+
+    public function customCss()
+    {
+        return $this->hasMany(ConferenceCustomCss::class, 'conference_id', 'id');
+    }
+
+    public function getCustomCss($sectionName)
+    {
+        $css = $this->customCss()->where('section_name', $sectionName)->where('status', 1)->first();
+        return $css?->custom_css ?? '';
+    }
 }
