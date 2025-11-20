@@ -93,7 +93,7 @@
                             @if (
                                 $conference->society->nationalPaymentSetting?->profile_id &&
                                     $conference->society->nationalPaymentSetting?->secret_key)
-                                <div class=""><img style="height: 80px !important;"
+                                <div class=""><img style="height: 100px !important; width: 110px !important;"
                                         src="{{ asset('frontend/assets/img/unnamed.png') }}" alt="Fone Pay" class="">
                                 </div>
                             @endif
@@ -125,9 +125,9 @@
                                 <div class="logo-item"><img
                                         src="{{ asset('frontend/assets/img/international_delegate_2.png') }}"
                                         alt="Payment Method 2" class="logo-img"></div>
-                                <div class=""><img style="height: 80px !important;"
+                                <div class="logo-item"><img 
                                         src="{{ asset('frontend/assets/img/international_delegate_3.png') }}"
-                                        alt="Payment Method 3" class=""></div>
+                                        alt="Payment Method 3" class="logo-img"></div>
                             </div>
                         @endif
 
