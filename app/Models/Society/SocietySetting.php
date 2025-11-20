@@ -10,6 +10,8 @@ class SocietySetting extends Model
         'society_id',
         'member_type_api',
         'member_detail_api',
+        'banner_title',
+        'banner_subtitle',
         'status'
     ];
 }

@@ -14,7 +14,7 @@
                             <li class="breadcrumb-item"><a href="{{ route('home') }}">Home</a></li>
                             <li class="breadcrumb-item active" aria-current="page">Clients</li>
                         </ol>
-                    </nav>
+                    </nav> 
                     <h1 class="banner-title">MedConAlert: Elevating Your<br>Conference Experience</h1>
                     <p class="banner-sub">
                         MedConAlert offers smart, data-driven tools that simplify conference management, improve

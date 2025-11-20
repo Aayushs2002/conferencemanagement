@@ -3,7 +3,7 @@
     Other Data
 @endsection
 @section('content')
-    <div class="container mt-5">
+    <div class="container mt-5"> 
         <h3>Pending User-submitted Data</h3>
 
         <ul class="nav nav-tabs" id="approvalTabs" role="tablist">

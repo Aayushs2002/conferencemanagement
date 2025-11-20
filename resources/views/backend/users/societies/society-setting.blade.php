@@ -28,6 +28,22 @@
                     value="{{ $societySetting?->member_detail_api }}">
             </div>
 
+            <div class="col-12 mt-3">
+                <h6>2. Society Banner Content</h6>
+                <hr class="mt-0" style="height:1px;border:none;color:#333;background-color:#333;" />
+            </div>
+
+            <div class="col-md-12 mb-4">
+                <label>Banner Title</label>
+                <input type="text" class="form-control" name="banner_title"
+                    value="{{ $societySetting?->banner_title }}" placeholder="e.g., Advancing Women's Health">
+            </div>
+
+            <div class="col-md-12 mb-4">
+                <label>Banner Subtitle</label>
+                <textarea class="form-control" name="banner_subtitle" rows="3" placeholder="e.g., NESOG's conferences empower obstetricians and gynecologists...">{{ $societySetting?->banner_subtitle }}</textarea>
+            </div>
+
         </div>
         <div class="text-end mt-4">
             <button type="submit" class="btn btn-primary"

@@ -137,6 +137,14 @@
     </div>
     <!-- / Layout wrapper -->
 
+    <!-- General Modal -->
+    <div class="modal fade" id="generalModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content" id="modalContent">
+            </div>
+        </div>
+    </div>
+
     <!-- Core JS -->
     <!-- build:js assets/vendor/js/theme.js -->
 
@@ -331,6 +339,31 @@
     @endif
     <script>
         $(document).ready(function() {
+
+            // Society Setting Modal
+            $(document).on("click", ".societySetting", function(e) {
+                e.preventDefault();
+                $(".modal-dialog").addClass('custom-modal-width');
+                var url = '{{ route('society.setting') }}';
+                var _token = '{{ csrf_token() }}';
+                var id = $(this).data('id');
+                $('#modalContent').html(`
+                    <div class="modal-body text-center">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                `);
+                var data = {
+                    _token: _token,
+                    id: id
+                };
+                $.post(url, data, function(response) {
+                    setTimeout(function() {
+                        $('#modalContent').html(response);
+                    }, 1000);
+                });
+            });
 
             $(".integerValue").on("keydown", function(event) {
                 // Allow backspace, delete, tab, escape, and enter keys

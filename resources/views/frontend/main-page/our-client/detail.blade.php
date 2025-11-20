@@ -11,10 +11,21 @@
                             <li class="breadcrumb-item active" aria-current="page">{{ $society->abbreviation }}</li>
                         </ol>
                     </nav>
-                    <h1 class="banner-title">{{ $society->abbreviation }}: Advancing <br> Women's Health</h1>
+                    <h1 class="banner-title">
+                        @if ($society->societySetting?->banner_title)
+                            {{ $society->abbreviation }}: {!! $society->societySetting->banner_title !!}
+                        @else
+                            {{ $society->abbreviation }}: Advancing <br> Women's Health
+                        @endif
+                    </h1>
                     <p class="banner-sub">
-                        NESOG's conferences empower obstetricians and gynecologists, fostering collaboration and
-                        innovation to enhance reproductive health for Nepalese women.</p>
+                        @if ($society->societySetting?->banner_subtitle)
+                            {{ $society->societySetting->banner_subtitle }}
+                        @else
+                            NESOG's conferences empower obstetricians and gynecologists, fostering collaboration and
+                            innovation to enhance reproductive health for Nepalese women.
+                        @endif
+                    </p>
                 </div>
             </div>
         </div>

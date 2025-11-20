@@ -18,7 +18,7 @@
                 @forelse($others as $item)
                     {{-- @dd($item) --}}
                     <tr>
-                        <td>{{ $item->user->fullName($item->user) }}</td>
+                        <td>{{ $item?->user?->fullName($item->user) }}</td>
                         <td>
                             @if ($type === 'institution')
                                 {{ $item->institution_name }}
