@@ -174,7 +174,7 @@
                             @enderror
                         </div>
                         <div class="mb-6 col-md-4">
-                            <label class="form-label" for="conference_banner">Conference Banner <code> (Only JPG/PNG) (Dimension: 1680 x 478)</code></label>
+                            <label class="form-label" for="conference_banner">Conference Banner <code> (Only JPG/PNG) (Dimension: 1800 x 600)</code></label>
                             <input type="file" class="form-control" name="conference_banner" id="image3"
                                 value="{{ !empty(old('conference_banner')) ? old('conference_banner') : @$conference->conference_banner }}" />
                             <div class="row" id="imgPreview3">
