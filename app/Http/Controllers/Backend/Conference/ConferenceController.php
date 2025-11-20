@@ -9,7 +9,7 @@ use App\Models\Conference\Conference;
 use App\Models\Conference\ConferenceOrganizer;
 use App\Models\Conference\ConferenceRegistration;
 use App\Models\Conference\ConferenceVenueDetail;
-use App\Models\Conference\Submission; 
+use App\Models\Conference\Submission;
 use App\Models\Conference\SubmissionCategoryMajorTrack;
 use App\Models\User;
 use App\Models\User\Society;
@@ -20,6 +20,7 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Spatie\Permission\Models\Permission;
+use Illuminate\Support\Str;
 
 class ConferenceController extends Controller
 {
@@ -64,8 +65,8 @@ class ConferenceController extends Controller
             }
             $req['society_id'] = $society->id;
 
-            //slugify function is custom helper function
-            $req['slug'] = slugify($req['conference_name']);
+            //slugify function is custom helper function 
+            $req['slug'] = Str::slug($req['conference_name']);
 
             DB::beginTransaction();
 
@@ -92,7 +93,7 @@ class ConferenceController extends Controller
             $req['conference_id'] = $Conference->id;
 
             //inserting in conference organizer table
-            ConferenceOrganizer::create($req); 
+            ConferenceOrganizer::create($req);
 
             //inserting in conference venue details table
             ConferenceVenueDetail::create($req);
@@ -169,7 +170,7 @@ class ConferenceController extends Controller
                     : '';
             }
             //slugify function is custom helper function
-            $req['slug'] = slugify($req['conference_name']);
+            $req['slug'] = Str::slug($req['conference_name']);
 
             DB::beginTransaction();
 
