@@ -118,7 +118,7 @@
                         @endif
                     </div>
                     <!-- / Content -->
- 
+
                     <!-- Footer -->
                     @include('backend.layouts.footer')
                     <!-- / Footer -->
@@ -296,7 +296,7 @@
     </script>
 
     <script>
-        $('.delete').click(function(e) {
+        $(document).on("click", ".delete", function(e) {
             e.preventDefault();
             Swal.fire({
                 title: 'Are you sure to delete?',

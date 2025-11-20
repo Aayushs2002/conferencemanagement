@@ -112,7 +112,7 @@
         <script>
             $(document).ready(function() {
                 $.ajaxSetup({
-                    headers: {
+                    headers: { 
                         'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                     }
                 });
