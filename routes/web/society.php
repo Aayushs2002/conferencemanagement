@@ -9,6 +9,9 @@ use App\Http\Controllers\Backend\Society\MemberTypeController;
 use App\Http\Controllers\Backend\Society\NamePrefixController;
 use App\Http\Controllers\Backend\Society\SocietyController;
 use App\Http\Controllers\Backend\Society\SocietyNamePrefixController;
+use App\Http\Controllers\Backend\Society\SocietyInstitutionController;
+use App\Http\Controllers\Backend\Society\SocietyDesignationController;
+use App\Http\Controllers\Backend\Society\SocietyDepartmentController;
 use App\Http\Controllers\Backend\Society\SocietySettingController;
 use Illuminate\Support\Facades\Route;
 
@@ -34,6 +37,24 @@ Route::middleware('auth')->group(function () {
         Route::controller(SocietyNamePrefixController::class)->middleware('check.societyadmin')->group(function () {
             Route::get('/name-prefix', 'index')->name('society.name-prefix.index');
             Route::post('/name-prefix', 'update')->name('society.name-prefix.update');
+        });
+
+        // Society Institution routes
+        Route::controller(SocietyInstitutionController::class)->middleware('check.societyadmin')->group(function () {
+            Route::get('/institution', 'index')->name('society.institution.index');
+            Route::post('/institution', 'update')->name('society.institution.update');
+        });
+
+        // Society Designation routes
+        Route::controller(SocietyDesignationController::class)->middleware('check.societyadmin')->group(function () {
+            Route::get('/designation', 'index')->name('society.designation.index');
+            Route::post('/designation', 'update')->name('society.designation.update');
+        });
+
+        // Society Department routes
+        Route::controller(SocietyDepartmentController::class)->middleware('check.societyadmin')->group(function () {
+            Route::get('/department', 'index')->name('society.department.index');
+            Route::post('/department', 'update')->name('society.department.update');
         });
     });
     //society member type end 

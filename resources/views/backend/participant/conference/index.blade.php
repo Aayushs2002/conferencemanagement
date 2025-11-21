@@ -145,7 +145,7 @@
 
                         <div class="card-footer bg-white border-0 p-4">
                             <div class="d-grid">
-                                <a href="{{ checkRegistrations($conference) ? route('my-society.conference.index', [$society, $conference]) : route('my-society.conference.create', [$society, $conference]) }}"
+                                <a href="{{ route('conference.openConferencePortal', [$society, $conference]) }}"
                                     class="btn btn-primary btn-lg rounded-pill shadow-sm text-decoration-none">
                                     <i class="bi bi-arrow-right-circle me-2"></i>
                                     Go To Conference
