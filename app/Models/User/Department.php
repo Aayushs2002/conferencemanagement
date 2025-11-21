@@ -10,4 +10,9 @@ class Department extends Model
         'name',
         'status'
     ];
+
+    public function societies()
+    {
+        return $this->belongsToMany(Society::class, 'society_department');
+    }
 }

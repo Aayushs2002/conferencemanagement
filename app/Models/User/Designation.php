@@ -10,4 +10,9 @@ class Designation extends Model
         'designation',
         'status'
     ];
+
+    public function societies()
+    {
+        return $this->belongsToMany(Society::class, 'society_designation');
+    }
 }

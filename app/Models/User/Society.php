@@ -68,6 +68,21 @@ class Society extends Model
         return $this->belongsToMany(NamePrefix::class, 'society_name_prefixes');
     }
 
+    public function institutions()
+    {
+        return $this->belongsToMany(Institution::class, 'society_institution');
+    }
+
+    public function designations()
+    {
+        return $this->belongsToMany(Designation::class, 'society_designation');
+    }
+
+    public function departments()
+    {
+        return $this->belongsToMany(Department::class, 'society_department');
+    }
+
     public function societySetting()
     {
         return $this->hasOne(\App\Models\Society\SocietySetting::class, 'society_id', 'id');

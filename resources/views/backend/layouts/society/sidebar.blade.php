@@ -64,21 +64,39 @@
             <li class="menu-item {{ request()->segment(3) == 'name-prefix' ? 'active' : '' }}">
                 <a href="{{ route('society.name-prefix.index', request()->segment(2)) }}" class="menu-link ">
                     <i class="menu-icon icon-base ti tabler-forms"></i>
-                    <div data-i18n="Name Prefix">Name Prefix</div>
+                    <div data-i18n="Name Prefix">Name Prefix</div> 
                 </a>
             </li>
+            {{-- <li class="menu-item {{ request()->segment(3) == 'institution' ? 'active' : '' }}">
+                <a href="{{ route('society.institution.index', request()->segment(2)) }}" class="menu-link ">
+                    <i class="menu-icon icon-base ti tabler-building"></i>
+                    <div data-i18n="Institution">Institution</div> 
+                </a>
+            </li>
+            <li class="menu-item {{ request()->segment(3) == 'designation' ? 'active' : '' }}">
+                <a href="{{ route('society.designation.index', request()->segment(2)) }}" class="menu-link ">
+                    <i class="menu-icon icon-base ti tabler-briefcase"></i>
+                    <div data-i18n="Designation">Designation</div> 
+                </a>
+            </li>
+            <li class="menu-item {{ request()->segment(3) == 'department' ? 'active' : '' }}">
+                <a href="{{ route('society.department.index', request()->segment(2)) }}" class="menu-link ">
+                    <i class="menu-icon icon-base ti tabler-building-community"></i>
+                    <div data-i18n="Department">Department</div> 
+                </a>
+            </li> --}}
             <li class="menu-item {{ request()->segment(4) == 'payment-setting' ? 'active' : '' }}">
                 <a href="{{ route('payment.setting', request()->segment(2)) }}" class="menu-link ">
                     <i class="menu-icon icon-base ti tabler-cash"></i>
                     <div data-i18n="Payment Setting">Payment Setting</div> 
                 </a>
             </li>
-            <li class="menu-item">
+            {{-- <li class="menu-item">
                 <a href="javascript:void(0);" class="menu-link societySetting" data-id="{{ request()->segment(2) }}" data-bs-toggle="modal" data-bs-target="#generalModal">
                     <i class="menu-icon icon-base ti tabler-settings"></i>
                     <div data-i18n="Society Setting">Society Setting</div>
                 </a>
-            </li>
+            </li> --}}
         @else
             <li
                 class="menu-item {{ request()->segment(1) == 'my-society' && request()->segment(3) == 'conference' ? 'active' : '' }}">
@@ -86,7 +104,7 @@
                     <i class="menu-icon icon-base ti tabler-circle-letter-c"></i>
                     <div data-i18n="Conference">Conference</div>
                 </a>
-            </li>
+            </li> 
         @endif
     </ul>
 </aside>
