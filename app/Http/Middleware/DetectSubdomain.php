@@ -28,7 +28,7 @@ class DetectSubdomain
             'our-client',
             'our-client.detail',
             'blog',
-            'blog.single-page',
+            'blog.single-page', 
             'contact-us',
             'contact-us.store',
             'conference',

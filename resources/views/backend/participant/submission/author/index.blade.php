@@ -20,7 +20,7 @@
                                    id="addAuthor" data-topic-id="{{ $submission->id }}" class="btn btn-primary addAuthor"><i
                                        class="icon-base ti tabler-plus icon-xs me-sm-1"></i>
                                    <span class="d-none d-sm-inline-block">Add</span></button>
-                           </div>
+                           </div> 
                        @endif
                    </div>
                </div>

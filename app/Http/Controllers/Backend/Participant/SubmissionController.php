@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Participant\SubmissionRequest;
 use App\Mail\Submission\SubmissionSubmittedToUserMail;
 use App\Models\Conference\Author;
+use App\Models\Conference\ArticleType;
+use App\Models\Conference\ArticleTypeSetting;
 use App\Models\Conference\Submission;
 use App\Models\Conference\SubmissionCategoryMajorTrack;
 use App\Models\Conference\SubmissionDiscussion;
@@ -53,14 +55,15 @@ class SubmissionController extends Controller
             return redirect()->back()->with('delete', 'Submission date has ended.');
         }
         $submissionTracks = SubmissionCategoryMajorTrack::where(['conference_id' => $conference->id, 'status' => 1])->get();
+        $articleTypes = ArticleType::with('setting')->where(['conference_id' => $conference->id, 'status' => 1])->get();
 
-        return view('backend.participant.submission.create', compact('society', 'conference', 'submissionTracks', 'setting'));
-    }
+        return view('backend.participant.submission.create', compact('society', 'conference', 'submissionTracks', 'setting', 'articleTypes'));
+    } 
 
     public function store(SubmissionRequest $request, $society, $conference)
     {
         try {
-            $validated = $request->all(); 
+            $validated = $request->all();  
             // dd($validated);
             $setting = SubmissionSetting::where('conference_id', $conference->id)->select('abstract_word_limit', 'key_word_limit')->first();
             if (!empty($validated['keywords']) && !empty($setting->key_word_limit)) {
@@ -75,9 +78,45 @@ class SubmissionController extends Controller
                     : '';
             }
 
-            $abstractWordCount = str_word_count(strip_tags($request->abstract_content));
-            if (!empty($setting->abstract_word_limit) && $abstractWordCount > $setting->abstract_word_limit) {
-                return redirect()->back()->withInput()->with('delete', 'Abstract word limit exceeded.');
+            // Handle dynamic sections or regular abstract content
+            if (!empty($validated['sections'])) {
+                // Store sections as JSON and also combine them into abstract_content for backward compatibility
+                // $sectionsContent = [];
+                // foreach ($validated['sections'] as $section) {
+                //     if (!empty($section['content'])) {
+                //         $sectionsContent[] = $section['content'];
+                //     }
+                // }
+                // }
+                // $validated['abstract_content'] = implode("\n\n", $sectionsContent);
+                $validated['abstract_content'] = null;
+            } else {
+                // If no sections, ensure sections field is null
+                $validated['sections'] = null;
+            }
+
+            // Handle conflict of interest
+            if (isset($validated['has_conflict_of_interest'])) {
+                if ($validated['has_conflict_of_interest'] === 'no') {
+                    $validated['conflict_of_interest'] = null;
+                }
+                unset($validated['has_conflict_of_interest']);
+            }
+
+            // Handle source of funding
+            if (isset($validated['has_source_of_funding'])) {
+                if ($validated['has_source_of_funding'] === 'no') {
+                    $validated['source_of_funding'] = null;
+                }
+                unset($validated['has_source_of_funding']);
+            }
+
+            // Validate word count for abstract content
+            if (!empty($validated['abstract_content'])) {
+                $abstractWordCount = str_word_count(strip_tags($validated['abstract_content']));
+                if (!empty($setting->abstract_word_limit) && $abstractWordCount > $setting->abstract_word_limit) {
+                    return redirect()->back()->withInput()->with('delete', 'Abstract word limit exceeded.');
+                }
             }
 
             if (!empty($validated['image'])) {
@@ -131,8 +170,8 @@ class SubmissionController extends Controller
             $validated['name'] = current_user()->fullName(current_user());
             $validated['email'] = current_user()->email;
             $validated['phone'] = current_user()->userDetail->phone;
-            $validated['designation'] = current_user()->userDetail->designation->designation;
-            $validated['institution'] = current_user()->userDetail->institution->name;
+            $validated['designation'] = current_user()->userDetail?->designation?->designation;
+            $validated['institution'] = current_user()->userDetail?->institution?->name;
             $validated['institution_address'] = current_user()->userDetail->institute_address;
 
             Author::create($validated);
@@ -164,12 +203,14 @@ class SubmissionController extends Controller
             return redirect()->back()->with('delete', 'Submission date has ended.');
         }
         $submissionTracks = SubmissionCategoryMajorTrack::where(['conference_id' => $conference->id, 'status' => 1])->get();
+        $articleTypes = ArticleType::with('setting')->where(['conference_id' => $conference->id, 'status' => 1])->get();
 
-        return view('backend.participant.submission.create', compact('society', 'conference', 'submissionTracks', 'setting', 'submission'));
+        return view('backend.participant.submission.create', compact('society', 'conference', 'submissionTracks', 'setting', 'submission', 'articleTypes'));
     }
 
     public function update(SubmissionRequest $request, $society, $conference, $submission)
     {
+        // dd($request->all());
         try {
             $validated = $request->all();
             $setting = SubmissionSetting::where('conference_id', $conference->id)->select('abstract_word_limit', 'key_word_limit')->first();
@@ -184,9 +225,45 @@ class SubmissionController extends Controller
                     : '';
             }
 
-            $abstractWordCount = str_word_count(strip_tags($request->abstract_content));
-            if (!empty($setting->abstract_word_limit) && $abstractWordCount > $setting->abstract_word_limit) {
-                return redirect()->back()->withInput()->with('delete', 'Abstract word limit exceeded.');
+            // Handle dynamic sections or regular abstract content
+            if (!empty($validated['sections'])) {
+                // Store sections as JSON and also combine them into abstract_content for backward compatibility
+                // $sectionsContent = [];
+                // foreach ($validated['sections'] as $section) {
+                //     if (!empty($section['content'])) {
+                //         $sectionsContent[] = $section['content'];
+                //     }
+                // }
+                // $validated['abstract_content'] = implode("\n\n", $sectionsContent);
+                $validated['abstract_content'] = null;
+
+            } else {
+                // If no sections, ensure sections field is null and keep only abstract_content
+                $validated['sections'] = null;
+            }
+
+            // Handle conflict of interest
+            if (isset($validated['has_conflict_of_interest'])) {
+                if ($validated['has_conflict_of_interest'] === 'no') {
+                    $validated['conflict_of_interest'] = null;
+                }
+                unset($validated['has_conflict_of_interest']);
+            }
+
+            // Handle source of funding
+            if (isset($validated['has_source_of_funding'])) {
+                if ($validated['has_source_of_funding'] === 'no') {
+                    $validated['source_of_funding'] = null;
+                }
+                unset($validated['has_source_of_funding']);
+            }
+
+            // Validate word count for abstract content
+            if (!empty($validated['abstract_content'])) {
+                $abstractWordCount = str_word_count(strip_tags($validated['abstract_content']));
+                if (!empty($setting->abstract_word_limit) && $abstractWordCount > $setting->abstract_word_limit) {
+                    return redirect()->back()->withInput()->with('delete', 'Abstract word limit exceeded.');
+                }
             }
 
             if (!empty($validated['image'])) {
@@ -379,4 +456,19 @@ class SubmissionController extends Controller
             return redirect()->back()->with('delete', 'Presentation type changed Rejected.');
         }
     }
+
+    public function getArticleTypeSetting(Request $request, $society, $conference)
+    {
+        $articleType = ArticleType::with('setting')->find($request->article_type_id);
+        
+        if (!$articleType || !$articleType->setting) {
+            return response()->json(['has_setting' => false]);
+        }
+
+        return response()->json([
+            'has_setting' => true,
+            'setting' => $articleType->setting
+        ]);
+    }
 }
+ 

@@ -7,7 +7,7 @@
         <hr class="py-4">
         <form id="dataForm">
             @csrf
-            <div class="row">
+            <div class="row"> 
                 <input type="hidden" id="submissionId" name="id" value="{{ $submission->id }}">
                 <div class="col-md-6 form-group mb-3">
                     <label for="expert_id">Expert <code>*</code></label>
@@ -20,16 +20,32 @@
                     </select>
                     <p class="text-danger expert_id"></p>
                 </div>
-                <div class="col-md-12 form-group mb-3 decisionForm" id="abstractContent">
-                    <label for="abstract_content">Abstract Content <code>* <span>(NOTE: Total number of
-                                Abstract
-                                Words limitation is
-                                {{ !empty(@$setting->abstract_word_limit) ? $setting->abstract_word_limit : 'infinity' }})</span></code></label>
-                    <textarea class="form-control" name="abstract_content" id="abstract_content" cols="30" rows="5">{{ !empty(old('abstract_content')) ? old('abstract_content') : $submission->abstract_content }}</textarea>
-                    @error('abstract_content')
-                        <p class="text-danger">{{ $message }}</p>
-                    @enderror
-                </div>
+                
+                @if (!empty($submission->sections))
+                    {{-- Display sections if they exist --}}
+                    @foreach ($submission->sections as $index => $section)
+                        <div class="col-md-12 form-group mb-3">
+                            <label for="section_{{ $index }}">{{ $section['name'] ?? 'Section ' . ($index + 1) }} <code>*</code></label>
+                            <textarea class="form-control section-content" name="sections[{{ $index }}][content]" id="section_{{ $index }}" cols="30" rows="5">{{ old('sections.' . $index . '.content', $section['content'] ?? '') }}</textarea>
+                            <input type="hidden" name="sections[{{ $index }}][name]" value="{{ $section['name'] ?? '' }}">
+                            <input type="hidden" name="sections[{{ $index }}][word_limit]" value="{{ $section['word_limit'] ?? '' }}">
+                            <p class="text-danger section-error-{{ $index }}"></p>
+                        </div>
+                    @endforeach
+                @else
+                    {{-- Display abstract content if no sections --}}
+                    <div class="col-md-12 form-group mb-3 decisionForm" id="abstractContent">
+                        <label for="abstract_content">Abstract Content <code>* <span>(NOTE: Total number of
+                                    Abstract
+                                    Words limitation is
+                                    {{ !empty(@$setting->abstract_word_limit) ? $setting->abstract_word_limit : 'infinity' }})</span></code></label>
+                        <textarea class="form-control" name="abstract_content" id="abstract_content" cols="30" rows="5">{{ !empty(old('abstract_content')) ? old('abstract_content') : $submission->abstract_content }}</textarea>
+                        @error('abstract_content')
+                            <p class="text-danger">{{ $message }}</p>
+                        @enderror
+                        <p class="text-danger abstract_content"></p>
+                    </div>
+                @endif
 
                 <div class="col-md-12 d-flex justify-content-end">
                     <button type="submit" id="forwardRequest"
@@ -43,19 +59,47 @@
 
 </div>
 <script>
-    CKEDITOR.replace('abstract_content', {
-        filebrowserUploadUrl: '{{ route('ckeditor.fileUpload', ['_token' => csrf_token()]) }}',
-        filebrowserUploadMethod: "form",
-        extraPlugins: 'wordcount',
-        wordcount: {
-            showWordCount: true,
-            maxWordCount: {{ @$setting->abstract_word_limit ? @$setting->abstract_word_limit : 'Infinity' }},
-        }
-    });
+    var ckeditorInstances = {};
+
+    @if (!empty($submission->sections))
+        // Initialize CKEditor for each section
+        @foreach ($submission->sections as $index => $section)
+            ckeditorInstances['section_{{ $index }}'] = CKEDITOR.replace('section_{{ $index }}', {
+                filebrowserUploadUrl: '{{ route('ckeditor.fileUpload', ['_token' => csrf_token()]) }}',
+                filebrowserUploadMethod: "form",
+                extraPlugins: 'wordcount',
+                wordcount: {
+                    showWordCount: true,
+                    maxWordCount: {{ $section['word_limit'] ?? 'Infinity' }},
+                }
+            });
+        @endforeach
+    @else
+        // Initialize CKEditor for abstract content
+        ckeditorInstances['abstract_content'] = CKEDITOR.replace('abstract_content', {
+            filebrowserUploadUrl: '{{ route('ckeditor.fileUpload', ['_token' => csrf_token()]) }}',
+            filebrowserUploadMethod: "form",
+            extraPlugins: 'wordcount',
+            wordcount: {
+                showWordCount: true,
+                maxWordCount: {{ @$setting->abstract_word_limit ? @$setting->abstract_word_limit : 'Infinity' }},
+            }
+        });
+    @endif
+
     $("#forwardRequest").on('click', function(e) {
         e.preventDefault();
         var data = new FormData($('#dataForm')[0]);
-        data.append('abstract_content', CKEDITOR.instances['abstract_content'].getData());
+        
+        @if (!empty($submission->sections))
+            // Get data from section editors
+            @foreach ($submission->sections as $index => $section)
+                data.set('sections[{{ $index }}][content]', ckeditorInstances['section_{{ $index }}'].getData());
+            @endforeach
+        @else
+            // Get data from abstract content editor
+            data.append('abstract_content', ckeditorInstances['abstract_content'].getData());
+        @endif
 
         $.ajaxSetup({
             headers: {
@@ -105,3 +149,4 @@
         });
     });
 </script>
+ 

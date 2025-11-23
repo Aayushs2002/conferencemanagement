@@ -13,17 +13,25 @@ class Submission extends Model
         'user_id',
         'expert_id',
         'submission_category_major_track_id',
-        'title',
-        'article_type',
+        'title', 
+        'article_type_id',
         'presentation_type',
         'presentation_type_change',
         'keywords',
         'abstract_content',
+        'sections',
+        'image',
+        'conflict_of_interest',
+        'source_of_funding',
         'submitted_date',
         'review_status',
         'request_status',
         'reject_remark',
         'status'
+    ];
+
+    protected $casts = [
+        'sections' => 'array',
     ];
 
     // request status values
@@ -81,5 +89,10 @@ class Submission extends Model
     public function submissionCategoryMajorTrack()
     {
         return $this->belongsTo(SubmissionCategoryMajorTrack::class, 'submission_category_major_track_id', 'id');
+    }
+
+    public function articleType()
+    {
+        return $this->belongsTo(ArticleType::class, 'article_type_id', 'id');
     }
 }

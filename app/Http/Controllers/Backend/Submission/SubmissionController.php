@@ -11,6 +11,7 @@ use App\Mail\Submission\SubmissionAcceptMail;
 use App\Mail\Submission\SubmissionCorrectionMail;
 use App\Mail\Submission\SubmissionRejectMail;
 use App\Models\Conference\Author;
+use App\Models\Conference\ArticleType;
 use App\Models\Conference\Expert;
 use App\Models\Conference\Submission;
 use App\Models\Conference\SubmissionCategoryMajorTrack;
@@ -35,15 +36,16 @@ class SubmissionController extends Controller
         // $conferenceDetail = conference_detail();
 
         // if (empty($conferenceDetail)) {
-        //     return redirect()->route('dashboard');
+        //     return redirect()->route('dashboard'); 
         // }
         $submissionTracks = SubmissionCategoryMajorTrack::where(['conference_id' => $conference->id, 'status' => 1])->get();
+        $articleTypes = ArticleType::where(['conference_id' => $conference->id, 'status' => 1])->get();
         $submission_setting = SubmissionSetting::where('conference_id', $conference->id)->select('scoring_allowed')->first();
         // dd($submission_setting);
         $query = Submission::with('discussions')->where(['conference_id' => $conference->id, 'status' => 1]);
-        if ($request->filled('article_type')) {
-            $query->where('article_type', $request->article_type);
-        }
+        if ($request->filled('article_type_id')) {
+            $query->where('article_type_id', $request->article_type_id);
+        } 
 
         if ($request->filled('presentation_type')) {
             $query->where('presentation_type', $request->presentation_type);
@@ -65,7 +67,7 @@ class SubmissionController extends Controller
         }
 
         $submissions = $query->latest()->get();
-        return view('backend.submission.submission.index', compact('submissions', 'submissionTracks', 'conference', 'society', 'submission_setting'));
+        return view('backend.submission.submission.index', compact('submissions', 'submissionTracks', 'conference', 'society', 'submission_setting', 'articleTypes'));
     }
 
     public function show(Request $request)
@@ -87,8 +89,9 @@ class SubmissionController extends Controller
             return redirect()->back()->with('delete', 'Submission date has ended.');
         }
         $submissionTracks = SubmissionCategoryMajorTrack::where(['conference_id' => $conference->id, 'status' => 1])->get();
+        $articleTypes = ArticleType::where(['conference_id' => $conference->id, 'status' => 1])->get();
 
-        return view('backend.submission.submission.create', compact('society', 'conference', 'submissionTracks', 'setting', 'submission'));
+        return view('backend.submission.submission.create', compact('society', 'conference', 'submissionTracks', 'setting', 'submission', 'articleTypes'));
     }
 
     public function update(SubmissionRequest $request, $society, $conference, $submission)
@@ -152,16 +155,38 @@ class SubmissionController extends Controller
         try {
             $type = 'success';
             $message = 'Forwarded to expert successfully.';
-            $validated = $request->validate([
-                'expert_id' => 'required',
-                'abstract_content' => 'required'
-            ]);
+            
+            // Dynamic validation based on whether sections exist
+            $rules = ['expert_id' => 'required'];
+            
+            $submission = Submission::whereId($request->id)->first();
+            
+            if ($request->has('sections') && is_array($request->sections)) {
+                // Validate sections
+                foreach ($request->sections as $index => $section) {
+                    $rules["sections.{$index}.content"] = 'required|string';
+                }
+            } else {
+                // Validate abstract content
+                $rules['abstract_content'] = 'required';
+            }
+            
+            $validated = $request->validate($rules);
+            
             if ($validated) {
-                $submission = Submission::whereId($request->id)->first();
                 if ($validated['expert_id'] == $submission->user_id) {
                     throw new Exception("Presenter and Expert should not be same.", 1);
                 }
+                
                 $validated['forward_expert'] = 1;
+
+                // Handle sections or abstract_content
+                if ($request->has('sections') && is_array($request->sections)) {
+                    $validated['sections'] = $request->sections;
+                    $validated['abstract_content'] = null; // Clear abstract content when using sections
+                } else {
+                    $validated['sections'] = null; // Clear sections when using abstract content
+                }
 
                 $expert = User::whereId($validated['expert_id'])->first();
                 $template = EmailTemplate::where(['conference_id' => $submission->conference_id, 'key' => 1])->first();
@@ -436,8 +461,8 @@ class SubmissionController extends Controller
     {
         // $submissionTracks = SubmissionCategoryMajorTrack::where(['conference_id' => $conference->id, 'status' => 1])->get();
         $query = Submission::with('discussions')->where(['conference_id' => $conference->id, 'status' => 1]);
-        if ($request->filled('article_type')) {
-            $query->where('article_type', $request->article_type);
+        if ($request->filled('article_type_id')) {
+            $query->where('article_type_id', $request->article_type_id);
         }
 
         if ($request->filled('presentation_type')) {

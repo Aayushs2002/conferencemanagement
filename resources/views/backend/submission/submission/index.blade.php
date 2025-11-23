@@ -9,17 +9,17 @@
         <form method="GET" action="{{ route('submission.index', [$society, $conference]) }}" id="filterForm">
             <div class="row">
                 <div class="col-md-3 form-group mb-3">
-                    <label for="article_type" class="mb-2">Article Type</label>
-                    <select name="article_type" id="article_type"
-                        class="form-control @error('article_type') is-invalid @enderror">
+                    <label for="article_type_id" class="mb-2">Article Type</label>
+                    <select name="article_type_id" id="article_type_id"
+                        class="form-control @error('article_type_id') is-invalid @enderror">
                         <option value="">-- Select Article Type --</option>
-                        <option {{ request()->article_type == 1 ? 'selected' : '' }} value="1">
-                            Orginal
-                        </option>
-                        <option {{ request()->article_type == 2 ? 'selected' : '' }} value="2">
-                            Review
-                        </option>
-                    </select>
+                        @foreach ($articleTypes as $articleType)
+                            <option value="{{ $articleType->id }}" 
+                                {{ request()->article_type_id == $articleType->id ? 'selected' : '' }}>
+                                {{ $articleType->name }}
+                            </option>
+                        @endforeach
+                    </select> 
                 </div>
                 <div class="col-md-3 form-group mb-3">
                     <label for="presentation_type" class="mb-2">Presnetation Type</label>
@@ -132,7 +132,7 @@
                             <th scope="row">{{ $loop->iteration }}</th>
                             <td>{{ $submission->presenter?->fullName($submission->presenter) }}</td>
 
-                            <td> {{ $submission->article_type == 1 ? 'Original' : 'Review' }}
+                            <td> {{ $submission->articleType?->name ?? 'N/A' }}
                             </td>
                             <td>
                                 {{ $submission->submissionCategoryMajorTrack->title }}

@@ -15,7 +15,7 @@ use App\Http\Controllers\Backend\Society\SocietyDepartmentController;
 use App\Http\Controllers\Backend\Society\SocietySettingController;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware('auth')->group(function () {
+Route::middleware('auth','check.subdomain')->group(function () {
     //society controller start    
     Route::resource('/society', SocietyController::class)->middleware('check.superadmin')->except('show');
 

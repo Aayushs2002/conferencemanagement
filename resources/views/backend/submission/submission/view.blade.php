@@ -48,10 +48,45 @@
         </div>
 
         <div class="closeModal">
-            @if (!empty($submission->abstract_content))
+            @if (!empty($submission->sections))
+                {{-- Display sections if they exist --}}
+                @foreach ($submission->sections as $index => $section)
+                    <div class="mb-4">
+                        <p class="text-primary mb-1"><i
+                                class="i-Letter-Open text-16 mr-1"></i>{{ $section['name'] ?? 'Section ' . ($index + 1) }}
+                        </p>
+                        <p>{!! $section['content'] ?? '' !!}</p>
+                    </div>
+                @endforeach
+            @elseif (!empty($submission->abstract_content))
+                {{-- Display abstract content if no sections --}}
                 <div>
                     <p class="text-primary mb-1"><i class="i-Letter-Open text-16 mr-1"></i>Abstract Content</p>
                     <p>{!! $submission->abstract_content !!}</p>
+                </div>
+            @endif
+
+            @if (!empty($submission->conflict_of_interest))
+                <div class="mb-4">
+                    <p class="text-primary mb-1"><i class="i-Information text-16 mr-1"></i>Conflict of Interest</p>
+                    <p>{{ $submission->conflict_of_interest }}</p>
+                </div>
+            @endif
+
+            @if (!empty($submission->source_of_funding))
+                <div class="mb-4">
+                    <p class="text-primary mb-1"><i class="i-Money-2 text-16 mr-1"></i>Source of Funding</p>
+                    <p>{{ $submission->source_of_funding }}</p>
+                </div>
+            @endif
+
+            @if (!empty($submission->image))
+                <div class="mb-4">
+                    <p class="text-primary mb-1"><i class="i-File-Picture text-16 mr-1"></i>Attachment</p>
+                    <a href="{{ asset('storage/participant/submission/image/' . $submission->image) }}" target="_blank"
+                        class="btn btn-sm btn-primary">
+                        <i class="i-Download"></i> View/Download Attachment
+                    </a>
                 </div>
             @endif
         </div>

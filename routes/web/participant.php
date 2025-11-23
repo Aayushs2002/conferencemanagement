@@ -70,6 +70,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/submission/review-submit', 'reviewSubmit')->name('reviewSubmit');
         Route::get('/submission/{submission}/view-discussion', 'viewDiscussion')->name('viewDiscussion');
         Route::get('/submission/convert-presentation-type/{id}', 'convertPresentationType')->name('convertPresentationType');
+        Route::get('/submission/get-article-type-setting', 'getArticleTypeSetting')->name('get-article-type-setting');
     });
 
     Route::controller(AuthorController::class)->prefix('/my-society/{society}/conference/{conference}/submission')->name('my-society.conference.submission.author.')->group(function () {
