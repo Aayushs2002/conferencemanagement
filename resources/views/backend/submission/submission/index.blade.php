@@ -106,6 +106,14 @@
                     </div>
                 </div>
             </div>
+            <div class="px-3 py-2">
+                <small class="text-muted">
+                    <strong>Color Legend:</strong>
+                    <span class="badge bg-success">Green</span> = Multiple Poster submissions by same user |
+                    <span class="badge bg-warning">Yellow</span> = Multiple Oral submissions by same user |
+                    <span class="badge bg-danger">Red</span> = Multiple submissions with different presentation types by same user
+                </small>
+            </div>
             <table class="datatables-basic table">
                 <thead>
                     <tr>
@@ -113,7 +121,7 @@
                         <th scope="col">Speaker Name</th>
                         <th>Article Type</th>
                         <th>Major Track/Category</th>
-                        <th>Topic</th>
+                        <th>Topic</th> 
                         <th>Presentation Type</th>
                         <th>Request Status</th>
                         @if (auth()->user()->hasConferencePermissionBlade($conference, 'Expert Assign'))
@@ -128,7 +136,7 @@
                 </thead>
                 <tbody>
                     @foreach ($submissions as $submission)
-                        <tr>
+                        <tr class="{{ $submission->row_color ?? '' }}">
                             <th scope="row">{{ $loop->iteration }}</th>
                             <td>{{ $submission->presenter?->fullName($submission->presenter) }}</td>
 
