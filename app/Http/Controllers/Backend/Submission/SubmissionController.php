@@ -67,6 +67,49 @@ class SubmissionController extends Controller
         }
 
         $submissions = $query->latest()->get();
+        
+        // Track duplicate submissions by user
+        $userSubmissions = [];
+        foreach ($submissions as $submission) {
+            $userId = $submission->user_id;
+            if (!isset($userSubmissions[$userId])) {
+                $userSubmissions[$userId] = [
+                    'count' => 0,
+                    'presentation_types' => []
+                ];
+            }
+            $userSubmissions[$userId]['count']++;
+            if (!in_array($submission->presentation_type, $userSubmissions[$userId]['presentation_types'])) {
+                $userSubmissions[$userId]['presentation_types'][] = $submission->presentation_type;
+            }
+        }
+        
+        // Add row color class to each submission
+        foreach ($submissions as $submission) {
+            $userId = $submission->user_id;
+            $userInfo = $userSubmissions[$userId];
+            
+            if ($userInfo['count'] > 1) {
+                // User has multiple submissions
+                if (count($userInfo['presentation_types']) > 1) {
+                    // Different presentation types - RED
+                    $submission->row_color = 'table-danger';
+                } else {
+                    // Same presentation type
+                    if ($submission->presentation_type == 1) {
+                        // Poster - GREEN
+                        $submission->row_color = 'table-success';
+                    } else {
+                        // Oral - YELLOW
+                        $submission->row_color = 'table-warning';
+                    }
+                }
+            } else {
+                // Single submission - no color
+                $submission->row_color = '';
+            }
+        }
+        
         return view('backend.submission.submission.index', compact('submissions', 'submissionTracks', 'conference', 'society', 'submission_setting', 'articleTypes'));
     }
 

@@ -2,7 +2,7 @@
       <div class="container">
           <div class="row gy-4">
               <div class="col-lg-3 col-md-6">
-                  <h5 class="footer-title mb-3">NESOG</h5>
+                  <h5 class="footer-title mb-3 " style="text-transform: uppercase;">{{$conference->society->abbreviation}}</h5>
                   <ul class="list-unstyled footer-links">
                       <li><a href="{{ route('conference.name', $conference->slug) }}" class="footer-link">Conference
                               Overview</a></li>
