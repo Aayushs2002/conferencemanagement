@@ -222,7 +222,9 @@
                         style="background-color: #F1F4FC; padding: 40px; border-radius: 20px;">
                         <h2 class="section-title">Sponsors</h2>
                         <p class="span-text mt-4">Our Financial Partners</p>
-                        <p>Experience premium comfort during your stay at our partner hotel, specially selected for NESOG
+                        <p>Experience premium comfort during your stay at our partner hotel, specially selected for <span style="text-transform: uppercase;">
+                            {{ $conference->society->abbreviation }}
+                        </span>
                             conference
                             participants.</p>
 
