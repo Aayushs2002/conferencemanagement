@@ -7,6 +7,22 @@
                     <h4 class="mb-2">Update Your Information</h4>
                     <p>Updating user details will receive a privacy audit.</p>
                 </div>
+                @php
+                    $society = request()->attributes->get('societyDomainDetail');
+
+                    // Helper to get society-specific or fallback items
+                    $loadData = function ($relation, $model) use ($society) {
+                        if ($society && $society->$relation()->exists()) {
+                            return $society->$relation()->where('status', 1)->get();
+                        }
+                        return $model::where('status', 1)->get(); 
+                    };
+
+                    $institutions = $loadData('institutions', \App\Models\User\Institution::class);
+                    $designations = $loadData('designations', \App\Models\User\Designation::class);
+                    $departments = $loadData('departments', \App\Models\User\Department::class);
+                @endphp
+
                 <form class="needs-validation" enctype="multipart/form-data">
                     <div class="row g-6">
 

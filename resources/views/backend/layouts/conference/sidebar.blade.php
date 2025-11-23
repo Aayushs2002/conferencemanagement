@@ -12,7 +12,7 @@
             <i class="icon-base ti menu-toggle-icon d-none d-xl-block"></i>
             <i class="icon-base ti tabler-x d-block d-xl-none"></i>
         </a>
-    </div>
+    </div> 
 
     <div class="menu-inner-shadow"></div>
 
@@ -155,6 +155,7 @@
                         'View Submission',
                         'View Submission Setting',
                         'View Category/Major Track',
+                        'View Article Type',
                     ]))
                 <li
                     class="menu-item {{ request()->segment(5) == 'submission' && request()->segment(1) != 'my-society' ? 'active open' : '' }}">
@@ -187,6 +188,14 @@
                                 <a href="{{ route('submission.category-majortrack.index', [request()->segment(2), request()->segment(4)]) }}"
                                     class="menu-link">
                                     <div data-i18n="Category/Major Track">Category/Major Track</div>
+                                </a>
+                            </li>
+                        @endif 
+                        @if (auth()->user()->hasConferencePermissionBlade($conference, 'View Article Type'))
+                            <li class="menu-item {{ request()->segment(6) == 'article-type' ? 'active' : '' }}">
+                                <a href="{{ route('articleType.index', [request()->segment(2), request()->segment(4)]) }}"
+                                    class="menu-link">
+                                    <div data-i18n="Article Type">Article Type</div>
                                 </a>
                             </li>
                         @endif

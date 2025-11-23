@@ -14,7 +14,7 @@
                        </div>
                        <div class="modal-body text-center">
                            <div class=" d-flex justify-content-center">
- 
+
                                <div class="sk-chase my-4" style="height: 80px; width: 80px;">
                                    <div class="sk-chase-dot"></div>
                                    <div class="sk-chase-dot"></div>
@@ -40,8 +40,8 @@
                        <div class="card mb-4">
                            @php
                                $onlinePayment = session()->get('onlinePayment');
-                               //    dd($onlinePayment);
                            @endphp
+                           {{-- @dd($onlinePayment['registrant_type']); --}}
                            {{-- @dd($transactionId) --}}
                            <div class="card-body">
                                <form action="{{ route('my-society.conference.submit', [$society, $conference]) }}"
@@ -50,8 +50,7 @@
                                    @isset($conference_registration)
                                        @method('patch')
                                    @endisset
-                                   <input type="hidden" name="registrant_type"
-                                       value="{{ $onlinePayment['registrant_type'] }}">
+                                   <input type="hidden" name="registrant_type" {{-- value="{{ $onlinePayment['registrant_type'] }}" --}} value="1">
                                    <input type="hidden" name="accompany_person"
                                        value="{{ $onlinePayment['accompany_person'] }}">
                                    <input type="hidden" name="payment_type" value="{{ $onlinePayment['payment_type'] }}">

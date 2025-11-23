@@ -28,6 +28,7 @@ use App\Http\Controllers\Backend\Submission\AuthorController;
 use App\Http\Controllers\Backend\Submission\SubmissionCategoryMajorTrackContoller;
 use App\Http\Controllers\Backend\Submission\SubmissionController;
 use App\Http\Controllers\Backend\Submission\SubmissionSettingController;
+use App\Http\Controllers\Backend\Conference\ArticleTypeController;
 use App\Http\Controllers\Backend\Template\EmailTemplateController;
 use App\Http\Controllers\Backend\User\SignupUserController;
 use App\Http\Controllers\Backend\UserManagement\RoleController;
@@ -146,6 +147,19 @@ Route::middleware('auth')->group(function () {
         Route::patch('/update/{submissionCategoryMajortrack}', 'update')->name('update');
         Route::delete('/destroy/{submissionCategoryMajortrack}', 'destroy')->name('destroy');
     });
+
+    //article type route start
+    Route::controller(ArticleTypeController::class)->middleware(['auto.conf.permission', 'feature:abstract-submission-management'])->prefix('/society/{society}/conference/{conference}/submission/article-type')->name('articleType.')->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::get('/create', 'create')->name('create');
+        Route::post('/store', 'store')->name('store');
+        Route::get('/edit/{articleType}', 'edit')->name('edit');
+        Route::patch('/update/{articleType}', 'update')->name('update');
+        Route::delete('/destroy/{articleType}', 'destroy')->name('destroy');
+        Route::post('/setting', 'setting')->name('setting');
+        Route::post('/setting-submit', 'settingSubmit')->name('settingSubmit');
+    });
+    //article type route end
 
 
     //Submission Route Started

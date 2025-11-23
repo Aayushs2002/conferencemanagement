@@ -119,7 +119,7 @@
        <div class="card mb-4">
            <div class="card-body">
                <div class="d-flex align-items-center mb-3">
-                   <i class="ti ti-video" style="font-size: 24px; margin-right: 10px; color: #7367f0;"></i>
+                   <i class="ti tabler-video" style="font-size: 24px; margin-right: 10px; color: #7367f0;"></i>
                    <h5 class="mb-0">Video Guidelines</h5>
                </div>
                <div class="row g-3">
@@ -224,7 +224,7 @@
                    @foreach ($submissions as $submission)
                        <tr>
                            <th scope="row">{{ $loop->iteration }}</th>
-                           <td> {{ $submission->article_type == 1 ? 'Original' : 'Review' }}
+                           <td> {{ $submission->articleType?->name ?? 'N/A' }}
                            </td>
                            <td>
                                {{ \Illuminate\Support\Str::words($submission->title, 5, '...') }}

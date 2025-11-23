@@ -23,10 +23,16 @@ use App\Models\Conference\PassSetting;
 use App\Models\ConferenceMemberTypeNameTag;
 use App\Models\User;
 use App\Models\User\ConferenceUserPassDesignation;
+use App\Models\User\Department;
+use App\Models\User\Designation;
+use App\Models\User\Institution;
 use App\Models\User\MemberType;
 use App\Models\User\NamePrefix;
 use App\Models\User\Society;
+use App\Models\User\UserDepartment;
+use App\Models\User\UserDesignation;
 use App\Models\User\UserDetail;
+use App\Models\User\UserInstitution;
 use App\Models\User\UserSociety;
 use App\Models\Workshop\WorkshopRegistration;
 use App\Services\File\FileService;
@@ -129,20 +135,37 @@ class ConferenceRegistrationController extends Controller
     public function edit($society, $conference, ConferenceRegistration $registrant)
     {
         // $prefixesAll = NamePrefix::whereStatus(1)->get();
-        if ($society && $society->namePrefixes()->exists()) {
-            $prefixesAll = $society->namePrefixes()->where('status', 1)->get();
-            // dd($prefixesAll);
-        } else {
-            // Fallback to all active prefixes if society hasn't selected any
-            $prefixesAll = NamePrefix::whereStatus(1)->get();
-        }
+        // if ($society && $society->namePrefixes()->exists()) {
+        //     $prefixesAll = $society->namePrefixes()->where('status', 1)->get();
+        //     // dd($prefixesAll);
+        // } else {
+        //     // Fallback to all active prefixes if society hasn't selected any
+        //     $prefixesAll = NamePrefix::whereStatus(1)->get();
+        // }
+        $loadData = function ($relation, $model) use ($society) {
+            if ($society && $society->$relation()->exists()) {
+                return $society->$relation()->where('status', 1)->get();
+            }
+            return $model::where('status', 1)->get();
+        };
+
+        $institutions = $loadData('institutions', Institution::class);
+        // dd($institutions);
+        $designations = $loadData('designations', Designation::class);
+        $departments = $loadData('departments', Department::class);
+        $prefixesAll = $loadData('namePrefixes', NamePrefix::class);
         $conferenceAddons = ConferenceAddon::where('conference_id', $conference->id)->get();
         $memberTypes = MemberType::where(['society_id' => $society->id, 'status' => 1])->get();
         $countries = \App\Models\User\Country::where('status', 1)->get();
-        $institutions = \App\Models\User\Institution::where('status', 1)->get();
-        $designations = \App\Models\User\Designation::where('status', 1)->get();
-        $departments = \App\Models\User\Department::where('status', 1)->get();
-        $name_prefiexs = NamePrefix::where('status', 1)->get();
+        
+        // Check for custom institution, designation, department
+        $userInstitution = UserInstitution::where('user_id', $registrant->user_id)->first();
+        $userDesignation = UserDesignation::where('user_id', $registrant->user_id)->first();
+        $userDepartment = UserDepartment::where('user_id', $registrant->user_id)->first();
+        
+        // $institutions = \App\Models\User\Institution::where('status', 1)->get();
+        // $designations = \App\Models\User\Designation::where('status', 1)->get();
+        // $departments = \App\Models\User\Department::where('status', 1)->get();
 
         return view('backend.conference.conference-registration.edit', compact(
             'registrant',
@@ -155,7 +178,9 @@ class ConferenceRegistrationController extends Controller
             'institutions',
             'designations',
             'departments',
-            'name_prefiexs'
+            'userInstitution',
+            'userDesignation',
+            'userDepartment'
         ));
     }
 
@@ -186,6 +211,18 @@ class ConferenceRegistrationController extends Controller
                 'amount' => 'required|numeric',
             ];
 
+            if ($request->institution_id == 'other') {
+                $rules['other_institution_name'] = 'required';
+            }
+
+            if ($request->designation_id == 'other') {
+                $rules['other_designation'] = 'required';
+            }
+
+            if ($request->department_id == 'other') {
+                $rules['other_department'] = 'required';
+            }
+
             if ($request->registrant_type == 2) {
                 $rules['description'] = 'required';
             }
@@ -200,6 +237,17 @@ class ConferenceRegistrationController extends Controller
             ];
 
             $validated = $request->validate($rules, $message);
+
+            // Handle "other" options before updating user
+            if ($request->institution_id == 'other') {
+                unset($validated['institution_id']);
+            }
+            if ($request->designation_id == 'other') {
+                unset($validated['designation_id']);
+            }
+            if ($request->department_id == 'other') {
+                unset($validated['department_id']);
+            }
 
             if (empty($validated['additional_guests'])) {
                 $validated['total_attendee'] = 1;
@@ -231,13 +279,39 @@ class ConferenceRegistrationController extends Controller
             // Update user details
             $user->userDetail->update([
                 'phone' => $validated['phone'],
-                'designation_id' => $validated['designation_id'],
-                'department_id' => $validated['department_id'],
-                'institution_id' => $validated['institution_id'],
+                'designation_id' => $validated['designation_id'] ?? null,
+                'department_id' => $validated['department_id'] ?? null,
+                'institution_id' => $validated['institution_id'] ?? null,
                 'institute_address' => $validated['address'],
                 'council_number' => $validated['council_number'],
                 'country_id' => $validated['country_id'],
             ]);
+
+            // Create custom institution, designation, department if "other" was selected
+            if ($request->institution_id == 'other') {
+                // Delete existing custom institution for this user
+                UserInstitution::where('user_id', $user->id)->delete();
+                UserInstitution::create([
+                    'user_id' => $user->id,
+                    'institution_name' => $request->other_institution_name
+                ]);
+            }
+            if ($request->designation_id == 'other') {
+                // Delete existing custom designation for this user
+                UserDesignation::where('user_id', $user->id)->delete();
+                UserDesignation::create([
+                    'user_id' => $user->id,
+                    'designation_name' => $request->other_designation
+                ]);
+            }
+            if ($request->department_id == 'other') {
+                // Delete existing custom department for this user
+                UserDepartment::where('user_id', $user->id)->delete();
+                UserDepartment::create([
+                    'user_id' => $user->id,
+                    'department_name' => $request->other_department
+                ]);
+            }
 
             // Update user society membership
             $user->societies()->syncWithoutDetaching([
@@ -693,15 +767,29 @@ class ConferenceRegistrationController extends Controller
     {
         // $prefixesAll = NamePrefix::whereStatus(1)->get();
         $conferenceAddons = ConferenceAddon::where('conference_id', $conference->id)->get();
-        if ($society && $society->namePrefixes()->exists()) {
-            $prefixesAll = $society->namePrefixes()->where('status', 1)->get();
-            // dd($prefixesAll);
-        } else {
-            // Fallback to all active prefixes if society hasn't selected any
-            $prefixesAll = NamePrefix::whereStatus(1)->get();
-        }
+        // if ($society && $society->namePrefixes()->exists()) {
+        //     $prefixesAll = $society->namePrefixes()->where('status', 1)->get();
+        //     // dd($prefixesAll);
+        // } else {
+        //     // Fallback to all active prefixes if society hasn't selected any
+        //     $prefixesAll = NamePrefix::whereStatus(1)->get();
+        // }
 
-        return view('backend.conference.conference-registration.registration-or-invitation', compact('prefixesAll', 'society', 'conference', 'conferenceAddons'));
+        $loadData = function ($relation, $model) use ($society) {
+            if ($society && $society->$relation()->exists()) {
+                return $society->$relation()->where('status', 1)->get();
+            }
+            return $model::where('status', 1)->get();
+        };
+
+        $institutions = $loadData('institutions', Institution::class);
+        // dd($institutions);
+        $designations = $loadData('designations', Designation::class);
+        $departments = $loadData('departments', Department::class);
+        $prefixesAll = $loadData('namePrefixes', NamePrefix::class);
+
+
+        return view('backend.conference.conference-registration.registration-or-invitation', compact('prefixesAll', 'society', 'conference', 'conferenceAddons', 'institutions', 'designations', 'departments'));
     }
 
     public function registrationOrInvitationSubmit(Request $request, $society, $conference)
@@ -732,6 +820,18 @@ class ConferenceRegistrationController extends Controller
                 'payment_voucher' => 'nullable|mimes:jpg,png,pdf|max:250',
                 'email' => 'required|email|unique:users,email'
             ];
+
+            if ($request->institution_id == 'other') {
+                $rules['other_institution_name'] = 'required';
+            }
+
+            if ($request->designation_id == 'other') {
+                $rules['other_designation'] = 'required';
+            }
+
+            if ($request->department_id == 'other') {
+                $rules['other_department'] = 'required';
+            }
 
             if ($request->has('invited_guest')) {
                 $rules['council_number'] = 'nullable';
@@ -825,6 +925,20 @@ class ConferenceRegistrationController extends Controller
 
             unset($validated['delegate']);
             DB::beginTransaction();
+
+            // Handle "other" options before creating user
+            if ($request->institution_id == 'other') {
+                unset($validated['institution_id']);
+            }
+
+            if ($request->designation_id == 'other') {
+                unset($validated['designation_id']);
+            }
+
+            if ($request->department_id == 'other') {
+                unset($validated['department_id']);
+            }
+
             // insert table-1
             $validated['type'] = 3;
             $storeUser = User::create($validated);
@@ -833,6 +947,29 @@ class ConferenceRegistrationController extends Controller
 
             // insert table-2
             UserDetail::create($validated);
+
+            // Create custom institution, designation, department if "other" was selected
+            if ($request->institution_id == 'other') {
+                UserInstitution::create([
+                    'user_id' => $storeUser->id,
+                    'institution_name' => $request->other_institution_name
+                ]);
+            }
+
+            if ($request->designation_id == 'other') {
+                UserDesignation::create([
+                    'user_id' => $storeUser->id,
+                    'designation_name' => $request->other_designation
+                ]);
+            }
+
+            if ($request->department_id == 'other') {
+                UserDepartment::create([
+                    'user_id' => $storeUser->id,
+                    'department_name' => $request->other_department
+                ]);
+            }
+
             // $societyId = current_user()->societies->value('id');
             //insert table-3
             $storeUser->societies()->attach($society->id, [

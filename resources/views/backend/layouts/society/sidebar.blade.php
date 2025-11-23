@@ -67,7 +67,7 @@
                     <div data-i18n="Name Prefix">Name Prefix</div> 
                 </a>
             </li>
-            {{-- <li class="menu-item {{ request()->segment(3) == 'institution' ? 'active' : '' }}">
+            <li class="menu-item {{ request()->segment(3) == 'institution' ? 'active' : '' }}">
                 <a href="{{ route('society.institution.index', request()->segment(2)) }}" class="menu-link ">
                     <i class="menu-icon icon-base ti tabler-building"></i>
                     <div data-i18n="Institution">Institution</div> 
@@ -84,7 +84,7 @@
                     <i class="menu-icon icon-base ti tabler-building-community"></i>
                     <div data-i18n="Department">Department</div> 
                 </a>
-            </li> --}}
+            </li>
             <li class="menu-item {{ request()->segment(4) == 'payment-setting' ? 'active' : '' }}">
                 <a href="{{ route('payment.setting', request()->segment(2)) }}" class="menu-link ">
                     <i class="menu-icon icon-base ti tabler-cash"></i>

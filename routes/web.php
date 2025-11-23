@@ -51,7 +51,7 @@ Route::prefix('invitation')->name('invitation.')->group(function () {
 //     return redirect()->route('login');
 // });
 //dashboard route
-Route::middleware('auth', 'verified')->group(function () {
+Route::middleware('auth', 'verified', 'check.subdomain')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::post('/join-society', [DashboardController::class, 'joinSociety'])->name('joinSociety');
     Route::get('/get-society-member-type', [DashboardController::class, 'getMemberType'])->name('getMemberType');
@@ -125,7 +125,7 @@ Route::middleware('check.subdomain')
 
 Route::prefix('conference/{conference_front:slug}')->middleware('check.subdomain')
     ->as('conference.')
-    ->group(function () { 
+    ->group(function () {
         Route::get('/', [ConferenceHomeController::class, 'index'])->name('name');
         Route::get('/speaker', [SpeakerController::class, 'index'])->name('speaker');
         Route::get('/committe', [CommitteController::class, 'index'])->name('committe');

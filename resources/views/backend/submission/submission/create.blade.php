@@ -32,19 +32,19 @@
                             @enderror
                         </div>
                         <div class="mb-6 col-md-6">
-                            <label for="article_type" class="form-label">Article Type <code>*</code></label>
-                            <select class="form-select" name="article_type" id="article_type" required>
+                            <label for="article_type_id" class="form-label">Article Type <code>*</code></label>
+                            <select class="form-select" name="article_type_id" id="article_type_id" required>
                                 <option value="" hidden>-- Select Article Type --</option>
-                                <option value="1"
-                                    @if (isset($submission)) {{ $submission->article_type == '1' ? 'selected' : '' }} @else @selected(old('article_type') == '1') @endif>
-                                    Original</option>
-                                <option value="2"
-                                    @if (isset($submission)) {{ $submission->article_type == '2' ? 'selected' : '' }} @else @selected(old('article_type') == '2') @endif>
-                                    Review</option>
+                                @foreach ($articleTypes as $articleType)
+                                    <option value="{{ $articleType->id }}"
+                                        @selected(old('article_type_id', @$submission->article_type_id) == $articleType->id)>
+                                        {{ $articleType->name }}
+                                    </option>
+                                @endforeach
                             </select>
                             <div class="valid-feedback">Looks good!</div>
                             <div class="invalid-feedback">Please select Article Type.</div>
-                            @error('article_type')
+                            @error('article_type_id')
                                 <p class="text-danger">{{ $message }}</p>
                             @enderror
                         </div>

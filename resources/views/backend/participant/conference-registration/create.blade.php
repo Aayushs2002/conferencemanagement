@@ -185,7 +185,7 @@
         }
     </style>
 
-    @if (!old() && !isset($conference_registration))
+    {{-- @if (!old() && !isset($conference_registration))
         <div class="modal fade" id="openModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle"
             aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
             <div class="modal-dialog modal-md">
@@ -229,7 +229,7 @@
                 </div>
             </div>
         </div>
-    @endif
+    @endif --}}
 
     <div class="container-fluid py-4">
         <!-- Progress Steps -->
@@ -286,7 +286,7 @@
                                 <div class="col-md-6">
                                     <p><strong>📋 Conference:</strong> {{ $conference->conference_name ?? 'N/A' }}</p>
                                     <p><strong>👤 Type:</strong> <span id="summaryRegistrantType">-</span></p>
-                                    <p><strong>🎯 Workshops:</strong> <span id="summaryWorkshops">Conference Only</span></p>
+                                    <p><strong>🎯 Registration Type:</strong> <span id="summaryWorkshops">Conference Only</span></p>
                                 </div>
                                 <div class="col-md-6">
                                     <p><strong>👥 Total Attendees:</strong> <span id="summaryAttendees">1</span></p>

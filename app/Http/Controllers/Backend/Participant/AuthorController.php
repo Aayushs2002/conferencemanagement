@@ -15,7 +15,7 @@ class AuthorController extends Controller
     {
         $authors = Author::where([
             'submission_id' => $submission->id,
-            'status' => 1
+            'status' => 1 
         ])->orderBy('id', 'asc')->get();
 
         return view('backend.participant.submission.author.index', compact('society', 'conference', 'submission', 'authors'));
@@ -35,7 +35,7 @@ class AuthorController extends Controller
             ->where('submission_id', $submission->id)
             ->get()
             ->pluck('main_author')
-            ->toArray();
+            ->toArray(); 
 
         return view('backend.participant.submission.author.create', compact('society', 'submission', 'author', 'authors', 'authorLimit', 'checkMainAuthor', 'conference'));
     }
@@ -67,10 +67,22 @@ class AuthorController extends Controller
 
             $validated = $request->validate($rules);
 
-            $authorLimit = SubmissionSetting::where('conference_id', $conference->id)->select('authors_limit')->first();
+            // Get the submission to check article type
+            $submission = Submission::with('articleType.setting')->find($request->submission_id);
             $authorsCount = Author::where(['submission_id' => $request->submission_id, 'status' => 1])->get()->count();
 
-            if (@$authorLimit->authors_limit == $authorsCount) {
+            // Check article type setting first (priority), then fallback to submission setting
+            $authorLimitValue = null;
+            if ($submission && $submission->articleType && $submission->articleType->setting && $submission->articleType->setting->author_limit) {
+                // Article type setting takes priority
+                $authorLimitValue = $submission->articleType->setting->author_limit;
+            } else {
+                // Fallback to submission setting
+                $authorLimit = SubmissionSetting::where('conference_id', $conference->id)->select('authors_limit')->first();
+                $authorLimitValue = $authorLimit->authors_limit ?? null;
+            }
+
+            if ($authorLimitValue && $authorLimitValue == $authorsCount) {   
                 return redirect()->back()->with('delete', 'Author Limit Reached.');
             } else {
                 Author::create($validated);
