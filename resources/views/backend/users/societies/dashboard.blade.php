@@ -12,7 +12,7 @@
                                         class="icon-base ti tabler-truck icon-28px"></i></span>
                             </div>
                             <h4 class="mb-0">{{ $conferenceCount }}</h4>
-                        </div>
+                        </div> 
                         <p class="mb-1">Total Conference</p>
 
                     </div>
