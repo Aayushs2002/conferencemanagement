@@ -11,7 +11,7 @@
                     <div
                         class="d-md-flex justify-content-between align-items-center dt-layout-start col-md-auto me-auto mt-0">
                         <h5 class="card-title mb-0 text-md-start text-center pb-md-0 pb-6">Society</h5>
-                    </div>
+                    </div> 
                     <div class="d-md-flex justify-content-between align-items-center dt-layout-end col-md-auto ms-auto mt-0">
                         <div class="dt-buttons btn-group flex-wrap mb-0">
                             <div class="btn-group me-2">
@@ -56,13 +56,14 @@
                     <tbody>
 
                         @foreach ($societies as $society)
+                        {{-- @dd($society->users) --}}
                             <tr>
                                 <td>{{ $loop->iteration }}</td>
-                                <td>{{ $society->users->value('f_name') }}</td>
+                                <td>{{ $society->users->where('type',2)->value('f_name') }}</td>
                                 <td> <a href="{{ asset('storage/society/logo/' . $society->logo) }}" target="_blank"><img
                                             src="{{ asset('storage/society/logo/' . $society->logo) }}" alt="logo"
                                             height="50" width="40"></a></td>
-                                <td>{{ $society->users->value('email') }}</td>
+                                <td>{{ $society->users->where('type',2)->value('email') }}</td>
                                 <td>{{ $society->phone }}</td>
                                 <td>{{ $society->contact_person }}</td>
                                 <td>
