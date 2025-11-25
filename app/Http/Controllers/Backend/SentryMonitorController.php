@@ -36,7 +36,7 @@ class SentryMonitorController extends Controller
             
             // Fetch project stats
             $stats = $this->fetchProjectStats();
-            
+            // dd($stats);
             // Cache unresolved count for sidebar badge
             if ($filter === 'unresolved') {
                 Cache::put('sentry_unresolved_count', count($issues), 300);
@@ -101,6 +101,7 @@ class SentryMonitorController extends Controller
             ])->get("{$this->sentryApiUrl}/projects/{$this->sentryOrgSlug}/{$this->sentryProjectSlug}/");
 
             if ($response->successful()) {
+                // dd($response->json());
                 return $response->json();
             }
 

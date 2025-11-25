@@ -107,7 +107,7 @@ class PaymentContoller extends Controller
         </html>
     ';
         return response($form);
-    }
+    } 
 
     public function esewaSuccess(Request $request, $society, $conference)
     {

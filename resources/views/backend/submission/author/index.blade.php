@@ -36,9 +36,9 @@
                         <th scope="row">{{ $loop->iteration }}</th>
                         <td>{{ $author->name }}{!! $author->main_author == 1 ? ' <span class="badge bg-success">Main</span>' : '' !!}</td>
                         <td>{{ $author->email }}</td>
+                        <td>{{ $author->designation }}</td>
                         <td>{{ $author->institution }}</td>
                         <td>{{ $author->institution_address }}</td>
-                        <td>{{ $author->designation }}</td>
                         <td>{{ !empty($author->phone) ? $author->phone : '-' }}</td>
                         {{-- <td>
                                <div class="d-flex gap-2">

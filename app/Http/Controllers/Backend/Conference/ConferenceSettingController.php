@@ -12,14 +12,14 @@ use Illuminate\Http\Request;
 
 class ConferenceSettingController extends Controller
 {
-    public function __construct(protected FileService $file_service) {}
+    public function __construct(protected FileService $file_service) {} 
 
     public function conferenceSetting(Request $request)
     {
         $conference = Conference::where('id', $request->id)->first();
         $conferenceSetting = ConferenceSetting::where('conference_id', $conference->id)->first();
         return view('backend.conference.conference-setting', compact('conference', 'conferenceSetting'));
-    }
+    } 
 
     public function conferenceSettingSubmit(Request $request)
     {
