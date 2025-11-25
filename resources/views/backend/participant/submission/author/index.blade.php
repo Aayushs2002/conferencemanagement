@@ -20,7 +20,7 @@
                                    id="addAuthor" data-topic-id="{{ $submission->id }}" class="btn btn-primary addAuthor"><i
                                        class="icon-base ti tabler-plus icon-xs me-sm-1"></i>
                                    <span class="d-none d-sm-inline-block">Add</span></button>
-                           </div> 
+                           </div>
                        @endif
                    </div>
                </div>
@@ -43,9 +43,9 @@
                            <th scope="row">{{ $loop->iteration }}</th>
                            <td>{{ $author->name }}{!! $author->main_author == 1 ? ' <span class="badge bg-success">Main</span>' : '' !!}</td>
                            <td>{{ $author->email }}</td>
+                           <td>{{ $author->designation }}</td>
                            <td>{{ $author->institution }}</td>
                            <td>{{ $author->institution_address }}</td>
-                           <td>{{ $author->designation }}</td>
                            <td>{{ !empty($author->phone) ? $author->phone : '-' }}</td>
                            <td>
                                <div class="d-flex gap-2">

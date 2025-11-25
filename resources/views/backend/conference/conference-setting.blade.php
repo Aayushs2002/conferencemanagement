@@ -12,7 +12,7 @@
                 <hr class="mt-0" style="height:1px;border:none;color:#333;background-color:#333;" />
             </div>
 
-            <div class="col-md-4 mb-4">
+            <div class="col-md-4 mb-4"> 
                 <label>Name</label>
                 <input type="text" class="form-control" name="name" value="{{ $conferenceSetting?->name }}">
             </div>
