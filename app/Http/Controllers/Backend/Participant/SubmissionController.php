@@ -35,7 +35,7 @@ class SubmissionController extends Controller
             })
             ->orWhere(function ($query) use ($conference) {
                 $query->where('conference_id', $conference->id)
-                    ->where('expert_id', current_user()->id); 
+                    ->where('expert_id', current_user()->id);
             })
             ->get();
         $submissionSetting = SubmissionSetting::where('conference_id', $conference->id)->first();
@@ -46,7 +46,7 @@ class SubmissionController extends Controller
     {
 
         $setting = SubmissionSetting::where('conference_id', $conference->id)
-            ->select('abstract_word_limit', 'key_word_limit', 'deadline', 'attachment_name','attachment_required')
+            ->select('abstract_word_limit', 'key_word_limit', 'deadline', 'attachment_name', 'attachment_required')
             ->first();
         if (!$setting) {
             return redirect()->back()->with('delete', 'Submission settings not found.');
@@ -58,12 +58,12 @@ class SubmissionController extends Controller
         $articleTypes = ArticleType::with('setting')->where(['conference_id' => $conference->id, 'status' => 1])->get();
 
         return view('backend.participant.submission.create', compact('society', 'conference', 'submissionTracks', 'setting', 'articleTypes'));
-    } 
+    }
 
     public function store(SubmissionRequest $request, $society, $conference)
     {
         try {
-            $validated = $request->all();  
+            $validated = $request->all();
             // dd($validated);
             $setting = SubmissionSetting::where('conference_id', $conference->id)->select('abstract_word_limit', 'key_word_limit')->first();
             if (!empty($validated['keywords']) && !empty($setting->key_word_limit)) {
@@ -153,13 +153,13 @@ class SubmissionController extends Controller
                 'conferenceDate' => $conferenceDate,
                 'conferenceName' => $conference->conference_name
             ];
- 
+
             $data = [
                 'submission_topic' => $validated['title'],
                 'conference_theme' => $conference->conference_theme,
                 'conference_date' => $conferenceDate,
                 'society_email' => $society->contact_person_email,
-            ]; 
+            ];
 
             $subject = parseTemplate($template?->subject, $data);
             $body = parseTemplate($template?->body, $data);
@@ -180,7 +180,8 @@ class SubmissionController extends Controller
         } catch (\Exception $th) {
             DB::rollBack();
 
-            dd($th);
+            // dd($th);
+            return redirect()->back()->withInput()->with('delete', 'Internal Server Error');
         }
     }
 
@@ -236,7 +237,6 @@ class SubmissionController extends Controller
                 // }
                 // $validated['abstract_content'] = implode("\n\n", $sectionsContent);
                 $validated['abstract_content'] = null;
-
             } else {
                 // If no sections, ensure sections field is null and keep only abstract_content
                 $validated['sections'] = null;
@@ -278,6 +278,7 @@ class SubmissionController extends Controller
             return redirect()->route('my-society.conference.submission.index',  [$society, $conference])->with('status', 'Submission Added Successfully');
         } catch (\Exception $th) {
             DB::rollBack();
+            return redirect()->back()->withInput()->with('delete', 'Internal Server Error');
         }
     }
 
@@ -460,7 +461,7 @@ class SubmissionController extends Controller
     public function getArticleTypeSetting(Request $request, $society, $conference)
     {
         $articleType = ArticleType::with('setting')->find($request->article_type_id);
-        
+
         if (!$articleType || !$articleType->setting) {
             return response()->json(['has_setting' => false]);
         }
@@ -471,4 +472,3 @@ class SubmissionController extends Controller
         ]);
     }
 }
- 

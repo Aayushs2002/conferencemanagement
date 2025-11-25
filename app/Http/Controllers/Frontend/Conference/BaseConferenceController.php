@@ -22,6 +22,7 @@ class BaseConferenceController extends Controller
                 ->firstOrFail();
 
             $this->workshops = Workshop::where('conference_id', $this->conference->id)
+                ->where('approval_status', 'approved')
                 ->where('status', 1)
                 ->get();
 

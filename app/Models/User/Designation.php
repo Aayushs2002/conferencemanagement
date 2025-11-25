@@ -14,5 +14,5 @@ class Designation extends Model
     public function societies()
     {
         return $this->belongsToMany(Society::class, 'society_designation');
-    }
+    }  
 }

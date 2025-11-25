@@ -2,6 +2,7 @@
 
 namespace App\Models\Workshop;
 
+use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Vinkla\Hashids\Facades\Hashids;
 
@@ -23,7 +24,17 @@ class Workshop extends Model
         'no_of_participants',
         'workshop_description',
         'status',
-        'slug'
+        'slug',
+        'schedule_plan_attachment',
+        'created_by',
+        'approval_status',
+        'admin_remarks',
+        'reviewed_by',
+        'reviewed_at'
+    ];
+
+    protected $casts = [
+        'reviewed_at' => 'datetime',
     ];
 
     public function getRouteKey()
@@ -50,6 +61,80 @@ class Workshop extends Model
     public function registrations()
     {
         return $this->hasMany(WorkshopRegistration::class);
+    }
+
+    public function creator()
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function reviewer()
+    {
+        return $this->belongsTo(User::class, 'reviewed_by');
+    }
+
+    // Scopes
+    public function scopePending($query)
+    {
+        return $query->where('approval_status', 'pending');
+    }
+
+    public function scopeApproved($query)
+    {
+        return $query->where('approval_status', 'approved');
+    }
+
+    public function scopeRejected($query)
+    {
+        return $query->where('approval_status', 'rejected');
+    }
+
+    public function scopeCorrectionNeeded($query)
+    {
+        return $query->where('approval_status', 'correction_needed');
+    }
+
+    // Helper methods
+    public function isPending()
+    {
+        return $this->approval_status === 'pending';
+    }
+
+    public function isApproved()
+    {
+        return $this->approval_status === 'approved';
+    }
+
+    public function isRejected()
+    {
+        return $this->approval_status === 'rejected';
+    }
+
+    public function needsCorrection()
+    {
+        return $this->approval_status === 'correction_needed';
+    }
+
+    public function getStatusBadgeClass()
+    {
+        return match($this->approval_status) {
+            'pending' => 'bg-warning',
+            'approved' => 'bg-success',
+            'rejected' => 'bg-danger',
+            'correction_needed' => 'bg-info',
+            default => 'bg-secondary'
+        };
+    }
+
+    public function getStatusLabel()
+    {
+        return match($this->approval_status) {
+            'pending' => 'Pending Review',
+            'approved' => 'Approved',
+            'rejected' => 'Rejected',
+            'correction_needed' => 'Correction Needed',
+            default => 'Unknown'
+        };
     }
 
     // public function trainers()

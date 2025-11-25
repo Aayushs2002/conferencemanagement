@@ -48,12 +48,14 @@ Route::middleware('auth','check.subdomain')->group(function () {
         // Society Designation routes
         Route::controller(SocietyDesignationController::class)->middleware('check.societyadmin')->group(function () {
             Route::get('/designation', 'index')->name('society.designation.index');
+            Route::post('/designation/update-order', 'updateOrder')->name('society.designation.update-order');
             Route::post('/designation', 'update')->name('society.designation.update');
         });
 
         // Society Department routes
         Route::controller(SocietyDepartmentController::class)->middleware('check.societyadmin')->group(function () {
             Route::get('/department', 'index')->name('society.department.index');
+            Route::post('/department/update-order', 'updateOrder')->name('society.department.update-order');
             Route::post('/department', 'update')->name('society.department.update');
         });
     });

@@ -17,7 +17,10 @@ class OfficialMessageController extends Controller
      */
     public function index($society, $conference)
     {
-        $official_messages = OfficialMessage::where(['conference_id' => $conference->id, 'status' => 1])->get();
+        $official_messages = OfficialMessage::where(['conference_id' => $conference->id, 'status' => 1])
+            ->orderBy('display_order', 'asc')
+            ->orderBy('id', 'asc')
+            ->get();
         return view('backend.official-message.index', compact('society', 'conference', 'official_messages'));
     }
 
@@ -51,6 +54,10 @@ class OfficialMessageController extends Controller
 
 
             $validated['conference_id'] = $conference->id;
+            
+            // Set display_order to be last
+            $maxOrder = OfficialMessage::where('conference_id', $conference->id)->max('display_order');
+            $validated['display_order'] = $maxOrder ? $maxOrder + 1 : 1;
 
             OfficialMessage::create($validated);
 
@@ -122,6 +129,29 @@ class OfficialMessageController extends Controller
             return redirect()->back()->with('status', 'Offical Message Deleted Successfuly');
         } catch (\Exception $e) {
             throw $e;
+        }
+    }
+
+    public function updateOrder(Request $request, $society, $conference)
+    {
+        try {
+            $orders = $request->orders;
+            
+            foreach ($orders as $order) {
+                OfficialMessage::where('id', $order['id'])->update([
+                    'display_order' => $order['position']
+                ]);
+            }
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Order updated successfully'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to update order: ' . $e->getMessage()
+            ], 500);
         }
     }
 }

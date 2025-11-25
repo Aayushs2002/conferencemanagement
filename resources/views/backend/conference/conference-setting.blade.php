@@ -1,10 +1,6 @@
 <div class="modal-body">
     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-    <div class="">
-        <b class="text-center mb-4">Conference Setting <code>(Conference:
-                {{ $conference->conference_theme }})</code></b>
 
-    </div>
     <form action="#" method="POST" enctype="multipart/form-data" id="conferenceSettingForm">
         <div class="row">
 
@@ -35,9 +31,24 @@
                     @endif
                 </div>
             </div>
+            <div class="col-12 mt-3">
+                <h6>2. Registation Setting</h6>
+                <hr class="mt-0" style="height:1px;border:none;color:#333;background-color:#333;" />
+            </div>
+
+
+            <div class="col-md-4 mb-4">
+                <label>Registration Required for Speaker <code>*</code></label>
+                <select class="form-control" name="speaker_registration_required" required>
+                    <option value="1"
+                        {{ $conferenceSetting?->speaker_registration_required == 1 ? 'selected' : '' }}>Yes</option>
+                    <option value="0"
+                        {{ $conferenceSetting?->speaker_registration_required == 0 ? 'selected' : '' }}>No</option>
+                </select>
+            </div>
 
             <div class="col-12 mt-3">
-                <h6>2. Conference Registration Guideline</h6>
+                <h6>3. Conference Registration Guideline</h6>
                 <hr class="mt-0" style="height:1px;border:none;color:#333;background-color:#333;" />
             </div>
 
@@ -59,7 +70,7 @@
             </div>
 
             <div class="col-12 mt-3">
-                <h6>3. YouTube Guideline Links</h6>
+                <h6>4. YouTube Guideline Links</h6>
                 <hr class="mt-0" style="height:1px;border:none;color:#333;background-color:#333;" />
             </div>
 
@@ -85,7 +96,7 @@
             </div>
 
             <div class="col-12 mt-3">
-                <h6>4. Navbar Display Settings</h6>
+                <h6>5. Navbar Display Settings</h6>
                 <hr class="mt-0" style="height:1px;border:none;color:#333;background-color:#333;" />
             </div>
 
@@ -104,7 +115,7 @@
             </div>
 
             <div class="col-12 mt-3">
-                <h6>5. Payment Instruction</h6>
+                <h6>6. Payment Instruction</h6>
                 <hr class="mt-0" style="height:1px;border:none;color:#333;background-color:#333;" />
             </div>
 
@@ -114,7 +125,7 @@
             </div>
 
             <div class="col-12 mt-3">
-                <h6>6. Terms & Conditions and Privacy Policy</h6>
+                <h6>7. Terms & Conditions and Privacy Policy</h6>
                 <hr class="mt-0" style="height:1px;border:none;color:#333;background-color:#333;" />
             </div>
 
@@ -129,9 +140,10 @@
             </div>
 
             <div class="col-12 mt-3">
-                <h6>7. Custom CSS for Sections</h6>
+                <h6>8. Custom CSS for Sections</h6>
                 <hr class="mt-0" style="height:1px;border:none;color:#333;background-color:#333;" />
-                <p class="text-muted small">Add custom CSS for specific sections. Each section can have its own styling.
+                <p class="text-muted small">Add custom CSS for specific sections. Each section can have its own
+                    styling.
                 </p>
             </div>
 
@@ -139,7 +151,7 @@
                 $sections = [
                     'navbar_logo' => 'Navbar Logo',
                     'banner' => 'Conference Banner',
-                    'hero_section' => 'Hero Section', 
+                    'hero_section' => 'Hero Section',
                     'info_box' => 'Conference Info Box',
                     'countdown' => 'Countdown Timer',
                     'dashboard_cards' => 'Dashboard Cards',
@@ -169,16 +181,17 @@
                                         value="1" {{ $existingCss[$key]->status ?? 0 ? 'checked' : '' }}>
                                     <label class="form-check-label" for="status{{ $key }}">
                                         Enable Custom CSS for this section
-                                    </label> 
+                                    </label>
                                 </div>
                                 <label class="form-label">CSS Code:</label>
                                 <textarea class="form-control font-monospace css-editor" name="custom_css[{{ $key }}]" rows="6"
                                     placeholder="/* Enter CSS here - Example: */&#10;{{ $key == 'navbar_logo' ? 'color: red;&#10;font-size: 1.8rem;' : 'max-height: 60px;&#10;border-radius: 8px;' }}&#10;box-shadow: 0 2px 4px rgba(0,0,0,0.1);">{{ $existingCss[$key]->custom_css ?? '' }}</textarea>
                                 <small class="text-muted">
                                     <i class="ti tabler-info-circle"></i>
-                                    Example for {{ $label }}: 
-                                    @if($key == 'navbar_logo')
-                                        Add properties like color, font-size, font-weight, max-height, border-radius, etc.
+                                    Example for {{ $label }}:
+                                    @if ($key == 'navbar_logo')
+                                        Add properties like color, font-size, font-weight, max-height, border-radius,
+                                        etc.
                                     @else
                                         Add properties like max-height, border-radius, box-shadow, etc.
                                     @endif

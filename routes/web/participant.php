@@ -4,10 +4,13 @@ use App\Http\Controllers\Backend\Participant\AuthorController;
 use App\Http\Controllers\Backend\Participant\ConferenceDashboardController;
 use App\Http\Controllers\Backend\Participant\ConferenceRegistrationController;
 use App\Http\Controllers\Backend\Participant\MySocietyController;
+use App\Http\Controllers\Backend\Participant\MyWorkshopRegistrationController;
 use App\Http\Controllers\Backend\Participant\PaymentContoller;
 use App\Http\Controllers\Backend\Participant\SubmissionController;
+use App\Http\Controllers\Backend\Participant\WorkshopController;
 use App\Http\Controllers\Backend\Participant\WorkshopPaymentController;
 use App\Http\Controllers\Backend\Participant\WorkshopRegistrationController;
+use App\Http\Controllers\Backend\Participant\WorkshopTrainerController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('auth')->group(function () {
@@ -82,6 +85,37 @@ Route::middleware('auth')->group(function () {
         Route::delete('/author/destroy/{author}', 'destroy')->name('destroy');
     });
 
+
+    // Normal User Workshop Application Management
+    Route::controller(WorkshopController::class)->prefix('/my-society/{society}/conference/{conference}')->name('my-society.conference.my-workshop.')->group(function () {
+        Route::get('/my-workshops', 'index')->name('index');
+        Route::get('/my-workshops/create', 'create')->name('create');
+        Route::post('/my-workshops/store', 'store')->name('store');
+        Route::get('/my-workshops/{workshop}/edit', 'edit')->name('edit');
+        Route::patch('/my-workshops/{workshop}/update', 'update')->name('update');
+        Route::delete('/my-workshops/{workshop}/destroy', 'destroy')->name('destroy');
+        Route::post('/my-workshops/view-data', 'view')->name('view');
+        Route::post('/my-workshops/allocate-price-form', 'allocatePriceForm')->name('allocatePriceForm');
+        Route::post('/my-workshops/allocate-price-submit', 'allocatePriceSubmit')->name('allocatePriceSubmit'); 
+    });
+
+    // Participant Workshop Trainer Management (for their approved workshops)
+    Route::controller(WorkshopTrainerController::class)->prefix('/my-society/{society}/conference/{conference}')->name('my-society.conference.my-workshop.trainer.')->group(function () {
+        Route::get('/my-workshops/{workshop}/trainers', 'index')->name('index');
+        Route::get('/my-workshops/{workshop}/trainers/create', 'create')->name('create');
+        Route::post('/my-workshops/trainers/store', 'store')->name('store');
+        Route::get('/my-workshops/{workshop}/trainers/{trainer}/edit', 'edit')->name('edit');
+        Route::patch('/my-workshops/trainers/{trainer}/update', 'update')->name('update');
+        Route::delete('/my-workshops/{workshop}/trainers/{trainer}/destroy', 'destroy')->name('destroy');
+    });
+
+    // Participant Workshop Registration Management (for their approved workshops)
+    Route::controller(MyWorkshopRegistrationController::class)->prefix('/my-society/{society}/conference/{conference}')->name('my-society.conference.my-workshop.registration.')->group(function () {
+        Route::get('/my-workshops/{workshop}/registrations', 'index')->name('index');
+        Route::post('/my-workshops/registrations/view', 'view')->name('view');
+        Route::post('/my-workshops/registrations/verify-form', 'verifyForm')->name('verifyForm');
+        Route::post('/my-workshops/registrations/verify', 'verify')->name('verify');
+    });
 
     Route::controller(WorkshopRegistrationController::class)->prefix('/my-society/{society}/conference/{conference}')->name('my-society.conference.workshop.')->group(function () {
         Route::get('/workshop-registration', 'index')->name('index');

@@ -4,11 +4,13 @@ use App\Http\Middleware\AutoCheckConferencePermission;
 use App\Http\Middleware\CheckFeature;
 use App\Http\Middleware\DetectSubdomain;
 use App\Http\Middleware\SocietyAdminPermission;
+use App\Http\Middleware\SuperAdminMiddleware;
 use App\Http\Middleware\SuperAdminPermission;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Support\Facades\Route;
+use Sentry\Laravel\Integration;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -27,9 +29,10 @@ return Application::configure(basePath: dirname(__DIR__))
             'check.superadmin' => SuperAdminPermission::class,
             'check.societyadmin' => SocietyAdminPermission::class,
             'check.subdomain' => DetectSubdomain::class,
-            'feature' => CheckFeature::class
+            'feature' => CheckFeature::class,
+            'super.admin' => SuperAdminMiddleware::class
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
-        //
+        Integration::handles($exceptions);
     })->create();

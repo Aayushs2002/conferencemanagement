@@ -15,7 +15,7 @@ class ConferenceSettingController extends Controller
     public function __construct(protected FileService $file_service) {}
 
     public function conferenceSetting(Request $request)
-    { 
+    {
         $conference = Conference::where('id', $request->id)->first();
         $conferenceSetting = ConferenceSetting::where('conference_id', $conference->id)->first();
         return view('backend.conference.conference-setting', compact('conference', 'conferenceSetting'));
@@ -35,7 +35,8 @@ class ConferenceSettingController extends Controller
                 'logo_display_type' => 'nullable',
                 'payment_instruction' => 'nullable|string',
                 'terms_conditions' => 'nullable|string',
-                'privacy_policy' => 'nullable|string'
+                'privacy_policy' => 'nullable|string',
+                'speaker_registration_required' => 'required|in:0,1'
             ]);
 
             $type = 'success';
@@ -81,6 +82,7 @@ class ConferenceSettingController extends Controller
                 'payment_instruction' => $request->payment_instruction,
                 'terms_conditions' => $request->terms_conditions,
                 'privacy_policy' => $request->privacy_policy,
+                'speaker_registration_required' => $request->speaker_registration_required,
             ];
 
             if ($conferenceSetting) {
@@ -96,14 +98,14 @@ class ConferenceSettingController extends Controller
                 foreach ($request->custom_css as $sectionName => $cssCode) {
                     $cssId = $request->css_ids[$sectionName] ?? null;
                     $status = isset($request->css_status[$sectionName]) ? 1 : 0;
-                    
+
                     $cssData = [
                         'conference_id' => $request->conference_id,
                         'section_name' => $sectionName,
                         'custom_css' => $cssCode,
                         'status' => $status
                     ];
-                    
+
                     if ($cssId) {
                         ConferenceCustomCss::where('id', $cssId)->update($cssData);
                     } else {
@@ -117,7 +119,6 @@ class ConferenceSettingController extends Controller
                     }
                 }
             }
-
         } catch (\Exception $e) {
             $type = 'error';
             $message = $e->getMessage();

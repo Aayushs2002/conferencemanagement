@@ -13,6 +13,7 @@ class OfficialMessage extends Model
         'image',
         'message',
         'is_featured',
-        'status'
+        'status',
+        'display_order'
     ];
 }

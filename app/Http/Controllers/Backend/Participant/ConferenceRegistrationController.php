@@ -20,6 +20,7 @@ use Exception;
 use Illuminate\Http\Request;
 use Mail;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class ConferenceRegistrationController extends Controller
 {
@@ -175,7 +176,7 @@ class ConferenceRegistrationController extends Controller
                     $validated['conference_id'] = $conference->id;
                     $validated['total_attendee'] = empty($request->accompany_person) ? 1 : $request->accompany_person + 1;
                     $validated['token'] = random_word(60);
-                    
+
                     $date = \Carbon\Carbon::now()->format('F j, Y');
                     // $onlinePayment = session()->get('onlinePayment');
                     // dd($onlinePayment);
@@ -185,7 +186,7 @@ class ConferenceRegistrationController extends Controller
                     //conference amount
                     $conferenceAmount = '';
                     if (!empty($conference)) {
-                        if ($conference->early_bird_registration_deadline >= date('Y-m-d')) { 
+                        if ($conference->early_bird_registration_deadline >= date('Y-m-d')) {
                             $conferenceAmount = !empty($memberTypePrice->early_bird_amount) ? $memberTypePrice->early_bird_amount : '';
                         } elseif ($conference->regular_registration_deadline >= date('Y-m-d')) {
                             $conferenceAmount = !empty($memberTypePrice->regular_amount) ? $memberTypePrice->regular_amount : '';
@@ -339,6 +340,7 @@ class ConferenceRegistrationController extends Controller
         } catch (Exception $e) {
             // dd($e);
             DB::rollBack();
+            Log::channel('sentry')->error('Conference Registration Error: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
                 'message' => 'Registration failed: ' . $e->getMessage()

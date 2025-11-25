@@ -9,7 +9,7 @@
         <div class="card">
             <h4 class="card-header"><a href="{{ route('workshop.index', [$society, $conference]) }}"><i
                         class="ti tabler-arrow-narrow-left"></i></a>
-                {{ isset($workshop) ? 'Edit' : 'Add' }}
+                {{ isset($workshop) ? 'Edit' : 'Add' }} 
                 Workshop</h4>
             <div class="card-body">
                 <form class="needs-validation"
@@ -191,6 +191,25 @@
                                 @endif
                             </div>
                         </div>
+
+                        @if (current_user()->type == 3)
+                            <div class="col-md-5 form-group mb-3">
+                                <label for="schedule_plan_attachment">Schedule/Plan Document <code>*</code></label>
+                                <input type="file" class="form-control @error('schedule_plan_attachment') is-invalid @enderror"
+                                    name="schedule_plan_attachment" id="schedule_plan_attachment" accept=".pdf,.doc,.docx" />
+                                <small class="text-muted">Upload workshop schedule or plan (PDF, DOC, DOCX - Max 5MB)</small>
+                                @error('schedule_plan_attachment')
+                                    <p class="text-danger">{{ $message }}</p>
+                                @enderror
+                                @if (isset($workshop) && $workshop->schedule_plan_attachment)
+                                    <div class="mt-2">
+                                        <a href="{{ asset('storage/' . $workshop->schedule_plan_attachment) }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                            <i class="ti tabler-download me-1"></i> View Current Document
+                                        </a>
+                                    </div>
+                                @endif
+                            </div>
+                        @endif
 
                         <div class="mb-6">
                             <label class="form-label" for="description">Workshop Description <code>*</code></label>

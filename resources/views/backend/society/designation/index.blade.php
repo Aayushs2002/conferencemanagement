@@ -24,9 +24,9 @@
                                     <div class="form-check">
                                         <input class="form-check-input" type="checkbox" 
                                             name="designations[]" 
-                                            value="{{ $designation->id }}" 
+                                            value="{{ $designation->id }}"  
                                             id="designation_{{ $designation->id }}"
-                                            {{ in_array($designation->id, $selectedDesignations) ? 'checked' : '' }}>
+                                            {{ $selectedDesignations->contains('id', $designation->id) ? 'checked' : '' }}>
                                         <label class="form-check-label" for="designation_{{ $designation->id }}">
                                             {{ $designation->designation }}
                                         </label>
@@ -60,11 +60,33 @@
 
             <div class="card-body border-top">
                 <h6 class="mb-3">Currently Selected Designations</h6>
-                @if(count($selectedDesignations) > 0)
-                    <div class="d-flex flex-wrap gap-2">
-                        @foreach ($designations->whereIn('id', $selectedDesignations) as $designation)
-                            <span class="badge bg-label-primary">{{ $designation->designation }}</span>
-                        @endforeach
+                @if($selectedDesignations->count() > 0)
+                    <div class="mb-3">
+                        <small class="text-info">
+                            <i class="ti tabler-grip-vertical"></i> <strong>Drag and drop to reorder designations</strong>
+                        </small>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-bordered">
+                            <thead>
+                                <tr>
+                                    <th style="width: 30px;"><i class="ti tabler-arrows-move"></i></th>
+                                    <th>Order</th>
+                                    <th>Designation Name</th>
+                                </tr>
+                            </thead>
+                            <tbody id="sortable-designations">
+                                @foreach ($selectedDesignations as $designation)
+                                    <tr data-id="{{ $designation->id }}" style="cursor: move;">
+                                        <td class="drag-handle text-center">
+                                            <i class="ti tabler-grip-vertical" style="font-size: 20px; color: #999;"></i>
+                                        </td>
+                                        <td class="order-number">{{ $loop->iteration }}</td>
+                                        <td>{{ $designation->designation }}</td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
                     </div>
                 @else
                     <p class="text-muted mb-0">No designations selected yet.</p>
@@ -75,8 +97,86 @@
 @endsection
 
 @section('scripts')
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
+    <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
+    
+    <style>
+        #sortable-designations tr.ui-sortable-helper {
+            display: table;
+            background-color: #f8f9fa;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+        
+        #sortable-designations tr.ui-sortable-placeholder {
+            background-color: #e3f2fd;
+            visibility: visible !important;
+            height: 50px;
+        }
+        
+        .drag-handle:hover {
+            background-color: #f0f0f0;
+            cursor: grab;
+        }
+        
+        .drag-handle:active {
+            cursor: grabbing;
+        }
+    </style>
+    
     <script>
         $(document).ready(function() {
+            // Initialize sortable only if there are selected designations
+            if ($('#sortable-designations tr').length > 0) {
+                $("#sortable-designations").sortable({
+                    handle: ".drag-handle",
+                    placeholder: "ui-sortable-placeholder",
+                    helper: function(e, tr) {
+                        var $originals = tr.children();
+                        var $helper = tr.clone();
+                        $helper.children().each(function(index) {
+                            $(this).width($originals.eq(index).width());
+                        });
+                        return $helper;
+                    },
+                    update: function(event, ui) {
+                        updateOrder();
+                    }
+                });
+            }
+
+            function updateOrder() {
+                var orders = [];
+                $('#sortable-designations tr').each(function(index) {
+                    orders.push({
+                        id: $(this).data('id'),
+                        position: index + 1
+                    });
+                });
+
+                $.ajax({
+                    url: '{{ route('society.designation.update-order', $society->getRouteKey()) }}',
+                    type: 'POST',
+                    data: {
+                        _token: '{{ csrf_token() }}',
+                        orders: orders
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            // Update order numbers
+                            $('#sortable-designations tr').each(function(index) {
+                                $(this).find('.order-number').text(index + 1);
+                            });
+                            
+                            notyf.success('Order updated successfully');
+                        }
+                    },
+                    error: function(xhr) {
+                        notyf.error('Failed to update order');
+                        console.error(xhr);
+                    }
+                });
+            }
+            
             // Show confirmation when form is submitted
             $('form').on('submit', function(e) {
                 const checkedCount = $('input[name="designations[]"]:checked').length;

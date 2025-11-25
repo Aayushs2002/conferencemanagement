@@ -75,13 +75,17 @@ class Society extends Model
 
     public function designations()
     {
-        return $this->belongsToMany(Designation::class, 'society_designation');
+        return $this->belongsToMany(Designation::class, 'society_designation')
+            ->orderBy('society_designation.display_order', 'asc')
+            ->orderBy('society_designation.designation_id', 'asc');
     }
 
     public function departments()
     {
-        return $this->belongsToMany(Department::class, 'society_department');
-    }
+        return $this->belongsToMany(Department::class, 'society_department')
+            ->orderBy('society_department.display_order', 'asc')
+            ->orderBy('society_department.department_id', 'asc');
+    }   
 
     public function societySetting()
     {

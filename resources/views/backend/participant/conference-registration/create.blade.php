@@ -14,11 +14,11 @@
             box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
         }
 
-        .step-indicator {
+        .step-indicator { 
             display: flex;
             justify-content: space-between;
             margin-bottom: 30px;
-        }
+        } 
 
         .step {
             flex: 1;
@@ -972,6 +972,27 @@
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 }
             });
+
+            // Reset all payment buttons to their original state
+            function resetAllPaymentButtons() {
+                $("#submitFonePay").prop('disabled', false).html('<i class="fas fa-mobile-alt"></i> Pay with FonePay');
+                $("#submitEsewa").prop('disabled', false).html('<i class="fas fa-wallet"></i> Pay with eSewa');
+                $("#submitKhalti").prop('disabled', false).html('<i class="fas fa-wallet"></i> Pay with Khalti');
+                $("#submitMoco").prop('disabled', false).html('<i class="fas fa-qrcode"></i> Pay with MoCo');
+                $("#submitButtonInternationalPayment").prop('disabled', false).html('<i class="fas fa-credit-card"></i> Proceed to Payment');
+                $("#submitButtonBankTransfer").prop('disabled', false).html('<i class="fas fa-university"></i> Submit Bank Transfer');
+            }
+
+            // Handle browser back/forward button - reset buttons when page is shown from cache
+            window.addEventListener('pageshow', function(event) {
+                if (event.persisted || (window.performance && window.performance.navigation.type === 2)) {
+                    // Page was loaded from cache (back/forward button)
+                    resetAllPaymentButtons();
+                }
+            });
+
+            // Reset buttons on page load
+            resetAllPaymentButtons();
 
             // Show initial modal
             $("#openModal").modal('show');

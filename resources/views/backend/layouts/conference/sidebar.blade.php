@@ -120,11 +120,19 @@
                 </li>
             @endif
             @if (feature_enabled('workshop-management', getSociety(request()->segment(2))))
+                {{-- <li
+                    class="menu-item {{ request()->segment(4) == 'my-workshops' && request()->segment(1) == 'my-society' ? 'active' : '' }}">
+                    <a href="{{ route('my-society.conference.my-workshop.index', [request()->segment(2), request()->segment(4)]) }}"
+                        class="menu-link ">
+                        <i class="menu-icon icon-base ti tabler-presentation"></i>
+                        <div data-i18n="My Workshop Applications">My Workshop Applications</div>
+                    </a>
+                </li> --}}
                 <li
                     class="menu-item  {{ request()->segment(5) == 'workshop-registration' && request()->segment(1) == 'my-society' ? 'active' : '' }}">
                     <a href="{{ route('my-society.conference.workshop.index', [request()->segment(2), request()->segment(4)]) }}"
                         class="menu-link ">
-                        <i class="menu-icon icon-base ti tabler-building-skyscraper"></i>
+                        <i class="menu-icon icon-base ti tabler-ticket"></i>
                         <div data-i18n="My Workshop Registration">My Workshop Registration</div>
                     </a>
                 </li>
@@ -199,7 +207,7 @@
                                 </a>
                             </li>
                         @endif
-                    </ul>
+                    </ul> 
                 </li>
             @endif
         @endif
@@ -267,7 +275,7 @@
 
                         <div data-i18n="Workshop">Workshop</div>
                     </a>
-                    <ul class="menu-sub">
+                    <ul class="menu-sub"> 
                         @if (auth()->user()->hasConferencePermissionBlade($conference, 'View Workshop'))
                             <li
                                 class="menu-item {{ request()->segment(5) == 'workshop' && request()->segment(6) == '' ? 'active' : '' }}">
@@ -285,7 +293,7 @@
                                     <div data-i18n="Register New User">Register New User</div>
                                 </a>
                             </li>
-                        @endif
+                        @endif 
                         @if (auth()->user()->hasConferencePermissionBlade($conference, 'Regster User in Exceptional Case'))
                             <li
                                 class="menu-item {{ request()->segment(7) == 'register-for-exceptional-case' ? 'active' : '' }}">

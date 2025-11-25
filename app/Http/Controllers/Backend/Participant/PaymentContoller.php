@@ -56,7 +56,7 @@ class PaymentContoller extends Controller
     }
 
     public function fonePaySuccess(Request $request, $society, $conference)
-    {
+    { 
         if ($request->RC == 'failed' || $request->RC == 'cancel') {
             return redirect()->route('my-society.conference.create', [$society, $conference])->with('delete', 'Payment process has been failed or cancelled, please try again.');
         } else {

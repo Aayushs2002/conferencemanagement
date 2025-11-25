@@ -18,7 +18,7 @@
                             fill="currentColor" />
                     </svg>
                 </span>
-            </span>
+            </span> 
             <span class="app-brand-text demo menu-text fw-bold ms-3">Vuexy</span> --}}
             <span class="d-flex justify-content-center" style="width: 200px">
                 {{-- @if (current_user()->type == 2 && current_user()->societies->value('logo'))
@@ -123,6 +123,18 @@
             </li>
         @endif
         @if (is_super_admin())
+            <li class="menu-item {{ request()->segment(1) == 'sentry' ? 'active' : '' }}">
+                <a href="{{ route('sentry.index') }}" class="menu-link ">
+                    <i class="menu-icon icon-base ti tabler-bug"></i>
+                    <div data-i18n="Sentry Monitor">Sentry Monitor</div>
+                    @php
+                        $unresolvedCount = cache()->get('sentry_unresolved_count', 0);
+                    @endphp
+                    @if($unresolvedCount > 0)
+                        <span class="badge bg-danger rounded-pill ms-auto">{{ $unresolvedCount }}</span>
+                    @endif
+                </a>
+            </li>
             <li class="menu-item {{ request()->segment(1) == 'name-prefix' ? 'active' : '' }}">
                 <a href="{{ route('name-prefix.index') }}" class="menu-link ">
                     <i class="menu-icon icon-base ti tabler-label"></i>

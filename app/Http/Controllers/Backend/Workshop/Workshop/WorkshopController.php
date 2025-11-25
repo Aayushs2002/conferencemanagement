@@ -15,7 +15,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Batch;
 
-class WorkshopController extends Controller
+class WorkshopController extends Controller 
 {
     /**
      * Display a listing of the resource.
@@ -24,7 +24,9 @@ class WorkshopController extends Controller
 
     public function index($society, $conference)
     {
+        // Admin panel - shows all workshops for Type 1 & 2 (admins)
         $workshops = Workshop::where(['conference_id' => $conference->id, 'status' => 1])->get();
+        
         return view('backend.workshop.workshop.index', compact('workshops', 'society', 'conference'));
     }
 
@@ -46,7 +48,7 @@ class WorkshopController extends Controller
 
         return view('backend.workshop.workshop.create', compact('users', 'society', 'conference'));
     }
-
+ 
     /**
      * Store a newly created resource in storage.
      */
@@ -54,11 +56,24 @@ class WorkshopController extends Controller
     {
         try {
             $validated = $request->validated();
-            $validated['conference_id'] = $conference->id;
+            $validated['conference_id'] = $conference->id; 
             DB::beginTransaction();
+            
+            // Handle image upload
             if (!empty($validated['image'])) {
                 $validated['image'] = $this->file_service->fileUpload($validated['image'], 'workshop-image', 'workshop/workshop/image/');
             }
+            
+            // Handle schedule/plan attachment upload
+            // Only handle schedule_plan_attachment for type 3 users (normal users)
+            if (current_user()->type == 3 && !empty($validated['schedule_plan_attachment'])) {
+                $validated['schedule_plan_attachment'] = $this->file_service->fileUpload(
+                    $validated['schedule_plan_attachment'], 
+                    'workshop-schedule-plan', 
+                    'workshop/schedules/'
+                );
+            }
+            
             $workshopData = [
                 'conference_id' => $conference->id,
                 'workshop_title' => $validated['workshop_title'],
@@ -74,7 +89,11 @@ class WorkshopController extends Controller
                 'no_of_participants' => $validated['no_of_participants'],
                 'workshop_description' => $validated['workshop_description'],
                 'slug' => slugify($validated['workshop_title']),
-                'image' => $validated['image']
+                'image' => $validated['image'] ?? null,
+                'schedule_plan_attachment' => $validated['schedule_plan_attachment'] ?? null,
+                'created_by' => auth()->id(),
+                // Type 1 & 2 (admins) auto-approve, Type 3 (normal users) need approval
+                'approval_status' => (current_user()->type == 1 || current_user()->type == 2) ? 'approved' : 'pending',
             ];
 
 
@@ -90,9 +109,15 @@ class WorkshopController extends Controller
 
             WorkshopChairPersonDetail::create($validated);
             DB::commit();
-            return redirect()->route('workshop.index', [$society, $conference])->with('status', 'Workshop Added Successfully');
+            
+            if (current_user()->type == 1 || current_user()->type == 2) {
+                return redirect()->route('workshop.index', [$society, $conference])->with('status', 'Workshop Added Successfully');
+            } else {
+                return redirect()->route('workshop.index', [$society, $conference])->with('status', 'Workshop application submitted successfully! It will be reviewed by the admin.');
+            }
         } catch (\Throwable $th) {
-            return redirect()->back()->withInput()->with('delete', 'Internal Server Error');
+            DB::rollBack();
+            return redirect()->back()->withInput()->with('delete', 'Internal Server Error: ' . $th->getMessage());
         }
     }
 
@@ -138,12 +163,28 @@ class WorkshopController extends Controller
             $validated['conference_id'] = $conference->id;
             $validated['slug'] = slugify($validated['workshop_title']);
             DB::beginTransaction();
-            // @dd($validated['image']);
+            
+            // Handle image upload
             if (!empty($validated['image'])) {
                 // dd('a');
                 $this->file_service->deleteFile($workshop->image, 'workshop/workshop/image');
                 $validated['image'] = $this->file_service->fileUpload($validated['image'], 'workshop-image', 'workshop/workshop/image/');
             }
+            
+            // Handle schedule plan attachment upload (only for type 3 users)
+            if (current_user()->type == 3 && !empty($validated['schedule_plan_attachment'])) {
+                if ($workshop->schedule_plan_attachment) {
+                    $this->file_service->deleteFile($workshop->schedule_plan_attachment, 'workshop/schedules');
+                }
+                $validated['schedule_plan_attachment'] = $this->file_service->fileUpload($validated['schedule_plan_attachment'], 'schedule-plan', 'workshop/schedules/');
+            }
+            
+            // If normal user is editing a correction_needed workshop, set status back to pending
+            if (current_user()->type == 3 && $workshop->approval_status === 'correction_needed') {
+                $validated['approval_status'] = 'pending';
+                $validated['admin_remarks'] = null;
+            }
+            
             $workshop->update($validated);
 
             $WorkshopVenueDetail = WorkshopVenueDetail::whereWorkshopId($workshop->id)->first();
@@ -236,7 +277,7 @@ class WorkshopController extends Controller
                     $updatedDataArray['discount_price'] = $request->discount_price[$key];
                     $updatedDataArray['updated_at'] = now();
                     $updateArray[] = $updatedDataArray;
-                }
+                } 
             }
 
             if (!empty($insertArray)) {
@@ -257,5 +298,70 @@ class WorkshopController extends Controller
             $message = $e->getMessage();
         }
         return response()->json(['type' => $type, 'message' => $message]);
+    }
+
+    /**
+     * Approve workshop (for admin)
+     */
+    public function approve(Request $request, $society, $conference, Workshop $workshop)
+    {
+        try {
+            $workshop->update([
+                'approval_status' => 'approved',
+                'reviewed_by' => auth()->id(),
+                'reviewed_at' => now(),
+                'admin_remarks' => $request->remarks
+            ]);
+
+            return redirect()->back()->with('status', 'Workshop approved successfully!');
+        } catch (Exception $e) {
+            return redirect()->back()->with('delete', 'Failed to approve workshop: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Reject workshop (for admin)
+     */
+    public function reject(Request $request, $society, $conference, Workshop $workshop)
+    {
+        try {
+            $request->validate([
+                'remarks' => 'required|string'
+            ]);
+
+            $workshop->update([
+                'approval_status' => 'rejected',
+                'reviewed_by' => auth()->id(),
+                'reviewed_at' => now(),
+                'admin_remarks' => $request->remarks
+            ]);
+
+            return redirect()->back()->with('status', 'Workshop rejected successfully!');
+        } catch (Exception $e) {
+            return redirect()->back()->with('delete', 'Failed to reject workshop: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Request correction (for admin)
+     */
+    public function requestCorrection(Request $request, $society, $conference, Workshop $workshop)
+    {
+        try {
+            $request->validate([
+                'remarks' => 'required|string'
+            ]);
+
+            $workshop->update([
+                'approval_status' => 'correction_needed',
+                'reviewed_by' => auth()->id(),
+                'reviewed_at' => now(),
+                'admin_remarks' => $request->remarks
+            ]);
+
+            return redirect()->back()->with('status', 'Correction request sent successfully!');
+        } catch (Exception $e) {
+            return redirect()->back()->with('delete', 'Failed to send correction request: ' . $e->getMessage());
+        }
     }
 }

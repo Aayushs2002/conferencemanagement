@@ -16,7 +16,7 @@ class WorkshopController extends BaseConferenceController
 
     public function singlePage($conference, $workshop)
     {
-        // dd($workshop);
+        // dd($workshop); 
         $workshop = Workshop::with([
             'WorkshopVenueDetail',
             'registrations' => function ($query) {
@@ -27,6 +27,7 @@ class WorkshopController extends BaseConferenceController
         // dd($workshop);
         $relevantWorkshops = Workshop::where('id', '!=', $workshop->id)
             ->where('conference_id', $this->conference->id)
+            ->where('approval_status', 'approved')
             ->latest()
             // ->take(3)
             ->get();

@@ -15,8 +15,8 @@
                         if ($society && $society->$relation()->exists()) {
                             return $society->$relation()->where('status', 1)->get();
                         }
-                        return $model::where('status', 1)->get(); 
-                    };
+                        return $model::where('status', 1)->get();  
+                    }; 
 
                     $institutions = $loadData('institutions', \App\Models\User\Institution::class);
                     $designations = $loadData('designations', \App\Models\User\Designation::class);
@@ -240,7 +240,7 @@
             submitBtn.textContent = 'Submitting...';
 
             const formData = new FormData(form);
-            formData.append('_method', 'PATCH');
+            formData.append('_method', 'PATCH'); 
             formData.append('_token', '{{ csrf_token() }}');
 
             fetch('{{ route('profile.update-profile') }}', {
