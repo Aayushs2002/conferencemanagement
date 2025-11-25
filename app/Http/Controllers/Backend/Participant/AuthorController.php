@@ -11,7 +11,7 @@ use Illuminate\Http\Request;
 
 class AuthorController extends Controller
 {
-    public function index($society, $conference, $submission)
+    public function index($society, $conference, $submission) 
     {
         $authors = Author::where([
             'submission_id' => $submission->id,

@@ -443,7 +443,7 @@ class SubmissionController extends Controller
                 'mail_content' => 'required',
             ]);
 
-            $users = json_decode($validated['User']);
+            $users = json_decode($validated['User']); 
 
             foreach ($users as $user) {
                 SendSubmissionBulkMailJob::dispatch($user, $validated['subject'], $validated['mail_content'], $conference->conference_name);

@@ -59,7 +59,7 @@
                                        <form
                                            action="{{ route('my-society.conference.submission.author.destroy', [$society, $conference, $author]) }}"
                                            method="POST">
-                                           @method('delete')
+                                           @method('delete') 
                                            @csrf
                                            <button title="Delete Data" class="btn btn-danger btn-sm delete"
                                                type="submit"><i class="icon-base ti tabler-trash me-1"></i></button>
