@@ -266,7 +266,7 @@ class SubmissionController extends Controller
                     return redirect()->back()->withInput()->with('delete', 'Abstract word limit exceeded.');
                 }
             }
-
+ 
             if (!empty($validated['image'])) {
                 $this->file_service->deleteFile($submission->image, 'participant/submission/image');
                 $validated['image'] = $this->file_service->fileUpload($validated['image'], 'diagram', 'participant/submission/image');
