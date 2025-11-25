@@ -9,7 +9,7 @@
                <h4 class="card-header"><a
                        href="{{ route('my-society.conference.submission.index', [$society, $conference]) }}"><i
                            class="ti tabler-arrow-narrow-left"></i></a>
-                   {{ isset($submission) ? 'Edit' : 'Add' }} 
+                   {{ isset($submission) ? 'Edit' : 'Add' }}
                    Presentation Submission</h4>
                <div class="card-body">
                    <form class="needs-validation"
@@ -25,7 +25,7 @@
                                <label class="form-label" for="society-name">Title of Abstract<code>*</code></label>
                                <input type="text" class="form-control @error('title') is-invalid @enderror"
                                    id="society-name" placeholder="Enter Title of Abstract" name="title"
-                                   value="{{ old('title') ?? @$submission?->title }}" required/>
+                                   value="{{ old('title') ?? @$submission?->title }}" required />
                                <div class="valid-feedback">Looks good!</div>
                                <div class="invalid-feedback">Please enter Title of Abstract.</div>
                                @error('title')
@@ -37,8 +37,7 @@
                                <select class="form-select" name="article_type_id" id="article_type_id" required>
                                    <option value="" hidden>-- Select Article Type --</option>
                                    @foreach ($articleTypes as $articleType)
-                                       <option value="{{ $articleType->id }}"
-                                           @selected(old('article_type_id', @$submission->article_type_id) == $articleType->id)>
+                                       <option value="{{ $articleType->id }}" @selected(old('article_type_id', @$submission->article_type_id) == $articleType->id)>
                                            {{ $articleType->name }}
                                        </option>
                                    @endforeach
@@ -70,7 +69,7 @@
                            </div>
 
                            <div class="mb-6 col-md-6">
-                               <label for="presentation_type" class="form-label">Presentation Type <code>*</code></label> 
+                               <label for="presentation_type" class="form-label">Presentation Type <code>*</code></label>
                                <select class="form-select" name="presentation_type" id="presentation_type" required>
                                    <option value="" hidden>-- Select Presentation Type --</option>
                                    <option value="1"
@@ -86,6 +85,8 @@
                                    <p class="text-danger">{{ $message }}</p>
                                @enderror
                            </div>
+
+
 
                            <div class="mb-6 col-md-9">
                                <label for="keyWord" class="form-label">Keywords <code>*(NOTE: Total number of Keywords
@@ -121,7 +122,7 @@
                                    <textarea class="form-control" name="abstract_content" id="description2" cols="30" rows="5">{{ !empty(old('abstract_content')) ? old('abstract_content') : @$submission->abstract_content }}</textarea>
                                    @error('abstract_content')
                                        <p class="text-danger">{{ $message }}</p>
-                                   @enderror 
+                                   @enderror
                                </div>
                            </div>
 
@@ -142,10 +143,10 @@
                                                            class="img-fluid" alt="image"></a>
                                                </div>
                                            @endif
-                                       </div> 
+                                       </div>
                                        @error('image')
                                            <p class="text-danger">{{ $message }}</p>
-                                       @enderror  
+                                       @enderror
                                    </div>
                                @endif
                            </div>
@@ -155,8 +156,27 @@
 
                            <!-- Source of Funding Field Container -->
                            <div id="sourceOfFundingContainer"></div>
-
-
+                           @if (!isset($submission))
+                               <div class="mb-6 col-md-6">
+                                   <label class="form-label">Are you the Main Author? <code>*</code></label>
+                                   <div class="mt-2">
+                                       <div class="form-check form-check-inline">
+                                           <input class="form-check-input" type="radio" name="main_author"
+                                               id="main_author_yes" value="1" @checked(old('main_author') == '1') required>
+                                           <label class="form-check-label" for="main_author_yes">Yes</label>
+                                       </div>
+                                       <div class="form-check form-check-inline">
+                                           <input class="form-check-input" type="radio" name="main_author"
+                                               id="main_author_no" value="0" @checked(old('main_author') == '0') required>
+                                           <label class="form-check-label" for="main_author_no">No</label>
+                                       </div>
+                                   </div>
+                                   <div class="invalid-feedback d-block">Please select if you are the main author.</div>
+                                   @error('main_author')
+                                       <p class="text-danger">{{ $message }}</p>
+                                   @enderror
+                               </div>
+                           @endif
                            <div class="row">
                                <div class="col-12 text-end">
                                    <button type="submit"
@@ -198,9 +218,9 @@
                });
 
                // Trigger on page load if editing or if validation failed (old data exists)
-               @if(isset($submission) && $submission->article_type_id)
+               @if (isset($submission) && $submission->article_type_id)
                    $('#article_type_id').trigger('change');
-               @elseif(old('article_type_id'))
+               @elseif (old('article_type_id'))
                    $('#article_type_id').trigger('change');
                @endif
            });
@@ -209,7 +229,9 @@
                $.ajax({
                    url: '{{ route('my-society.conference.submission.get-article-type-setting', [$society, $conference]) }}',
                    type: 'GET',
-                   data: { article_type_id: articleTypeId },
+                   data: {
+                       article_type_id: articleTypeId
+                   },
                    success: function(response) {
                        if (response.has_setting) {
                            articleTypeSettings = response.setting;
@@ -245,25 +267,26 @@
                        const sectionName = section.name || 'Section ' + (index + 1);
                        const wordLimit = section.word_limit || '';
                        const instruction = section.instruction || '';
-                       
+
                        // Get old value for this section if validation failed, otherwise use existing submission data
                        let oldSectionContent = '';
-                       @if(old('sections'))
+                       @if (old('sections'))
                            oldSectionContent = @json(old('sections'))[index]?.content || '';
-                       @elseif(isset($submission) && $submission->sections)
+                       @elseif (isset($submission) && $submission->sections)
                            const submissionSections = @json($submission->sections);
                            oldSectionContent = submissionSections[index]?.content || '';
                        @endif
-                       
+
                        // Get error message for this section if exists
                        let sectionError = '';
-                       @if($errors->any())
+                       @if ($errors->any())
                            const sectionErrors = @json($errors->messages());
                            if (sectionErrors[`sections.${index}.content`]) {
-                               sectionError = `<p class="text-danger">${sectionErrors[`sections.${index}.content`][0]}</p>`;
+                               sectionError =
+                                   `<p class="text-danger">${sectionErrors[`sections.${index}.content`][0]}</p>`;
                            }
                        @endif
-                       
+
                        const sectionHtml = `
                            <div class="col-md-12 form-group mb-3">
                                <label for="section_${index}" class="form-label">${sectionName} <code>*${wordLimit ? ` (Word Limit: ${wordLimit})` : ''}</code></label>
@@ -286,7 +309,7 @@
                                maxWordCount: wordLimit || Infinity,
                            }
                        });
-                       
+
                        // Set old content after CKEditor is ready
                        if (oldSectionContent) {
                            ckeditorInstances[`section_${index}`].on('instanceReady', function() {
@@ -296,7 +319,8 @@
                    });
                } else {
                    // Show default abstract content with error handling
-                   const abstractError = '@error('abstract_content')<p class="text-danger">{{ $message }}</p>@enderror';
+                   const abstractError =
+                       '@error('abstract_content')<p class="text-danger">{{ $message }}</p>@enderror';
                    const abstractHtml = `
                        <div class="col-md-12 form-group mb-3">
                            <label for="abstract_content" class="form-label">Abstract Content <code>*
@@ -323,8 +347,8 @@
                    const oldImage = '{{ old('image') }}';
                    const submissionImage = '{{ @$submission->image }}';
                    let imagePreview = '';
-                   
-                   @if(isset($submission) && $submission->image)
+
+                   @if (isset($submission) && $submission->image)
                        imagePreview = `
                            <div class="row mt-2" id="imgPreview">
                                <div class="col-3">
@@ -335,8 +359,9 @@
                            </div>
                        `;
                    @endif
-                   
-                   const imageError = '@error('image')<p class="text-danger">{{ $message }}</p>@enderror';
+
+                   const imageError =
+                       '@error('image')<p class="text-danger">{{ $message }}</p>@enderror';
                    const attachmentHtml = `
                        <div class="mb-6 col-md-6">
                            <label class="form-label" for="image">${setting.attachment_name} <code>*</code></label>
@@ -351,8 +376,8 @@
                    const oldImage = '{{ old('image') }}';
                    const submissionImage = '{{ @$submission->image }}';
                    let imagePreview = '';
-                   
-                   @if(isset($submission) && $submission->image)
+
+                   @if (isset($submission) && $submission->image)
                        imagePreview = `
                            <div class="row mt-2" id="imgPreview">
                                <div class="col-3">
@@ -363,8 +388,9 @@
                            </div>
                        `;
                    @endif
-                   
-                   const imageError = '@error('image')<p class="text-danger">{{ $message }}</p>@enderror';
+
+                   const imageError =
+                       '@error('image')<p class="text-danger">{{ $message }}</p>@enderror';
                    const attachmentHtml = `
                        <div class="mb-6 col-md-6">
                            <label class="form-label" for="image">${setting.attachment_name} <code>(optional)</code></label>
@@ -380,10 +406,13 @@
                // Handle Conflict of Interest
                if (setting.is_conflict_of_interest_required) {
                    const oldConflict = `{{ old('conflict_of_interest', @$submission->conflict_of_interest) }}`;
-                   const oldConflictOption = `{{ old('has_conflict_of_interest', @$submission->conflict_of_interest ? 'yes' : '') }}`;
-                   const conflictError = '@error('conflict_of_interest')<p class="text-danger">{{ $message }}</p>@enderror';
-                   const conflictOptionError = '@error('has_conflict_of_interest')<p class="text-danger">{{ $message }}</p>@enderror';
-                   
+                   const oldConflictOption =
+                       `{{ old('has_conflict_of_interest', @$submission->conflict_of_interest ? 'yes' : '') }}`;
+                   const conflictError =
+                       '@error('conflict_of_interest')<p class="text-danger">{{ $message }}</p>@enderror';
+                   const conflictOptionError =
+                       '@error('has_conflict_of_interest')<p class="text-danger">{{ $message }}</p>@enderror';
+
                    const conflictHtml = `
                        <div class="col-md-12 form-group mb-3">
                            <label class="form-label">Do you have any Conflict of Interest? <code>*</code></label><br>
@@ -404,7 +433,7 @@
                        </div>
                    `;
                    $('#conflictOfInterestContainer').html(conflictHtml);
-                   
+
                    // Toggle conflict details visibility
                    $('input[name="has_conflict_of_interest"]').on('change', function() {
                        if ($(this).val() === 'yes') {
@@ -416,7 +445,7 @@
                            $('#conflict_of_interest').val('');
                        }
                    });
-                   
+
                    // Trigger on page load
                    if (oldConflictOption === 'yes') {
                        $('#conflictDetailsWrapper').show();
@@ -426,10 +455,13 @@
                // Handle Source of Funding
                if (setting.is_source_of_funding_required) {
                    const oldFunding = `{{ old('source_of_funding', @$submission->source_of_funding) }}`;
-                   const oldFundingOption = `{{ old('has_source_of_funding', @$submission->source_of_funding ? 'yes' : '') }}`;
-                   const fundingError = '@error('source_of_funding')<p class="text-danger">{{ $message }}</p>@enderror';
-                   const fundingOptionError = '@error('has_source_of_funding')<p class="text-danger">{{ $message }}</p>@enderror';
-                   
+                   const oldFundingOption =
+                       `{{ old('has_source_of_funding', @$submission->source_of_funding ? 'yes' : '') }}`;
+                   const fundingError =
+                       '@error('source_of_funding')<p class="text-danger">{{ $message }}</p>@enderror';
+                   const fundingOptionError =
+                       '@error('has_source_of_funding')<p class="text-danger">{{ $message }}</p>@enderror';
+
                    const fundingHtml = `
                        <div class="col-md-12 form-group mb-3">
                            <label class="form-label">Do you have any Source of Funding? <code>*</code></label><br>
@@ -450,7 +482,7 @@
                        </div>
                    `;
                    $('#sourceOfFundingContainer').html(fundingHtml);
-                   
+
                    // Toggle funding details visibility
                    $('input[name="has_source_of_funding"]').on('change', function() {
                        if ($(this).val() === 'yes') {
@@ -462,7 +494,7 @@
                            $('#source_of_funding').val('');
                        }
                    });
-                   
+
                    // Trigger on page load
                    if (oldFundingOption === 'yes') {
                        $('#fundingDetailsWrapper').show();
@@ -486,7 +518,8 @@
                $('#sourceOfFundingContainer').empty();
 
                // Recreate default abstract content
-               const abstractError = '@error('abstract_content')<p class="text-danger">{{ $message }}</p>@enderror';
+               const abstractError =
+                   '@error('abstract_content')<p class="text-danger">{{ $message }}</p>@enderror';
                const abstractHtml = `
                    <div class="col-md-12 form-group mb-3">
                        <label for="abstract_content" class="form-label">Abstract Content <code>*
@@ -501,9 +534,10 @@
                @if ($setting->attachment_name)
                    const submissionImage = '{{ @$submission->image }}';
                    let imagePreview = '';
-                   const imageError = '@error('image')<p class="text-danger">{{ $message }}</p>@enderror';
-                   
-                   @if(isset($submission) && $submission->image)
+                   const imageError =
+                       '@error('image')<p class="text-danger">{{ $message }}</p>@enderror';
+
+                   @if (isset($submission) && $submission->image)
                        imagePreview = `
                            <div class="row mt-2" id="imgPreview">
                                <div class="col-3">
@@ -514,12 +548,12 @@
                            </div>
                        `;
                    @endif
-                   
+
                    const attachmentHtml = `
                        <div class="mb-6 col-md-6">
                            <label class="form-label" for="image">{{ $setting->attachment_name }}
                                <code>{{ $setting->attachment_required == true ? '*' : '(optional)' }}</code></label>
-                           <input type="file" class="form-control @error('image') is-invalid @enderror" name="image" id="image" ${submissionImage ? '' : '{{ $setting->attachment_required == true ? "required" : "" }}'} />
+                           <input type="file" class="form-control @error('image') is-invalid @enderror" name="image" id="image" ${submissionImage ? '' : '{{ $setting->attachment_required == true ? 'required' : '' }}'} />
                            ${imagePreview}
                            ${imageError}
                        </div>

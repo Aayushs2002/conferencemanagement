@@ -126,6 +126,7 @@ class SubmissionController extends Controller
             $validated['user_id'] = current_user()->id;
             $validated['conference_id'] = $conference->id;
             $validated['submitted_date'] = now();
+            $validated['main_author'] = $validated['main_author'] ?? 0;
 
             $start = \Carbon\Carbon::parse($conference->start_date);
             $end = \Carbon\Carbon::parse($conference->end_date);
