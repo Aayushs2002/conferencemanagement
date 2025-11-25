@@ -9,7 +9,7 @@
             <div class="table-responsive">
                 <form action="#" method="POST" enctype="multipart/form-data" id="workshopPriceForm">
                     @csrf
-                    <table class="table table-bordered" id="dynamic_field">
+                    <table class="table table-bordered" id="dynamic_field"> 
                         <thead>
                             <tr>
                                 <th>Member Type</th>

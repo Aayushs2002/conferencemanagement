@@ -18,7 +18,7 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\ValidationException;
 
 class WorkshopRegistrationController extends Controller
-{
+{ 
 
     public function __construct(protected FileService $file_service) {}
 

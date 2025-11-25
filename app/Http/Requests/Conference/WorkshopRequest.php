@@ -41,6 +41,7 @@ class WorkshopRequest extends FormRequest
             'photo' => 'nullable|mimes:png,jpg,jpeg|max:250',
             'short_cv' => 'required|string',
             'image' => 'nullable|mimes:jpg,png',
+            'schedule_plan_attachment' => current_user() && current_user()->type == 3 ? 'required|mimes:pdf,doc,docx|max:5120' : 'nullable|mimes:pdf,doc,docx|max:5120',
         ];
     }
 

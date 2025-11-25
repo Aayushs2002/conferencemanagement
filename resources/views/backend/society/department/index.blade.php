@@ -26,7 +26,7 @@
                                             name="departments[]" 
                                             value="{{ $department->id }}" 
                                             id="department_{{ $department->id }}"
-                                            {{ in_array($department->id, $selectedDepartments) ? 'checked' : '' }}>
+                                            {{ $selectedDepartments->contains('id', $department->id) ? 'checked' : '' }}>
                                         <label class="form-check-label" for="department_{{ $department->id }}">
                                             {{ $department->name }}
                                         </label>
@@ -60,11 +60,33 @@
 
             <div class="card-body border-top">
                 <h6 class="mb-3">Currently Selected Departments</h6>
-                @if(count($selectedDepartments) > 0)
-                    <div class="d-flex flex-wrap gap-2">
-                        @foreach ($departments->whereIn('id', $selectedDepartments) as $department)
-                            <span class="badge bg-label-primary">{{ $department->name }}</span>
-                        @endforeach
+                @if($selectedDepartments->count() > 0)
+                    <div class="mb-3">
+                        <small class="text-info">
+                            <i class="ti tabler-grip-vertical"></i> <strong>Drag and drop to reorder departments</strong>
+                        </small>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-bordered">
+                            <thead>
+                                <tr>
+                                    <th style="width: 30px;"><i class="ti tabler-arrows-move"></i></th>
+                                    <th>Order</th>
+                                    <th>Department Name</th>
+                                </tr>
+                            </thead>
+                            <tbody id="sortable-departments">
+                                @foreach ($selectedDepartments as $department)
+                                    <tr data-id="{{ $department->id }}" style="cursor: move;">
+                                        <td class="drag-handle text-center">
+                                            <i class="ti tabler-grip-vertical" style="font-size: 20px; color: #999;"></i>
+                                        </td>
+                                        <td class="order-number">{{ $loop->iteration }}</td>
+                                        <td>{{ $department->name }}</td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
                     </div>
                 @else
                     <p class="text-muted mb-0">No departments selected yet.</p>
@@ -75,8 +97,86 @@
 @endsection
 
 @section('scripts')
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
+    <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
+    
+    <style>
+        #sortable-departments tr.ui-sortable-helper {
+            display: table;
+            background-color: #f8f9fa;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+        
+        #sortable-departments tr.ui-sortable-placeholder {
+            background-color: #e3f2fd;
+            visibility: visible !important;
+            height: 50px;
+        }
+        
+        .drag-handle:hover {
+            background-color: #f0f0f0;
+            cursor: grab;
+        }
+        
+        .drag-handle:active {
+            cursor: grabbing;
+        }
+    </style>
+    
     <script>
         $(document).ready(function() {
+            // Initialize sortable only if there are selected departments
+            if ($('#sortable-departments tr').length > 0) {
+                $("#sortable-departments").sortable({
+                    handle: ".drag-handle",
+                    placeholder: "ui-sortable-placeholder",
+                    helper: function(e, tr) {
+                        var $originals = tr.children();
+                        var $helper = tr.clone();
+                        $helper.children().each(function(index) {
+                            $(this).width($originals.eq(index).width());
+                        });
+                        return $helper;
+                    },
+                    update: function(event, ui) {
+                        updateOrder();
+                    }
+                });
+            }
+
+            function updateOrder() {
+                var orders = [];
+                $('#sortable-departments tr').each(function(index) {
+                    orders.push({
+                        id: $(this).data('id'),
+                        position: index + 1
+                    });
+                });
+
+                $.ajax({
+                    url: '{{ route('society.department.update-order', $society->getRouteKey()) }}',
+                    type: 'POST',
+                    data: {
+                        _token: '{{ csrf_token() }}',
+                        orders: orders
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            // Update order numbers
+                            $('#sortable-departments tr').each(function(index) {
+                                $(this).find('.order-number').text(index + 1);
+                            });
+                            
+                            notyf.success('Order updated successfully');
+                        }
+                    },
+                    error: function(xhr) {
+                        notyf.error('Failed to update order');
+                        console.error(xhr);
+                    }
+                });
+            }
+            
             // Show confirmation when form is submitted
             $('form').on('submit', function(e) {
                 const checkedCount = $('input[name="departments[]"]:checked').length;

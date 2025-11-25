@@ -43,6 +43,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Maatwebsite\Excel\Facades\Excel;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Facades\Log;
 
 class ConferenceRegistrationController extends Controller
 {
@@ -157,12 +158,12 @@ class ConferenceRegistrationController extends Controller
         $conferenceAddons = ConferenceAddon::where('conference_id', $conference->id)->get();
         $memberTypes = MemberType::where(['society_id' => $society->id, 'status' => 1])->get();
         $countries = \App\Models\User\Country::where('status', 1)->get();
-        
+
         // Check for custom institution, designation, department
         $userInstitution = UserInstitution::where('user_id', $registrant->user_id)->first();
         $userDesignation = UserDesignation::where('user_id', $registrant->user_id)->first();
         $userDepartment = UserDepartment::where('user_id', $registrant->user_id)->first();
-        
+
         // $institutions = \App\Models\User\Institution::where('status', 1)->get();
         // $designations = \App\Models\User\Designation::where('status', 1)->get();
         // $departments = \App\Models\User\Department::where('status', 1)->get();

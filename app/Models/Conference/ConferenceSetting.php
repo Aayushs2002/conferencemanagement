@@ -17,7 +17,8 @@ class ConferenceSetting extends Model
         'logo_display_type',
         'payment_instruction',
         'terms_conditions',
-        'privacy_policy'
+        'privacy_policy',
+        'speaker_registration_required',
     ];
 }
  

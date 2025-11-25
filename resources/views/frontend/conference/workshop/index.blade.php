@@ -16,7 +16,7 @@
         <h2 class="section-title">Specialized Workshops</h2>
         <p class="section-subtitle">Hands-on training sessions with leading experts in Anesthesia specialties</p>
         <div class="row g-4 justify-content-center mb-5 mt-4">
-            @foreach ($workshops as $workshop)
+            @foreach ($workshops as $workshop) 
                 <div class="col-md-4">
                     <div class="workshop-card">
                         <div class="img-container position-relative overflow-hidden">

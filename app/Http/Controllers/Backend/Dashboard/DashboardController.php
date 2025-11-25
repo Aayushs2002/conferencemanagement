@@ -13,18 +13,25 @@ use App\Models\User\Society;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 class DashboardController extends Controller
 {
     public function index()
     {
-        $joinedSocities = current_user()->societies;
-        $societyCount = Society::where('status', 1)->count();
-        $namePrfixCount = NamePrefix::where('status', 1)->count();
-        $intitutionCount = Institution::where('status', 1)->count();
-        $designationCount = Designation::where('status', 1)->count();
-        $departmentCount = Department::where('status', 1)->count();
-        return view('backend.dashboard.index', compact('joinedSocities', 'societyCount', 'namePrfixCount', 'intitutionCount', 'designationCount', 'departmentCount'));
+        try {
+            $joinedSocities = current_user()->societies;
+            $societyCount = Society::where('status', 1)->count();
+            $namePrfixCount = NamePrefix::where('status', 1)->count();
+            $intitutionCount = Institution::where('status', 1)->count();
+            $designationCount = Designation::where('status', 1)->count();
+            $departmentCount = Department::where('status', 1)->count();
+            return view('backend.dashboard.index', compact('joinedSocities', 'societyCount', 'namePrfixCount', 'intitutionCount', 'designationCount', 'departmentCount'));
+        } catch (\Exception $e) {
+            //throw $th;
+            // Log::channel('sentry')->error('Dashboard Load Error: ' . $e->getMessage());
+            return $e->getMessage();
+        }
     }
 
     public function joinSociety(Request $request)

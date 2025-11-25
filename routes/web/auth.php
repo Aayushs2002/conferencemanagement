@@ -48,6 +48,15 @@ Route::middleware('auth')->group(function () {
         ->middleware('throttle:6,1')
         ->name('verification.send');
 
+    // Sentry Monitoring Routes (Super Admin Only)
+    Route::prefix('sentry')->name('sentry.')->middleware('super.admin')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Backend\SentryMonitorController::class, 'index'])->name('index');
+        Route::get('/issues/{issueId}', [\App\Http\Controllers\Backend\SentryMonitorController::class, 'show'])->name('show');
+        Route::post('/issues/{issueId}/resolve', [\App\Http\Controllers\Backend\SentryMonitorController::class, 'resolve'])->name('resolve');
+        Route::post('/issues/{issueId}/ignore', [\App\Http\Controllers\Backend\SentryMonitorController::class, 'ignore'])->name('ignore');
+        Route::get('/clear-cache', [\App\Http\Controllers\Backend\SentryMonitorController::class, 'clearCache'])->name('clear-cache');
+    });
+
     Route::get('confirm-password', [ConfirmablePasswordController::class, 'show'])
         ->name('password.confirm');
 

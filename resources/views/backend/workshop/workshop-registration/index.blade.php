@@ -39,7 +39,7 @@
                 <tbody>
                     @foreach ($registrations as $registration)
                         <tr>
-                            @php
+                            @php 
                                 $userSociety = $registration->user->societies->first();
                                 $memberType = $userSociety?->pivot?->memberType;
                             @endphp

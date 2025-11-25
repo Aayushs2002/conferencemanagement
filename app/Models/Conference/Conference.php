@@ -85,7 +85,10 @@ class Conference extends Model
 
     public function officialMessages()
     {
-        return $this->hasMany(OfficialMessage::class, 'conference_id', 'id')->where('status', 1);
+        return $this->hasMany(OfficialMessage::class, 'conference_id', 'id')
+            ->where('status', 1)
+            ->orderBy('display_order', 'asc')
+            ->orderBy('id', 'asc');
     }
 
     public function conferenceSetting()

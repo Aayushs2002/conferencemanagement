@@ -421,11 +421,10 @@
         </div>
     @else
         <div class="row">
-
             <div class="col-lg-3 col-sm-6">
                 <div class="card ">
                     <div class="card-body">
-                        <p class="mb-1">Conference Registered Status</p>
+                        <p class="mb-1">Conference Registered Status</p> 
                         <div class="my-4">
                             @if (checkRegistrations($conference))
                                 <span class="badge bg-success">Registered</span>
@@ -452,6 +451,41 @@
                         <a href="{{ route('my-society.conference.submission.create', [$society, $conference]) }}">
                             <span class="badge bg-danger">Submit Now</span>
                         </a>
+                        {{-- Show modal message if registration for speaker is not required --}}
+                        @php
+                            $confSetting = $conference->conferenceSetting ?? null;
+                        @endphp
+                        @if ($confSetting && isset($confSetting->speaker_registration_required) && $confSetting->speaker_registration_required == false)
+                            <!-- Modal Trigger Button (hidden, auto-triggered) -->
+                            <button type="button" id="autoSpeakerRegModalBtn" class="d-none" data-bs-toggle="modal" data-bs-target="#autoSpeakerRegModal"></button>
+
+                            <!-- Modal -->
+                            <div class="modal fade" id="autoSpeakerRegModal" tabindex="-1" aria-labelledby="autoSpeakerRegModalLabel" aria-hidden="true">
+                                <div class="modal-dialog modal-dialog-centered">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title" id="autoSpeakerRegModalLabel">Speaker Registration Notice</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <div class="alert alert-info mb-0">
+                                                <strong>Note:</strong> Speakers do <u>not</u> need to register for the conference separately.<br>
+                                                If your submission is <b>accepted</b>, you will be <b>automatically registered</b> for the conference.
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-primary" data-bs-dismiss="modal">OK</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <script>
+                                document.addEventListener('DOMContentLoaded', function() {
+                                    // Auto-trigger modal for speakers if registration is not required
+                                    document.getElementById('autoSpeakerRegModalBtn').click();
+                                });
+                            </script>
+                        @endif
                     </div>
                 </div>
             </div>

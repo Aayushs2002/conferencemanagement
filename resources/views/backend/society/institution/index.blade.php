@@ -15,7 +15,7 @@
                 <p class="text-muted mb-4">Select the institutions that will be available for your society members during registration.</p>
                 
                 <form action="{{ route('society.institution.update', $society) }}" method="POST">
-                    @csrf
+                    @csrf 
                     
                     <div class="row"> 
                         @if($institutions->count() > 0)

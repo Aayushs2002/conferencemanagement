@@ -45,7 +45,7 @@ class SubmissionController extends Controller
         $query = Submission::with('discussions')->where(['conference_id' => $conference->id, 'status' => 1]);
         if ($request->filled('article_type_id')) {
             $query->where('article_type_id', $request->article_type_id);
-        } 
+        }
 
         if ($request->filled('presentation_type')) {
             $query->where('presentation_type', $request->presentation_type);
@@ -67,7 +67,7 @@ class SubmissionController extends Controller
         }
 
         $submissions = $query->latest()->get();
-        
+
         // Track duplicate submissions by user
         $userSubmissions = [];
         foreach ($submissions as $submission) {
@@ -83,12 +83,12 @@ class SubmissionController extends Controller
                 $userSubmissions[$userId]['presentation_types'][] = $submission->presentation_type;
             }
         }
-        
+
         // Add row color class to each submission
         foreach ($submissions as $submission) {
             $userId = $submission->user_id;
             $userInfo = $userSubmissions[$userId];
-            
+
             if ($userInfo['count'] > 1) {
                 // User has multiple submissions
                 if (count($userInfo['presentation_types']) > 1) {
@@ -109,7 +109,7 @@ class SubmissionController extends Controller
                 $submission->row_color = '';
             }
         }
-        
+
         return view('backend.submission.submission.index', compact('submissions', 'submissionTracks', 'conference', 'society', 'submission_setting', 'articleTypes'));
     }
 
@@ -178,8 +178,8 @@ class SubmissionController extends Controller
             return redirect()->route('submission.index',  [$society, $conference])->with('status', 'Submission Added Successfully');
         } catch (\Exception $th) {
             DB::rollBack();
-
-            dd($th);
+            return redirect()->back()->withInput()->with('delete', 'Internal Server Error');
+            // dd($th);
         }
     }
 
@@ -198,12 +198,11 @@ class SubmissionController extends Controller
         try {
             $type = 'success';
             $message = 'Forwarded to expert successfully.';
-            
+
             // Dynamic validation based on whether sections exist
             $rules = ['expert_id' => 'required'];
-            
+
             $submission = Submission::whereId($request->id)->first();
-            
             if ($request->has('sections') && is_array($request->sections)) {
                 // Validate sections
                 foreach ($request->sections as $index => $section) {
@@ -213,14 +212,14 @@ class SubmissionController extends Controller
                 // Validate abstract content
                 $rules['abstract_content'] = 'required';
             }
-            
+
             $validated = $request->validate($rules);
-            
+
             if ($validated) {
                 if ($validated['expert_id'] == $submission->user_id) {
                     throw new Exception("Presenter and Expert should not be same.", 1);
                 }
-                
+
                 $validated['forward_expert'] = 1;
 
                 // Handle sections or abstract_content
@@ -274,9 +273,6 @@ class SubmissionController extends Controller
     {
         try {
             $submission = Submission::whereId($request->id)->first();
-            // dd($submission);
-
-
             // if ($request->request_status != 3) {
             $rules['remarks'] = 'required';
             // }
@@ -337,7 +333,8 @@ class SubmissionController extends Controller
             return response()->json(['message' => $message]);
         } catch (Exception $e) {
             DB::rollBack();
-            throw $e;
+            // throw $e;
+            return response()->json(['message' => $e->getMessage()], 500);
         }
     }
 

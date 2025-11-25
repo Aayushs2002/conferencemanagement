@@ -125,6 +125,7 @@ Route::middleware('auth')->group(function () {
 
     //offical message
     Route::prefix('/society/{society}/conference/{conference}/')->group(function () {
+        Route::post('official-message/update-order', [OfficialMessageController::class, 'updateOrder'])->name('official-message.update-order');
         Route::resource('official-message', OfficialMessageController::class);
     });
 
@@ -238,7 +239,7 @@ Route::middleware('auth')->group(function () {
             Route::post('/add-user-form', 'addUserForm')->name('addUserForm');
             Route::post('/add-user-submit', 'addUserSubmit')->name('addUserSubmit');
         });
-    });
+    }); 
 
     Route::prefix('/society/{society}/conference/{conference}')->middleware('auto.conf.permission')->group(function () {
         Route::resource('/workshop', WorkshopController::class)->except('show');
@@ -246,6 +247,9 @@ Route::middleware('auth')->group(function () {
             Route::post('/view-data', 'view')->name('view');
             Route::post('/allocate-price-form', 'allocatePriceForm')->name('allocatePriceForm');
             Route::post('/allocate-price-submit', 'allocatePriceSubmit')->name('allocatePriceSubmit');
+            Route::post('/{workshop}/approve', 'approve')->name('approve');
+            Route::post('/{workshop}/reject', 'reject')->name('reject');
+            Route::post('/{workshop}/request-correction', 'requestCorrection')->name('requestCorrection');
         });
 
         Route::controller(WorkshopRegistrationController::class)->name('workshop.workshop-registration.')->prefix('/workshop/workshop-registration')->group(function () {

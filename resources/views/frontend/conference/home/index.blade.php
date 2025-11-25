@@ -145,7 +145,7 @@
                         <p class="span-text mt-5">About Conference</p>
                         <h2 class="section-title">Official Message</h2>
                         <div class="row mt-3 align-items-center">
-                            @foreach ($conference->officialMessages as $offical_message)
+                            @foreach ($conference->officialMessages  as $offical_message)
                                 <div class="col-md-4">
                                     <div class="prof-card p-3 rounded-3 h-100 d-flex flex-column">
                                         <img src="{{ Storage::url('offical-message/image/' . $offical_message->image) }}"
@@ -224,7 +224,7 @@
                         <p class="span-text mt-4">Our Financial Partners</p>
                         <p>Experience premium comfort during your stay at our partner hotel, specially selected for <span style="text-transform: uppercase;">
                             {{ $conference->society->abbreviation }}
-                        </span>
+                        </span> 
                             conference
                             participants.</p>
 

@@ -19,7 +19,7 @@ return new class extends Migration
 
             $table->unique(['society_id', 'designation_id']);
         });
-    }
+    } 
 
     /**
      * Reverse the migrations.

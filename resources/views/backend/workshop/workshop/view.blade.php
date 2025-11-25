@@ -13,7 +13,7 @@
             <div class="col-md-4 mb-4">
                 <p class="text-primary mb-1"><i class="i-ID-2 text-16 mr-1"></i>Workshop Title</p>
                 <span>{{ $workshop->workshop_title }}</span>
-            </div>
+            </div> 
             @if (!empty($workshop->workshop_type))
                 <div class="col-md-4 mb-4">
                     <p class="text-primary mb-1"><i class="i-ID-2 text-16 mr-1"></i>Workshop Type</p>
@@ -55,10 +55,54 @@
                 <p class="text-primary mb-1"><i class="i-ID-2 text-16 mr-1"></i>Contact Person Email </p>
                 <span>{{ $workshop->no_of_participants }}</span>
             </div>
-            @if (!empty($workshop->workshop_description))
-                <p class="text-primary mb-1"><i class="i-Letter-Open text-16 mr-1"></i>Description</p>
-                <p>{!! $workshop->workshop_description !!}</p>
+            
+            @if (!empty($workshop->schedule_plan_attachment))
+                <div class="col-md-4 mb-4">
+                    <p class="text-primary mb-1"><i class="i-ID-2 text-16 mr-1"></i>Schedule/Plan Document</p>
+                    <span>
+                        <a href="{{ asset('storage/workshop/schedules/' . $workshop->schedule_plan_attachment) }}" 
+                           target="_blank" class="btn btn-sm btn-primary">
+                            <i class="i-File-Download"></i> Download Document
+                        </a>
+                    </span>
+                </div>
             @endif
+            
+            <div class="col-md-4 mb-4">
+                <p class="text-primary mb-1"><i class="i-ID-2 text-16 mr-1"></i>Approval Status</p>
+                <span class="badge {{ $workshop->getStatusBadgeClass() }}">{{ $workshop->getStatusLabel() }}</span>
+            </div>
+            
+            @if ($workshop->reviewed_by)
+                <div class="col-md-4 mb-4">
+                    <p class="text-primary mb-1"><i class="i-ID-2 text-16 mr-1"></i>Reviewed By</p>
+                    <span>{{ $workshop->reviewer->fullName($workshop->reviewer) }}</span>
+                </div>
+            @endif
+            
+            @if ($workshop->reviewed_at)
+                <div class="col-md-4 mb-4">
+                    <p class="text-primary mb-1"><i class="i-ID-2 text-16 mr-1"></i>Reviewed At</p>
+                    <span>{{ \Carbon\Carbon::parse($workshop->reviewed_at)->format('d M, Y h:i A') }}</span>
+                </div>
+            @endif
+            
+            @if ($workshop->admin_remarks)
+                <div class="col-md-12 mb-4">
+                    <p class="text-primary mb-1"><i class="i-Letter-Open text-16 mr-1"></i>Admin Remarks</p>
+                    <div class="p-3 bg-light rounded">
+                        <p class="mb-0">{{ $workshop->admin_remarks }}</p>
+                    </div>
+                </div>
+            @endif
+            
+            @if (!empty($workshop->workshop_description))
+                <div class="col-md-12 mb-4">
+                    <p class="text-primary mb-1"><i class="i-Letter-Open text-16 mr-1"></i>Description</p>
+                    <p>{!! $workshop->workshop_description !!}</p>
+                </div>
+            @endif
+            
             <div class="col-12">
                 <h6>2. Venue Details</h6>
                 <hr class="mt-0" style="height:1px;border:none;color:#333;background-color:#333;" />

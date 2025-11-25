@@ -3,9 +3,8 @@
 @section('title')
     Workshop
 @endsection
-@section('content')
-    <div class="card">
-
+@section('content') 
+    <div class="card"> 
         <div class="card-datatable table-responsive pt-0">
             <div class="row card-header flex-column flex-md-row border-bottom mx-0 px-3">
                 <div class="d-md-flex justify-content-between align-items-center dt-layout-start col-md-auto me-auto mt-0">
@@ -24,7 +23,7 @@
                                 </li>
                                 <li><a class="dropdown-item" href="#" onclick="exportTo('pdf')">Export to PDF</a></li>
                                 <li><a class="dropdown-item" href="#" onclick="exportTo('csv')">Export to CSV</a></li>
-                                <li>
+                                 <li>
                                     <hr class="dropdown-divider">
                                 </li>
                                 <li><a class="dropdown-item" href="#" onclick="window.print()">Print</a></li>
@@ -34,7 +33,7 @@
                             <a href="{{ route('workshop.create', [$society, $conference]) }}" class="btn btn-primary"
                                 tabindex="0">
                                 <i class="icon-base ti tabler-plus icon-xs me-sm-1"></i>
-                                <span class="d-none d-sm-inline-block">Add New</span>
+                                <span class="d-none d-sm-inline-block">Add New</span> 
                             </a>
                         @endif
                     </div>
@@ -48,6 +47,7 @@
                         <th>Date/Days</th>
                         <th>Time</th>
                         <th>Deadline</th>
+                        <th>Status</th>
                         <th>No. Of Attendees</th>
                         <th>Action</th>
                     </tr>
@@ -64,6 +64,15 @@
 
                             <td>{{ $workshop->start_time }} - {{ $workshop->end_time }}</td>
                             <td>{{ !empty($workshop->registration_deadline) ? \Carbon\Carbon::parse($workshop->registration_deadline)->format('d M, Y') : '-' }}
+                            </td>
+                            <td>
+                                <span class="badge {{ $workshop->getStatusBadgeClass() }}">
+                                    {{ $workshop->getStatusLabel() }}
+                                </span>
+                                @if ($workshop->admin_remarks)
+                                    <i class="ti tabler-message-circle text-info" data-bs-toggle="tooltip" 
+                                       title="{{ $workshop->admin_remarks }}"></i>
+                                @endif
                             </td>
                             <td>
                                 <a
@@ -88,6 +97,28 @@
                                                 data-bs-toggle="modal" data-bs-target="#pricingModal"><i
                                                     class="icon-base ti tabler-eye me-1 "></i> View</a>
                                         @endif
+                                        
+                                        {{-- Admin Approval Actions - Only for Type 1 & 2 (Admins) --}}
+                                        @if ((current_user()->type == 1 || current_user()->type == 2) && 
+                                             in_array($workshop->approval_status, ['pending', 'correction_needed']))
+                                            <hr>
+                                            <h6 class="dropdown-header">Approval Actions</h6>
+                                            <a href="#" class="dropdown-item text-success approve-btn" 
+                                               data-workshop-id="{{ $workshop->id }}"
+                                               data-workshop-title="{{ $workshop->workshop_title }}">
+                                                <i class="icon-base ti tabler-check me-1"></i> Approve
+                                            </a>
+                                            <a href="#" class="dropdown-item text-warning request-correction-btn" 
+                                               data-workshop-id="{{ $workshop->id }}">
+                                                <i class="icon-base ti tabler-edit me-1"></i> Request Correction
+                                            </a>
+                                            <a href="#" class="dropdown-item text-danger reject-btn" 
+                                               data-workshop-id="{{ $workshop->id }}">
+                                                <i class="icon-base ti tabler-x me-1"></i> Reject
+                                            </a>
+                                            <hr>
+                                        @endif
+                                        
                                         @if (auth()->user()->hasConferencePermissionBlade(getConference(request()->segment(4)), 'Add/Update Registration Price'))
                                             <a href="#" class="dropdown-item allocatePrice"
                                                 data-id="{{ $workshop->id }}" data-bs-toggle="modal"
@@ -131,6 +162,58 @@
         <div class="modal fade" id="pricingModal" tabindex="-1" aria-hidden="true">
             <div class="modal-dialog modal-xl modal-simple modal-pricing">
                 <div class="modal-content" id="modalContent">
+                </div>
+            </div>
+        </div>
+        
+        {{-- Reject Workshop Modal --}}
+        <div class="modal fade" id="rejectModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Reject Workshop</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <form id="rejectForm" method="POST">
+                        @csrf
+                        <div class="modal-body">
+                            <div class="mb-3">
+                                <label for="reject_remarks" class="form-label">Reason for Rejection <span class="text-danger">*</span></label>
+                                <textarea class="form-control" name="remarks" id="reject_remarks" rows="4" 
+                                          placeholder="Please provide reason for rejection..." required></textarea>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <button type="submit" class="btn btn-danger">Reject Workshop</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        {{-- Request Correction Modal --}}
+        <div class="modal fade" id="correctionModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Request Correction</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <form id="correctionForm" method="POST">
+                        @csrf
+                        <div class="modal-body">
+                            <div class="mb-3">
+                                <label for="correction_remarks" class="form-label">Corrections Needed <span class="text-danger">*</span></label>
+                                <textarea class="form-control" name="remarks" id="correction_remarks" rows="4" 
+                                          placeholder="Please specify what needs to be corrected..." required></textarea>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <button type="submit" class="btn btn-warning">Send for Correction</button>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>
@@ -186,6 +269,63 @@
                     setTimeout(function() {
                         $('#modalContent').html(response);
                     }, 1000);
+                });
+            });
+
+            // Reject Workshop
+            $(document).on("click", ".reject-btn", function(e) {
+                e.preventDefault();
+                var workshopId = $(this).data('workshop-id');
+                var actionUrl = '{{ route("workshop.reject", [$society, $conference, $workshop]) }}';
+                // actionUrl = actionUrl.replace(':workshop', workshopId);
+                $('#rejectForm').attr('action', actionUrl);
+                $('#rejectModal').modal('show');
+            });
+
+            // Request Correction
+            $(document).on("click", ".request-correction-btn", function(e) {
+                e.preventDefault();
+                var workshopId = $(this).data('workshop-id');
+                var actionUrl = '{{ route("workshop.requestCorrection", [$society, $conference, $workshop]) }}';
+                // actionUrl = actionUrl.replace(':workshop', workshopId);
+                $('#correctionForm').attr('action', actionUrl);
+                $('#correctionModal').modal('show');
+            });
+
+            // Approve Workshop with SweetAlert
+            $(document).on("click", ".approve-btn", function(e) {
+                e.preventDefault();
+                var workshopId = $(this).data('workshop-id');
+                var workshopTitle = $(this).data('workshop-title');
+                var approveUrl = '{{ route("workshop.approve", [$society, $conference, $workshop]) }}';
+                
+                Swal.fire({
+                    title: 'Approve Workshop?',
+                    html: 'Are you sure you want to approve<br><strong>"' + workshopTitle + '"</strong>?',
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonColor: '#28a745',
+                    cancelButtonColor: '#6c757d',
+                    confirmButtonText: 'Yes, Approve it!',
+                    cancelButtonText: 'Cancel'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        // Create and submit form
+                        var form = $('<form>', {
+                            'method': 'POST',
+                            'action': approveUrl
+                        });
+                        
+                        var csrfToken = $('<input>', {
+                            'type': 'hidden',
+                            'name': '_token',
+                            'value': '{{ csrf_token() }}'
+                        });
+                        
+                        form.append(csrfToken);
+                        $('body').append(form);
+                        form.submit();
+                    }
                 });
             });
 
