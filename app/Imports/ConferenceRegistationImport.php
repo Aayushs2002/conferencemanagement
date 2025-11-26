@@ -214,6 +214,7 @@ class ConferenceRegistationImport implements ToCollection, WithHeadingRow, WithC
                 'meal_type' => $mealTypeId,
                 'amount' => $row['amount'],
                 'transaction_id' => $row['transaction_id'],
+                'token' => random_word(60),
                 'verified_status' => ConferenceRegistration::STATUS_ACCEPTED,
                 'status' => 1,
             ]);

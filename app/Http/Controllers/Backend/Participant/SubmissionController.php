@@ -46,8 +46,9 @@ class SubmissionController extends Controller
     {
 
         $setting = SubmissionSetting::where('conference_id', $conference->id)
-            ->select('abstract_word_limit', 'key_word_limit', 'deadline', 'attachment_name', 'attachment_required')
+            ->select('abstract_word_limit', 'key_word_limit', 'deadline', 'attachment_name', 'attachment_required', 'abstract_guidelines')
             ->first();
+        // dd($setting);
         if (!$setting) {
             return redirect()->back()->with('delete', 'Submission settings not found.');
         }
@@ -177,7 +178,7 @@ class SubmissionController extends Controller
 
             Author::create($validated);
             DB::commit();
-            return redirect()->route('my-society.conference.submission.index',  [$society, $conference])->with('status', 'Submission Added Successfully');
+            return redirect()->route('my-society.conference.submission.author.index',  [$society, $conference,$submission])->with('status', 'Submission Added Successfully');
         } catch (\Exception $th) {
             DB::rollBack();
 
@@ -196,7 +197,7 @@ class SubmissionController extends Controller
     public function edit($society, $conference, $submission)
     {
         $setting = SubmissionSetting::where('conference_id', $conference->id)
-            ->select('abstract_word_limit', 'key_word_limit', 'deadline', 'attachment_name', 'attachment_required')
+            ->select('abstract_word_limit', 'key_word_limit', 'deadline', 'attachment_name', 'attachment_required','abstract_guidelines')
             ->first();
         if (!$setting) {
             return redirect()->back()->with('delete', 'Submission settings not found.');

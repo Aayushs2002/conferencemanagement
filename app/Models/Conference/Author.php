@@ -14,7 +14,7 @@ class Author extends Model
         'designation',
         'institution',
         'institution_address',
-        'phone',
+        'phone', 
         'main_author',
         'status'
     ];
@@ -33,5 +33,11 @@ class Author extends Model
     public function submission()
     {
         return $this->belongsTo(Submission::class);
+    }
+
+    public function contributions()
+    {
+        return $this->belongsToMany(Contribution::class, 'author_contributions')
+                    ->withTimestamps();
     }
 }

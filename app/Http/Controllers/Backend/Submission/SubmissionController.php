@@ -12,6 +12,8 @@ use App\Mail\Submission\SubmissionCorrectionMail;
 use App\Mail\Submission\SubmissionRejectMail;
 use App\Models\Conference\Author;
 use App\Models\Conference\ArticleType;
+use App\Models\Conference\ConferenceRegistration;
+use App\Models\Conference\ConferenceSetting;
 use App\Models\Conference\Expert;
 use App\Models\Conference\Submission;
 use App\Models\Conference\SubmissionCategoryMajorTrack;
@@ -271,24 +273,39 @@ class SubmissionController extends Controller
 
     public function sentToAuthor(Request $request)
     {
+        // Validate FIRST before try-catch
+        $rules = [
+            'request_status' => 'required',
+            'remarks' => 'required',
+        ];
+
+        // Custom validation messages (optional but recommended)
+        $messages = [
+            'request_status.required' => 'Please select a request status.',
+            'remarks.required' => 'Remarks field is required.',
+        ];
+
+        // This will automatically return 422 with errors if validation fails
+        $validated = $request->validate($rules, $messages);
+
         try {
             $submission = Submission::whereId($request->id)->first();
-            // if ($request->request_status != 3) {
-            $rules['remarks'] = 'required';
-            // }
-            $rules['request_status'] = 'required';
 
-            $validated = $request->validate($rules);
+            if (!$submission) {
+                return response()->json(['message' => 'Submission not found'], 404);
+            }
+
             $validated['presenter_name'] = $submission->presenter->fullName($submission->presenter);
             $validated['namePrefix'] = $submission->presenter->userDetail->namePrefix->prefix;
             $validated['topic'] = $submission->title;
             $validated['presentation_type'] = $submission->presentation_type;
-            $validated['remarks'] = $validated['remarks'];
             $validated['conference_name'] = $submission->conference->conference_name;
+
             $data = [
                 'submission_topic' => $submission->title,
             ];
 
+            // Handle different request statuses
             if ($request->request_status == 1) {
                 $message = 'Request accepted successfully.';
                 $template = EmailTemplate::where(['conference_id' => $submission->conference_id, 'key' => 2])->first();
@@ -296,14 +313,17 @@ class SubmissionController extends Controller
                 $body = parseTemplate($template?->body, $data);
 
                 Mail::to($submission->presenter->email)->send(new SubmissionAcceptMail($validated, $subject, $body, $submission->conference->conference_name));
+                $this->handleSpeakerRegistration($submission);
             }
+
             if ($request->request_status == 2) {
-                $message = 'Request updated for correction..';
+                $message = 'Request updated for correction.';
                 $template = EmailTemplate::where(['conference_id' => $submission->conference_id, 'key' => 3])->first();
                 $subject = parseTemplate($template?->subject, $data);
                 $body = parseTemplate($template?->body, $data);
                 Mail::to($submission->presenter->email)->send(new SubmissionCorrectionMail($validated, $subject, $body, $submission->conference->conference_name));
             }
+
             if ($request->request_status == 3) {
                 $message = 'Request rejected successfully.';
                 $template = EmailTemplate::where(['conference_id' => $submission->conference_id, 'key' => 4])->first();
@@ -312,15 +332,16 @@ class SubmissionController extends Controller
                 $body = parseTemplate($template?->body, $data);
                 Mail::to($submission->presenter->email)->send(new SubmissionRejectMail($validated, $subject, $body, $submission->conference->conference_name));
             }
+
             DB::beginTransaction();
 
             $submission->update(['request_status' => $validated['request_status']]);
 
-
-            // insert into table 2
+            // Insert into submission discussion table
             $validated['submission_id'] = $request->id;
             $validated['sender_id'] = current_user()->id;
             SubmissionDiscussion::create($validated);
+
             logActivity(
                 $submission->conference_id,
                 'Change Request Status',
@@ -330,11 +351,81 @@ class SubmissionController extends Controller
             );
 
             DB::commit();
-            return response()->json(['message' => $message]);
+
+            return response()->json(['message' => $message], 200);
         } catch (Exception $e) {
             DB::rollBack();
-            // throw $e;
-            return response()->json(['message' => $e->getMessage()], 500);
+
+            // Log the error for debugging
+            \Log::error('Submission sentToAuthor error: ' . $e->getMessage());
+
+            return response()->json([
+                'message' => 'An error occurred while processing your request.',
+                'error' => $e->getMessage() // Remove this in production
+            ], 500);
+        }
+    }
+
+    /**
+     * Handle automatic speaker registration when submission is accepted
+     * 
+     * @param Submission $submission
+     * @return void
+     */
+    private function handleSpeakerRegistration($submission)
+    {
+        // Get conference setting
+        $conferenceSetting = ConferenceSetting::where('conference_id', $submission->conference_id)->first();
+
+        // Check if user is already registered for this conference
+        $existingRegistration = ConferenceRegistration::where([
+            'user_id' => $submission->user_id,
+            'conference_id' => $submission->conference_id,
+            'status' => 1
+        ])->first();
+
+        if ($existingRegistration) {
+            // User is already registered - update registrant_type to Speaker (2)
+            // Only update if current type is not already Speaker
+            if ($existingRegistration->registrant_type != ConferenceRegistration::REGISTRANT_SPEAKER) {
+                $existingRegistration->update([
+                    'registrant_type' => ConferenceRegistration::REGISTRANT_SPEAKER
+                ]);
+
+                logActivity(
+                    $submission->conference_id,
+                    'Conference Registration Updated',
+                    'Updated ' . $submission->presenter->fullName($submission->presenter) . ' registration type to Speaker due to submission acceptance'
+                );
+            }
+        } else {
+            // User is not registered
+            // Only auto-register if speaker_registration_required is false
+            if ($conferenceSetting && $conferenceSetting->speaker_registration_required == false) {
+                $registration = ConferenceRegistration::create([
+                    'user_id' => $submission->user_id,
+                    'conference_id' => $submission->conference_id,
+                    'registrant_type' => ConferenceRegistration::REGISTRANT_SPEAKER, // 2 = Speaker
+                    'verified_status' => ConferenceRegistration::STATUS_ACCEPTED, // Auto-accept
+                    'is_invited' => false,
+                    'token' => random_word(60),
+                    'status' => 1,
+                    'attend_type' => ConferenceRegistration::ATTEND_PHYSICAL, // Default to physical
+                    'certificate_required' => true, // Default value
+                    'payment_type' => null, // Will be updated when payment is made
+                    'amount' => 0, // Will be calculated based on member type
+                    'total_attendee' => 1,
+                ]);
+
+                logActivity(
+                    $submission->conference_id,
+                    'Conference Registration Auto-Created',
+                    'Automatically registered ' . $submission->presenter->fullName($submission->presenter) . ' as Speaker due to submission acceptance (speaker registration not required)'
+                );
+
+                // Optional: Send registration confirmation email
+                // You can add email sending logic here if needed
+            }
         }
     }
 
@@ -443,7 +534,7 @@ class SubmissionController extends Controller
                 'mail_content' => 'required',
             ]);
 
-            $users = json_decode($validated['User']); 
+            $users = json_decode($validated['User']);
 
             foreach ($users as $user) {
                 SendSubmissionBulkMailJob::dispatch($user, $validated['subject'], $validated['mail_content'], $conference->conference_name);

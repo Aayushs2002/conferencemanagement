@@ -74,6 +74,9 @@
         $("#decideRequest").on('click', function(e) {
             e.preventDefault();
             var data = new FormData($('#decisionForm')[0]);
+            var submitBtn = $(this);
+            var originalText = submitBtn.text();
+
             $.ajaxSetup({
                 headers: {
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -87,9 +90,9 @@
                 processData: false,
                 contentType: false,
                 beforeSend: function() {
-                    $('#decideRequest').attr('disabled', true);
-                    $('#decideRequest').append(
-                        '<span class="spinner spinner-danger ml-2" style="height: 17px; width: 17px;"></span>'
+                    submitBtn.attr('disabled', true);
+                    submitBtn.html(
+                        '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Sending...'
                     );
                 },
                 success: function(response) {
@@ -102,6 +105,9 @@
                 error: function(response) {
                     var errors = response.responseJSON.errors;
                     $.each(errors, function(key, val) {
+                        // alert(val);
+                        // notyf.error(val);
+
                         $('.' + key).html('');
                         $('.' + key).append(val);
                         $('#' + key).addClass('border-danger');
@@ -111,8 +117,16 @@
                         });
                     });
 
-                    $('#decideRequest').attr('disabled', false);
-                    $('#decideRequest').text('Update');
+                    submitBtn.attr('disabled', false);
+                    submitBtn.html(originalText);
+                },
+                complete: function() {
+                    // This runs whether success or error
+                    // Restore button if not redirecting
+                    if (!$(".modal").is(':visible')) {
+                        submitBtn.attr('disabled', false);
+                        submitBtn.html(originalText);
+                    }
                 }
             });
         });

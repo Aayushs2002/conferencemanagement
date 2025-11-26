@@ -126,7 +126,7 @@
                         class="menu-link ">
                         <i class="menu-icon icon-base ti tabler-presentation"></i>
                         <div data-i18n="My Workshop Applications">My Workshop Applications</div>
-                    </a>
+                    </a> 
                 </li> --}}
                 <li
                     class="menu-item  {{ request()->segment(5) == 'workshop-registration' && request()->segment(1) == 'my-society' ? 'active' : '' }}">
@@ -164,6 +164,7 @@
                         'View Submission Setting',
                         'View Category/Major Track',
                         'View Article Type',
+                        'View Contribution',
                     ]))
                 <li
                     class="menu-item {{ request()->segment(5) == 'submission' && request()->segment(1) != 'my-society' ? 'active open' : '' }}">
@@ -204,6 +205,14 @@
                                 <a href="{{ route('articleType.index', [request()->segment(2), request()->segment(4)]) }}"
                                     class="menu-link">
                                     <div data-i18n="Article Type">Article Type</div>
+                                </a>
+                            </li>
+                        @endif
+                        @if (auth()->user()->hasConferencePermissionBlade($conference, 'View Contribution'))
+                            <li class="menu-item {{ request()->segment(6) == 'contribution' ? 'active' : '' }}">
+                                <a href="{{ route('contribution.index', [request()->segment(2), request()->segment(4)]) }}"
+                                    class="menu-link">
+                                    <div data-i18n="Contribution">Contribution</div>
                                 </a>
                             </li>
                         @endif
@@ -253,7 +262,7 @@
                             <li class="menu-item {{ request()->segment(6) == 'hall' ? 'active' : '' }}">
                                 <a href="{{ route('hall.index', [request()->segment(2), request()->segment(4)]) }}"
                                     class="menu-link">
-                                    <div data-i18n="Hall">Hall</div>
+                                    <div data-i18n="Hall">Hall</div> 
                                 </a>
                             </li>
                         @endif

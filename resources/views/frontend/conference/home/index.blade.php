@@ -125,7 +125,7 @@
                                 <div class="logo-item"><img
                                         src="{{ asset('frontend/assets/img/international_delegate_2.png') }}"
                                         alt="Payment Method 2" class="logo-img"></div>
-                                <div class="logo-item"><img 
+                                <div class="logo-item"><img
                                         src="{{ asset('frontend/assets/img/international_delegate_3.png') }}"
                                         alt="Payment Method 3" class="logo-img"></div>
                             </div>
@@ -145,7 +145,7 @@
                         <p class="span-text mt-5">About Conference</p>
                         <h2 class="section-title">Official Message</h2>
                         <div class="row mt-3 align-items-center">
-                            @foreach ($conference->officialMessages  as $offical_message)
+                            @foreach ($conference->officialMessages as $offical_message)
                                 <div class="col-md-4">
                                     <div class="prof-card p-3 rounded-3 h-100 d-flex flex-column">
                                         <img src="{{ Storage::url('offical-message/image/' . $offical_message->image) }}"
@@ -222,9 +222,10 @@
                         style="background-color: #F1F4FC; padding: 40px; border-radius: 20px;">
                         <h2 class="section-title">Sponsors</h2>
                         <p class="span-text mt-4">Our Financial Partners</p>
-                        <p>Experience premium comfort during your stay at our partner hotel, specially selected for <span style="text-transform: uppercase;">
-                            {{ $conference->society->abbreviation }}
-                        </span> 
+                        <p>Experience premium comfort during your stay at our partner hotel, specially selected for <span
+                                style="text-transform: uppercase;">
+                                {{ $conference->society->abbreviation }}
+                            </span>
                             conference
                             participants.</p>
 
@@ -391,12 +392,13 @@
                                         {{ \Carbon\Carbon::parse($conference->regular_registration_deadline)->format('M j') }})
                                     </th>
                                     <th scope="col">Spot Registration</th>
+                                    <th scope="col">Accompany Registration Fee</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {{-- @dd($memberTypes) --}}
                                 @foreach ($memberTypes as $memberType)
-                                    @if ($memberType->early_bird_amount || $memberType->regular_amount || $memberType->on_site_amount)
+                                    @if ($memberType->early_bird_amount || $memberType->regular_amount || $memberType->on_site_amount || $memberType->guest_amount )
                                         <tr>
                                             <td>{{ $memberType->type }}
                                                 {{ $memberType->delegate == 1 ? '(Nepal)' : '(International)' }}</td>
@@ -405,6 +407,8 @@
                                             <td>{{ $memberType->regular_amount ?? 'N/A' }}
                                                 {{ $memberType->delegate == 1 ? '(NRs)' : '(USD)' }}</td>
                                             <td>{{ $memberType->on_site_amount ?? 'N/A' }}
+                                                {{ $memberType->delegate == 1 ? '(NRs)' : '(USD)' }}</td>
+                                            <td>{{ $memberType->guest_amount ?? 'N/A' }}
                                                 {{ $memberType->delegate == 1 ? '(NRs)' : '(USD)' }}</td>
                                         </tr>
                                     @endif
