@@ -162,6 +162,16 @@ Route::middleware('auth')->group(function () {
     });
     //article type route end
 
+    //contribution route start
+    Route::controller(\App\Http\Controllers\Backend\Submission\ContributionController::class)->middleware(['auto.conf.permission', 'feature:abstract-submission-management'])->prefix('/society/{society}/conference/{conference}/submission/contribution')->name('contribution.')->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::get('/create', 'create')->name('create');
+        Route::post('/store', 'store')->name('store');
+        Route::patch('/update/{contribution}', 'update')->name('update');
+        Route::delete('/destroy/{contribution}', 'destroy')->name('destroy');
+    });
+    //contribution route end
+
 
     //Submission Route Started
     Route::controller(SubmissionController::class)->middleware(['auto.conf.permission', 'feature:abstract-submission-management'])->prefix('/society/{society}/conference/{conference}/submission')->name('submission.')->group(function () {

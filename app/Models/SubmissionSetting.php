@@ -21,6 +21,7 @@ class SubmissionSetting extends Model
         'attachment_required',
         'signature',
         'scoring_allowed',
+        'contribution_enabled',
         'status'
     ];
 }

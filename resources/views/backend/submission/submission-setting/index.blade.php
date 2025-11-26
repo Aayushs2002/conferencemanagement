@@ -120,6 +120,22 @@
                                 @enderror
                             </div>
 
+                            <div class="col-md-4 form-group mb-3">
+                                <label for="contribution_enabled">Enable Contribution</label>
+                                <select name="contribution_enabled" id="contribution_enabled"
+                                    class="form-control @error('contribution_enabled') is-invalid @enderror">
+                                    <option value="1"
+                                        {{ !empty($conference->submissionSetting) && $conference->submissionSetting->contribution_enabled == 1 ? 'selected' : '' }}>
+                                        Yes</option>
+                                    <option value="0"
+                                        {{ !empty($conference->submissionSetting) && $conference->submissionSetting->contribution_enabled == 0 ? 'selected' : '' }}>
+                                        No</option>
+                                </select>
+                                @error('contribution_enabled')
+                                    <p class="text-danger">{{ $message }}</p>
+                                @enderror
+                            </div>
+
                             <div class="col-md-12 form-group mb-3">
                                 <label for="abstract_guidelines">Abstract Submission Guidelines </label>
                                 <textarea name="abstract_guidelines" class="form-control ckeditor @error('abstract_guidelines') is-invalid @enderror"

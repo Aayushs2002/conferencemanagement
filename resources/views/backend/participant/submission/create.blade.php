@@ -4,6 +4,20 @@
    @endsection
    @section('content')
        @include('backend.layouts.conference-navigation')
+       @if ($setting?->abstract_guidelines)
+           <div class="modal fade" id="openAbstractGuidelineModal" tabindex="-1" role="dialog"
+               aria-labelledby="exampleModalCenterTitleDuideline" aria-hidden="true">
+               <div class="modal-dialog modal-lg modal-simple modal-pricing">
+                   <div class="modal-content" id="modalContent">
+                       <div class="modal-body">
+                           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                           <h4 class="text-center mb-4">Abstract Submission Guidelines</h4>
+                           {!! $setting->abstract_guidelines !!}
+                       </div>
+                   </div>
+               </div>
+           </div>
+       @endif
        <div class="col-md">
            <div class="card">
                <h4 class="card-header"><a
@@ -195,6 +209,8 @@
            let ckeditorInstances = {};
 
            $(document).ready(function() {
+               $('#openAbstractGuidelineModal').modal('show');
+
 
                $('#submission_category_major_track_id').on('change', function() {
                    var selectedContent = $(this).find('option:selected').data('content');

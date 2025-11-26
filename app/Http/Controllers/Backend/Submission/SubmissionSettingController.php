@@ -18,7 +18,7 @@ class SubmissionSettingController extends Controller
         $conference = Conference::where(['id' => $conference->id, 'status' => 1])->first();
         return view('backend.submission.submission-setting.index', compact('conference', 'society'));
     }
-
+ 
     public function store(Request $request)
     {
         try {
@@ -37,6 +37,8 @@ class SubmissionSettingController extends Controller
                 'attachment_name' => 'nullable',
                 'attachment_required' => 'nullable|boolean',
                 'signature' => 'nullable|mimes:png,jpg',
+                'scoring_allowed' => 'nullable|boolean',
+                'contribution_enabled' => 'nullable|boolean',
 
             ]);
 

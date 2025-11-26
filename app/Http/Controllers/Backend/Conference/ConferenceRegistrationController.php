@@ -385,7 +385,7 @@ class ConferenceRegistrationController extends Controller
 
     public function deleteVoucher($society, $conference, ConferenceRegistration $registrant)
     {
-        try {
+        try { 
             if ($registrant->payment_voucher) {
                 $this->file_service->deleteFile($registrant->payment_voucher, 'conference/payment-voucher');
                 $registrant->update(['payment_voucher' => null]);

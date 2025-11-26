@@ -27,6 +27,7 @@
                         <th scope="col">Institution</th>
                         <th scope="col">Institution Address</th>
                         <th scope="col">Phone</th>
+                        <th scope="col">Contributions</th>
                         {{-- <th scope="col" style="width: 12%">Action</th> --}}
 
                     </tr>
@@ -35,11 +36,20 @@
                     <tr>
                         <th scope="row">{{ $loop->iteration }}</th>
                         <td>{{ $author->name }}{!! $author->main_author == 1 ? ' <span class="badge bg-success">Main</span>' : '' !!}</td>
-                        <td>{{ $author->email }}</td>
+                        <td>{{ $author->email }}</td> 
                         <td>{{ $author->designation }}</td>
                         <td>{{ $author->institution }}</td>
                         <td>{{ $author->institution_address }}</td>
                         <td>{{ !empty($author->phone) ? $author->phone : '-' }}</td>
+                        <td>
+                            @if($author->contributions->count() > 0)
+                                @foreach($author->contributions as $contribution)
+                                    <span class="badge bg-info me-1 mb-1" title="{{ $contribution->description }}">{{ $contribution->name }}</span>
+                                @endforeach
+                            @else
+                                <span class="text-muted">-</span>
+                            @endif
+                        </td>
                         {{-- <td>
                                <div class="d-flex gap-2">
 
