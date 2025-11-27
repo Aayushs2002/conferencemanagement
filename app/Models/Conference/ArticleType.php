@@ -9,6 +9,7 @@ class ArticleType extends Model
     protected $fillable = [
         'conference_id',
         'name',
+        'display_order',
         'status'
     ];
 

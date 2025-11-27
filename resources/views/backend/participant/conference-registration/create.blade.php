@@ -14,11 +14,11 @@
             box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
         }
 
-        .step-indicator { 
+        .step-indicator {
             display: flex;
             justify-content: space-between;
             margin-bottom: 30px;
-        } 
+        }
 
         .step {
             flex: 1;
@@ -286,7 +286,8 @@
                                 <div class="col-md-6">
                                     <p><strong>📋 Conference:</strong> {{ $conference->conference_name ?? 'N/A' }}</p>
                                     <p><strong>👤 Type:</strong> <span id="summaryRegistrantType">-</span></p>
-                                    <p><strong>🎯 Registration Type:</strong> <span id="summaryWorkshops">Conference Only</span></p>
+                                    <p><strong>🎯 Registration Type:</strong> <span id="summaryWorkshops">Conference
+                                            Only</span></p>
                                 </div>
                                 <div class="col-md-6">
                                     <p><strong>👥 Total Attendees:</strong> <span id="summaryAttendees">1</span></p>
@@ -304,18 +305,26 @@
                             @endisset
 
                             <!-- Registration Options -->
-                            <div class="alert alert-custom alert-info mb-4">
-                                <i class="fas fa-lightbulb"></i>
-                                <strong>Registration Options:</strong> Choose to register for conference only, or include
-                                workshops for enhanced learning experience.
-                            </div>
+                            @if (feature_enabled('workshop-management', getSociety(request()->segment(2))))
+                                <div class="alert alert-custom alert-info mb-4">
+                                    <i class="fas fa-lightbulb"></i>
+                                    <strong>Registration Options:</strong> Choose to register for conference only, or
+                                    include
+                                    workshops for enhanced learning experience.
+                                </div>
+                            @endif
 
                             <div class="row mb-4">
                                 <!-- Multiple Workshop Selection -->
                                 <div class="col-md-6 form-group mb-3">
                                     <label class="fw-bold">
-                                        <i class="fas fa-chalkboard-teacher text-primary"></i> Workshop Selection
-                                        <small class="text-muted">(Optional - Multiple Selection)</small>
+                                        <i class="fas fa-chalkboard-teacher text-primary"></i>
+                                        @if (feature_enabled('workshop-management', getSociety(request()->segment(2))))
+                                            Workshop Selection
+                                            <small class="text-muted">(Optional - Multiple Selection)</small>
+                                        @else
+                                            Conference Participation
+                                        @endif
                                     </label>
                                     <div class="card">
                                         <div class="card-body" style="max-height: 250px; overflow-y: auto;">
@@ -369,18 +378,23 @@
                                                     </div>
                                                 @endforeach
                                             @else
-                                                <div class="text-center py-3">
-                                                    <i class="fas fa-chalkboard-teacher fa-3x text-muted mb-2"></i>
-                                                    <p class="text-muted mb-0">No workshops available for this conference
-                                                    </p>
-                                                </div>
+                                                @if (feature_enabled('workshop-management', getSociety(request()->segment(2))))
+                                                    <div class="text-center py-3">
+                                                        <i class="fas fa-chalkboard-teacher fa-3x text-muted mb-2"></i>
+                                                        <p class="text-muted mb-0">No workshops available for this
+                                                            conference
+                                                        </p>
+                                                    </div>
+                                                @endif
                                             @endif
                                         </div>
                                     </div>
-                                    <small class="text-muted">
-                                        <i class="fas fa-info-circle"></i>
-                                        You can select multiple workshops to enhance your learning experience
-                                    </small>
+                                    @if (feature_enabled('workshop-management', getSociety(request()->segment(2))))
+                                        <small class="text-muted">
+                                            <i class="fas fa-info-circle"></i>
+                                            You can select multiple workshops to enhance your learning experience
+                                        </small>
+                                    @endif
                                 </div>
 
                                 <!-- Multiple Add-ons Selection -->
@@ -462,7 +476,10 @@
                                     <div class="col-md-6 d-flex align-items-end">
                                         <div class="alert alert-info w-100">
                                             <i class="fas fa-calculator"></i>
-                                            <strong>Pricing Note:</strong> Workshops and add-ons are charged per person. If
+                                            <strong>Pricing Note:</strong>
+                                            @if (feature_enabled('workshop-management', getSociety(request()->segment(2))))
+                                                Workshops and add-ons are charged per person.
+                                            @endif If
                                             you select 1 guest, they will be charged for 2 people (you + 1 guest).
                                         </div>
                                     </div>
@@ -951,7 +968,6 @@
             </div>
         </div>
     </div>
-
 @endsection
 
 @section('scripts')
@@ -975,12 +991,15 @@
 
             // Reset all payment buttons to their original state
             function resetAllPaymentButtons() {
-                $("#submitFonePay").prop('disabled', false).html('<i class="fas fa-mobile-alt"></i> Pay with FonePay');
+                $("#submitFonePay").prop('disabled', false).html(
+                    '<i class="fas fa-mobile-alt"></i> Pay with FonePay');
                 $("#submitEsewa").prop('disabled', false).html('<i class="fas fa-wallet"></i> Pay with eSewa');
                 $("#submitKhalti").prop('disabled', false).html('<i class="fas fa-wallet"></i> Pay with Khalti');
                 $("#submitMoco").prop('disabled', false).html('<i class="fas fa-qrcode"></i> Pay with MoCo');
-                $("#submitButtonInternationalPayment").prop('disabled', false).html('<i class="fas fa-credit-card"></i> Proceed to Payment');
-                $("#submitButtonBankTransfer").prop('disabled', false).html('<i class="fas fa-university"></i> Submit Bank Transfer');
+                $("#submitButtonInternationalPayment").prop('disabled', false).html(
+                    '<i class="fas fa-credit-card"></i> Proceed to Payment');
+                $("#submitButtonBankTransfer").prop('disabled', false).html(
+                    '<i class="fas fa-university"></i> Submit Bank Transfer');
             }
 
             // Handle browser back/forward button - reset buttons when page is shown from cache
@@ -1865,7 +1884,7 @@
                                 let input = $('[name="' + key + '"]');
                                 input.addClass('is-invalid');
                                 input.after('<p class="text-danger">' + errors[key][0] +
-                                '</p>');
+                                    '</p>');
                             }
                         } else {
                             notyf.error('An error occurred. Please try again.');

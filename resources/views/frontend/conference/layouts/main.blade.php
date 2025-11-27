@@ -166,7 +166,9 @@
                         <h5 class="dash-title mb-2">Conference Registration Open</h5>
                         <p class="dash-date mb-0">
                             <i class="fa-regular fa-calendar me-1"></i>
-                            {{ \Carbon\Carbon::parse($conference->created_at)->format('F j, Y') }}
+                            {{-- {{ \Carbon\Carbon::parse($conference->created_at)->format('F j, Y') }} --}}
+                            {{ $conference->conferenceSetting?->registration_open_date ? \Carbon\Carbon::parse($conference->conferenceSetting->registration_open_date)->format('F j, Y') : \Carbon\Carbon::parse($conference->created_at)->format('F j, Y') }}
+
                             {{-- @dd($conference) --}}
                         </p>
                     </div>
@@ -182,7 +184,8 @@
                         <p class="dash-date mb-0">
                             <i class="fa-regular fa-calendar me-1"></i>
                             {{-- July 1, 2025 --}}
-                            {{ \Carbon\Carbon::parse($conference->submissionSetting?->created_at)->format('F j, Y') }}
+
+                            {{ $conference->submissionSetting?->submission_open_date ? \Carbon\Carbon::parse($conference->submissionSetting->submission_open_date)->format('F j, Y') : \Carbon\Carbon::parse($conference->submissionSetting?->created_at)->format('F j, Y') }}
 
                         </p>
                     </div>

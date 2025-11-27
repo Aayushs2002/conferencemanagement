@@ -15,7 +15,7 @@
                             <i class="icon-base ti tabler-plus icon-xs me-sm-1"></i>
                             <span class="d-none d-sm-inline-block">Add New</span>
                         </a>
-                    </div>
+                    </div> 
                 </div>
             </div>
             <div class="px-3 py-2">

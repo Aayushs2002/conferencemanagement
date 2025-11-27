@@ -36,7 +36,8 @@ class ConferenceSettingController extends Controller
                 'payment_instruction' => 'nullable|string',
                 'terms_conditions' => 'nullable|string',
                 'privacy_policy' => 'nullable|string',
-                'speaker_registration_required' => 'required|in:0,1'
+                'speaker_registration_required' => 'required|in:0,1',
+                'registration_open_date' => 'nullable|date'
             ]);
 
             $type = 'success';
@@ -83,6 +84,7 @@ class ConferenceSettingController extends Controller
                 'terms_conditions' => $request->terms_conditions, 
                 'privacy_policy' => $request->privacy_policy,
                 'speaker_registration_required' => $request->speaker_registration_required,
+                'registration_open_date' => $request->registration_open_date,
             ];
 
             if ($conferenceSetting) {

@@ -16,6 +16,7 @@ class Submission extends Model
         'title', 
         'article_type_id',
         'presentation_type',
+        'competition_type',
         'presentation_type_change',
         'keywords',
         'abstract_content',

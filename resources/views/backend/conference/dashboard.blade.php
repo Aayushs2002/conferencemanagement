@@ -125,7 +125,7 @@
                 </div>
 
                 <!-- Registration Trends Chart -->
-                <div class="col-lg-8 col-12">
+                <div class="col-lg-7 col-12">
                     <div class="card border-0 shadow-sm h-100">
                         <div class="card-header bg-transparent border-0 pt-4 px-4 pb-0">
                             <div class="d-flex justify-content-between align-items-start">
@@ -193,7 +193,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-lg-4 col-md-6">
+                <div class="col-lg-5 col-md-6">
                     <div class="card p-4">
                         <h5 class="mb-4" style="font-weight: bold;">Submission Overview</h5>
 
@@ -212,79 +212,81 @@
                         <canvas id="submissionsChart" height="320"></canvas>
                     </div>
                 </div>
-                <div class="col-lg-4 col-md-6">
-                    <div class="card border-0 shadow h-100">
-                        <div class="card-body p-4">
-                            <div class="d-flex align-items-center justify-content-between mb-4">
-                                <div class="bg-warning bg-opacity-10 rounded-circle p-3">
-                                    <i class="ti tabler-chef-hat text-warning fs-4"></i>
-                                </div>
-                                <span
-                                    class="badge bg-warning bg-opacity-10 text-warning px-3 py-2 rounded-pill">Meals</span>
-                            </div>
-
-                            <h5 class="fw-semibold text-dark mb-3">Workshop Meal Distribution And Registation</h5>
-
-                            <div class="dropdown mb-4">
-                                <button class="btn btn-outline-primary dropdown-toggle rounded-pill px-4" type="button"
-                                    data-bs-toggle="dropdown">
-                                    <i class="ti tabler-calendar me-2"></i>Filter by Workshop
-                                </button>
-                                <ul class="dropdown-menu dropdown-menu-end border-0 shadow-lg"
-                                    id="workshopMealFilterDropdown">
-                                    @foreach ($workshops as $workshop)
-                                        <li>
-                                            <a href="#"
-                                                class="dropdown-item workshop-meal-count rounded-3 mx-2 my-1"
-                                                data-workshop-id="{{ $workshop->id }}">
-                                                {{ $workshop->workshop_title }}
-                                            </a>
-                                        </li>
-                                    @endforeach
-                                </ul>
-                            </div>
-
-                            <div id="mealCountList">
-                                @foreach ($workshops as $workshop)
-                                    {{-- @dd($workshop) --}}
-                                    @php
-                                        $counts = $workshopMealCounts[$workshop->id] ?? null;
-                                        $veg = $counts->veg ?? 0;
-                                        $nonVeg = $counts->nonveg ?? 0;
-                                        $total = $counts->total ?? 0;
-                                    @endphp
-                                    <div class="meal-count-group mb-4" data-workshop-id="{{ $workshop->id }}">
-                                        <h6 class="text-primary fw-bold">{{ $workshop->workshop_title }}</h6>
-                                        <a
-                                            href="{{ route('workshop.workshop-registration.index', [$society, $conference, $workshop]) . '?meal_type=1' }}">
-                                            <div class="d-flex justify-content-between align-items-center">
-                                                <span class="text-muted">Veg</span>
-                                                <span
-                                                    class="badge bg-success bg-opacity-10 text-success rounded-pill px-3 py-1">{{ $veg }}</span>
-                                            </div>
-                                        </a>
-                                        <a
-                                            href="{{ route('workshop.workshop-registration.index', [$society, $conference, $workshop]) . '?meal_type=2' }}">
-                                            <div class="d-flex justify-content-between align-items-center mt-2">
-                                                <span class="text-muted">Non-Veg</span>
-                                                <span
-                                                    class="badge bg-danger bg-opacity-10 text-danger rounded-pill px-3 py-1">{{ $nonVeg }}</span>
-                                            </div>
-                                        </a>
-                                        <a
-                                            href="{{ route('workshop.workshop-registration.index', [$society, $conference, $workshop]) }}">
-                                            <div class="d-flex justify-content-between align-items-center mt-2">
-                                                <span class="fw-bold text-dark">Total Registation</span>
-                                                <span
-                                                    class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-3 py-1">{{ $total }}</span>
-                                            </div>
-                                        </a>
+                @if (feature_enabled('workshop-management', getSociety(request()->segment(2))))
+                    <div class="col-lg-4 col-md-6">
+                        <div class="card border-0 shadow h-100">
+                            <div class="card-body p-4">
+                                <div class="d-flex align-items-center justify-content-between mb-4">
+                                    <div class="bg-warning bg-opacity-10 rounded-circle p-3">
+                                        <i class="ti tabler-chef-hat text-warning fs-4"></i>
                                     </div>
-                                @endforeach
+                                    <span
+                                        class="badge bg-warning bg-opacity-10 text-warning px-3 py-2 rounded-pill">Meals</span>
+                                </div>
+
+                                <h5 class="fw-semibold text-dark mb-3">Workshop Meal Distribution And Registation</h5>
+
+                                <div class="dropdown mb-4">
+                                    <button class="btn btn-outline-primary dropdown-toggle rounded-pill px-4"
+                                        type="button" data-bs-toggle="dropdown">
+                                        <i class="ti tabler-calendar me-2"></i>Filter by Workshop
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end border-0 shadow-lg"
+                                        id="workshopMealFilterDropdown">
+                                        @foreach ($workshops as $workshop)
+                                            <li>
+                                                <a href="#"
+                                                    class="dropdown-item workshop-meal-count rounded-3 mx-2 my-1"
+                                                    data-workshop-id="{{ $workshop->id }}">
+                                                    {{ $workshop->workshop_title }}
+                                                </a>
+                                            </li>
+                                        @endforeach
+                                    </ul>
+                                </div>
+
+                                <div id="mealCountList">
+                                    @foreach ($workshops as $workshop)
+                                        {{-- @dd($workshop) --}}
+                                        @php
+                                            $counts = $workshopMealCounts[$workshop->id] ?? null;
+                                            $veg = $counts->veg ?? 0;
+                                            $nonVeg = $counts->nonveg ?? 0;
+                                            $total = $counts->total ?? 0;
+                                        @endphp
+                                        <div class="meal-count-group mb-4" data-workshop-id="{{ $workshop->id }}">
+                                            <h6 class="text-primary fw-bold">{{ $workshop->workshop_title }}</h6>
+                                            <a
+                                                href="{{ route('workshop.workshop-registration.index', [$society, $conference, $workshop]) . '?meal_type=1' }}">
+                                                <div class="d-flex justify-content-between align-items-center">
+                                                    <span class="text-muted">Veg</span>
+                                                    <span
+                                                        class="badge bg-success bg-opacity-10 text-success rounded-pill px-3 py-1">{{ $veg }}</span>
+                                                </div>
+                                            </a>
+                                            <a
+                                                href="{{ route('workshop.workshop-registration.index', [$society, $conference, $workshop]) . '?meal_type=2' }}">
+                                                <div class="d-flex justify-content-between align-items-center mt-2">
+                                                    <span class="text-muted">Non-Veg</span>
+                                                    <span
+                                                        class="badge bg-danger bg-opacity-10 text-danger rounded-pill px-3 py-1">{{ $nonVeg }}</span>
+                                                </div>
+                                            </a>
+                                            <a
+                                                href="{{ route('workshop.workshop-registration.index', [$society, $conference, $workshop]) }}">
+                                                <div class="d-flex justify-content-between align-items-center mt-2">
+                                                    <span class="fw-bold text-dark">Total Registation</span>
+                                                    <span
+                                                        class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-3 py-1">{{ $total }}</span>
+                                                </div>
+                                            </a>
+                                        </div>
+                                    @endforeach
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
+                @endif
 
                 {{-- <div class="row mt-5"> --}}
                 <!-- Attendance & Meal Count Card -->
@@ -424,7 +426,7 @@
             <div class="col-lg-3 col-sm-6">
                 <div class="card ">
                     <div class="card-body">
-                        <p class="mb-1">Conference Registered Status</p> 
+                        <p class="mb-1">Conference Registered Status</p>
                         <div class="my-4">
                             @if (checkRegistrations($conference))
                                 <span class="badge bg-success">Registered</span>
@@ -455,26 +457,36 @@
                         @php
                             $confSetting = $conference->conferenceSetting ?? null;
                         @endphp
-                        @if ($confSetting && isset($confSetting->speaker_registration_required) && $confSetting->speaker_registration_required == false)
+                        @if (
+                            $confSetting &&
+                                isset($confSetting->speaker_registration_required) &&
+                                $confSetting->speaker_registration_required == false)
                             <!-- Modal Trigger Button (hidden, auto-triggered) -->
-                            <button type="button" id="autoSpeakerRegModalBtn" class="d-none" data-bs-toggle="modal" data-bs-target="#autoSpeakerRegModal"></button>
+                            <button type="button" id="autoSpeakerRegModalBtn" class="d-none" data-bs-toggle="modal"
+                                data-bs-target="#autoSpeakerRegModal"></button>
 
                             <!-- Modal -->
-                            <div class="modal fade" id="autoSpeakerRegModal" tabindex="-1" aria-labelledby="autoSpeakerRegModalLabel" aria-hidden="true">
+                            <div class="modal fade" id="autoSpeakerRegModal" tabindex="-1"
+                                aria-labelledby="autoSpeakerRegModalLabel" aria-hidden="true">
                                 <div class="modal-dialog modal-dialog-centered">
                                     <div class="modal-content">
                                         <div class="modal-header">
-                                            <h5 class="modal-title" id="autoSpeakerRegModalLabel">Speaker Registration Notice</h5>
-                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            <h5 class="modal-title" id="autoSpeakerRegModalLabel">Speaker Registration
+                                                Notice</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                                aria-label="Close"></button>
                                         </div>
                                         <div class="modal-body">
                                             <div class="alert alert-info mb-0">
-                                                <strong>Note:</strong> Speakers do <u>not</u> need to register for the conference separately.<br>
-                                                If your submission is <b>accepted</b>, you will be <b>automatically registered</b> for the conference.
+                                                <strong>Note:</strong> Speakers do <u>not</u> need to register for the
+                                                conference separately.<br>
+                                                If your submission is <b>accepted</b>, you will be <b>automatically
+                                                    registered</b> for the conference.
                                             </div>
                                         </div>
                                         <div class="modal-footer">
-                                            <button type="button" class="btn btn-primary" data-bs-dismiss="modal">OK</button>
+                                            <button type="button" class="btn btn-primary"
+                                                data-bs-dismiss="modal">OK</button>
                                         </div>
                                     </div>
                                 </div>

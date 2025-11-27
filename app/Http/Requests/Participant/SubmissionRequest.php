@@ -26,7 +26,7 @@ class SubmissionRequest extends FormRequest
         $isUpdating = $this->isMethod('patch') || $this->isMethod('put'); // Check if it's an update request
         
         $setting = \App\Models\SubmissionSetting::where('conference_id', $conferenceId)
-            ->select('attachment_name', 'attachment_required')
+            ->select('attachment_name', 'attachment_required', 'competition_enabled')
             ->first();
 
         // Default image rule
@@ -47,6 +47,7 @@ class SubmissionRequest extends FormRequest
             'article_type_id' => 'required',
             'submission_category_major_track_id' => 'required',
             'presentation_type' => 'required',
+            'competition_type' => $setting && $setting->competition_enabled ? 'required|in:1,2' : 'nullable|in:1,2',
             'keywords' => 'required',
             'image' => $imageRule,
             'sections' => 'nullable|array',

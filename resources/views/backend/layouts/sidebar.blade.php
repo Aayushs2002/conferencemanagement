@@ -130,7 +130,7 @@
                     @php
                         $unresolvedCount = cache()->get('sentry_unresolved_count', 0);
                     @endphp
-                    @if($unresolvedCount > 0)
+                    @if($unresolvedCount > 0) 
                         <span class="badge bg-danger rounded-pill ms-auto">{{ $unresolvedCount }}</span>
                     @endif
                 </a>

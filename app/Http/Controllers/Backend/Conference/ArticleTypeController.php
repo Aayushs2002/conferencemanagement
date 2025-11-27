@@ -18,7 +18,7 @@ class ArticleTypeController extends Controller
         $articleTypes = ArticleType::where([
             'conference_id' => $conference->id,
             'status' => 1
-        ])->latest()->get();
+        ])->orderBy('display_order', 'asc')->orderBy('id', 'asc')->get();
 
         return view('backend.conference.article-type.index', compact('articleTypes', 'society', 'conference'));
     }
@@ -90,6 +90,30 @@ class ArticleTypeController extends Controller
         }
     }
 
+
+    public function updateOrder(Request $request, $society, $conference)
+    {
+        try {
+            $orders = $request->orders;
+
+            foreach ($orders as $order) {
+                ArticleType::where('id', $order['id'])->update([
+                    'display_order' => $order['position']
+                ]);
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Order updated successfully'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to update order: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
     /**
      * Show the article type settings form.
      */
@@ -158,7 +182,7 @@ class ArticleTypeController extends Controller
                 'article_type_id' => $articleTypeId,
                 'number_of_sections' => $actualSectionCount,
                 'sections' => $sections,
-                'attachment_name' => $request->attachment_name, 
+                'attachment_name' => $request->attachment_name,
                 'is_attachment_required' => $request->has('is_attachment_required') ? 1 : 0,
                 'author_limit' => $request->author_limit,
                 'is_conflict_of_interest_required' => $request->has('is_conflict_of_interest_required') ? 1 : 0,

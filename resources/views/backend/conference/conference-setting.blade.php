@@ -47,6 +47,11 @@
                 </select>
             </div>
 
+            <div class="col-md-4 mb-4">
+                <label>Conference Registration Open Date</label>
+                <input type="date" class="form-control" name="registration_open_date" value="{{ $conferenceSetting?->registration_open_date }}">
+            </div>
+
             <div class="col-12 mt-3">
                 <h6>3. Conference Registration Guideline</h6>
                 <hr class="mt-0" style="height:1px;border:none;color:#333;background-color:#333;" />
@@ -149,7 +154,7 @@
                 $customCss = $conference->customCss->first();
             @endphp
 
-            <div class="col-md-12 mb-4">
+            <div class="col-md-12 mb-4"> 
                 <label>Custom CSS Code</label>
                 <textarea class="form-control font-monospace css-editor" name="custom_css" rows="15"
                     placeholder="/* Example: */&#10;.navbar-brand span {&#10;    color: #ff0000;&#10;    font-size: 1.8rem;&#10;}&#10;&#10;.conference-hero {&#10;    background-size: cover;&#10;    min-height: 500px;&#10;}&#10;&#10;.dash-card {&#10;    border-radius: 12px;&#10;    box-shadow: 0 4px 8px rgba(0,0,0,0.1);&#10;}">{{ $customCss?->custom_css ?? '' }}</textarea>

@@ -12,7 +12,7 @@
     <div>
         <h3>Dear {{ $data['namePrefix'] . ' ' . $data['name'] }},</h3>
     </div>
-    <br>
+    <br> 
     <div>
         @if ($bodyContent)
             {!! $bodyContent !!}

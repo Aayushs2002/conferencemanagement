@@ -19,6 +19,7 @@ class ConferenceSetting extends Model
         'terms_conditions',
         'privacy_policy',
         'speaker_registration_required',
+        'registration_open_date',
     ];
 }
  

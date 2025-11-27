@@ -30,6 +30,12 @@
                     <span>{{ $submission->keywords }}</span>
                 </div>
             @endif
+            @if (!empty($submission->competition_type))
+                <div class="col-md-4 mb-4">
+                    <p class="text-primary mb-1"><i class="i-ID-2 text-16 mr-1"></i>Competition Type</p>
+                    <span>{{ $submission->competition_type == 1 ? 'Competition' : 'Non-Competition' }}</span>
+                </div>
+            @endif
             <div class="col-md-4 mb-4">
                 <p class="text-primary mb-1"><i class="i-ID-2 text-16 mr-1"></i>Request Status</p>
                 <span>

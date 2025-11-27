@@ -16,12 +16,14 @@ class SubmissionSetting extends Model
         'oral_guidelines',
         'poster_guidelines',
         'oral_reviewer_guide',
-        'poster_reviewer_guide',
+        'poster_reviewer_guide', 
         'attachment_name',
         'attachment_required',
         'signature',
         'scoring_allowed',
         'contribution_enabled',
+        'competition_enabled',
+        'submission_open_date',
         'status'
     ];
 }
