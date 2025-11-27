@@ -67,7 +67,7 @@ Route::middleware('auth')->group(function () {
             Route::post('/create-for-invited', 'createForInvited')->name('createForInvited');
             Route::post('/store-for-invited', 'storeForInvited')->name('storeForInvited');
         });
-    }); 
+    });
     Route::get('/conference/stats', [ConferenceController::class, 'getStats'])->name('conference.stats');
 
     //conference route ended
@@ -249,7 +249,7 @@ Route::middleware('auth')->group(function () {
             Route::post('/add-user-form', 'addUserForm')->name('addUserForm');
             Route::post('/add-user-submit', 'addUserSubmit')->name('addUserSubmit');
         });
-    }); 
+    });
 
     Route::prefix('/society/{society}/conference/{conference}')->middleware('auto.conf.permission')->group(function () {
         Route::resource('/workshop', WorkshopController::class)->except('show');
@@ -257,9 +257,9 @@ Route::middleware('auth')->group(function () {
             Route::post('/view-data', 'view')->name('view');
             Route::post('/allocate-price-form', 'allocatePriceForm')->name('allocatePriceForm');
             Route::post('/allocate-price-submit', 'allocatePriceSubmit')->name('allocatePriceSubmit');
-            Route::post('/{workshop}/approve', 'approve')->name('approve');
-            Route::post('/{workshop}/reject', 'reject')->name('reject');
-            Route::post('/{workshop}/request-correction', 'requestCorrection')->name('requestCorrection');
+            Route::post('/{workshop_approve}/approve', 'approve')->name('approve');
+            Route::post('/{workshop_reject}/reject', 'reject')->name('reject');
+            Route::post('/{workshop_request_correction}/request-correction', 'requestCorrection')->name('requestCorrection');
         });
 
         Route::controller(WorkshopRegistrationController::class)->name('workshop.workshop-registration.')->prefix('/workshop/workshop-registration')->group(function () {
