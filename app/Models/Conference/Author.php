@@ -16,6 +16,7 @@ class Author extends Model
         'institution_address',
         'phone', 
         'main_author',
+        'contribution_other',
         'status'
     ];
 

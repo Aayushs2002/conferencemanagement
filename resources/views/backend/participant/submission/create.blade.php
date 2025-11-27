@@ -172,7 +172,7 @@
                            <div id="sourceOfFundingContainer"></div>
                            @if (!isset($submission))
                                <div class="mb-6 col-md-6">
-                                   <label class="form-label">Are you the Main Author? <code>*</code></label>
+                                   <label class="form-label">Are you the Main Presenter? <code>*</code></label>
                                    <div class="mt-2">
                                        <div class="form-check form-check-inline">
                                            <input class="form-check-input" type="radio" name="main_author"
@@ -185,7 +185,7 @@
                                            <label class="form-check-label" for="main_author_no">No</label>
                                        </div>
                                    </div>
-                                   <div class="invalid-feedback d-block">Please select if you are the main author.</div>
+                                   <div class="invalid-feedback d-block">Please select if you are the main presenter.</div>
                                    @error('main_author')
                                        <p class="text-danger">{{ $message }}</p>
                                    @enderror

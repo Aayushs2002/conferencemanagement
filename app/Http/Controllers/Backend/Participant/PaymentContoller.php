@@ -32,8 +32,8 @@ class PaymentContoller extends Controller
         $CRN = 'NPR';
         $DT = date('m/d/Y');
         $PRN = uniqid();
-        $R1 = 'test';
-        $R2 = 'test';
+        $R1 = $conference->conference_name;
+        $R2 = $conference->conference_name;
         $RU = route('my-society.conference.fonePaySuccess', [$society, $conference]);
         $sharedSecretKey = $paymentSetting->secret_key;
         $DV = hash_hmac('sha512', $PID . ',' . $MD . ',' . $PRN . ',' . $AMT . ',' . $CRN . ',' . $DT . ',' . $R1 . ',' . $R2 . ',' . $RU, $sharedSecretKey);
@@ -56,7 +56,7 @@ class PaymentContoller extends Controller
     }
 
     public function fonePaySuccess(Request $request, $society, $conference)
-    { 
+    {
         if ($request->RC == 'failed' || $request->RC == 'cancel') {
             return redirect()->route('my-society.conference.create', [$society, $conference])->with('delete', 'Payment process has been failed or cancelled, please try again.');
         } else {
@@ -107,7 +107,7 @@ class PaymentContoller extends Controller
         </html>
     ';
         return response($form);
-    } 
+    }
 
     public function esewaSuccess(Request $request, $society, $conference)
     {
