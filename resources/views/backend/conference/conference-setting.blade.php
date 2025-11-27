@@ -13,7 +13,7 @@
             </div>
 
             <div class="col-md-4 mb-4"> 
-                <label>Name</label>
+                <label>Name</label> 
                 <input type="text" class="form-control" name="name" value="{{ $conferenceSetting?->name }}">
             </div>
             <div class="col-md-4 mb-4">
@@ -140,66 +140,23 @@
             </div>
 
             <div class="col-12 mt-3">
-                <h6>8. Custom CSS for Sections</h6>
+                <h6>8. Custom CSS</h6>
                 <hr class="mt-0" style="height:1px;border:none;color:#333;background-color:#333;" />
-                <p class="text-muted small">Add custom CSS for specific sections. Each section can have its own
-                    styling.
-                </p>
+                <p class="text-muted small">Add custom CSS code to style your conference page. You can target any element using class selectors.</p>
             </div>
 
             @php
-                $sections = [
-                    'navbar_logo' => 'Navbar Logo',
-                    'banner' => 'Conference Banner',
-                    'hero_section' => 'Hero Section',
-                    'info_box' => 'Conference Info Box',
-                    'countdown' => 'Countdown Timer',
-                    'dashboard_cards' => 'Dashboard Cards',
-                    'footer' => 'Footer Section',
-                ];
-                $existingCss = $conference->customCss->keyBy('section_name');
+                $customCss = $conference->customCss->first();
             @endphp
 
-            <div class="accordion" id="customCssAccordion">
-                @foreach ($sections as $key => $label)
-                    <div class="accordion-item mb-3">
-                        <h2 class="accordion-header" id="heading{{ $key }}">
-                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-                                data-bs-target="#collapse{{ $key }}" aria-expanded="false"
-                                aria-controls="collapse{{ $key }}">
-                                <i class="ti tabler-palette me-2"></i> {{ $label }}
-                            </button>
-                        </h2>
-                        <div id="collapse{{ $key }}" class="accordion-collapse collapse"
-                            aria-labelledby="heading{{ $key }}" data-bs-parent="#customCssAccordion">
-                            <div class="accordion-body">
-                                <input type="hidden" name="css_ids[{{ $key }}]"
-                                    value="{{ $existingCss[$key]->id ?? '' }}">
-                                <div class="form-check form-switch mb-3">
-                                    <input class="form-check-input" type="checkbox"
-                                        name="css_status[{{ $key }}]" id="status{{ $key }}"
-                                        value="1" {{ $existingCss[$key]->status ?? 0 ? 'checked' : '' }}>
-                                    <label class="form-check-label" for="status{{ $key }}">
-                                        Enable Custom CSS for this section
-                                    </label>
-                                </div>
-                                <label class="form-label">CSS Code:</label>
-                                <textarea class="form-control font-monospace css-editor" name="custom_css[{{ $key }}]" rows="6"
-                                    placeholder="/* Enter CSS here - Example: */&#10;{{ $key == 'navbar_logo' ? 'color: red;&#10;font-size: 1.8rem;' : 'max-height: 60px;&#10;border-radius: 8px;' }}&#10;box-shadow: 0 2px 4px rgba(0,0,0,0.1);">{{ $existingCss[$key]->custom_css ?? '' }}</textarea>
-                                <small class="text-muted">
-                                    <i class="ti tabler-info-circle"></i>
-                                    Example for {{ $label }}:
-                                    @if ($key == 'navbar_logo')
-                                        Add properties like color, font-size, font-weight, max-height, border-radius,
-                                        etc.
-                                    @else
-                                        Add properties like max-height, border-radius, box-shadow, etc.
-                                    @endif
-                                </small>
-                            </div>
-                        </div>
-                    </div>
-                @endforeach
+            <div class="col-md-12 mb-4">
+                <label>Custom CSS Code</label>
+                <textarea class="form-control font-monospace css-editor" name="custom_css" rows="15"
+                    placeholder="/* Example: */&#10;.navbar-brand span {&#10;    color: #ff0000;&#10;    font-size: 1.8rem;&#10;}&#10;&#10;.conference-hero {&#10;    background-size: cover;&#10;    min-height: 500px;&#10;}&#10;&#10;.dash-card {&#10;    border-radius: 12px;&#10;    box-shadow: 0 4px 8px rgba(0,0,0,0.1);&#10;}">{{ $customCss?->custom_css ?? '' }}</textarea>
+                <small class="text-muted">
+                    <i class="ti tabler-info-circle"></i>
+                    Enter CSS code with class selectors. Example: .navbar-brand, .hero-title, .countdown-box, etc.
+                </small>
             </div>
 
         </div>
@@ -224,11 +181,6 @@
         background-color: #fff;
         border-color: #80bdff;
         box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, .25);
-    }
-
-    .accordion-button:not(.collapsed) {
-        background-color: #e7f3ff;
-        color: #0056b3;
     }
 </style>
 
