@@ -46,7 +46,7 @@ class SubmissionController extends Controller
     {
 
         $setting = SubmissionSetting::where('conference_id', $conference->id)
-            ->select('abstract_word_limit', 'key_word_limit', 'deadline', 'attachment_name', 'attachment_required', 'abstract_guidelines')
+            ->select('abstract_word_limit', 'key_word_limit', 'deadline', 'attachment_name', 'attachment_required', 'abstract_guidelines', 'competition_enabled')
             ->first();
         // dd($setting);
         if (!$setting) {
@@ -56,8 +56,8 @@ class SubmissionController extends Controller
             return redirect()->back()->with('delete', 'Submission date has ended.');
         }
         $submissionTracks = SubmissionCategoryMajorTrack::where(['conference_id' => $conference->id, 'status' => 1])->get();
-        $articleTypes = ArticleType::with('setting')->where(['conference_id' => $conference->id, 'status' => 1])->get();
-
+        $articleTypes = ArticleType::with('setting')->where(['conference_id' => $conference->id, 'status' => 1])->orderBy('display_order', 'asc')->orderBy('id', 'asc')->get();
+        // dd($articleTypes);
         return view('backend.participant.submission.create', compact('society', 'conference', 'submissionTracks', 'setting', 'articleTypes'));
     }
 
@@ -150,7 +150,7 @@ class SubmissionController extends Controller
                 'namePrefix' => $authUser->userDetail->namePrefix->prefix,
                 'topic' => $validated['title'],
                 'conferenceTheme' => $conference->conference_theme,
-                'societyEmail' => $society->contact_person_email,
+                'societyEmail' => $society->users->where('type', 2)->value('email'),
                 'societyName' => $society->abbreviation,
                 'conferenceDate' => $conferenceDate,
                 'conferenceName' => $conference->conference_name
@@ -160,7 +160,7 @@ class SubmissionController extends Controller
                 'submission_topic' => $validated['title'],
                 'conference_theme' => $conference->conference_theme,
                 'conference_date' => $conferenceDate,
-                'society_email' => $society->contact_person_email,
+                'society_email' => $society->users->where('type', 2)->value('email'),
             ];
 
             $subject = parseTemplate($template?->subject, $data);
@@ -178,7 +178,7 @@ class SubmissionController extends Controller
 
             Author::create($validated);
             DB::commit();
-            return redirect()->route('my-society.conference.submission.author.index',  [$society, $conference,$submission])->with('status', 'Submission Added Successfully');
+            return redirect()->route('my-society.conference.submission.author.index',  [$society, $conference, $submission])->with('status', 'Submission Added Successfully');
         } catch (\Exception $th) {
             DB::rollBack();
 
@@ -197,7 +197,7 @@ class SubmissionController extends Controller
     public function edit($society, $conference, $submission)
     {
         $setting = SubmissionSetting::where('conference_id', $conference->id)
-            ->select('abstract_word_limit', 'key_word_limit', 'deadline', 'attachment_name', 'attachment_required','abstract_guidelines')
+            ->select('abstract_word_limit', 'key_word_limit', 'deadline', 'attachment_name', 'attachment_required', 'abstract_guidelines', 'competition_enabled')
             ->first();
         if (!$setting) {
             return redirect()->back()->with('delete', 'Submission settings not found.');
@@ -206,7 +206,7 @@ class SubmissionController extends Controller
             return redirect()->back()->with('delete', 'Submission date has ended.');
         }
         $submissionTracks = SubmissionCategoryMajorTrack::where(['conference_id' => $conference->id, 'status' => 1])->get();
-        $articleTypes = ArticleType::with('setting')->where(['conference_id' => $conference->id, 'status' => 1])->get();
+        $articleTypes = ArticleType::with('setting')->where(['conference_id' => $conference->id, 'status' => 1])->orderBy('display_order', 'asc')->orderBy('id', 'asc')->get();
 
         return view('backend.participant.submission.create', compact('society', 'conference', 'submissionTracks', 'setting', 'submission', 'articleTypes'));
     }
@@ -267,7 +267,7 @@ class SubmissionController extends Controller
                     return redirect()->back()->withInput()->with('delete', 'Abstract word limit exceeded.');
                 }
             }
- 
+
             if (!empty($validated['image'])) {
                 $this->file_service->deleteFile($submission->image, 'participant/submission/image');
                 $validated['image'] = $this->file_service->fileUpload($validated['image'], 'diagram', 'participant/submission/image');

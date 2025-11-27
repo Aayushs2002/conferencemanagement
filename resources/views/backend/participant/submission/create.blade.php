@@ -102,6 +102,27 @@
 
 
 
+                           @if ($setting->competition_enabled)
+                               <div class="mb-6 col-md-6">
+                                   <label for="competition_type" class="form-label">Competition <code>*</code></label>
+                                   <select class="form-select @error('competition_type') is-invalid @enderror" 
+                                       name="competition_type" id="competition_type" required>
+                                       <option value="" hidden>-- Select Competition Type --</option>
+                                       <option value="1"
+                                           @if (isset($submission)) {{ $submission->competition_type == '1' ? 'selected' : '' }} @else @selected(old('competition_type') == '1') @endif>
+                                           Competition</option>
+                                       <option value="2"
+                                           @if (isset($submission)) {{ $submission->competition_type == '2' ? 'selected' : '' }} @else @selected(old('competition_type') == '2') @endif>
+                                           Non-Competition</option>
+                                   </select>
+                                   <div class="valid-feedback">Looks good!</div>
+                                   <div class="invalid-feedback">Please select Competition Type.</div>
+                                   @error('competition_type')
+                                       <p class="text-danger">{{ $message }}</p>
+                                   @enderror
+                               </div>
+                           @endif
+
                            <div class="mb-6 col-md-9">
                                <label for="keyWord" class="form-label">Keywords <code>*(NOTE: Total number of Keywords
                                        limitation is
@@ -178,14 +199,14 @@
                                            <input class="form-check-input" type="radio" name="main_author"
                                                id="main_author_yes" value="1" @checked(old('main_author') == '1') required>
                                            <label class="form-check-label" for="main_author_yes">Yes</label>
-                                       </div>
+                                       </div> 
                                        <div class="form-check form-check-inline">
                                            <input class="form-check-input" type="radio" name="main_author"
                                                id="main_author_no" value="0" @checked(old('main_author') == '0') required>
                                            <label class="form-check-label" for="main_author_no">No</label>
                                        </div>
                                    </div>
-                                   <div class="invalid-feedback d-block">Please select if you are the main presenter.</div>
+                                   {{-- <div class="invalid-feedback d-block">Please select if you are the main presenter.</div> --}}
                                    @error('main_author')
                                        <p class="text-danger">{{ $message }}</p>
                                    @enderror

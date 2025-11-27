@@ -7,11 +7,11 @@
     <div class="main-content">
         <div class="breadcrumb">
             <h1>Submission Setting</h1>
-        </div>
+        </div> 
         <div class="separator-breadcrumb border-top"></div> 
         <div class="col-md-12">
             <div class="card mb-4">
-                <div class="card-body">
+                <div class="card-body"> 
                     <form action="{{ route('submission.settingSubmit', [$society, $conference]) }}" method="POST"
                         enctype="multipart/form-data" id="submissionSettingForm">
                         @csrf
@@ -25,6 +25,15 @@
                                     name="deadline" id="deadline"
                                     value="{{ !empty($conference->submissionSetting) ? $conference->submissionSetting->deadline : '' }}" />
                                 @error('deadline')
+                                    <p class="text-danger">{{ $message }}</p>
+                                @enderror
+                            </div>
+                            <div class="col-md-4 form-group mb-3">
+                                <label for="submission_open_date">Abstract Submission Open Date</label>
+                                <input type="date" class="form-control @error('submission_open_date') is-invalid @enderror"
+                                    name="submission_open_date" id="submission_open_date"
+                                    value="{{ !empty($conference->submissionSetting) ? $conference->submissionSetting->submission_open_date : '' }}" />
+                                @error('submission_open_date')
                                     <p class="text-danger">{{ $message }}</p>
                                 @enderror
                             </div>
@@ -132,6 +141,22 @@
                                         No</option>
                                 </select>
                                 @error('contribution_enabled')
+                                    <p class="text-danger">{{ $message }}</p>
+                                @enderror
+                            </div>
+
+                            <div class="col-md-4 form-group mb-3">
+                                <label for="competition_enabled">Enable Competition</label>
+                                <select name="competition_enabled" id="competition_enabled"
+                                    class="form-control @error('competition_enabled') is-invalid @enderror">
+                                    <option value="1"
+                                        {{ !empty($conference->submissionSetting) && $conference->submissionSetting->competition_enabled == 1 ? 'selected' : '' }}>
+                                        Yes</option>
+                                    <option value="0"
+                                        {{ !empty($conference->submissionSetting) && $conference->submissionSetting->competition_enabled == 0 ? 'selected' : '' }}>
+                                        No</option>
+                                </select>
+                                @error('competition_enabled')
                                     <p class="text-danger">{{ $message }}</p>
                                 @enderror
                             </div>

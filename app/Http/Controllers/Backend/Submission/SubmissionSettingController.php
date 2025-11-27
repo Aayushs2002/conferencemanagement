@@ -31,7 +31,7 @@ class SubmissionSettingController extends Controller
                 'authors_limit' => 'nullable|numeric',
                 'abstract_guidelines' => 'nullable',
                 'oral_guidelines' => 'nullable',
-                'poster_guidelines' => 'nullable',
+                'poster_guidelines' => 'nullable', 
                 'oral_reviewer_guide' => 'nullable',
                 'poster_reviewer_guide' => 'nullable',
                 'attachment_name' => 'nullable',
@@ -39,6 +39,8 @@ class SubmissionSettingController extends Controller
                 'signature' => 'nullable|mimes:png,jpg',
                 'scoring_allowed' => 'nullable|boolean',
                 'contribution_enabled' => 'nullable|boolean',
+                'competition_enabled' => 'nullable|boolean',
+                'submission_open_date' => 'nullable|date',
 
             ]);
 

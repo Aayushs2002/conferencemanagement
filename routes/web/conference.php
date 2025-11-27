@@ -159,6 +159,7 @@ Route::middleware('auth')->group(function () {
         Route::delete('/destroy/{articleType}', 'destroy')->name('destroy');
         Route::post('/setting', 'setting')->name('setting');
         Route::post('/setting-submit', 'settingSubmit')->name('settingSubmit');
+        Route::post('/update-order', 'updateOrder')->name('update-order');
     });
     //article type route end
 
