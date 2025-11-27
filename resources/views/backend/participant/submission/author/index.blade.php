@@ -19,7 +19,7 @@
                                <button data-bs-toggle="modal" data-bs-target="#pricingModal{{ $submission->id }}"
                                    id="addAuthor" data-topic-id="{{ $submission->id }}" class="btn btn-primary addAuthor"><i
                                        class="icon-base ti tabler-plus icon-xs me-sm-1"></i>
-                                   <span class="d-none d-sm-inline-block">Add</span></button>
+                                   <span class="d-none d-sm-inline-block">Add Co-Author</span></button>
                            </div>
                        @endif
                    </div>
@@ -122,7 +122,7 @@
                        _token: _token,
                        topicId: topicId
                    };
-                   $.post(url, data, function(response) {
+                   $.post(url, data, function(response) { 
                        setTimeout(function() {
                            $('#modalContent').html(response);
                        }, 1000);

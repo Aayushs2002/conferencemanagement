@@ -42,10 +42,13 @@
                         <td>{{ $author->institution_address }}</td>
                         <td>{{ !empty($author->phone) ? $author->phone : '-' }}</td>
                         <td>
-                            @if($author->contributions->count() > 0)
+                            @if($author->contributions->count() > 0 || !empty($author->contribution_other))
                                 @foreach($author->contributions as $contribution)
                                     <span class="badge bg-info me-1 mb-1" title="{{ $contribution->description }}">{{ $contribution->name }}</span>
                                 @endforeach
+                                @if(!empty($author->contribution_other))
+                                    <span class="badge bg-secondary me-1 mb-1" title="Other contribution">{{ $author->contribution_other }}</span>
+                                @endif
                             @else
                                 <span class="text-muted">-</span>
                             @endif

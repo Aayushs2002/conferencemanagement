@@ -85,13 +85,28 @@ class AuthorController extends Controller
             ];
 
             // Check if contributions are enabled
+            // Check if contributions are enabled
             $submissionSetting = SubmissionSetting::where('conference_id', $conference->id)->first();
             if ($submissionSetting && $submissionSetting->contribution_enabled) {
-                $rules['contributions'] = 'required|array|min:1';
-                $rules['contributions.*'] = 'exists:contributions,id';
+                // Only require contributions if "other" checkbox is not selected
+                if (!$request->has('contribution_other_checkbox')) {
+                    $rules['contributions'] = 'required|array|min:1';
+                    $rules['contributions.*'] = 'exists:contributions,id';
+                } else {
+                    $rules['contributions'] = 'nullable|array';
+                    $rules['contributions.*'] = 'exists:contributions,id';
+                }
+
+                // If other checkbox is selected, require the text
+                if ($request->has('contribution_other_checkbox')) {
+                    $rules['contribution_other_text'] = 'required|string|max:255';
+                } else {
+                    $rules['contribution_other_text'] = 'nullable|string|max:255';
+                }
             } else {
                 $rules['contributions'] = 'nullable|array';
                 $rules['contributions.*'] = 'exists:contributions,id';
+                $rules['contribution_other_text'] = 'nullable|string|max:255';
             }
 
             if ($request->has('main_author') && $request->main_author == '1') {
@@ -147,6 +162,23 @@ class AuthorController extends Controller
 
             $validated = $validator->validated();
 
+            // Additional validation: Check if at least one contribution is provided when enabled
+            // Additional validation: Check if at least one contribution is provided when enabled
+            if ($submissionSetting && $submissionSetting->contribution_enabled) {
+                $hasContributions = !empty($validated['contributions']) && count($validated['contributions']) > 0;
+                $hasOtherContribution = $request->has('contribution_other_checkbox') && !empty($request->contribution_other_text);
+
+                if (!$hasContributions && !$hasOtherContribution) {
+                    if ($request->ajax()) {
+                        return response()->json([
+                            'success' => false,
+                            'errors' => ['contributions' => ['Please select at least one contribution or specify other.']]
+                        ], 422);
+                    }
+                    return redirect()->back()->withErrors(['contributions' => 'Please select at least one contribution or specify other.'])->withInput();
+                }
+            }
+
             // Get the submission to check article type
             $submission = Submission::with('articleType.setting')->find($request->submission_id);
             $authorsCount = Author::where(['submission_id' => $request->submission_id, 'status' => 1])->count();
@@ -176,6 +208,10 @@ class AuthorController extends Controller
             // Handle contributions
             $contributions = $validated['contributions'] ?? [];
             unset($validated['contributions']);
+
+            // Handle other contribution text
+            $validated['contribution_other'] = $validated['contribution_other_text'] ?? null;
+            unset($validated['contribution_other_text']);
 
             // Create the author
             $author = Author::create($validated);
@@ -240,13 +276,28 @@ class AuthorController extends Controller
             ];
 
             // Check if contributions are enabled
+            // Check if contributions are enabled
             $submissionSetting = SubmissionSetting::where('conference_id', $conference->id)->first();
             if ($submissionSetting && $submissionSetting->contribution_enabled) {
-                $rules['contributions'] = 'required|array|min:1';
-                $rules['contributions.*'] = 'exists:contributions,id';
+                // Only require contributions if "other" checkbox is not selected
+                if (!$request->has('contribution_other_checkbox')) {
+                    $rules['contributions'] = 'nullable|array';
+                    $rules['contributions.*'] = 'exists:contributions,id';
+                } else {
+                    $rules['contributions'] = 'nullable|array';
+                    $rules['contributions.*'] = 'exists:contributions,id';
+                }
+
+                // If other checkbox is selected, require the text
+                if ($request->has('contribution_other_checkbox')) {
+                    $rules['contribution_other_text'] = 'required|string|max:255';
+                } else {
+                    $rules['contribution_other_text'] = 'nullable|string|max:255';
+                }
             } else {
                 $rules['contributions'] = 'nullable|array';
                 $rules['contributions.*'] = 'exists:contributions,id';
+                $rules['contribution_other_text'] = 'nullable|string|max:255';
             }
 
             if ($request->has('main_author') && $request->main_author == '1') {
@@ -302,12 +353,32 @@ class AuthorController extends Controller
 
             $validated = $validator->validated();
 
+            // Additional validation: Check if at least one contribution is provided when enabled
+            if ($submissionSetting && $submissionSetting->contribution_enabled) {
+                $hasContributions = !empty($validated['contributions']) && count($validated['contributions']) > 0;
+                $hasOtherContribution = !empty($validated['contribution_other_text']);
+
+                if (!$hasContributions && !$hasOtherContribution) {
+                    if ($request->ajax()) {
+                        return response()->json([
+                            'success' => false,
+                            'errors' => ['contributions' => ['Please select at least one contribution or specify other.']]
+                        ], 422);
+                    }
+                    return redirect()->back()->withErrors(['contributions' => 'Please select at least one contribution or specify other.'])->withInput();
+                }
+            }
+
             // Process main_author field
             $validated['main_author'] = $request->has('main_author') ? 1 : 0;
 
             // Handle contributions
             $contributions = $validated['contributions'] ?? [];
             unset($validated['contributions']);
+
+            // Handle other contribution text
+            $validated['contribution_other'] = $validated['contribution_other_text'] ?? null;
+            unset($validated['contribution_other_text']);
 
             // Update the author
             $author->update($validated);
