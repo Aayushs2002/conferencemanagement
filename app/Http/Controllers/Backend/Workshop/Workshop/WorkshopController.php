@@ -15,7 +15,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Batch;
 
-class WorkshopController extends Controller 
+class WorkshopController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -26,7 +26,7 @@ class WorkshopController extends Controller
     {
         // Admin panel - shows all workshops for Type 1 & 2 (admins)
         $workshops = Workshop::where(['conference_id' => $conference->id, 'status' => 1])->get();
-        
+
         return view('backend.workshop.workshop.index', compact('workshops', 'society', 'conference'));
     }
 
@@ -48,7 +48,7 @@ class WorkshopController extends Controller
 
         return view('backend.workshop.workshop.create', compact('users', 'society', 'conference'));
     }
- 
+
     /**
      * Store a newly created resource in storage.
      */
@@ -56,24 +56,24 @@ class WorkshopController extends Controller
     {
         try {
             $validated = $request->validated();
-            $validated['conference_id'] = $conference->id; 
+            $validated['conference_id'] = $conference->id;
             DB::beginTransaction();
-            
+
             // Handle image upload
             if (!empty($validated['image'])) {
                 $validated['image'] = $this->file_service->fileUpload($validated['image'], 'workshop-image', 'workshop/workshop/image/');
             }
-            
+
             // Handle schedule/plan attachment upload
             // Only handle schedule_plan_attachment for type 3 users (normal users)
             if (current_user()->type == 3 && !empty($validated['schedule_plan_attachment'])) {
                 $validated['schedule_plan_attachment'] = $this->file_service->fileUpload(
-                    $validated['schedule_plan_attachment'], 
-                    'workshop-schedule-plan', 
+                    $validated['schedule_plan_attachment'],
+                    'workshop-schedule-plan',
                     'workshop/schedules/'
                 );
             }
-            
+
             $workshopData = [
                 'conference_id' => $conference->id,
                 'workshop_title' => $validated['workshop_title'],
@@ -109,7 +109,7 @@ class WorkshopController extends Controller
 
             WorkshopChairPersonDetail::create($validated);
             DB::commit();
-            
+
             if (current_user()->type == 1 || current_user()->type == 2) {
                 return redirect()->route('workshop.index', [$society, $conference])->with('status', 'Workshop Added Successfully');
             } else {
@@ -163,14 +163,14 @@ class WorkshopController extends Controller
             $validated['conference_id'] = $conference->id;
             $validated['slug'] = slugify($validated['workshop_title']);
             DB::beginTransaction();
-            
+
             // Handle image upload
             if (!empty($validated['image'])) {
                 // dd('a');
                 $this->file_service->deleteFile($workshop->image, 'workshop/workshop/image');
                 $validated['image'] = $this->file_service->fileUpload($validated['image'], 'workshop-image', 'workshop/workshop/image/');
             }
-            
+
             // Handle schedule plan attachment upload (only for type 3 users)
             if (current_user()->type == 3 && !empty($validated['schedule_plan_attachment'])) {
                 if ($workshop->schedule_plan_attachment) {
@@ -178,13 +178,13 @@ class WorkshopController extends Controller
                 }
                 $validated['schedule_plan_attachment'] = $this->file_service->fileUpload($validated['schedule_plan_attachment'], 'schedule-plan', 'workshop/schedules/');
             }
-            
+
             // If normal user is editing a correction_needed workshop, set status back to pending
             if (current_user()->type == 3 && $workshop->approval_status === 'correction_needed') {
                 $validated['approval_status'] = 'pending';
                 $validated['admin_remarks'] = null;
             }
-            
+
             $workshop->update($validated);
 
             $WorkshopVenueDetail = WorkshopVenueDetail::whereWorkshopId($workshop->id)->first();
@@ -277,7 +277,7 @@ class WorkshopController extends Controller
                     $updatedDataArray['discount_price'] = $request->discount_price[$key];
                     $updatedDataArray['updated_at'] = now();
                     $updateArray[] = $updatedDataArray;
-                } 
+                }
             }
 
             if (!empty($insertArray)) {
@@ -303,8 +303,9 @@ class WorkshopController extends Controller
     /**
      * Approve workshop (for admin)
      */
-    public function approve(Request $request, $society, $conference, Workshop $workshop)
+    public function approve(Request $request, $society, $conference, $workshop)
     {
+        $workshop = Workshop::where('id', $workshop)->first();
         try {
             $workshop->update([
                 'approval_status' => 'approved',
@@ -322,8 +323,10 @@ class WorkshopController extends Controller
     /**
      * Reject workshop (for admin)
      */
-    public function reject(Request $request, $society, $conference, Workshop $workshop)
+    public function reject(Request $request, $society, $conference, $workshop)
     {
+        // dd($workshop);
+        $workshop = Workshop::where('id', $workshop)->first();
         try {
             $request->validate([
                 'remarks' => 'required|string'
@@ -345,8 +348,10 @@ class WorkshopController extends Controller
     /**
      * Request correction (for admin)
      */
-    public function requestCorrection(Request $request, $society, $conference, Workshop $workshop)
+    public function requestCorrection(Request $request, $society, $conference,  $workshop)
     {
+        $workshop = Workshop::where('id', $workshop)->first();
+
         try {
             $request->validate([
                 'remarks' => 'required|string'
