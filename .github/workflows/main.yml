@@ -16,27 +16,30 @@ jobs:
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: "8.3"
+          php-version: '8.3'
           extensions: mbstring, bcmath, curl, pdo_pgsql
 
       - name: Install Composer dependencies (without scripts)
         run: composer install --no-dev --optimize-autoloader --no-interaction --no-scripts
 
-      - name: Prepare VPS permissions
+      - name: Prepare for deployment
         uses: appleboy/ssh-action@v0.1.10
         with:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
           script: |
+            # Change ownership to current user temporarily
             sudo chown -R $USER:$USER /var/www/medconalert.com
 
-      - name: Sync changed files to VPS
+      - name: Sync only changed files
         run: |
+          # Setup SSH key
           mkdir -p ~/.ssh
           echo "${{ secrets.VPS_SSH_KEY }}" > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
-
+          
+          # Sync files (only changed ones)
           rsync -avz --delete \
             -e "ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no" \
             --exclude='.git' \
@@ -49,10 +52,11 @@ jobs:
             --exclude='node_modules' \
             --exclude='.gitignore' \
             ./ ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/var/www/medconalert.com/
-
+          
+          # Cleanup
           rm ~/.ssh/deploy_key
 
-      - name: Run Laravel tasks on VPS
+      - name: Run Laravel commands on VPS
         uses: appleboy/ssh-action@v0.1.10
         with:
           host: ${{ secrets.VPS_HOST }}
@@ -60,30 +64,48 @@ jobs:
           key: ${{ secrets.VPS_SSH_KEY }}
           script: |
             cd /var/www/medconalert.com
-
-            echo "🧹 Clearing caches..."
-            sudo -u www-data php artisan optimize:clear
-
-            echo "📦 Dump autoload..."
-            sudo -u www-data composer dump-autoload --optimize
-
-            echo "🗄️ Running migrations..."
-            sudo -u www-data php artisan migrate --force
-
-            echo "🔧 Fixing permissions..."
+            
+            echo "📦 Running composer scripts on VPS..."
+            composer dump-autoload --optimize
+            
+            echo "🔒 Setting proper permissions first..."
+            # Set ownership to www-data
             sudo chown -R www-data:www-data /var/www/medconalert.com
+            
+            # Set base permissions
             sudo find /var/www/medconalert.com -type f -exec chmod 644 {} \;
             sudo find /var/www/medconalert.com -type d -exec chmod 755 {} \;
-            sudo chmod -R 775 storage bootstrap/cache
-
-            echo "🔗 Ensuring storage link..."
-            sudo -u www-data php artisan storage:link 2>/dev/null || true
-
-            echo "🗑️ Removing old compiled cache files..."
-            sudo rm -f bootstrap/cache/*.php
-
+            
+            # Set storage and cache permissions (writable)
+            sudo chmod -R 775 /var/www/medconalert.com/storage
+            sudo chmod -R 775 /var/www/medconalert.com/bootstrap/cache
+            
+            # Ensure storage directories exist
+            sudo -u www-data mkdir -p /var/www/medconalert.com/storage/framework/sessions
+            sudo -u www-data mkdir -p /var/www/medconalert.com/storage/framework/views
+            sudo -u www-data mkdir -p /var/www/medconalert.com/storage/framework/cache
+            sudo -u www-data mkdir -p /var/www/medconalert.com/storage/logs
+            sudo -u www-data mkdir -p /var/www/medconalert.com/storage/app/public
+            
+            echo "🗄️ Running migrations..."
+            sudo -u www-data php artisan migrate --force
+            
+            echo "🧹 Clearing caches..."
+            sudo -u www-data php artisan cache:clear
+            sudo -u www-data php artisan config:clear
+            sudo -u www-data php artisan route:clear
+            sudo -u www-data php artisan view:clear
+            
+            echo "⚡ Building caches..."
+            sudo -u www-data php artisan config:cache
+            sudo -u www-data php artisan route:cache
+            sudo -u www-data php artisan view:cache
+            
+            echo "🔗 Creating storage link..."
+            sudo -u www-data php artisan storage:link 2>/dev/null || echo "Storage link already exists"
+            
             echo "♻️ Restarting services..."
-            sudo systemctl restart php8.3-fpm || true
+            sudo systemctl restart php8.3-fpm
             sudo systemctl reload apache2
-
-            echo "✅ Deployment successful!"
+            
+            echo "✅ Deployment completed successfully!"
