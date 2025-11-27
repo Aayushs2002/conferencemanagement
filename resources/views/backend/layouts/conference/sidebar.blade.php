@@ -120,14 +120,14 @@
                 </li>
             @endif
             @if (feature_enabled('workshop-management', getSociety(request()->segment(2))))
-                {{-- <li
+                <li
                     class="menu-item {{ request()->segment(4) == 'my-workshops' && request()->segment(1) == 'my-society' ? 'active' : '' }}">
                     <a href="{{ route('my-society.conference.my-workshop.index', [request()->segment(2), request()->segment(4)]) }}"
                         class="menu-link ">
                         <i class="menu-icon icon-base ti tabler-presentation"></i>
                         <div data-i18n="My Workshop Applications">My Workshop Applications</div>
                     </a> 
-                </li> --}}
+                </li>
                 <li
                     class="menu-item  {{ request()->segment(5) == 'workshop-registration' && request()->segment(1) == 'my-society' ? 'active' : '' }}">
                     <a href="{{ route('my-society.conference.workshop.index', [request()->segment(2), request()->segment(4)]) }}"

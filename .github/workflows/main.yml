@@ -16,7 +16,7 @@ jobs:
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.3'
+          php-version: "8.3"
           extensions: mbstring, bcmath, curl, pdo_pgsql
 
       - name: Install Composer dependencies (without scripts)
@@ -64,9 +64,6 @@ jobs:
             echo "🧹 Clearing caches..."
             sudo -u www-data php artisan optimize:clear
 
-            echo "🗑️ Removing old compiled cache files..."
-            sudo rm -f bootstrap/cache/*.php
-
             echo "📦 Dump autoload..."
             sudo -u www-data composer dump-autoload --optimize
 
@@ -81,6 +78,9 @@ jobs:
 
             echo "🔗 Ensuring storage link..."
             sudo -u www-data php artisan storage:link 2>/dev/null || true
+
+            echo "🗑️ Removing old compiled cache files..."
+            sudo rm -f bootstrap/cache/*.php
 
             echo "♻️ Restarting services..."
             sudo systemctl restart php8.3-fpm || true
