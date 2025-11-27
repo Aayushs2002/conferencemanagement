@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Models\Conference;
+namespace App\Models\Conference; 
 
 use App\Models\Accomodation\Hotel;
 use App\Models\Download\Download;
@@ -99,11 +99,5 @@ class Conference extends Model
     public function customCss()
     {
         return $this->hasMany(ConferenceCustomCss::class, 'conference_id', 'id');
-    }
-
-    public function getCustomCss($sectionName)
-    {
-        $css = $this->customCss()->where('section_name', $sectionName)->where('status', 1)->first();
-        return $css?->custom_css ?? '';
     }
 }

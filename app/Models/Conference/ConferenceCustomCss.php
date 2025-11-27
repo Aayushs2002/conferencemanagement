@@ -1,7 +1,7 @@
 <?php
 
 namespace App\Models\Conference;
-
+ 
 use Illuminate\Database\Eloquent\Model;
 
 class ConferenceCustomCss extends Model
@@ -10,7 +10,6 @@ class ConferenceCustomCss extends Model
     
     protected $fillable = [
         'conference_id',
-        'section_name',
         'custom_css',
         'status'
     ];

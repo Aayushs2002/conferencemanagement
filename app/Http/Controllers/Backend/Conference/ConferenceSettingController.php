@@ -80,7 +80,7 @@ class ConferenceSettingController extends Controller
                 'expert_guideline_youtube' => $request->expert_guideline_youtube,
                 'logo_display_type' => $request->logo_display_type,
                 'payment_instruction' => $request->payment_instruction,
-                'terms_conditions' => $request->terms_conditions,
+                'terms_conditions' => $request->terms_conditions, 
                 'privacy_policy' => $request->privacy_policy,
                 'speaker_registration_required' => $request->speaker_registration_required,
             ];
@@ -95,29 +95,13 @@ class ConferenceSettingController extends Controller
 
             // Handle Custom CSS
             if ($request->has('custom_css')) {
-                foreach ($request->custom_css as $sectionName => $cssCode) {
-                    $cssId = $request->css_ids[$sectionName] ?? null;
-                    $status = isset($request->css_status[$sectionName]) ? 1 : 0;
-
-                    $cssData = [
-                        'conference_id' => $request->conference_id,
-                        'section_name' => $sectionName,
-                        'custom_css' => $cssCode,
-                        'status' => $status
-                    ];
-
-                    if ($cssId) {
-                        ConferenceCustomCss::where('id', $cssId)->update($cssData);
-                    } else {
-                        ConferenceCustomCss::updateOrCreate(
-                            [
-                                'conference_id' => $request->conference_id,
-                                'section_name' => $sectionName
-                            ],
-                            $cssData
-                        );
-                    }
-                }
+                ConferenceCustomCss::updateOrCreate(
+                    ['conference_id' => $request->conference_id],
+                    [
+                        'custom_css' => $request->custom_css,
+                        'status' => 1
+                    ]
+                );
             }
         } catch (\Exception $e) {
             $type = 'error';
