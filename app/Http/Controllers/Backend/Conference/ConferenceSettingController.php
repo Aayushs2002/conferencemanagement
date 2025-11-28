@@ -12,14 +12,14 @@ use Illuminate\Http\Request;
 
 class ConferenceSettingController extends Controller
 {
-    public function __construct(protected FileService $file_service) {} 
+    public function __construct(protected FileService $file_service) {}
 
     public function conferenceSetting(Request $request)
     {
         $conference = Conference::where('id', $request->id)->first();
         $conferenceSetting = ConferenceSetting::where('conference_id', $conference->id)->first();
         return view('backend.conference.conference-setting', compact('conference', 'conferenceSetting'));
-    } 
+    }
 
     public function conferenceSettingSubmit(Request $request)
     {
@@ -81,7 +81,7 @@ class ConferenceSettingController extends Controller
                 'expert_guideline_youtube' => $request->expert_guideline_youtube,
                 'logo_display_type' => $request->logo_display_type,
                 'payment_instruction' => $request->payment_instruction,
-                'terms_conditions' => $request->terms_conditions, 
+                'terms_conditions' => $request->terms_conditions,
                 'privacy_policy' => $request->privacy_policy,
                 'speaker_registration_required' => $request->speaker_registration_required,
                 'registration_open_date' => $request->registration_open_date,
@@ -100,12 +100,14 @@ class ConferenceSettingController extends Controller
                 ConferenceCustomCss::updateOrCreate(
                     ['conference_id' => $request->conference_id],
                     [
+                        'section_name' => 'global',
                         'custom_css' => $request->custom_css,
                         'status' => 1
                     ]
                 );
             }
         } catch (\Exception $e) {
+            // dd($e->getMessage());
             $type = 'error';
             $message = $e->getMessage();
         }
