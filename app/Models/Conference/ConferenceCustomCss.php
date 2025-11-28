@@ -10,6 +10,7 @@ class ConferenceCustomCss extends Model
     
     protected $fillable = [
         'conference_id',
+        'section_name',
         'custom_css',
         'status'
     ];
