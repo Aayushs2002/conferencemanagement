@@ -59,6 +59,7 @@ class SubmissionRequest extends FormRequest
             'source_of_funding' => 'nullable|string',
             'has_conflict_of_interest' => 'nullable|in:yes,no',
             'has_source_of_funding' => 'nullable|in:yes,no',
+            'is_student' => 'required|boolean',
         ];
 
         // Get article type setting to check if fields are required (takes priority)

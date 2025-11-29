@@ -28,9 +28,10 @@ class WorkshopRegistrationController extends Controller
 
         $workshops = Workshop::where([
             'conference_id' => $conference->id,
+            'approval_status' => 'approved',
             'status' => 1
         ])->get();
-
+        // dd($workshops);
         $societyUser = current_user()->societies->where('id', $conference->society_id)->first();
 
         $registrations = WorkshopRegistration::where([

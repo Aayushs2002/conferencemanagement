@@ -35,6 +35,29 @@
                            @method('patch')
                        @endisset
                        <div class="row">
+                           <div class="mb-6 col-md-12">
+                               <label class="form-label">Are you a student? <code>*</code></label>
+                               <div class="mt-2">
+                                   <div class="form-check form-check-inline">
+                                       <input class="form-check-input" type="radio" name="is_student" id="is_student_yes"
+                                           value="1"
+                                           @if (isset($submission)) {{ $submission->is_student == true ? 'checked' : '' }} @else @checked(old('is_student') == '1') @endif
+                                           required>
+                                       <label class="form-check-label" for="is_student_yes">Yes</label>
+                                   </div>
+                                   <div class="form-check form-check-inline">
+                                       <input class="form-check-input" type="radio" name="is_student" id="is_student_no"
+                                           value="0"
+                                           @if (isset($submission)) {{ $submission->is_student == false ? 'checked' : '' }} @else @selected(old('is_student') == '0') @endif
+                                           required>
+                                       <label class="form-check-label" for="is_student_no">No</label>
+                                   </div>
+                               </div>
+                               {{-- <div class="invalid-feedback d-block">Please select if you are the main presenter.</div> --}}
+                               @error('is_student')
+                                   <p class="text-danger">{{ $message }}</p>
+                               @enderror
+                           </div>
                            <div class="mb-6 col-md-6">
                                <label class="form-label" for="society-name">Title of Abstract<code>*</code></label>
                                <input type="text" class="form-control @error('title') is-invalid @enderror"
@@ -105,7 +128,7 @@
                            @if ($setting->competition_enabled)
                                <div class="mb-6 col-md-6">
                                    <label for="competition_type" class="form-label">Competition <code>*</code></label>
-                                   <select class="form-select @error('competition_type') is-invalid @enderror" 
+                                   <select class="form-select @error('competition_type') is-invalid @enderror"
                                        name="competition_type" id="competition_type" required>
                                        <option value="" hidden>-- Select Competition Type --</option>
                                        <option value="1"
@@ -127,7 +150,8 @@
                                <label for="keyWord" class="form-label">Keywords <code>*(NOTE: Total number of Keywords
                                        limitation is
                                        {{ @$setting->key_word_limit ? @$setting->key_word_limit : 'infinity' }})
-                                       <span class="text-info">(Press enter after typing complete word/words to represent it
+                                       <span class="text-info">(Press enter after typing complete word/words to represent
+                                           it
                                            as a keyword.)</span></code></label>
 
                                @php
@@ -199,7 +223,7 @@
                                            <input class="form-check-input" type="radio" name="main_author"
                                                id="main_author_yes" value="1" @checked(old('main_author') == '1') required>
                                            <label class="form-check-label" for="main_author_yes">Yes</label>
-                                       </div> 
+                                       </div>
                                        <div class="form-check form-check-inline">
                                            <input class="form-check-input" type="radio" name="main_author"
                                                id="main_author_no" value="0" @checked(old('main_author') == '0') required>

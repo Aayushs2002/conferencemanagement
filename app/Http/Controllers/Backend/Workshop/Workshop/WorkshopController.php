@@ -204,6 +204,7 @@ class WorkshopController extends Controller
             DB::commit();
             return redirect()->route('workshop.index', [$society, $conference])->with('status', 'Workshop Updated Successfully');
         } catch (\Throwable $th) {
+            // dd($th->getMessage());
             DB::rollBack();
             return redirect()->back()->withInput()->with('delete', 'Internal Server Error');
         }

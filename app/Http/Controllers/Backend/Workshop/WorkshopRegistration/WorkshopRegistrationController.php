@@ -93,7 +93,8 @@ class WorkshopRegistrationController extends Controller
 
     public function registerForExceptionalCase($society, $conference)
     {
-        $workshops = Workshop::where(['conference_id' => $conference->id, 'status' => 1])->get();
+
+        $workshops = Workshop::where(['conference_id' => $conference->id, 'approval_status' => 'approved', 'status' => 1])->get();
         $society = Society::with(['users' => function ($query) {
             $query->where('type', 3)->orderByDesc('id');
         }])->where([
@@ -188,7 +189,7 @@ class WorkshopRegistrationController extends Controller
 
     public function registerForNewUser($society, $conference)
     {
-        $workshops = Workshop::where(['conference_id' => $conference->id, 'status' => 1])->get();
+        $workshops = Workshop::where(['conference_id' => $conference->id, 'approval_status' => 'approved', 'status' => 1])->get();
         $prefixesAll = NamePrefix::whereStatus(1)->get();
         return view('backend.workshop.workshop-registration.register-for-new-user', compact('workshops', 'prefixesAll', 'conference', 'society'));
     }

@@ -17,10 +17,10 @@ class Poll extends Model
         return $this->hasMany(PollAnswer::class, 'poll_id');
     }
 
-    // public function votes()
-    // {
-    //     return $this->hasMany(UserVote::class);
-    // }
+    public function votes()
+    {
+        return $this->hasMany(UserVote::class);
+    }
 
     public function scientificSession()
     {

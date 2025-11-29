@@ -16,4 +16,9 @@ class Hall extends Model
     {
         return $this->belongsTo(Conference::class, 'conference_id', 'id');
     }
+
+    public function scientificSessions()
+    {
+        return $this->hasMany(ScientificSession::class, 'hall_id');
+    }
 }
