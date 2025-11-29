@@ -135,26 +135,28 @@
                                                 </a>
                                             @endif
 
-                                            @if ($workshop->approval_status === 'approved')
-                                                <hr>
-                                                <h6 class="dropdown-header">Workshop Management</h6>
+                                            {{-- @if ($workshop->approval_status === 'approved') --}}
+                                            <hr>
+                                            <h6 class="dropdown-header">Workshop Management</h6>
+                                            @if ($workshop->workshop_type == 1)
                                                 <a href="#" class="dropdown-item allocatePrice"
                                                     data-id="{{ $workshop->id }}" data-bs-toggle="modal"
                                                     data-bs-target="#pricingModal">
                                                     <i class="icon-base ti tabler-cash me-1"></i> Registration Price
                                                 </a>
-                                                <a href="{{ route('my-society.conference.my-workshop.trainer.index', [$society, $conference, $workshop]) }}"
-                                                    class="dropdown-item">
-                                                    <i class="icon-base ti tabler-circle-letter-t me-1"></i> Manage Trainers
-                                                </a>
-                                                @if ($workshop->registrations->where('status', 1)->where('registant_type', 1)->isNotEmpty())
-                                                    <a href="{{ route('my-society.conference.my-workshop.registration.index', [$society, $conference, $workshop]) }}"
-                                                        class="dropdown-item">
-                                                        <i class="icon-base ti tabler-user me-1"></i> View Registrants
-                                                        ({{ $workshop->registrations->where('verified_status', 1)->where('registant_type', 1)->where('status', 1)->count() }})
-                                                    </a>
-                                                @endif
                                             @endif
+                                            <a href="{{ route('my-society.conference.my-workshop.trainer.index', [$society, $conference, $workshop]) }}"
+                                                class="dropdown-item">
+                                                <i class="icon-base ti tabler-circle-letter-t me-1"></i> Manage Trainers
+                                            </a>
+                                            @if ($workshop->registrations->where('status', 1)->where('registant_type', 1)->isNotEmpty())
+                                                <a href="{{ route('my-society.conference.my-workshop.registration.index', [$society, $conference, $workshop]) }}"
+                                                    class="dropdown-item">
+                                                    <i class="icon-base ti tabler-user me-1"></i> View Registrants
+                                                    ({{ $workshop->registrations->where('verified_status', 1)->where('registant_type', 1)->where('status', 1)->count() }})
+                                                </a>
+                                            @endif
+                                            {{-- @endif --}}
 
                                             @if (in_array($workshop->approval_status, ['pending', 'rejected']))
                                                 <hr>

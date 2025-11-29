@@ -36,6 +36,12 @@
                     <span>{{ $submission->competition_type == 1 ? 'Competition' : 'Non-Competition' }}</span>
                 </div>
             @endif
+            @if (!empty($submission->is_student))
+                <div class="col-md-4 mb-4">
+                    <p class="text-primary mb-1"><i class="i-ID-2 text-16 mr-1"></i>Student Status</p>
+                    <span>{{ $submission->is_student == True ? 'Student' : 'Non-Student' }}</span>
+                </div>
+            @endif
             <div class="col-md-4 mb-4">
                 <p class="text-primary mb-1"><i class="i-ID-2 text-16 mr-1"></i>Request Status</p>
                 <span>

@@ -196,6 +196,7 @@ class SubmissionController extends Controller
 
     public function edit($society, $conference, $submission)
     {
+        // dd($submission);
         $setting = SubmissionSetting::where('conference_id', $conference->id)
             ->select('abstract_word_limit', 'key_word_limit', 'deadline', 'attachment_name', 'attachment_required', 'abstract_guidelines', 'competition_enabled')
             ->first();

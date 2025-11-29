@@ -13,13 +13,29 @@
             <div class="col-md-4 mb-4">
                 <p class="text-primary mb-1"><i class="i-ID-2 text-16 mr-1"></i>Workshop Title</p>
                 <span>{{ $workshop->workshop_title }}</span>
-            </div> 
+            </div>
             @if (!empty($workshop->workshop_type))
                 <div class="col-md-4 mb-4">
                     <p class="text-primary mb-1"><i class="i-ID-2 text-16 mr-1"></i>Workshop Type</p>
                     <span>{{ $workshop->workshop_type == 1 ? 'Paid' : 'Unpaid' }}</span>
                 </div>
             @endif
+
+            @if (!empty($workshop->workshop_type == 1))
+                @if ($workshop->registration_fee)
+                    <div class="col-md-4 mb-4">
+                        <p class="text-primary mb-1"><i class="i-ID-2 text-16 mr-1"></i>Registration Fee</p>
+                        <span>{{ $workshop->registration_fee }}</span>
+                    </div>
+                @endif
+                @if ($workshop->proposed_budget)
+                    <div class="col-md-4 mb-4">
+                        <p class="text-primary mb-1"><i class="i-ID-2 text-16 mr-1"></i>Proposed Budget</p>
+                        <span>{{ $workshop->proposed_budget }}</span>
+                    </div>
+                @endif
+            @endif
+
             {{-- @if (!empty($conference->conference_logo))
                 <div class="col-md-4 mb-4">
                     <p class="text-primary mb-1"><i class="i-ID-2 text-16 mr-1"></i>Conference Logo</p><span><img
@@ -55,38 +71,38 @@
                 <p class="text-primary mb-1"><i class="i-ID-2 text-16 mr-1"></i>Contact Person Email </p>
                 <span>{{ $workshop->no_of_participants }}</span>
             </div>
-            
+
             @if (!empty($workshop->schedule_plan_attachment))
                 <div class="col-md-4 mb-4">
                     <p class="text-primary mb-1"><i class="i-ID-2 text-16 mr-1"></i>Schedule/Plan Document</p>
                     <span>
-                        <a href="{{ asset('storage/workshop/schedules/' . $workshop->schedule_plan_attachment) }}" 
-                           target="_blank" class="btn btn-sm btn-primary">
+                        <a href="{{ asset('storage/workshop/schedules/' . $workshop->schedule_plan_attachment) }}"
+                            target="_blank" class="btn btn-sm btn-primary">
                             <i class="i-File-Download"></i> Download Document
                         </a>
                     </span>
                 </div>
             @endif
-            
+
             <div class="col-md-4 mb-4">
                 <p class="text-primary mb-1"><i class="i-ID-2 text-16 mr-1"></i>Approval Status</p>
                 <span class="badge {{ $workshop->getStatusBadgeClass() }}">{{ $workshop->getStatusLabel() }}</span>
             </div>
-            
+
             @if ($workshop->reviewed_by)
                 <div class="col-md-4 mb-4">
                     <p class="text-primary mb-1"><i class="i-ID-2 text-16 mr-1"></i>Reviewed By</p>
                     <span>{{ $workshop->reviewer->fullName($workshop->reviewer) }}</span>
                 </div>
             @endif
-            
+
             @if ($workshop->reviewed_at)
                 <div class="col-md-4 mb-4">
                     <p class="text-primary mb-1"><i class="i-ID-2 text-16 mr-1"></i>Reviewed At</p>
                     <span>{{ \Carbon\Carbon::parse($workshop->reviewed_at)->format('d M, Y h:i A') }}</span>
                 </div>
             @endif
-            
+
             @if ($workshop->admin_remarks)
                 <div class="col-md-12 mb-4">
                     <p class="text-primary mb-1"><i class="i-Letter-Open text-16 mr-1"></i>Admin Remarks</p>
@@ -95,14 +111,33 @@
                     </div>
                 </div>
             @endif
-            
+
             @if (!empty($workshop->workshop_description))
                 <div class="col-md-12 mb-4">
-                    <p class="text-primary mb-1"><i class="i-Letter-Open text-16 mr-1"></i>Description</p>
+                    <p class="text-primary mb-1"><i class="i-Letter-Open text-16 mr-1"></i>Objective/Description</p>
                     <p>{!! $workshop->workshop_description !!}</p>
                 </div>
             @endif
-            
+            @if (!empty($workshop->overview_of_organiztion))
+                <div class="col-md-12 mb-4">
+                    <p class="text-primary mb-1"><i class="i-Letter-Open text-16 mr-1"></i>Overview of Organization</p>
+                    <p>{!! $workshop->overview_of_organiztion !!}</p>
+                </div>
+            @endif
+            @if (!empty($workshop->training_method_expected_outcome))
+                <div class="col-md-12 mb-4">
+                    <p class="text-primary mb-1"><i class="i-Letter-Open text-16 mr-1"></i>Training Method & Expected
+                        Outcome</p>
+                    <p>{!! $workshop->training_method_expected_outcome !!}</p>
+                </div>
+            @endif
+            @if (!empty($workshop->resource_requirement))
+                <div class="col-md-12 mb-4">
+                    <p class="text-primary mb-1"><i class="i-Letter-Open text-16 mr-1"></i>Resource Requirement</p>
+                    <p>{!! $workshop->resource_requirement !!}</p>
+                </div>
+            @endif
+
             <div class="col-12">
                 <h6>2. Venue Details</h6>
                 <hr class="mt-0" style="height:1px;border:none;color:#333;background-color:#333;" />
@@ -126,7 +161,7 @@
             </div>
 
             <div class="col-md-4 mb-4">
-                <p class="text-primary mb-1"><i class="i-ID-2 text-16 mr-1"></i>Chairperson Detail</p>
+                <p class="text-primary mb-1"><i class="i-ID-2 text-16 mr-1"></i>Workshop Coordinator</p>
                 <span>{{ $workshop->WorkshopChairPersonDetail->chairPerson->fullName($workshop->WorkshopChairPersonDetail->chairPerson) }}</span>
             </div>
             @if (!empty($workshop->WorkshopChairPersonDetail->short_cv))

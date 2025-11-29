@@ -32,7 +32,7 @@ class AuthorController extends Controller
             $author = Author::where('id', $request->authorId)->first();
         }
         $authors = Author::where('submission_id', $request->topicId)->get();
-        $authorLimit = SubmissionSetting::select('authors_limit')->first();
+        $authorLimit = SubmissionSetting::where('conference_id', $conference->id)->select('authors_limit')->first();
 
         $checkMainAuthor = Author::select('main_author')
             ->where('submission_id', $submission->id)

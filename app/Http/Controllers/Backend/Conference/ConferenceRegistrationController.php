@@ -18,8 +18,11 @@ use App\Models\Conference\ConferenceRegistration;
 use App\Models\Conference\ConferenceRegistration_addon;
 use App\Models\Conference\ConferenceRegistrationKit;
 use App\Models\Conference\ConferenceSetting;
+use App\Models\Conference\Hall;
 use App\Models\Conference\Meal;
 use App\Models\Conference\PassSetting;
+use App\Models\Conference\Poll;
+use App\Models\Conference\UserVote;
 use App\Models\ConferenceMemberTypeNameTag;
 use App\Models\User;
 use App\Models\User\ConferenceUserPassDesignation;
@@ -385,7 +388,7 @@ class ConferenceRegistrationController extends Controller
 
     public function deleteVoucher($society, $conference, ConferenceRegistration $registrant)
     {
-        try { 
+        try {
             if ($registrant->payment_voucher) {
                 $this->file_service->deleteFile($registrant->payment_voucher, 'conference/payment-voucher');
                 $registrant->update(['payment_voucher' => null]);
@@ -1278,7 +1281,39 @@ class ConferenceRegistrationController extends Controller
                 $participant->total_attendee - $checkMeal->dinner_taken;
         }
         $passSetting = PassSetting::where('conference_id', $participant->conference_id)->first();
-        return view('backend.conference.conference-registration.attendance-profile', compact('participant', 'checkAttendance', 'totalLunchRemaining', 'totalDinnerRemaining', 'conferenceRegistrationKit', 'passSetting'));
+        // dd($passSetting);
+        // Load halls with scientific sessions and polls
+        $halls = Hall::where('conference_id', $participant->conference_id)
+            ->with(['scientificSessions' => function ($query) {
+                $query->whereDate('day', date('Y-m-d'))
+                    ->with(['category', 'hall', 'sessionChair', 'submission'])
+                    ->orderBy('scientific_session_category_id')
+                    ->orderBy('start_time');
+            }])
+            ->get();
+
+        // Group sessions by category for each hall
+        foreach ($halls as $hall) {
+            $hall->sessionsByCategory = $hall->scientificSessions->groupBy('scientific_session_category_id');
+        }
+        // dd($halls);
+        // Load all polls for today's scientific sessions with answers and user votes
+        $polls = Poll::whereHas('scientificSession', function ($query) use ($participant) {
+            $query->where('conference_id', $participant->conference_id)->whereDate('day', date('Y-m-d'));
+        })
+            ->with(['answers.votes', 'scientificSession'])
+            ->get()
+            ->map(function ($poll) use ($participant) {
+                $poll->user_voted = UserVote::where('conference_registration_id', $participant->id)
+                    ->where('poll_id', $poll->id)
+                    ->exists();
+                $poll->user_answer_id = UserVote::where('conference_registration_id', $participant->id)
+                    ->where('poll_id', $poll->id)
+                    ->value('poll_answer_id');
+                return $poll;
+            });
+
+        return view('backend.conference.conference-registration.attendance-profile', compact('participant', 'checkAttendance', 'totalLunchRemaining', 'totalDinnerRemaining', 'conferenceRegistrationKit', 'passSetting', 'halls', 'polls'));
     }
 
 
@@ -1367,6 +1402,78 @@ class ConferenceRegistrationController extends Controller
                 'error' => $e->getMessage()
             ], 500);
         }
+    }
+
+    public function vote(Request $request)
+    {
+        try {
+            $participant = ConferenceRegistration::find($request->participant_id);
+
+            if (!$participant) {
+                return response()->json(['success' => false, 'message' => 'Participant not found.'], 404);
+            }
+
+            // Check if user has attendance for today
+            $checkAttendance = $participant
+                ->attendances()
+                ->where(['conference_registration_id' => $participant->id, 'status' => 1])
+                ->whereDate('created_at', date('Y-m-d'))
+                ->first();
+
+            if (!$checkAttendance) {
+                return response()->json(['success' => false, 'message' => 'You must mark attendance before voting.'], 403);
+            }
+
+            // Check if already voted for this poll
+            $existingVote = UserVote::where('conference_registration_id', $participant->id)
+                ->where('poll_id', $request->poll_id)
+                ->first();
+
+            if ($existingVote) {
+                return response()->json(['success' => false, 'message' => 'You have already voted for this poll.'], 403);
+            }
+
+            // Create vote
+            UserVote::create([
+                'conference_registration_id' => $participant->id,
+                'poll_id' => $request->poll_id,
+                'poll_answer_id' => $request->answer_id
+            ]);
+
+            // Calculate and return results
+            $poll = Poll::with('answers.votes')->find($request->poll_id);
+            $results = $this->calculatePollResults($poll);
+
+            return response()->json([
+                'success' => true,
+                'results' => $results
+            ]);
+        } catch (Exception $e) {
+            return response()->json([
+                'success' => false,
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    private function calculatePollResults($poll)
+    {
+        $totalVotes = UserVote::where('poll_id', $poll->id)->count();
+        $results = [];
+
+        foreach ($poll->answers as $answer) {
+            $voteCount = $answer->votes->count();
+            $percentage = $totalVotes > 0 ? round(($voteCount / $totalVotes) * 100, 1) : 0;
+
+            $results[] = [
+                'id' => $answer->id,
+                'text' => $answer->answer_text,
+                'votes' => $voteCount,
+                'percentage' => $percentage
+            ];
+        }
+
+        return $results;
     }
 
     public function destroy($society, $conference, ConferenceRegistration $registrant)

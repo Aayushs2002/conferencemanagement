@@ -94,6 +94,11 @@ class WorkshopController extends Controller
                 'schedule_plan_attachment' => $validated['schedule_plan_attachment'] ?? null,
                 'created_by' => current_user()->id,
                 'approval_status' => 'pending', // Normal users always start with pending
+                'proposed_budget' => $validated['proposed_budget'] ?? null,
+                'registration_fee' => $validated['registration_fee'] ?? null,
+                'overview_of_organiztion' => $validated['overview_of_organiztion'],
+                'training_method_expected_outcome' => $validated['training_method_expected_outcome'],
+                'resource_requirement' => $validated['resource_requirement'],
             ];
 
             $workshop = Workshop::create($workshopData);
@@ -111,6 +116,7 @@ class WorkshopController extends Controller
             return redirect()->route('my-society.conference.my-workshop.index', [$society, $conference])
                 ->with('status', 'Workshop application submitted successfully! It will be reviewed by the admin.');
         } catch (Exception $e) {
+            // dd($e->getMessage());
             DB::rollBack();
             return redirect()->back()->withInput()->with('delete', 'Error submitting workshop application: ' . $e->getMessage());
         }
@@ -160,6 +166,9 @@ class WorkshopController extends Controller
             $validated = $request->validated();
             $validated['conference_id'] = $conference->id;
             $validated['slug'] = slugify($validated['workshop_title']);
+            // Ensure these fields are present for update
+            $validated['proposed_budget'] = $validated['proposed_budget'] ?? null;
+            $validated['registration_fee'] = $validated['registration_fee'] ?? null;
 
             DB::beginTransaction();
 

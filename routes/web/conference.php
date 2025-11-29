@@ -113,6 +113,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/participant/take-attendance', 'takeAttendance')->name('takeAttendance');
         Route::post('/participant/take-meal', 'takeMeal')->name('takeMeal');
         Route::post('/participant/take-conference-kit', 'takeConferenceKit')->name('takeConferenceKit');
+        Route::post('/participant/vote', 'vote')->name('vote');
     });
 
     Route::controller(PassSettingController::class)->middleware('auto.conf.permission')->prefix('/society/{society}/conference/{conference}/conference-registration')->group(function () {
@@ -375,3 +376,4 @@ Route::group(['middleware' => ['auth']], function () {
 Route::get('/participant/profile/{token}', [ConferenceRegistrationController::class, 'participantProfile']);
 Route::get('workshop/participant/profile/{token}', [WorkshopRegistrationController::class, 'participantProfile']);
 Route::get('/sponsor/profile/{token}', [SponsorController::class, 'sponsorProfile']);
+ 

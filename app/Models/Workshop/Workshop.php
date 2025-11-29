@@ -30,7 +30,12 @@ class Workshop extends Model
         'approval_status',
         'admin_remarks',
         'reviewed_by',
-        'reviewed_at'
+        'reviewed_at',
+        'proposed_budget',
+        'registration_fee',
+        'overview_of_organiztion',
+        'training_method_expected_outcome',
+        'resource_requirement'
     ];
 
     protected $casts = [
@@ -117,7 +122,7 @@ class Workshop extends Model
 
     public function getStatusBadgeClass()
     {
-        return match($this->approval_status) {
+        return match ($this->approval_status) {
             'pending' => 'bg-warning',
             'approved' => 'bg-success',
             'rejected' => 'bg-danger',
@@ -128,7 +133,7 @@ class Workshop extends Model
 
     public function getStatusLabel()
     {
-        return match($this->approval_status) {
+        return match ($this->approval_status) {
             'pending' => 'Pending Review',
             'approved' => 'Approved',
             'rejected' => 'Rejected',

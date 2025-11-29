@@ -16,8 +16,8 @@ class PollAnswer extends Model
         return $this->belongsTo(Poll::class);
     }
 
-    // public function votes()
-    // {
-    //     return $this->hasMany(UserVote::class, 'answer_id', 'id');
-    // }
+    public function votes()
+    {
+        return $this->hasMany(UserVote::class, 'poll_answer_id', 'id');
+    }
 }

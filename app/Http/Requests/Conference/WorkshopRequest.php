@@ -21,7 +21,11 @@ class WorkshopRequest extends FormRequest
      */
     public function rules(): array
     {
-        return [
+        $scheduleRule =
+            (request()->isMethod('post') && current_user() && current_user()->type == 3)
+            ? 'required|mimes:pdf,doc,docx|max:5120'
+            : 'nullable|mimes:pdf,doc,docx|max:5120';
+        $rules = [
             'workshop_title' => 'required|string|max:255',
             'workshop_type' => 'required|integer|in:1,2',
             'start_date' => 'required|date',
@@ -41,8 +45,32 @@ class WorkshopRequest extends FormRequest
             'photo' => 'nullable|mimes:png,jpg,jpeg|max:250',
             'short_cv' => 'required|string',
             'image' => 'nullable|mimes:jpg,png',
-            'schedule_plan_attachment' => current_user() && current_user()->type == 3 ? 'required|mimes:pdf,doc,docx|max:5120' : 'nullable|mimes:pdf,doc,docx|max:5120',
+            'schedule_plan_attachment' => $scheduleRule,
         ];
+
+        if (current_user() && current_user()->type == 3) {
+            $rules['overview_of_organiztion'] = 'required|string';
+            $rules['training_method_expected_outcome'] = 'required|string';
+            $rules['resource_requirement'] = 'required|string';
+        } else {
+            $rules['overview_of_organiztion'] = 'nullable|string';
+            $rules['training_method_expected_outcome'] = 'nullable|string';
+            $rules['resource_requirement'] = 'nullable|string';
+        }
+
+        // Paid-only fields
+        // dd($this->input('workshop_type'));
+        if (current_user() && current_user()->type == 3) {
+            if ($this->input('workshop_type') == 1) {
+                $rules['proposed_budget'] = 'required|numeric|min:0';
+                $rules['registration_fee'] = 'required|numeric|min:0';
+            } else {
+                $rules['proposed_budget'] = 'nullable|numeric|min:0';
+                $rules['registration_fee'] = 'nullable|numeric|min:0';
+            }
+        }
+        // dd($rules);
+        return $rules;
     }
 
     public function withValidator($validator)

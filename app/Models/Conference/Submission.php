@@ -13,7 +13,7 @@ class Submission extends Model
         'user_id',
         'expert_id',
         'submission_category_major_track_id',
-        'title', 
+        'title',
         'article_type_id',
         'presentation_type',
         'competition_type',
@@ -28,6 +28,7 @@ class Submission extends Model
         'review_status',
         'request_status',
         'reject_remark',
+        'is_student',
         'status'
     ];
 

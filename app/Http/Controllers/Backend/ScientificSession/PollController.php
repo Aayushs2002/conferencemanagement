@@ -21,7 +21,8 @@ class PollController extends Controller
 
     public function create($society, $conference, $id)
     {
-        return view('backend.schedule-plan.poll.create', compact('id'));
+        dd($id);
+        return view('backend.schedule-plan.poll.create', compact('id','society', 'conference'));
     }
 
     public function store(Request $request, $society, $conference)

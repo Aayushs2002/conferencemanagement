@@ -312,54 +312,52 @@
                                     include
                                     workshops for enhanced learning experience.
                                 </div>
-                            @endif
 
-                            <div class="row mb-4">
-                                <!-- Multiple Workshop Selection -->
-                                <div class="col-md-6 form-group mb-3">
-                                    <label class="fw-bold">
-                                        <i class="fas fa-chalkboard-teacher text-primary"></i>
-                                        @if (feature_enabled('workshop-management', getSociety(request()->segment(2))))
+                                <div class="row mb-4">
+                                    <!-- Multiple Workshop Selection -->
+                                    <div class="col-md-6 form-group mb-3">
+                                        <label class="fw-bold">
+                                            <i class="fas fa-chalkboard-teacher text-primary"></i>
                                             Workshop Selection
                                             <small class="text-muted">(Optional - Multiple Selection)</small>
-                                        @else
-                                            Conference Participation
-                                        @endif
-                                    </label>
-                                    <div class="card">
-                                        <div class="card-body" style="max-height: 250px; overflow-y: auto;">
-                                            <!-- Conference Only Option -->
-                                            <div class="form-check mb-2 p-2 rounded workshop-selection-card">
-                                                <input class="form-check-input workshop-checkbox" type="checkbox"
-                                                    name="selected_workshops[]" value="" id="conference_only" checked>
-                                                <label
-                                                    class="form-check-label d-flex justify-content-between align-items-center w-100"
-                                                    for="conference_only">
-                                                    <div>
-                                                        <strong>Conference Only</strong>
-                                                        <br><small class="text-muted">Attend conference sessions without
-                                                            workshops</small>
-                                                    </div>
-                                                    <span class="badge bg-success ms-2">Included</span>
-                                                </label>
-                                            </div>
 
-                                            @if ($workshops && $workshops->count() > 0)
-                                                @foreach ($workshops as $workshop)
-                                                    <div class="form-check mb-2 p-2 rounded workshop-selection-card">
-                                                        <input class="form-check-input workshop-checkbox" type="checkbox"
-                                                            name="selected_workshops[]" value="{{ $workshop->id }}"
-                                                            data-name="{{ $workshop->workshop_title }}"
-                                                            id="workshop_{{ $workshop->id }}"
-                                                            @if (isset($conference_registration) &&
-                                                                    $conference_registration->registrationWorkshops &&
-                                                                    $conference_registration->registrationWorkshops->contains('workshop_id', $workshop->id)) checked @endif>
-                                                        <label
-                                                            class="form-check-label d-flex justify-content-between align-items-center w-100"
-                                                            for="workshop_{{ $workshop->id }}">
-                                                            <div>
-                                                                <strong>{{ $workshop->workshop_title }}</strong>
-                                                                {{-- @if ($workshop->workshop_description)
+                                        </label>
+                                        <div class="card">
+                                            <div class="card-body" style="max-height: 250px; overflow-y: auto;">
+                                                <!-- Conference Only Option -->
+                                                <div class="form-check mb-2 p-2 rounded workshop-selection-card">
+                                                    <input class="form-check-input workshop-checkbox" type="checkbox"
+                                                        name="selected_workshops[]" value="" id="conference_only"
+                                                        checked>
+                                                    <label
+                                                        class="form-check-label d-flex justify-content-between align-items-center w-100"
+                                                        for="conference_only">
+                                                        <div>
+                                                            <strong>Conference Only</strong>
+                                                            <br><small class="text-muted">Attend conference sessions without
+                                                                workshops</small>
+                                                        </div>
+                                                        <span class="badge bg-success ms-2">Included</span>
+                                                    </label>
+                                                </div>
+
+                                                @if ($workshops && $workshops->count() > 0)
+                                                    @foreach ($workshops as $workshop)
+                                                        <div class="form-check mb-2 p-2 rounded workshop-selection-card">
+                                                            <input class="form-check-input workshop-checkbox"
+                                                                type="checkbox" name="selected_workshops[]"
+                                                                value="{{ $workshop->id }}"
+                                                                data-name="{{ $workshop->workshop_title }}"
+                                                                id="workshop_{{ $workshop->id }}"
+                                                                @if (isset($conference_registration) &&
+                                                                        $conference_registration->registrationWorkshops &&
+                                                                        $conference_registration->registrationWorkshops->contains('workshop_id', $workshop->id)) checked @endif>
+                                                            <label
+                                                                class="form-check-label d-flex justify-content-between align-items-center w-100"
+                                                                for="workshop_{{ $workshop->id }}">
+                                                                <div>
+                                                                    <strong>{{ $workshop->workshop_title }}</strong>
+                                                                    {{-- @if ($workshop->workshop_description)
                                                                     <br><small
                                                                         class="text-muted">{{ Str::limit($workshop->workshop_description, 80) }}</small>
                                                                 @endif
@@ -369,16 +367,15 @@
                                                                         {{ date('M j, Y', strtotime($workshop->workshop_date)) }}
                                                                     </small>
                                                                 @endif --}}
-                                                            </div>
-                                                            <span class="badge bg-primary ms-2"
-                                                                id="workshop_price_{{ $workshop->id }}">
-                                                                <i class="fas fa-spinner fa-spin"></i> Loading...
-                                                            </span>
-                                                        </label>
-                                                    </div>
-                                                @endforeach
-                                            @else
-                                                @if (feature_enabled('workshop-management', getSociety(request()->segment(2))))
+                                                                </div>
+                                                                <span class="badge bg-primary ms-2"
+                                                                    id="workshop_price_{{ $workshop->id }}">
+                                                                    <i class="fas fa-spinner fa-spin"></i> Loading...
+                                                                </span>
+                                                            </label>
+                                                        </div>
+                                                    @endforeach
+                                                @else
                                                     <div class="text-center py-3">
                                                         <i class="fas fa-chalkboard-teacher fa-3x text-muted mb-2"></i>
                                                         <p class="text-muted mb-0">No workshops available for this
@@ -386,62 +383,60 @@
                                                         </p>
                                                     </div>
                                                 @endif
-                                            @endif
-                                        </div>
-                                    </div>
-                                    @if (feature_enabled('workshop-management', getSociety(request()->segment(2))))
-                                        <small class="text-muted">
-                                            <i class="fas fa-info-circle"></i>
-                                            You can select multiple workshops to enhance your learning experience
-                                        </small>
-                                    @endif
-                                </div>
-
-                                <!-- Multiple Add-ons Selection -->
-                                @if ($conferenceAddons && $conferenceAddons->count() > 0)
-                                    <div class="col-md-6 form-group mb-3">
-                                        <label class="fw-bold">
-                                            <i class="fas fa-utensils text-warning"></i> Add-ons
-                                            <small class="text-muted">(Optional - Multiple Selection)</small>
-                                        </label>
-                                        <div class="card">
-                                            <div class="card-body" style="max-height: 250px; overflow-y: auto;">
-                                                @foreach ($conferenceAddons as $addon)
-                                                    <div class="form-check mb-2 p-2  rounded">
-                                                        <input class="form-check-input addon-checkbox" type="checkbox"
-                                                            name="selected_addons[]" value="{{ $addon->id }}"
-                                                            data-name="{{ $addon->addon_name }}"
-                                                            data-amount="{{ @$memberTypePrice->memberType->delegate == 1 ? $addon->addon_national_amount : $addon->addon_international_amount }}"
-                                                            id="addon_{{ $addon->id }}"
-                                                            @if (isset($conference_registration) &&
-                                                                    $conference_registration->registrationAddons &&
-                                                                    $conference_registration->registrationAddons->contains('addon_id', $addon->id)) checked @endif>
-                                                        <label
-                                                            class="form-check-label d-flex justify-content-between align-items-center w-100"
-                                                            for="addon_{{ $addon->id }}">
-                                                            <div>
-                                                                <strong>{{ $addon->addon_name }}</strong>
-                                                                @if ($addon->addon_description)
-                                                                    <br><small
-                                                                        class="text-muted">{{ $addon->addon_description }}</small>
-                                                                @endif
-                                                            </div>
-                                                            <span class="badge bg-primary ms-2">
-                                                                {{ @$memberTypePrice->memberType->delegate == 1 ? 'Rs. ' : '$ ' }}{{ number_format(@$memberTypePrice->memberType->delegate == 1 ? $addon->addon_national_amount : $addon->addon_international_amount, 2) }}
-                                                                <small>/person</small>
-                                                            </span>
-                                                        </label>
-                                                    </div>
-                                                @endforeach
                                             </div>
                                         </div>
                                         <small class="text-muted">
                                             <i class="fas fa-info-circle"></i>
-                                            Selected add-ons will be applied to all attendees (you + guests)
+                                            You can select multiple workshops to enhance your learning experience
                                         </small>
                                     </div>
-                                @endif
-                            </div>
+
+                                    <!-- Multiple Add-ons Selection -->
+                                    @if ($conferenceAddons && $conferenceAddons->count() > 0)
+                                        <div class="col-md-6 form-group mb-3">
+                                            <label class="fw-bold">
+                                                <i class="fas fa-utensils text-warning"></i> Add-ons
+                                                <small class="text-muted">(Optional - Multiple Selection)</small>
+                                            </label>
+                                            <div class="card">
+                                                <div class="card-body" style="max-height: 250px; overflow-y: auto;">
+                                                    @foreach ($conferenceAddons as $addon)
+                                                        <div class="form-check mb-2 p-2  rounded">
+                                                            <input class="form-check-input addon-checkbox" type="checkbox"
+                                                                name="selected_addons[]" value="{{ $addon->id }}"
+                                                                data-name="{{ $addon->addon_name }}"
+                                                                data-amount="{{ @$memberTypePrice->memberType->delegate == 1 ? $addon->addon_national_amount : $addon->addon_international_amount }}"
+                                                                id="addon_{{ $addon->id }}"
+                                                                @if (isset($conference_registration) &&
+                                                                        $conference_registration->registrationAddons &&
+                                                                        $conference_registration->registrationAddons->contains('addon_id', $addon->id)) checked @endif>
+                                                            <label
+                                                                class="form-check-label d-flex justify-content-between align-items-center w-100"
+                                                                for="addon_{{ $addon->id }}">
+                                                                <div>
+                                                                    <strong>{{ $addon->addon_name }}</strong>
+                                                                    @if ($addon->addon_description)
+                                                                        <br><small
+                                                                            class="text-muted">{{ $addon->addon_description }}</small>
+                                                                    @endif
+                                                                </div>
+                                                                <span class="badge bg-primary ms-2">
+                                                                    {{ @$memberTypePrice->memberType->delegate == 1 ? 'Rs. ' : '$ ' }}{{ number_format(@$memberTypePrice->memberType->delegate == 1 ? $addon->addon_national_amount : $addon->addon_international_amount, 2) }}
+                                                                    <small>/person</small>
+                                                                </span>
+                                                            </label>
+                                                        </div>
+                                                    @endforeach
+                                                </div>
+                                            </div>
+                                            <small class="text-muted">
+                                                <i class="fas fa-info-circle"></i>
+                                                Selected add-ons will be applied to all attendees (you + guests)
+                                            </small>
+                                        </div>
+                                    @endif
+                                </div>
+                            @endif
 
                             <!-- Additional Guests Selection -->
                             <div class="row mb-4">
@@ -477,9 +472,8 @@
                                         <div class="alert alert-info w-100">
                                             <i class="fas fa-calculator"></i>
                                             <strong>Pricing Note:</strong>
-                                            @if (feature_enabled('workshop-management', getSociety(request()->segment(2))))
-                                                Workshops and add-ons are charged per person.
-                                            @endif If
+                                            Workshops and add-ons are charged per person.
+                                            If
                                             you select 1 guest, they will be charged for 2 people (you + 1 guest).
                                         </div>
                                     </div>

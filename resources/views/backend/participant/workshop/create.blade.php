@@ -14,7 +14,7 @@
                 {{ isset($workshop) ? 'Edit' : 'Apply for' }} Workshop
             </h4>
             <div class="card-body">
-                @if(isset($workshop) && $workshop->admin_remarks)
+                @if (isset($workshop) && $workshop->admin_remarks)
                     <div class="alert alert-warning alert-dismissible" role="alert">
                         <h6 class="alert-heading mb-2">
                             <i class="ti tabler-alert-triangle me-2"></i>Admin Feedback
@@ -23,7 +23,7 @@
                         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                     </div>
                 @endif
-                
+
                 <form class="needs-validation"
                     action="{{ isset($workshop) ? route('my-society.conference.my-workshop.update', [$society, $conference, $workshop]) : route('my-society.conference.my-workshop.store', [$society, $conference]) }}"
                     method="POST" enctype="multipart/form-data" novalidate>
@@ -34,7 +34,24 @@
                     @endisset
                     <div class="row g-6">
                         <div class="col-12">
-                            <h6>1. Workshop Details</h6>
+                            <h6>1. Organization/Institute Details</h6>
+                            <hr class="mt-0" style="height:1px;border:none;color:#333;background-color:#333;" />
+                        </div>
+
+                        <div class="mb-6">
+                            <label class="form-label" for="overview_of_organiztion">Overview of organization/
+                                institute
+
+                                <code>*</code></label>
+                            <textarea class="form-control ckeditor" id="overview_of_organiztion" name="overview_of_organiztion" rows="5"
+                                cols="30">{{ !empty(old('overview_of_organiztion')) ? old('overview_of_organiztion') : @$workshop->overview_of_organiztion }}</textarea>
+                            @error('overview_of_organiztion')
+                                <p class="text-danger">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        <div class="col-12">
+                            <h6>2. Workshop Details</h6>
                             <hr class="mt-0" style="height:1px;border:none;color:#333;background-color:#333;" />
                         </div>
                         <div class="mb-6 col-md-4">
@@ -68,6 +85,32 @@
                             @enderror
                         </div>
 
+                        <!-- Paid-only fields -->
+                        <div id="paid-fields" class="row" style="display: none;">
+                            <div class="mb-6 col-md-4">
+                                <label class="form-label" for="proposed_budget">Proposed Budget <code>*</code></label>
+                                <input type="number" min="0" step="0.01"
+                                    class="form-control @error('proposed_budget') is-invalid @enderror" id="proposed_budget"
+                                    name="proposed_budget"
+                                    value="{{ !empty(old('proposed_budget')) ? old('proposed_budget') : @$workshop->proposed_budget }}"
+                                    placeholder="Enter Proposed Budget" />
+                                @error('proposed_budget')
+                                    <p class="text-danger">{{ $message }}</p>
+                                @enderror
+                            </div>
+                            <div class="mb-6 col-md-4">
+                                <label class="form-label" for="registration_fee">Registration Fee <code>*</code></label>
+                                <input type="number" min="0" step="0.01"
+                                    class="form-control @error('registration_fee') is-invalid @enderror"
+                                    id="registration_fee" name="registration_fee"
+                                    value="{{ !empty(old('registration_fee')) ? old('registration_fee') : @$workshop->registration_fee }}"
+                                    placeholder="Enter Registration Fee" />
+                                @error('registration_fee')
+                                    <p class="text-danger">{{ $message }}</p>
+                                @enderror
+                            </div>
+                        </div>
+
                         <div class="mb-6 col-md-4">
                             <label class="form-label" for="start_date">Start Date <code>*</code></label>
                             <input type="text" class="form-control @error('start_date') is-invalid @enderror"
@@ -92,12 +135,11 @@
                             @enderror
                         </div>
 
-
-
                         <div class="mb-6 col-md-4">
                             <label class="form-label" for="registration_deadline">Registration
                                 Deadline <code>*</code></label>
-                            <input type="text" class="form-control @error('registration_deadline') is-invalid @enderror"
+                            <input type="text"
+                                class="form-control @error('registration_deadline') is-invalid @enderror"
                                 id="registration_deadline" placeholder="Enter Regular Registration Deadline"
                                 name="registration_deadline"
                                 value="{{ !empty(old('registration_deadline')) ? old('registration_deadline') : @$workshop->registration_deadline }}"
@@ -148,7 +190,8 @@
 
                         <div class="mb-6 col-md-4">
                             <label class="form-label" for="bs-validation-abb">Contact Person Phone <code>*</code></label>
-                            <input type="text" class="form-control @error('contact_person_phone') is-invalid @enderror"
+                            <input type="text"
+                                class="form-control @error('contact_person_phone') is-invalid @enderror"
                                 id="contact_person_phone" placeholder="Enter Contact Person Phone"
                                 name="contact_person_phone"
                                 value="{{ !empty(old('contact_person_phone')) ? old('contact_person_phone') : @$workshop->contact_person_phone }}"
@@ -207,25 +250,31 @@
                         @if (current_user()->type == 3)
                             <div class="col-md-5 form-group mb-3">
                                 <label for="schedule_plan_attachment">Schedule/Plan Document <code>*</code></label>
-                                <input type="file" class="form-control @error('schedule_plan_attachment') is-invalid @enderror"
-                                    name="schedule_plan_attachment" id="schedule_plan_attachment" accept=".pdf,.doc,.docx" required />
-                                <small class="text-muted">Upload workshop schedule or plan (PDF, DOC, DOCX - Max 5MB) - Required for application</small>
+                                <input type="file"
+                                    class="form-control @error('schedule_plan_attachment') is-invalid @enderror"
+                                    name="schedule_plan_attachment" id="schedule_plan_attachment"
+                                    accept=".pdf,.doc,.docx" @if (!isset($workshop)) required @endif />
+                                <small class="text-muted">Upload workshop schedule or plan (PDF, DOC, DOCX - Max 5MB) -
+                                    Required for application</small>
                                 @error('schedule_plan_attachment')
                                     <p class="text-danger">{{ $message }}</p>
                                 @enderror
                                 @if (isset($workshop) && $workshop->schedule_plan_attachment)
                                     <div class="mt-2">
-                                        <a href="{{ asset('storage/' . $workshop->schedule_plan_attachment) }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                        <a href="{{ asset('storage/' . $workshop->schedule_plan_attachment) }}"
+                                            target="_blank" class="btn btn-sm btn-outline-primary">
                                             <i class="ti tabler-download me-1"></i> View Current Document
                                         </a>
-                                        <small class="d-block text-muted mt-1">Upload a new file to replace the current document</small>
+                                        <small class="d-block text-muted mt-1">Upload a new file to replace the current
+                                            document</small>
                                     </div>
                                 @endif
                             </div>
                         @endif
 
                         <div class="mb-6">
-                            <label class="form-label" for="description">Workshop Description <code>*</code></label>
+                            <label class="form-label" for="description">Workshop Objective/Description
+                                <code>*</code></label>
                             <textarea class="form-control ckeditor" id="workshop_description" name="workshop_description" rows="5"
                                 cols="30">{{ !empty(old('workshop_description')) ? old('workshop_description') : @$workshop->workshop_description }}</textarea>
                             @error('workshop_description')
@@ -233,8 +282,28 @@
                             @enderror
                         </div>
 
+                        <div class="mb-6">
+                            <label class="form-label" for="training_method_expected_outcome">Training method and expected
+                                outcome
+                                <code>*</code></label>
+                            <textarea class="form-control ckeditor" id="training_method_expected_outcome" name="training_method_expected_outcome"
+                                rows="5" cols="30">{{ !empty(old('training_method_expected_outcome')) ? old('training_method_expected_outcome') : @$workshop->training_method_expected_outcome }}</textarea>
+                            @error('training_method_expected_outcome')
+                                <p class="text-danger">{{ $message }}</p>
+                            @enderror
+                        </div>
+                        <div class="mb-6">
+                            <label class="form-label" for="resource_requirement">Resource requirement
+                                <code>*</code></label>
+                            <textarea class="form-control ckeditor" id="resource_requirement" name="resource_requirement" rows="5"
+                                cols="30">{{ !empty(old('resource_requirement')) ? old('resource_requirement') : @$workshop->resource_requirement }}</textarea>
+                            @error('resource_requirement')
+                                <p class="text-danger">{{ $message }}</p>
+                            @enderror
+                        </div>
+
                         <div class="col-12">
-                            <h6>2. Workshop Venue Details</h6>
+                            <h6>3. Workshop Venue Details</h6>
                             <hr class="mt-0" style="height:1px;border:none;color:#333;background-color:#333;" />
                         </div>
 
@@ -278,14 +347,14 @@
                         </div>
 
                         <div class="col-12">
-                            <h6>3. ChairPerson Detail</h6>
+                            <h6>4. Coordinator Detail</h6>
                             <hr class="mt-0" style="height:1px;border:none;color:#333;background-color:#333;" />
                         </div>
 
                         <div class="col-md-5 form-group mb-3">
-                            <label for="chairperson_id">Chairperson <code>*</code></label>
+                            <label for="chairperson_id">Workshop Coordinator <code>*</code></label>
                             <select name="chairperson_id" class="form-control select2" id="chairperson_id" required>
-                                <option value="" hidden>-- Select Chairperson --</option>
+                                <option value="" hidden>-- Select Workshop Coordinator --</option>
 
                                 @foreach ($users as $user)
                                     <option value="{{ $user->id }}"
@@ -378,6 +447,18 @@
                     static: true
                 });
             }
+
+            // Show/hide paid-only fields
+            function togglePaidFields() {
+                const type = $('#workshop_type').val();
+                if (type === '1') {
+                    $('#paid-fields').show();
+                } else {
+                    $('#paid-fields').hide();
+                }
+            }
+            $('#workshop_type').on('change', togglePaidFields);
+            togglePaidFields(); // Initial state
 
         });
     </script>

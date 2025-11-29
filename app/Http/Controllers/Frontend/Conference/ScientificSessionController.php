@@ -20,7 +20,7 @@ class ScientificSessionController extends BaseConferenceController
             ->where('status', 1)
             ->orderBy('day')
             ->orderBy('start_time')
-            ->get()
+            ->get() 
             ->groupBy(['day', 'hall_id']); // Group by day and hall
         // dd($sessions);
         $days = [];
