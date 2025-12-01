@@ -20,7 +20,7 @@
                         <option value="3" @selected(old('request_status') == 3)>Reject</option>
                     </select>
                     <p class="text-danger request_status"></p>
-                </div>
+                </div> 
                 @if ($discussions->isNotEmpty())
                     <div class="table-responsive mb-3">
                         <table class="table table-bordered" id="zero_configuration_table" style="width: 100%;">

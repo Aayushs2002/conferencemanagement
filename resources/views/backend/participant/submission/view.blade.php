@@ -43,7 +43,7 @@
                         <span class="badge bg-warning">Correction</span>
                     @endif
                 </span>
-            </div>
+            </div> 
 
         </div>
 

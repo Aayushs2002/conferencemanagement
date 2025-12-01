@@ -11,6 +11,7 @@ use App\Models\Payment\NationalPayment;
 use App\Models\User\UserSociety;
 use App\Models\Workshop\Workshop;
 use App\Models\Workshop\WorkshopRegistration;
+use App\Models\WorkshopRating;
 use App\Services\File\FileService;
 use Exception;
 use Illuminate\Http\Request;
@@ -18,7 +19,7 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\ValidationException;
 
 class WorkshopRegistrationController extends Controller
-{ 
+{
 
     public function __construct(protected FileService $file_service) {}
 
@@ -55,13 +56,22 @@ class WorkshopRegistrationController extends Controller
 
     public function submitData(Request $request, $society, $conference)
     {
+        // dd($request->all());
         try {
+            $workshop = Workshop::whereId($request->workshop_id)->first();
+
             $rules = [
                 'workshop_id' => 'required',
-                'transaction_id' => 'required|unique:workshop_registrations,transaction_id',
-                'payment_type' => 'required',
-                'amount' => 'required'
             ];
+            if ($workshop->workshop_type == 1) {
+                $rules['transaction_id'] = 'required|unique:workshop_registrations,transaction_id';
+                $rules['amount'] = 'required';
+                $rules['payment_type'] = 'required';
+            } else {
+                $rules['transaction_id'] = 'nullable|unique:workshop_registrations,transaction_id';
+                $rules['amount'] = 'nullable';
+                $rules['payment_type'] = 'nullable';
+            }
 
             $validated = $request->validate($rules);
             $authUser = current_user();
@@ -78,14 +88,14 @@ class WorkshopRegistrationController extends Controller
                 5 => 'Card Payment'
             ];
             $paymentType = $paymentTypes[$request->payment_type] ?? 'Unknown';
-            $workshop = Workshop::whereId($validated['workshop_id'])->first();
             $conferenceSetting = ConferenceSetting::where('conference_id', $conference->id)->first();
 
             $workshopData = null;
             $workshopData[] = [
                 'name'   => $workshop->workshop_title ?? 'Workshop',
-                'amount' => $validated['amount']
+                'amount' => $validated['amount'] ?? 0
             ];
+            // dd($request->payment_type);
             $mailData = [
                 'conference_theme' => $conference->conference_theme,
                 'conference_name'  => $conference->conference_name,
@@ -93,9 +103,9 @@ class WorkshopRegistrationController extends Controller
                 'namePrefix'       => $authUser->userDetail->namePrefix->prefix,
                 'email'            => $authUser->email,
                 'paymentType'      => $paymentType,
-                'transactionId'    => $validated['transaction_id'],
-                'amount'           => $validated['amount'],
-                'amountInWord'     => numberToWord($validated['amount']),
+                'transactionId'    => $validated['transaction_id'] ?? 'N/A',
+                'amount'           => $validated['amount'] ?? 0,
+                'amountInWord'     => numberToWord($validated['amount'] ?? 0),
                 'date'             => $date,
                 'societyName'      => $society->users->where('type', 2)->first()->f_name,
                 'societyLogo'      => $society->logo,
@@ -109,6 +119,7 @@ class WorkshopRegistrationController extends Controller
                 'conferenceAmount' => null,
                 'addons'           => [],
                 'workshop'         => $workshopData,
+                'workshop_type'    => $workshop->workshop_type,
                 'accompany' => null
             ];
 
@@ -118,6 +129,7 @@ class WorkshopRegistrationController extends Controller
 
             return redirect()->route('my-society.conference.workshop.index', [$society, $conference])->with('status', 'Successfully registered for workshop.');
         } catch (Exception $e) {
+            // dd($e->getMessage());
             return redirect()->back()->with('delete', 'Error while registering for workshop.');
         }
     }
@@ -196,6 +208,53 @@ class WorkshopRegistrationController extends Controller
                 'message' => 'Registration failed: ' . $e->getMessage()
             ], 500);
         }
+    }
+
+    public function rating(Request $request, $society, $conference)
+    {
+        $registrant = WorkshopRegistration::with('workshop')->whereId($request->id)->first();
+        // Check authorization
+        if ($registrant->user_id !== auth()->id()) {
+            abort(403);
+        }
+
+        $existingRating = WorkshopRating::where('user_id', auth()->id())
+            ->where('workshop_id', $registrant->workshop_id)
+            ->first();
+        return view('backend.participant.workshop-registration.rating', compact('registrant', 'existingRating', 'society', 'conference'));
+    }
+
+    public function submitRating(Request $request, $society, $conference)
+    {
+        $validated = $request->validate([
+            'rating' => 'required|integer|min:1|max:5',
+            'comment' => 'nullable|string|max:1000',
+            'workshop_registration_id' => 'required|exists:workshop_registrations,id'
+        ]);
+
+        $registrant = WorkshopRegistration::findOrFail($validated['workshop_registration_id']);
+
+        // Check if user owns this registrant
+        if ($registrant->user_id !== auth()->id()) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        // Create or update rating
+        WorkshopRating::updateOrCreate(
+            [
+                'user_id' => auth()->id(),
+                'workshop_id' => $registrant->workshop_id
+            ],
+            [
+                'workshop_registration_id' => $registrant->id,
+                'rating' => $validated['rating'],
+                'comment' => $validated['comment']
+            ]
+        );
+
+        return response()->json([
+            'message' => 'Thank you for rating this workshop!'
+        ]);
     }
 
     public function meal(Request $request, $society, $conference)

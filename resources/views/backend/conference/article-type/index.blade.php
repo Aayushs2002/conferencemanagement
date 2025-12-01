@@ -1,15 +1,15 @@
 @extends('backend.layouts.conference.main')
 
 @section('title')
-    Article Type
+    Presentation Category
 @endsection
 @section('content')
     <div class="card">
- 
+
         <div class="card-datatable table-responsive pt-0">
             <div class="row card-header flex-column flex-md-row border-bottom mx-0 px-3">
                 <div class="d-md-flex justify-content-between align-items-center dt-layout-start col-md-auto me-auto mt-0">
-                    <h5 class="card-title mb-0 text-md-start text-center pb-md-0 pb-6">Article Type</h5>
+                    <h5 class="card-title mb-0 text-md-start text-center pb-md-0 pb-6">Presentation Category</h5>
                 </div>
                 <div class="d-md-flex justify-content-between align-items-center dt-layout-end col-md-auto ms-auto mt-0">
                     <div class="dt-buttons btn-group flex-wrap mb-0">
@@ -42,7 +42,7 @@
             </div>
             <div class="px-3 py-2">
                 <small class="text-info">
-                    <i class="ti tabler-grip-vertical"></i> <strong>Drag and drop rows to reorder article types</strong>
+                    <i class="ti tabler-grip-vertical"></i> <strong>Drag and drop rows to reorder presentation categories</strong>
                 </small>
             </div>
             <table class="datatables-basic table">
@@ -109,7 +109,7 @@
                 </div>
             </div>
         </div>
-        
+
         <div class="modal fade" id="settingModal" tabindex="-1" aria-hidden="true">
             <div class="modal-dialog modal-lg">
                 <div class="modal-content" id="settingModalContent">
@@ -122,30 +122,30 @@
 @section('scripts')
     <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
     <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
-    
+
     <style>
         #sortable-table tr.ui-sortable-helper {
             display: table;
             background-color: #f8f9fa;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
         }
-        
+
         #sortable-table tr.ui-sortable-placeholder {
             background-color: #e3f2fd;
             visibility: visible !important;
             height: 60px;
         }
-        
+
         .drag-handle:hover {
             background-color: #f0f0f0;
             cursor: grab;
         }
-        
+
         .drag-handle:active {
             cursor: grabbing;
         }
     </style>
-    
+
     <script>
         $(document).ready(function() {
             // Initialize sortable
@@ -187,7 +187,7 @@
                             $('#sortable-table tr').each(function(index) {
                                 $(this).find('th:eq(0)').text(index + 1);
                             });
-                            
+
                             notyf.success('Order updated successfully');
                         }
                     },
@@ -214,7 +214,7 @@
                     setTimeout(function() {
                         $('#modalContent').html(response);
                     }, 1000);
-                }); 
+                });
             });
 
             $(document).off("click", ".editArticleType");

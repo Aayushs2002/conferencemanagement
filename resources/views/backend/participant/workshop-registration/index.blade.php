@@ -370,12 +370,25 @@
                                        @endif
                                    @endif
                                    @if (empty($checkRegistration) && $appliedQuota <= $totalQuota && !$deadlinePassed)
-                                       <button data-workshop="{{ $hashedWorkshop }}"
-                                           data-price="{{ $price->price ?? 0 }}"
-                                           class="btn btn-primary btn-sm register-button"
-                                           {{ empty($price->price) ? 'disabled' : '' }}>
-                                           Register This Workshop
-                                       </button>
+                                       @if ($w_item->workshop_type == 1)
+                                           <button data-workshop="{{ $hashedWorkshop }}"
+                                               data-price="{{ $price->price ?? 0 }}"
+                                               class="btn btn-primary btn-sm register-button"
+                                               {{ empty($price->price) ? 'disabled' : '' }}>
+                                               Register This Workshop
+                                           </button>
+                                       @else
+                                           <form id="workshopForm{{ $w_item->id }}"
+                                               action="{{ route('my-society.conference.workshop.submitData', ['society' => $society, 'conference' => $conference]) }}"
+                                               method="POST">
+                                               @csrf
+                                               <input type="hidden" name="workshop_id" value="{{ $w_item->id }}">
+                                               <button type="button" class="btn btn-primary btn-sm"
+                                                   onclick="confirmSubmit({{ $w_item->id }})">
+                                                   Register This Workshop
+                                               </button>
+                                           </form>
+                                       @endif
                                    @elseif($deadlinePassed)
                                        <span class="badge bg-secondary">Registration Closed</span>
                                    @endif
@@ -409,7 +422,7 @@
                            <th>Verified Status</th>
                            <th>Meal Type</th>
                            <th>Remark</th>
-                           {{-- <th>Action</th> --}}
+                           <th>Action</th>
                        </tr>
                    </thead>
                    <tbody>
@@ -464,28 +477,15 @@
                                    </td>
                                @endif
                                <td>{{ !empty($registration->remarks) ? $registration->remarks : '-' }}</td>
-                               {{-- <td>
-                                   @if ($registration->verified_status == 0 || $registration->verified_status == 2)
-                                       <form action="" method="POST">
-                                           @method('delete')
-                                           @csrf
-                                           @if ($registration->payment_type == 1)
-                                               @if ($registration->verified_status == 0)
-                                                   <span class="badge bg-warning">Unverified</span>
-                                               @else
-                                                   <span class="badge bg-danger">Rejected</span>
-                                               @endif
-                                           @else
-                                               <a href="" class="btn btn-sm btn-success mb-1" title="Edit Data"><i
-                                                       class="nav-icon i-Pen-2"></i></a>
-                                               <button title="Delete Data" class="btn btn-sm btn-danger delete mb-1"
-                                                   type="submit"><i class="nav-icon i-Close-Window"></i></button>
-                                           @endif
-                                       </form>
-                                   @else
-                                       <span class="badge bg-success">Verified</span>
+                               <td>
+                                   @if (\Carbon\Carbon::now()->greaterThan($registration->workshop->end_date))
+                                       <button class="btn btn-warning btn-sm rating" data-id="{{ $registration->id }}"
+                                           data-bs-toggle="modal" data-bs-target="#pricingModal" id="rating">
+                                           Rate Now
+                                       </button>
                                    @endif
-                               </td> --}}
+                               </td>
+
                            </tr>
                        @endforeach
                    </tbody>
@@ -816,6 +816,34 @@
                    var url = '{{ route('my-society.conference.workshop.meal', [$society, $conference]) }}';
                    var _token = '{{ csrf_token() }}';
                    var id = $(this).data('id');
+                   $('#modalContent').html(`
+                    <div class="modal-body text-center">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                `);
+                   var data = {
+                       _token: _token,
+                       id: id
+                   };
+                   $.post(url, data, function(response) {
+                       $('#modalContent').html(response);
+                   });
+               });
+
+               $(document).on("click", ".rating", function(e) {
+                   e.preventDefault();
+                   var url = '{{ route('my-society.conference.workshop.rating', [$society, $conference]) }}';
+                   var _token = '{{ csrf_token() }}';
+                   var id = $(this).data('id');
+                   $('#modalContent').html(`
+                    <div class="modal-body text-center">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                `);
                    var data = {
                        _token: _token,
                        id: id
@@ -876,5 +904,22 @@
                });
 
            });
+       </script>
+
+       <script>
+           function confirmSubmit(id) {
+               Swal.fire({
+                   title: "Are you sure?",
+                   text: "Do you want to register for this workshop?",
+                   icon: "warning",
+                   showCancelButton: true,
+                   confirmButtonText: "Yes, register!",
+                   cancelButtonText: "Cancel"
+               }).then((result) => {
+                   if (result.isConfirmed) {
+                       document.getElementById('workshopForm' + id).submit();
+                   }
+               });
+           }
        </script>
    @endsection

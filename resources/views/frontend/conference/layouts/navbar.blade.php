@@ -7,14 +7,15 @@
             @endphp
 
             @if ($displayType == 'abbreviation' && !empty($conference->abbreviation))
-                <span style="font-size: 1.5rem; font-weight: bold; text-transform: uppercase;">{{ $conference->abbreviation }}</span>
+                <span
+                    style="font-size: 1.5rem; font-weight: bold; text-transform: uppercase;">{{ $conference->abbreviation }}</span>
             @elseif($displayType == 'logo' && !empty($conference->conference_logo))
                 <img src="{{ Storage::url('conference/conference/logo/' . $conference->conference_logo) }}"
                     alt="{{ $conference->conference_name }}" style="max-height: 50px;">
             @else
                 <img src="{{ Storage::url('society/logo/' . $conference->society->logo) }}"
                     alt="{{ $conference->society->abbreviation }}" style="max-height: 50px;">
-            @endif 
+            @endif
         </a>
 
         <button class="navbar-toggler collapsed" type="button" data-bs-toggle="collapse"
@@ -47,9 +48,11 @@
                         href="{{ route('conference.scientific-session', $conference->slug) }}">Scientific
                         Sessions</a>
                 </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{{ route('conference.workshop', $conference->slug) }}">Workshops</a>
-                </li>
+                @if (feature_enabled('workshop-management', $conference->society))
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ route('conference.workshop', $conference->slug) }}">Workshops</a>
+                    </li>
+                @endif
                 <li class="nav-item">
                     <a class="nav-link" href="{{ route('conference.news-and-notice', $conference->slug) }}">News &
                         Notices</a>

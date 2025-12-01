@@ -13,9 +13,12 @@ class PasswordResetLinkController extends Controller
     /**
      * Display the password reset link request view.
      */
-    public function create(): View
+    public function create(Request $request): View
     {
-        return view('auth.forgot-password');
+        // dd('here');
+        $society = $request->attributes->get('societyDomainDetail');
+        // dd($society);
+        return view('auth.forgot-password',compact('society'));
     }
 
     /**
@@ -37,8 +40,8 @@ class PasswordResetLinkController extends Controller
         );
 
         return $status == Password::RESET_LINK_SENT
-                    ? back()->with('status', __($status))
-                    : back()->withInput($request->only('email'))
-                        ->withErrors(['email' => __($status)]);
+            ? back()->with('status', __($status))
+            : back()->withInput($request->only('email'))
+            ->withErrors(['email' => __($status)]);
     }
 }

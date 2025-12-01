@@ -22,12 +22,12 @@ function getMetas($segment1, $segment2)
 
     if ($segment1 == 'blog') {
         $blog = Blog::where('slug', $segment2)->first();
-        
+
         $imageUrl = null;
         if ($blog && $blog->image) {
             $imageUrl = url(Storage::url('blog/image/' . $blog->image));
         }
-        
+
         $meta = (object) [
             'title' => $blog?->title,
             'description' => $blog?->description,
@@ -38,7 +38,7 @@ function getMetas($segment1, $segment2)
         $meta = (object) [
             'title' => "Medcon Alert",
             'description' => "Medcon Alert - Manage your conferences with ease. Stay updated with the latest news, register for events, and connect with professionals in your field.",
-            'image' =>  asset('frontend/assets/img/MEDCON-LOGO.png'), 
+            'image' =>  asset('frontend/assets/img/MEDCON-LOGO.png'),
         ];
         return $meta;
     }
@@ -73,14 +73,14 @@ if (!function_exists('getConference')) {
     function getConference($conference)
     {
         static $cache = [];
-        
+
         $conference_id = Hashids::decode($conference);
         $key = is_array($conference_id) ? $conference_id[0] : $conference_id;
-        
+
         if (!isset($cache[$key])) {
             $cache[$key] = Conference::where('id', $key)->first();
         }
-        
+
         return $cache[$key] ?: false;
     }
 }
@@ -88,17 +88,25 @@ if (!function_exists('getSociety')) {
     function getSociety($society)
     {
         static $cache = [];
-        
+
         $society_id = Hashids::decode($society);
         $key = is_array($society_id) ? $society_id[0] : $society_id;
-        
+
         if (!isset($cache[$key])) {
             $cache[$key] = Society::where('id', $key)->first();
         }
-        
+        // dd($cache[$key] ?: false);
         return $cache[$key] ?: false;
     }
 }
+// if (!function_exists('getSocietySlug')) {
+//     function getSocietySlug($society)
+//     {
+//         $society = Society::where('slug', $society)->first();
+//         dd($society);
+//         return $society;
+//     }
+// }
 
 if (!function_exists('getCategories')) {
     function getCategories($parent_id)

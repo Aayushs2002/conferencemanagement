@@ -32,7 +32,7 @@
 
 
                     {{-- @if ($submission->presentation_type == 2 || $submission->presentation_type == 3) --}}
-                    <div class="col-md-12 form-group mt-3 mb-3 decisionForm" style="display: none;"
+                    {{-- <div class="col-md-12 form-group mt-3 mb-3 decisionForm" style="display: none;"
                         id="abstractContent">
                         <label for="abstract_content">Abstract Content <code>* <span>(NOTE: Total number of
                                     Abstract
@@ -42,7 +42,39 @@
                         @error('abstract_content')
                             <p class="text-danger">{{ $message }}</p>
                         @enderror
-                    </div>
+                    </div> --}}
+
+                    @if (!empty($submission->sections))
+                        {{-- Display sections if they exist --}}
+                        @foreach ($submission->sections as $index => $section)
+                            <div class="col-md-12 form-group mb-3 decisionForm" style="display: none;">
+                                <label
+                                    for="section_{{ $index }}">{{ $section['name'] ?? 'Section ' . ($index + 1) }}
+                                    <code>*</code></label>
+                                <textarea class="form-control section-content" name="sections[{{ $index }}][content]"
+                                    id="section_{{ $index }}" cols="30" rows="5">{{ old('sections.' . $index . '.content', $section['content'] ?? '') }}</textarea>
+                                <input type="hidden" name="sections[{{ $index }}][name]"
+                                    value="{{ $section['name'] ?? '' }}">
+                                <input type="hidden" name="sections[{{ $index }}][word_limit]"
+                                    value="{{ $section['word_limit'] ?? '' }}">
+                                <p class="text-danger section-error-{{ $index }}"></p>
+                            </div>
+                        @endforeach
+                    @else
+                        {{-- Display abstract content if no sections --}}
+                        <div class="col-md-12 form-group mb-3 decisionForm" id="abstractContent" style="display: none;">
+                            <label for="abstract_content">Abstract Content <code>* <span>(NOTE: Total number of
+                                        Abstract
+                                        Words limitation is
+                                        {{ !empty(@$setting->abstract_word_limit) ? $setting->abstract_word_limit : 'infinity' }})</span></code></label>
+                            <textarea class="form-control" name="abstract_content" id="abstract_content" cols="30" rows="5">{{ !empty(old('abstract_content')) ? old('abstract_content') : $submission->abstract_content }}</textarea>
+                            @error('abstract_content')
+                                <p class="text-danger">{{ $message }}</p>
+                            @enderror
+                            <p class="text-danger abstract_content"></p>
+                        </div>
+                    @endif
+
                     {{-- @endif --}}
                     @if ($setting->scoring_allowed == 1)
                         <div class="row pl-3 decisionForm" style="display: none;">
@@ -137,9 +169,36 @@
     @endif
 </div>
 
-</div>
 
 <script>
+    var ckeditorInstances = {};
+
+    @if (!empty($submission->sections))
+        // Initialize CKEditor for each section
+        @foreach ($submission->sections as $index => $section)
+            ckeditorInstances['section_{{ $index }}'] = CKEDITOR.replace('section_{{ $index }}', {
+                filebrowserUploadUrl: '{{ route('ckeditor.fileUpload', ['_token' => csrf_token()]) }}',
+                filebrowserUploadMethod: "form",
+                extraPlugins: 'wordcount',
+                wordcount: {
+                    showWordCount: true,
+                    maxWordCount: {{ $section['word_limit'] ?? 'Infinity' }},
+                }
+            });
+        @endforeach
+    @else
+        // Initialize CKEditor for abstract content
+        ckeditorInstances['abstract_content'] = CKEDITOR.replace('abstract_content', {
+            filebrowserUploadUrl: '{{ route('ckeditor.fileUpload', ['_token' => csrf_token()]) }}',
+            filebrowserUploadMethod: "form",
+            extraPlugins: 'wordcount',
+            wordcount: {
+                showWordCount: true,
+                maxWordCount: {{ @$setting->abstract_word_limit ? @$setting->abstract_word_limit : 'Infinity' }},
+            }
+        });
+    @endif
+
     $('#yes').on('change', function() {
         if ($(this).is(':checked')) {
             var data = $(this).val();
@@ -172,20 +231,20 @@
         }
     });
 
-    CKEDITOR.replace('abstract_content', {
-        filebrowserUploadUrl: '{{ route('ckeditor.fileUpload', ['_token' => csrf_token()]) }}',
-        filebrowserUploadMethod: "form",
-        extraPlugins: 'wordcount',
-        wordcount: {
-            showWordCount: true,
-            maxWordCount: {{ @$setting->abstract_word_limit ? @$setting->abstract_word_limit : 'Infinity' }},
-        }
-    });
-
 
     $("#decideRequest").on('click', function(e) {
         e.preventDefault();
         var data = new FormData($('#decisionForm')[0]);
+        @if (!empty($submission->sections))
+            // Get data from section editors
+            @foreach ($submission->sections as $index => $section)
+                data.set('sections[{{ $index }}][content]', ckeditorInstances[
+                    'section_{{ $index }}'].getData());
+            @endforeach
+        @else
+            // Get data from abstract content editor
+            data.append('abstract_content', ckeditorInstances['abstract_content'].getData());
+        @endif
         $.ajaxSetup({
             headers: {
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')

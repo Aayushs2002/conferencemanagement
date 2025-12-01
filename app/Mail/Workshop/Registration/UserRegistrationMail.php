@@ -55,14 +55,18 @@ class UserRegistrationMail extends Mailable
      */
     public function attachments(): array
     {
-        $pdf = Pdf::loadView('emails.conference.payment-voucher', ['data' => $this->data])
-            ->setPaper('legal', 'potrait');
-        $pdfPath = storage_path('app/public/registration.pdf');
-        $pdf->save($pdfPath);
-        return [
-            Attachment::fromPath($pdfPath)
-                ->as('PaymentVoucher.pdf')
-                ->withMime('application/pdf'),
-        ];
+        if ($this->data['workshop_type'] == 2) {
+            return [];
+        } else {
+            $pdf = Pdf::loadView('emails.conference.payment-voucher', ['data' => $this->data])
+                ->setPaper('legal', 'potrait');
+            $pdfPath = storage_path('app/public/registration.pdf');
+            $pdf->save($pdfPath);
+            return [
+                Attachment::fromPath($pdfPath)
+                    ->as('PaymentVoucher.pdf')
+                    ->withMime('application/pdf'),
+            ];
+        }
     }
 }

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Models\Conference; 
+namespace App\Models\Conference;
 
 use App\Models\Accomodation\Hotel;
 use App\Models\Download\Download;
@@ -15,6 +15,7 @@ class Conference extends Model
     protected $fillable = [
         'society_id',
         'conference_name',
+        'conference_email',
         'abbreviation',
         'conference_theme',
         'conference_logo',

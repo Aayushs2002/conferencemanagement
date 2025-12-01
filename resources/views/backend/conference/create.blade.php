@@ -157,7 +157,7 @@
                             <label class="form-label" for="conference_logo">Conference Logo <code> (Only JPG/PNG) (Max:
                                     250
                                     KB)</code></label>
-            <input type="file" class="form-control" name="conference_logo" id="image"
+                            <input type="file" class="form-control" name="conference_logo" id="image"
                                 value="{{ !empty(old('conference_logo')) ? old('conference_logo') : @$conference->conference_logo }}" />
                             <div class="row" id="imgPreview">
                                 @if (isset($conference))
@@ -174,7 +174,8 @@
                             @enderror
                         </div>
                         <div class="mb-6 col-md-4">
-                            <label class="form-label" for="conference_banner">Conference Banner <code> (Only JPG/PNG) (Dimension: 1800 x 600)</code></label>
+                            <label class="form-label" for="conference_banner">Conference Banner <code> (Only JPG/PNG)
+                                    (Dimension: 1800 x 600)</code></label>
                             <input type="file" class="form-control" name="conference_banner" id="image3"
                                 value="{{ !empty(old('conference_banner')) ? old('conference_banner') : @$conference->conference_banner }}" />
                             <div class="row" id="imgPreview3">
@@ -188,6 +189,18 @@
                                 @endif
                             </div>
                             @error('conference_banner')
+                                <p class="text-danger">{{ $message }}</p>
+                            @enderror
+                        </div>
+                        <div class="mb-6 col-md-4">
+                            <label class="form-label" for="bs-validation-email">Conference Email <code>*</code></label>
+                            <input type="email" id="bs-validation-email"
+                                value="{{ old('conference_email') ?? (@$conference?->conference_email ?? '') }}"
+                                name="conference_email" class="form-control" placeholder="Enter Email"
+                                aria-label="john.doe" required />
+                            <div class="valid-feedback">Looks good!</div>
+                            <div class="invalid-feedback">Please enter a valid email</div>
+                            @error('conference_email')
                                 <p class="text-danger">{{ $message }}</p>
                             @enderror
                         </div>
@@ -216,7 +229,7 @@
                                 <p class="text-danger">{{ $message }}</p>
                             @enderror
                         </div>
- 
+
                         <div class="col-12">
                             <h6>2. Venue Details</h6>
                             <hr class="mt-0" style="height:1px;border:none;color:#333;background-color:#333;" />

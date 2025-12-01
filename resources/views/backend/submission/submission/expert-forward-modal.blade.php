@@ -88,7 +88,7 @@
     @endif
 
     $("#forwardRequest").on('click', function(e) {
-        e.preventDefault();
+        e.preventDefault(); 
         var data = new FormData($('#dataForm')[0]);
         
         @if (!empty($submission->sections))

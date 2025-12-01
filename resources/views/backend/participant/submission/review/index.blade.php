@@ -1,6 +1,6 @@
    @extends('backend.layouts.conference.main')
    @section('title')
-       Submission
+       Review Submission
    @endsection
    @section('content')
        @include('backend.layouts.conference-navigation')
@@ -26,55 +26,8 @@
            }
        </style>
    @endsection
-   @if ($submissionSetting?->abstract_guidelines)
-       <div class="modal fade" id="openAbstractGuidelineModal" tabindex="-1" role="dialog"
-           aria-labelledby="exampleModalCenterTitleDuideline" aria-hidden="true">
-           <div class="modal-dialog modal-lg modal-simple modal-pricing">
-               <div class="modal-content" id="modalContent">
-                   <div class="modal-body">
-                       <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                       <h4 class="text-center mb-4">Abstract Submission Guidelines</h4>
-                       {!! $submissionSetting->abstract_guidelines !!}
-                   </div>
-               </div>
-           </div>
-       </div>
-   @endif
-   {{-- @dd($submissions->where('user_id', current_user()->id)->where('request_status', 1)->where('presentation_type', 1)->isNotEmpty()) --}}
-   {{-- @dd($submissions) --}}
-   @if ($submissions->where('user_id', current_user()->id)->where('request_status', 1)->where('presentation_type', 2)->isNotEmpty() && $submissionSetting->oral_guidelines)
-       {{-- @dd('da') --}}
-       <div class="modal fade" id="openOralGuidelineModal" tabindex="-1" role="dialog"
-           aria-labelledby="exampleModalCenterTitleDuideline" aria-hidden="true">
-           <div class="modal-dialog modal-lg modal-simple modal-pricing">
-               <div class="modal-content" id="modalContent">
-                   <div class="modal-body">
-                       <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                       <h4 class="text-center mb-4">Oral Presentation Guidelines</h4>
-                       {!! $submissionSetting->oral_guidelines !!}
-                   </div>
-               </div>
-           </div>
-       </div>
-   @endif
-   @if ($submissions->where('user_id', current_user()->id)->where('request_status', 1)->where('presentation_type', 1)->isNotEmpty() && $submissionSetting->poster_guidelines)
-       <div class="modal fade" id="openPosterGuidelineModal" tabindex="-1" role="dialog"
-           aria-labelledby="exampleModalCenterTitleDuideline" aria-hidden="true">
-           <div class="modal-dialog modal-lg modal-simple modal-pricing">
-               <div class="modal-content" id="modalContent">
-                   <div class="modal-body">
-                       <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                       <h4 class="text-center mb-4">Poster Presentation Guidelines</h4>
-                       {!! $submissionSetting->poster_guidelines !!}
-                   </div>
-               </div>
-           </div>
-       </div>
-   @endif
 
-   {{-- @if (
-       $submissions->where('expert_id', current_user()->id)->where('presentation_type', 1)->isNotEmpty() &&
-           $submissionSetting->poster_reviewer_guide)
+   @if ($submissionSetting->poster_reviewer_guide)
        <div class="modal fade" id="openExpertPosterGuidelineModal" tabindex="-1" role="dialog"
            aria-labelledby="exampleModalCenterTitleDuideline" aria-hidden="true">
            <div class="modal-dialog modal-lg modal-simple modal-pricing">
@@ -88,9 +41,7 @@
            </div>
        </div>
    @endif
-   @if (
-       $submissions->where('expert_id', current_user()->id)->where('presentation_type', 2)->isNotEmpty() &&
-           $submissionSetting->oral_reviewer_guide)
+   @if ($submissionSetting->oral_reviewer_guide)
        <div class="modal fade" id="openExpertOralGuidelineModal" tabindex="-1" role="dialog"
            aria-labelledby="exampleModalCenterTitleDuideline" aria-hidden="true">
            <div class="modal-dialog modal-lg modal-simple modal-pricing">
@@ -103,15 +54,14 @@
                </div>
            </div>
        </div>
-   @endif --}}
+   @endif
 
    {{-- Video Guidelines Section --}}
    @php
        $conferenceSettings = $conference->conferenceSetting ?? null;
        $hasVideoGuidelines = false;
        if ($conferenceSettings) {
-           $hasVideoGuidelines =
-               $conferenceSettings->submission_guideline_youtube || $conferenceSettings->expert_guideline_youtube;
+           $hasVideoGuidelines = $conferenceSettings->expert_guideline_youtube;
        }
    @endphp
 
@@ -123,47 +73,26 @@
                    <h5 class="mb-0">Video Guidelines</h5>
                </div>
                <div class="row g-3">
-                   @if ($conferenceSettings->submission_guideline_youtube)
-                       <div class="col-md-6">
-                           <div class="guideline-video-card"
-                               style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; padding: 20px; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 4px 6px rgba(0,0,0,0.1);"
-                               onclick="showSubmissionVideoModal('{{ $conferenceSettings->submission_guideline_youtube }}')">
-                               <div class="d-flex align-items-center text-white">
-                                   <div
-                                       style="background: rgba(255,255,255,0.2); width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 15px;">
-                                       <i class="ti tabler-player-play" style="font-size: 30px;"></i>
-                                   </div>
-                                   <div>
-                                       <h6 class="text-white mb-1" style="font-weight: 600;">Submission Guidelines</h6>
-                                       <p class="mb-0" style="font-size: 13px; opacity: 0.9;">Watch video tutorial</p>
-                                   </div>
+                   {{-- @if ($submissions->where('expert_id', current_user()->id)->where('presentation_type', 1)->isNotEmpty() && $conferenceSettings->expert_guideline_youtube) --}}
+                   <div class="col-md-6">
+                       <div class="guideline-video-card"
+                           style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); border-radius: 12px; padding: 20px; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 4px 6px rgba(0,0,0,0.1);"
+                           onclick="showExpertVideoModal('{{ $conferenceSettings->expert_guideline_youtube }}')">
+                           <div class="d-flex align-items-center text-white">
+                               <div
+                                   style="background: rgba(255,255,255,0.2); width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 15px;">
+                                   <i class="ti tabler-player-play" style="font-size: 30px;"></i>
+                               </div>
+                               <div>
+                                   <h6 class="text-white mb-1" style="font-weight: 600;">Expert/Reviewer
+                                       Guidelines</h6>
+                                   <p class="mb-0" style="font-size: 13px; opacity: 0.9;">Watch video tutorial
+                                   </p>
                                </div>
                            </div>
                        </div>
-                   @endif
-
-                   {{-- @if (
-                       $submissions->where('expert_id', current_user()->id)->where('presentation_type', 1)->isNotEmpty() &&
-                           $conferenceSettings->expert_guideline_youtube)
-                       <div class="col-md-6">
-                           <div class="guideline-video-card"
-                               style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); border-radius: 12px; padding: 20px; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 4px 6px rgba(0,0,0,0.1);"
-                               onclick="showExpertVideoModal('{{ $conferenceSettings->expert_guideline_youtube }}')">
-                               <div class="d-flex align-items-center text-white">
-                                   <div
-                                       style="background: rgba(255,255,255,0.2); width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 15px;">
-                                       <i class="ti tabler-player-play" style="font-size: 30px;"></i>
-                                   </div>
-                                   <div>
-                                       <h6 class="text-white mb-1" style="font-weight: 600;">Expert/Reviewer
-                                           Guidelines</h6>
-                                       <p class="mb-0" style="font-size: 13px; opacity: 0.9;">Watch video tutorial
-                                       </p>
-                                   </div>
-                               </div>
-                           </div>
-                       </div>
-                   @endif --}}
+                   </div>
+                   {{-- @endif --}}
                </div>
            </div>
        </div>
@@ -201,11 +130,10 @@
            <div class="row card-header flex-column flex-md-row border-bottom mx-0 px-3">
                <div
                    class="d-md-flex justify-content-between align-items-center dt-layout-start col-md-auto me-auto mt-0">
-                   <h5 class="card-title mb-0 text-md-start text-center pb-md-0 pb-6">Presentation Submission
+                   <h5 class="card-title mb-0 text-md-start text-center pb-md-0 pb-6">Review Submission
                    </h5>
                </div>
-               <div
-                   class="d-md-flex justify-content-between align-items-center dt-layout-end col-md-auto ms-auto mt-0">
+               {{-- <div class="d-md-flex justify-content-between align-items-center dt-layout-end col-md-auto ms-auto mt-0">
                    <div class="dt-buttons btn-group flex-wrap mb-0">
 
                        <a href="{{ route('my-society.conference.submission.create', [$society, $conference]) }}"
@@ -214,7 +142,7 @@
                            <span class="d-none d-sm-inline-block">New Submission</span>
                        </a>
                    </div>
-               </div>
+               </div> --}}
            </div>
            <table class="datatables-basic table">
                <thead>
@@ -285,7 +213,17 @@
                                    <a href="{{ route('my-society.conference.submission.author.index', [$society, $conference, $submission]) }}"
                                        class="btn btn-sm btn-success"
                                        {{ $submission->expert_id == current_user()->id ? 'hidden' : '' }}>Authors</a>
-                                  
+                                   @if (
+                                       $submission->expert_id == current_user()->id &&
+                                           ($submission->review_status == 2 || $submission->review_status == 0))
+                                       <a class="reviewNow btn btn-sm btn-danger text-white"
+                                           data-id="{{ $submission->id }}" data-bs-toggle="modal"
+                                           data-bs-target="#pricingModal">
+                                           <span id="reviewNow">
+                                               Review Now
+                                           </span>
+                                       </a>
+                                   @endif
                                    @if ($submission->discussions->isNotEmpty())
                                        <span class="mt-1">
                                            <a href="{{ route('my-society.conference.submission.viewDiscussion', [$society, $conference, $submission]) }}"
@@ -303,7 +241,7 @@
        </div>
        <div class="modal fade" id="pricingModal" tabindex="-1" aria-hidden="true">
            <div class="modal-dialog modal-lg modal-simple modal-pricing">
-               <div class="modal-content" id="modalContent">
+               <div class="modal-content" id="modalData">
                </div>
            </div>
        </div>
@@ -313,6 +251,7 @@
 @section('scripts')
    <script>
        let guideVideoModalInstance = null;
+
 
 
        function showExpertVideoModal(url) {
@@ -382,13 +321,13 @@
        });
 
        $(document).ready(function() {
-           $(document).off("click", ".viewData");
+        //    $(document).off("click", ".viewData");
            $(document).on("click", ".viewData", function(e) {
                e.preventDefault();
                var url = '{{ route('my-society.conference.submission.view', [$society, $conference]) }}';
                var _token = '{{ csrf_token() }}';
                var id = $(this).data('id');
-               $('#modalContent').html(`
+               $('#modalData').html(`
                     <div class="modal-body text-center">
                         <div class="spinner-border text-primary" role="status">
                             <span class="visually-hidden">Loading...</span>
@@ -403,12 +342,39 @@
                $('#pricingModal .modal-dialog').addClass('modal-lg');
                $.post(url, data, function(response) {
                    setTimeout(function() {
-                       $('#modalContent').html(response);
+                       $('#modalData').html(response);
                    }, 1000);
                });
            });
 
-        
+           $(document).off("click", ".reviewNow");
+           $(document).on("click", ".reviewNow", function(e) {
+            // alert('ok');
+               e.preventDefault();
+               var url =
+                   '{{ route('my-society.conference.submission.review', [$society, $conference]) }}';
+               var _token = '{{ csrf_token() }}';
+               var id = $(this).data('id');
+
+               $('#modalData').html(`
+                    <div class="modal-body text-center">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                `);
+               var data = {
+                   _token: _token,
+                   id: id
+               };
+               $('#pricingModal .modal-dialog').removeClass('modal-lg');
+               $('#pricingModal .modal-dialog').addClass('modal-xl');
+               $.post(url, data, function(response) {
+                   setTimeout(function() {
+                       $('#modalData').html(response);
+                   }, 1000);
+               });
+           });
 
            $('.convertPresentationType').click(function(e) {
                e.preventDefault();
@@ -433,29 +399,10 @@
                });
            });
 
-           $('#openAbstractGuidelineModal').modal('show');
            $('#openExpertOralGuidelineModal').modal('show');
            $('#openExpertPosterGuidelineModal').modal('show');
 
-           var shouldShowFirstModal =
-               {{ $submissions->where('user_id', current_user()->id)->where('request_status', 1)->where('presentation_type', 1)->isNotEmpty() ? 'true' : 'false' }};
 
-           var shouldShowSecondModal =
-               {{ $submissions->where('user_id', current_user()->id)->where('request_status', 1)->where('presentation_type', 2)->isNotEmpty() ? 'true' : 'false' }};
-
-           if (shouldShowFirstModal) {
-               $('#openPosterGuidelineModal').modal('show');
-           }
-
-           $('#openPosterGuidelineModal').on('hidden.bs.modal', function() {
-               if (shouldShowSecondModal) {
-                   $('#openOralGuidelineModal').modal('show');
-               }
-           });
-
-           if (shouldShowSecondModal && !shouldShowFirstModal) {
-               $('#openOralGuidelineModal').modal('show');
-           }
        });
    </script>
 @endsection

@@ -17,7 +17,7 @@ use Illuminate\Support\Facades\Http;
 class WorkshopPaymentController extends Controller
 {
     public function fonePay(Request $request, $society, $conference, $workshop)
-    {
+    { 
         $data = [
             'id' => $workshop->id,
             'price' => $request->price,

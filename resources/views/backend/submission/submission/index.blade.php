@@ -9,20 +9,20 @@
         <form method="GET" action="{{ route('submission.index', [$society, $conference]) }}" id="filterForm">
             <div class="row">
                 <div class="col-md-3 form-group mb-3">
-                    <label for="article_type_id" class="mb-2">Article Type</label>
+                    <label for="article_type_id" class="mb-2">Presentation Category</label>
                     <select name="article_type_id" id="article_type_id"
                         class="form-control @error('article_type_id') is-invalid @enderror">
-                        <option value="">-- Select Article Type --</option>
+                        <option value="">-- Select Presentation Category --</option>
                         @foreach ($articleTypes as $articleType)
-                            <option value="{{ $articleType->id }}" 
+                            <option value="{{ $articleType->id }}"
                                 {{ request()->article_type_id == $articleType->id ? 'selected' : '' }}>
                                 {{ $articleType->name }}
                             </option>
                         @endforeach
-                    </select> 
+                    </select>
                 </div>
                 <div class="col-md-3 form-group mb-3">
-                    <label for="presentation_type" class="mb-2">Presnetation Type</label>
+                    <label for="presentation_type" class="mb-2">Presentation Type</label>
                     <select name="presentation_type" id="presentation_type"
                         class="form-control @error('presentation_type') is-invalid @enderror">
                         <option value="">-- Select Presentation Type --</option>
@@ -54,10 +54,10 @@
                     </select>
                 </div>
                 <div class="col-md-3 form-group mb-3">
-                    <label for="submission_category_major_track_id" class="mb-2">Submission Track/Category</label>
+                    <label for="submission_category_major_track_id" class="mb-2">Theme/Sub-theme</label>
                     <select name="submission_category_major_track_id" id="submission_category_major_track_id"
                         class="form-control @error('submission_category_major_track_id') is-invalid @enderror">
-                        <option value="">-- Select Submission Track/Category --</option>
+                        <option value="">-- Select Theme/Sub-theme --</option>
                         @foreach ($submissionTracks as $submissionTrack)
                             <option value="{{ $submissionTrack->id }}"
                                 {{ request()->submission_category_major_track_id == $submissionTrack->id ? 'selected' : '' }}>
@@ -111,7 +111,8 @@
                     <strong>Color Legend:</strong>
                     <span class="badge bg-success">Green</span> = Multiple Poster submissions by same user |
                     <span class="badge bg-warning">Yellow</span> = Multiple Oral submissions by same user |
-                    <span class="badge bg-danger">Red</span> = Multiple submissions with different presentation types by same user
+                    <span class="badge bg-danger">Red</span> = Multiple submissions with different presentation types by
+                    same user
                 </small>
             </div>
             <table class="datatables-basic table">
@@ -119,9 +120,9 @@
                     <tr>
                         <th>#</th>
                         <th scope="col">Speaker Name</th>
-                        <th>Article Type</th>
-                        <th>Major Track/Category</th>
-                        <th>Topic</th> 
+                        <th>Presentation Category</th>
+                        <th>Theme/Sub-theme</th>
+                        <th>Topic</th>
                         <th>Presentation Type</th>
                         <th>Request Status</th>
                         @if (auth()->user()->hasConferencePermissionBlade($conference, 'Expert Assign'))
@@ -159,14 +160,14 @@
                                 @if ($submission->presentation_type_change === null)
                                     @if (auth()->user()->hasConferencePermissionBlade($conference, 'Convert Presentation Type'))
                                         @if ($submission->presentation_type == 2)
-                                            <a href="{{ route('submission.convertPresentationTypeRequest', [$society, $conference, $submission->id]) }}"
+                                            {{-- <a href="{{ route('submission.convertPresentationTypeRequest', [$society, $conference, $submission->id]) }}"
                                                 class="btn btn-sm btn-primary convertPresentationTypeRequest mt-1">
                                                 <span style="font-size: 10px;">
                                                     Convert
                                                     To
                                                     Poster
                                                 </span>
-                                            </a>
+                                            </a> --}}
                                         @else
                                             <a href="{{ route('submission.convertPresentationTypeRequest', [$society, $conference, $submission->id]) }}"
                                                 class="btn btn-sm btn-primary convertPresentationTypeRequest mt-1"><span
@@ -187,8 +188,9 @@
                             <td>
                                 @if ($submission->request_status === 0)
                                     @if (auth()->user()->hasConferencePermissionBlade($conference, 'Change Request Status'))
-                                        <button class="btn btn-sm btn-primary sentToAuthot" data-id="{{ $submission->id }}"
-                                            data-bs-toggle="modal" data-bs-target="#pricingModal">Pending</button>
+                                        <button class="btn btn-sm btn-primary sentToAuthot"
+                                            data-id="{{ $submission->id }}" data-bs-toggle="modal"
+                                            data-bs-target="#pricingModal">Pending</button>
                                     @else
                                         <span class="badge bg-primary">Pending</span>
                                     @endif

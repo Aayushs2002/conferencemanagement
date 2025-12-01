@@ -41,6 +41,7 @@ class ConferenceRequest extends FormRequest
             'venue_email' => 'required|email',
             'google_map_link' => 'required',
             'start_time' => 'required',
+            'conference_email' => 'required|email',
             // 'organizer_name' => 'required',
             // 'organizer_logo' => 'nullable|mimes:jpg,png',
             // 'organizer_contact_person' => 'required',

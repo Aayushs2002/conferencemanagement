@@ -12,7 +12,7 @@
             <i class="icon-base ti menu-toggle-icon d-none d-xl-block"></i>
             <i class="icon-base ti tabler-x d-block d-xl-none"></i>
         </a>
-    </div> 
+    </div>
 
     <div class="menu-inner-shadow"></div>
 
@@ -126,7 +126,7 @@
                         class="menu-link ">
                         <i class="menu-icon icon-base ti tabler-presentation"></i>
                         <div data-i18n="My Workshop Applications">My Workshop Applications</div>
-                    </a> 
+                    </a>
                 </li>
                 <li
                     class="menu-item  {{ request()->segment(5) == 'workshop-registration' && request()->segment(1) == 'my-society' ? 'active' : '' }}">
@@ -146,6 +146,16 @@
                         <div data-i18n="My Submission">My Submission</div>
                     </a>
                 </li>
+                @if (is_expert($conference))
+                    <li
+                        class="menu-item  {{ request()->segment(5) == 'review-submission' && request()->segment(1) == 'my-society' ? 'active' : '' }}">
+                        <a href="{{ route('my-society.conference.submission.submissionReview', [request()->segment(2), request()->segment(4)]) }}"
+                            class="menu-link ">
+                            <i class="menu-icon icon-base ti tabler-building-skyscraper"></i>
+                            <div data-i18n="Review Submission">Review Submission</div>
+                        </a>
+                    </li>
+                @endif
             @endif
 
             @if (auth()->user()->userDetail->country_id != 125 && checkRegistration(request()->segment(4)))
@@ -196,15 +206,15 @@
                                 class="menu-item {{ request()->segment(6) == 'submission-cateogry-majortrack' ? 'active' : '' }}">
                                 <a href="{{ route('submission.category-majortrack.index', [request()->segment(2), request()->segment(4)]) }}"
                                     class="menu-link">
-                                    <div data-i18n="Category/Major Track">Category/Major Track</div>
+                                    <div data-i18n="Theme/Sub-theme">Theme/Sub-theme</div>
                                 </a>
                             </li>
-                        @endif 
+                        @endif
                         @if (auth()->user()->hasConferencePermissionBlade($conference, 'View Article Type'))
                             <li class="menu-item {{ request()->segment(6) == 'article-type' ? 'active' : '' }}">
                                 <a href="{{ route('articleType.index', [request()->segment(2), request()->segment(4)]) }}"
                                     class="menu-link">
-                                    <div data-i18n="Article Type">Article Type</div>
+                                    <div data-i18n="Presentation Category">Presentation Category</div>
                                 </a>
                             </li>
                         @endif
@@ -216,7 +226,7 @@
                                 </a>
                             </li>
                         @endif
-                    </ul> 
+                    </ul>
                 </li>
             @endif
         @endif
@@ -262,7 +272,7 @@
                             <li class="menu-item {{ request()->segment(6) == 'hall' ? 'active' : '' }}">
                                 <a href="{{ route('hall.index', [request()->segment(2), request()->segment(4)]) }}"
                                     class="menu-link">
-                                    <div data-i18n="Hall">Hall</div> 
+                                    <div data-i18n="Hall">Hall</div>
                                 </a>
                             </li>
                         @endif
@@ -284,7 +294,7 @@
 
                         <div data-i18n="Workshop">Workshop</div>
                     </a>
-                    <ul class="menu-sub"> 
+                    <ul class="menu-sub">
                         @if (auth()->user()->hasConferencePermissionBlade($conference, 'View Workshop'))
                             <li
                                 class="menu-item {{ request()->segment(5) == 'workshop' && request()->segment(6) == '' ? 'active' : '' }}">
@@ -302,7 +312,7 @@
                                     <div data-i18n="Register New User">Register New User</div>
                                 </a>
                             </li>
-                        @endif 
+                        @endif
                         @if (auth()->user()->hasConferencePermissionBlade($conference, 'Regster User in Exceptional Case'))
                             <li
                                 class="menu-item {{ request()->segment(7) == 'register-for-exceptional-case' ? 'active' : '' }}">
@@ -489,8 +499,8 @@
                     </a>
                 </li>
             @endif
-        @endif 
- 
+        @endif
+
         @if (feature_enabled('hotel-and-accomodation-management', getSociety(request()->segment(2))))
             @if (auth()->user()->hasConferencePermissionBlade($conference, 'View Hotel'))
                 <li class="menu-item {{ request()->segment(5) == 'hotel' ? 'active' : '' }}">

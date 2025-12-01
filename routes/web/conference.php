@@ -257,6 +257,7 @@ Route::middleware('auth')->group(function () {
         Route::resource('/workshop', WorkshopController::class)->except('show');
         Route::controller(WorkshopController::class)->name('workshop.')->prefix('/workshop')->group(function () {
             Route::post('/view-data', 'view')->name('view');
+            Route::post('/view-rating', 'viewRating')->name('view.rating');
             Route::post('/allocate-price-form', 'allocatePriceForm')->name('allocatePriceForm');
             Route::post('/allocate-price-submit', 'allocatePriceSubmit')->name('allocatePriceSubmit');
             Route::post('/{workshop_approve}/approve', 'approve')->name('approve');
@@ -376,4 +377,3 @@ Route::group(['middleware' => ['auth']], function () {
 Route::get('/participant/profile/{token}', [ConferenceRegistrationController::class, 'participantProfile']);
 Route::get('workshop/participant/profile/{token}', [WorkshopRegistrationController::class, 'participantProfile']);
 Route::get('/sponsor/profile/{token}', [SponsorController::class, 'sponsorProfile']);
- 
