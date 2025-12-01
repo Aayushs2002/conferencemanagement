@@ -42,7 +42,7 @@ class ProfileController extends Controller
             $namePrefixId = current_user()->userDetail->name_prefix_id;
             if (($namePrefixId == 1 || $namePrefixId == 3) && current_user()->userDetail->country_id == 125) {
                 $rules['council_number'] = 'required|unique:user_details,council_number,' . current_user()->userDetail->id . ',id';
-
+ 
                 $messages['council_number.required'] = 'The council number is required.';
             } else {
                 $rules['council_number'] = 'nullable';
