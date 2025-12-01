@@ -1,5 +1,5 @@
 <div class="modal-header">
-    <h5 class="modal-title" id="pricingModalLabel">{{ isset($articleType) ? 'Edit' : 'Add' }} Article Type</h5>
+    <h5 class="modal-title" id="pricingModalLabel">{{ isset($articleType) ? 'Edit' : 'Add' }} Presentation Category</h5>
     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 </div>
 <div class="modal-body">
@@ -13,12 +13,12 @@
 
         <div class="row">
             <div class="mb-6 col-md-12">
-                <label class="form-label" for="name">Article Type Name<code>*</code></label>
-                <input type="text" class="form-control @error('name') is-invalid @enderror"
-                    id="name" placeholder="Enter Article Type Name" name="name"
+                <label class="form-label" for="name">Presentation Category Name<code>*</code></label>
+                <input type="text" class="form-control @error('name') is-invalid @enderror" id="name"
+                    placeholder="Enter Presentation Category Name" name="name"
                     value="{{ old('name') ?? @$articleType?->name }}" required />
                 <div class="valid-feedback">Looks good!</div>
-                <div class="invalid-feedback">Please enter Article Type Name.</div>
+                <div class="invalid-feedback">Please enter Presentation Category Name.</div>
                 @error('name')
                     <p class="text-danger">{{ $message }}</p>
                 @enderror
@@ -36,12 +36,12 @@
 </div>
 
 <script>
-    $(document).ready(function () {
+    $(document).ready(function() {
 
         // Prevent duplicate event bindings
         $(document).off("submit", "#articleTypeForm");
 
-        $(document).on("submit", "#articleTypeForm", function (e) {
+        $(document).on("submit", "#articleTypeForm", function(e) {
             e.preventDefault();
 
             // HTML5 validation
@@ -54,9 +54,10 @@
             let formData = new FormData(this);
 
             // Ensure output is a valid JS string
-            let url = {!! json_encode(isset($articleType)
-                ? route('articleType.update', [$society, $conference, $articleType->id])
-                : route('articleType.store', [$society, $conference])
+            let url = {!! json_encode(
+                isset($articleType)
+                    ? route('articleType.update', [$society, $conference, $articleType->id])
+                    : route('articleType.store', [$society, $conference]),
             ) !!};
 
             $.ajax({
@@ -66,7 +67,7 @@
                 processData: false,
                 contentType: false,
 
-                success: function (response) {
+                success: function(response) {
                     $('#pricingModal').modal('hide');
 
                     Swal.fire({
@@ -76,7 +77,7 @@
                     }).then(() => location.reload());
                 },
 
-                error: function (xhr) {
+                error: function(xhr) {
                     let errors = xhr.responseJSON?.errors;
 
                     if (errors) {
@@ -101,4 +102,3 @@
         });
     });
 </script>
-

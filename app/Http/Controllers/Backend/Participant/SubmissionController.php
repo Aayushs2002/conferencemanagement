@@ -10,6 +10,7 @@ use App\Models\Conference\ArticleType;
 use App\Models\Conference\ArticleTypeSetting;
 use App\Models\Conference\Submission;
 use App\Models\Conference\SubmissionCategoryMajorTrack;
+use App\Models\Conference\Contribution;
 use App\Models\Conference\SubmissionDiscussion;
 use App\Models\SubmissionSetting;
 use App\Models\Template\EmailTemplate;
@@ -33,10 +34,10 @@ class SubmissionController extends Controller
                     ->where('user_id', current_user()->id)
                     ->where('status', 1);
             })
-            ->orWhere(function ($query) use ($conference) {
-                $query->where('conference_id', $conference->id)
-                    ->where('expert_id', current_user()->id);
-            })
+            // ->orWhere(function ($query) use ($conference) {
+            //     $query->where('conference_id', $conference->id)
+            //         ->where('expert_id', current_user()->id);
+            // })
             ->get();
         $submissionSetting = SubmissionSetting::where('conference_id', $conference->id)->first();
         return view('backend.participant.submission.index', compact('conference', 'submissions', 'society', 'submissionSetting'));
@@ -46,7 +47,7 @@ class SubmissionController extends Controller
     {
 
         $setting = SubmissionSetting::where('conference_id', $conference->id)
-            ->select('abstract_word_limit', 'key_word_limit', 'deadline', 'attachment_name', 'attachment_required', 'abstract_guidelines', 'competition_enabled')
+            ->select('abstract_word_limit', 'key_word_limit', 'deadline', 'attachment_name', 'attachment_required', 'abstract_guidelines', 'competition_enabled', 'contribution_enabled', 'copy_paste_allowed')
             ->first();
         // dd($setting);
         if (!$setting) {
@@ -57,8 +58,19 @@ class SubmissionController extends Controller
         }
         $submissionTracks = SubmissionCategoryMajorTrack::where(['conference_id' => $conference->id, 'status' => 1])->get();
         $articleTypes = ArticleType::with('setting')->where(['conference_id' => $conference->id, 'status' => 1])->orderBy('display_order', 'asc')->orderBy('id', 'asc')->get();
-        // dd($articleTypes);
-        return view('backend.participant.submission.create', compact('society', 'conference', 'submissionTracks', 'setting', 'articleTypes'));
+
+        // Get contributions if enabled
+        $contributions = [];
+        $contributionEnabled = false;
+        if ($setting && $setting->contribution_enabled) {
+            $contributionEnabled = true;
+            $contributions = Contribution::where([
+                'conference_id' => $conference->id,
+                'status' => 1
+            ])->orderBy('name', 'asc')->get();
+        }
+
+        return view('backend.participant.submission.create', compact('society', 'conference', 'submissionTracks', 'setting', 'articleTypes', 'contributions', 'contributionEnabled'));
     }
 
     public function store(SubmissionRequest $request, $society, $conference)
@@ -66,7 +78,16 @@ class SubmissionController extends Controller
         try {
             $validated = $request->all();
             // dd($validated);
-            $setting = SubmissionSetting::where('conference_id', $conference->id)->select('abstract_word_limit', 'key_word_limit')->first();
+            $setting = SubmissionSetting::where('conference_id', $conference->id)->select('abstract_word_limit', 'key_word_limit', 'authors_limit')->first();
+
+            // Check author limit
+            if ($setting && $setting->authors_limit > 0) {
+                $totalAuthors = 1 + (isset($request->authors) && is_array($request->authors) ? count($request->authors) : 0);
+                if ($totalAuthors > $setting->authors_limit) {
+                    return redirect()->back()->withInput()->with('delete', 'Author limit exceeded. Maximum allowed: ' . $setting->authors_limit);
+                }
+            }
+
             if (!empty($validated['keywords']) && !empty($setting->key_word_limit)) {
                 $keywordsCount = count(explode(',', $request->keywords));
                 // dd($validated['keywords']);
@@ -74,7 +95,7 @@ class SubmissionController extends Controller
                     return redirect()->back()->withInput()->with('delete', 'Keywords word limit exceeded.');
                 }
                 $keywordArray = json_decode($request->keywords, true);
-                $validated['keywords']  = is_array($keywordArray)
+                $validated['keywords'] = is_array($keywordArray)
                     ? implode(',', array_column($keywordArray, 'value'))
                     : '';
             }
@@ -129,6 +150,27 @@ class SubmissionController extends Controller
             $validated['submitted_date'] = now();
             $validated['main_author'] = $validated['main_author'] ?? 0;
 
+            // Check if any co-author is marked as main author
+            $coAuthorIsMain = false;
+            if ($request->has('authors') && is_array($request->authors)) {
+                foreach ($request->authors as $authorData) {
+                    if (isset($authorData['main_author']) && $authorData['main_author'] == 1) {
+                        $coAuthorIsMain = true;
+                        break;
+                    }
+                }
+            }
+
+            // Validation: At least one author must be main author
+            if ($validated['main_author'] == 0 && !$coAuthorIsMain) {
+                return redirect()->back()->withInput()->with('delete', 'At least one author must be designated as the main author/presenter.');
+            }
+
+            // Validation: Only one author can be main author
+            if ($validated['main_author'] == 1 && $coAuthorIsMain) {
+                return redirect()->back()->withInput()->with('delete', 'Only one author can be the main author/presenter.');
+            }
+
             $start = \Carbon\Carbon::parse($conference->start_date);
             $end = \Carbon\Carbon::parse($conference->end_date);
 
@@ -167,6 +209,7 @@ class SubmissionController extends Controller
             $body = parseTemplate($template?->body, $data);
             Mail::to($authUser->email)->send(new SubmissionSubmittedToUserMail($userMailData, $subject, $body, $conference->conference_name));
             DB::beginTransaction();
+            // dd('dd');   
             $submission = Submission::create($validated);
             $validated['submission_id'] = $submission->id;
             $validated['name'] = current_user()->fullName(current_user());
@@ -176,10 +219,35 @@ class SubmissionController extends Controller
             $validated['institution'] = current_user()->userDetail?->institution?->name;
             $validated['institution_address'] = current_user()->userDetail->institute_address;
 
-            Author::create($validated);
+            $author = Author::create($validated);
+
+            // Create co-authors
+            if ($request->has('authors') && is_array($request->authors)) {
+                foreach ($request->authors as $authorData) {
+                    $authorData['submission_id'] = $submission->id;
+                    $authorData['conference_id'] = $conference->id;
+                    // Set main_author based on checkbox value
+                    $authorData['main_author'] = isset($authorData['main_author']) && $authorData['main_author'] == 1 ? 1 : 0;
+                    
+                    // Map contribution_other_text to contribution_other for database
+                    if (isset($authorData['contribution_other_text'])) {
+                        $authorData['contribution_other'] = $authorData['contribution_other_text'];
+                        unset($authorData['contribution_other_text']);
+                    }
+                    unset($authorData['contribution_other_checkbox']);
+                    
+                    $coAuthor = Author::create($authorData);
+
+                    // Sync contributions
+                    if (isset($authorData['contributions'])) {
+                        $coAuthor->contributions()->sync($authorData['contributions']);
+                    }
+                }
+            }
             DB::commit();
-            return redirect()->route('my-society.conference.submission.author.index',  [$society, $conference, $submission])->with('status', 'Submission Added Successfully');
+            return redirect()->route('my-society.conference.submission.index', [$society, $conference, $submission])->with('status', 'Submission Added Successfully');
         } catch (\Exception $th) {
+            // dd($th);
             DB::rollBack();
 
             // dd($th);
@@ -197,8 +265,9 @@ class SubmissionController extends Controller
     public function edit($society, $conference, $submission)
     {
         // dd($submission);
+        $submission->load(['authors.contributions']);
         $setting = SubmissionSetting::where('conference_id', $conference->id)
-            ->select('abstract_word_limit', 'key_word_limit', 'deadline', 'attachment_name', 'attachment_required', 'abstract_guidelines', 'competition_enabled')
+            ->select('abstract_word_limit', 'key_word_limit', 'deadline', 'attachment_name', 'attachment_required', 'abstract_guidelines', 'competition_enabled', 'contribution_enabled', 'copy_paste_allowed')
             ->first();
         if (!$setting) {
             return redirect()->back()->with('delete', 'Submission settings not found.');
@@ -209,22 +278,43 @@ class SubmissionController extends Controller
         $submissionTracks = SubmissionCategoryMajorTrack::where(['conference_id' => $conference->id, 'status' => 1])->get();
         $articleTypes = ArticleType::with('setting')->where(['conference_id' => $conference->id, 'status' => 1])->orderBy('display_order', 'asc')->orderBy('id', 'asc')->get();
 
-        return view('backend.participant.submission.create', compact('society', 'conference', 'submissionTracks', 'setting', 'submission', 'articleTypes'));
+        // Get contributions if enabled
+        $contributions = [];
+        $contributionEnabled = false;
+        if ($setting && $setting->contribution_enabled) {
+            $contributionEnabled = true;
+            $contributions = Contribution::where([
+                'conference_id' => $conference->id,
+                'status' => 1
+            ])->orderBy('name', 'asc')->get();
+        }
+        // dd($contributions);
+        // dd($contributionEnabled);
+        return view('backend.participant.submission.create', compact('society', 'conference', 'submissionTracks', 'setting', 'submission', 'articleTypes', 'contributions', 'contributionEnabled'));
     }
 
     public function update(SubmissionRequest $request, $society, $conference, $submission)
     {
         // dd($request->all());
         try {
-            $validated = $request->all();
-            $setting = SubmissionSetting::where('conference_id', $conference->id)->select('abstract_word_limit', 'key_word_limit')->first();
+            $validated = $request->validated();
+            $setting = SubmissionSetting::where('conference_id', $conference->id)->select('abstract_word_limit', 'key_word_limit', 'authors_limit')->first();
+
+            // Check author limit
+            if ($setting && $setting->authors_limit > 0) {
+                $totalAuthors = 1 + (isset($request->authors) && is_array($request->authors) ? count($request->authors) : 0);
+                if ($totalAuthors > $setting->authors_limit) {
+                    return redirect()->back()->withInput()->with('delete', 'Author limit exceeded. Maximum allowed: ' . $setting->authors_limit);
+                }
+            }
+
             if (!empty($validated['keywords']) && !empty($setting->key_word_limit)) {
                 $keywordsCount = count(explode(',', $request->keywords));
                 if ($keywordsCount > $setting->key_word_limit) {
                     return redirect()->back()->withInput()->with('delete', 'Keywords word limit exceeded.');
                 }
                 $keywordArray = json_decode($request->keywords, true);
-                $validated['keywords']  = is_array($keywordArray)
+                $validated['keywords'] = is_array($keywordArray)
                     ? implode(',', array_column($keywordArray, 'value'))
                     : '';
             }
@@ -275,18 +365,114 @@ class SubmissionController extends Controller
             }
 
             DB::beginTransaction();
+
+            // Check if any co-author is marked as main author
+            $coAuthorIsMain = false;
+            if ($request->has('authors') && is_array($request->authors)) {
+                foreach ($request->authors as $authorData) {
+                    if (isset($authorData['main_author']) && $authorData['main_author'] == 1) {
+                        $coAuthorIsMain = true;
+                        break;
+                    }
+                }
+            }
+
+            // Get the current user's author record for this submission
+            $submitterAuthor = Author::where('submission_id', $submission->id)
+                ->where('email', $submission->user->email)
+                ->first();
+
+            // Determine if submitter should be main author
+            $submitterIsMain = !$coAuthorIsMain; // If no co-author is main, submitter must be main
+
+            // Update submitter's main_author status
+            if ($submitterAuthor) {
+                $submitterAuthor->update(['main_author' => $submitterIsMain ? 1 : 0]);
+            }
+
             $submission->update($validated);
 
+            // Handle co-authors
+            $existingAuthorIds = Author::where('submission_id', $submission->id)
+                ->where('email', '!=', $submission->user->email) // Exclude main author (user)
+                ->pluck('id')
+                ->toArray();
+
+            $processedAuthorIds = [];
+
+            if ($request->has('authors') && is_array($request->authors)) {
+                foreach ($request->authors as $authorData) {
+                    // Set main_author based on checkbox value
+                    $authorData['main_author'] = isset($authorData['main_author']) && $authorData['main_author'] == 1 ? 1 : 0;
+                    
+                    // Map contribution_other_text to contribution_other for database
+                    if (isset($authorData['contribution_other_text'])) {
+                        $authorData['contribution_other'] = $authorData['contribution_other_text'];
+                        unset($authorData['contribution_other_text']);
+                    } else {
+                        $authorData['contribution_other'] = null;
+                    }
+                    unset($authorData['contribution_other_checkbox']);
+
+                    if (isset($authorData['id']) && $authorData['id']) {
+                        // Update existing
+                        $author = Author::find($authorData['id']);
+                        if ($author) {
+                            $author->update($authorData);
+                            $processedAuthorIds[] = $author->id;
+
+                            // Sync contributions
+                            if (isset($authorData['contributions'])) {
+                                $author->contributions()->sync($authorData['contributions']);
+                            } else {
+                                $author->contributions()->detach();
+                            }
+                        }
+                    } else {
+                        // Create new
+                        $authorData['submission_id'] = $submission->id;
+                        $authorData['conference_id'] = $conference->id;
+                        $author = Author::create($authorData);
+                        $processedAuthorIds[] = $author->id;
+
+                        // Sync contributions
+                        if (isset($authorData['contributions'])) {
+                            $author->contributions()->sync($authorData['contributions']);
+                        }
+                    }
+                }
+            }
+
+            // Delete removed authors
+            $authorsToDelete = array_diff($existingAuthorIds, $processedAuthorIds);
+            if (!empty($authorsToDelete)) {
+                Author::destroy($authorsToDelete);
+            }
+
             DB::commit();
-            return redirect()->route('my-society.conference.submission.index',  [$society, $conference])->with('status', 'Submission Added Successfully');
+            return redirect()->route('my-society.conference.submission.index', [$society, $conference])->with('status', 'Submission Added Successfully');
         } catch (\Exception $th) {
+            // dd($th);
             DB::rollBack();
             return redirect()->back()->withInput()->with('delete', 'Internal Server Error');
         }
     }
 
+
+    public function submissionReview($society, $conference)
+    {
+        $submissions = Submission::with('discussions')
+            ->where('conference_id', $conference->id)
+            ->where('expert_id', current_user()->id)
+            ->where('status', 1)
+            ->get();
+        $submissionSetting = SubmissionSetting::where('conference_id', $conference->id)->first();
+        return view('backend.participant.submission.review.index', compact('conference', 'submissions', 'society', 'submissionSetting'));
+    }
+
     public function review(Request $request, $society, $conference)
     {
+        // dd('ok');
         $submission = Submission::whereId($request->id)->first();
         $setting = SubmissionSetting::where(['conference_id' => $conference->id, 'status' => 1])->first();
         return view('backend.participant.submission.review-modal', compact('submission', 'setting', 'conference', 'society'));
@@ -306,7 +492,15 @@ class SubmissionController extends Controller
             // Build validation rules based on structure type
             if ($request->requestType == 1) {
                 $rules['remarks'] = 'required';
-                $rules['abstract_content'] = 'required';
+                if ($request->has('sections') && is_array($request->sections)) {
+                    // Validate sections
+                    foreach ($request->sections as $index => $section) {
+                        $rules["sections.{$index}.content"] = 'required|string';
+                    }
+                } else {
+                    // Validate abstract content
+                    $rules['abstract_content'] = 'required';
+                }
 
                 if ($request->structure) {
                     // Structured review: single overall rating
@@ -324,59 +518,20 @@ class SubmissionController extends Controller
                 $rules['reject_remarks'] = 'required';
             }
 
-
-            //  $submission = Submission::findOrFail($request->id);
-            // $setting = SubmissionSetting::where(['conference_id' => $submission->conference_id, 'status' => 1])->first();
-            // $rules = [];
-
-            // // Build validation rules
-            // if ($request->requestType == 1 && !$request->structure) {
-            //     if ($setting->scoring_allowed == 1) {
-            //         $rules += [
-            //             'introduction' => 'required|integer',
-            //             'method' => 'required|integer',
-            //             'result' => 'required|integer',
-            //             'conclusion' => 'required|integer',
-            //             'grammar' => 'required|integer',
-            //             'remarks' => 'required',
-            //             'abstract_content' => 'required',
-            //         ];
-            //     } else {
-            //         $rules += [
-            //             'introduction' => 'nullable|integer',
-            //             'method' => 'nullable|integer',
-            //             'result' => 'nullable|integer',
-            //             'conclusion' => 'nullable|integer',
-            //             'grammar' => 'nullable|integer',
-            //             'remarks' => 'required',
-            //             'abstract_content' => 'required',
-            //         ];
-            //     }
-            // } elseif ($request->structure) {
-            //     if ($setting->scoring_allowed == 1) {
-            //         $rules += [
-            //             'overall_rating' => 'required|integer',
-            //             'remarks' => 'required',
-            //             'abstract_content' => 'required',
-            //         ];
-            //     } else {
-            //         $rules += [
-            //             'overall_rating' => 'nullable|integer',
-            //             'remarks' => 'required',
-            //             'abstract_content' => 'required',
-            //         ];
-            //     }
-            // }
-
-
             $validated = $request->validate($rules);
-
+            if ($request->has('sections') && is_array($request->sections)) {
+                $validated['sections'] = $request->sections;
+                $validated['abstract_content'] = null; // Clear abstract content when using sections
+            } else {
+                $validated['sections'] = null; // Clear sections when using abstract content
+            }
             DB::beginTransaction();
 
             // Update submission
             if ($request->requestType == 1) {
                 $submission->update([
                     'review_status' => 1,
+                    'sections' => $validated['sections'],
                     'abstract_content' => $validated['abstract_content'],
                 ]);
             } elseif ($request->requestType == 2) {

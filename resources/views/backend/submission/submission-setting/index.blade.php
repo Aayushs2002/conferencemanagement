@@ -161,6 +161,22 @@
                                 @enderror
                             </div>
 
+                            <div class="col-md-4 form-group mb-3">
+                                <label for="copy_paste_allowed">Allow Copy-Paste in Text Editors</label>
+                                <select name="copy_paste_allowed" id="copy_paste_allowed"
+                                    class="form-control @error('copy_paste_allowed') is-invalid @enderror">
+                                    <option value="1"
+                                        {{ !empty($conference->submissionSetting) && $conference->submissionSetting->copy_paste_allowed == 1 ? 'selected' : '' }}>
+                                        Yes</option>
+                                    <option value="0"
+                                        {{ !empty($conference->submissionSetting) && $conference->submissionSetting->copy_paste_allowed == 0 ? 'selected' : '' }}>
+                                        No</option>
+                                </select>
+                                @error('copy_paste_allowed')
+                                    <p class="text-danger">{{ $message }}</p>
+                                @enderror
+                            </div>
+
                             <div class="col-md-12 form-group mb-3">
                                 <label for="abstract_guidelines">Abstract Submission Guidelines </label>
                                 <textarea name="abstract_guidelines" class="form-control ckeditor @error('abstract_guidelines') is-invalid @enderror"

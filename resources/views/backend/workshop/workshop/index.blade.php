@@ -97,7 +97,11 @@
                                                 data-bs-toggle="modal" data-bs-target="#pricingModal"><i
                                                     class="icon-base ti tabler-eye me-1 "></i> View</a>
                                         @endif
-
+                                        @if (\Carbon\Carbon::now()->greaterThan($workshop->end_date))
+                                            <a class="dropdown-item viewRating" data-id="{{ $workshop->id }}"
+                                                data-bs-toggle="modal" data-bs-target="#pricingModal"><i
+                                                    class="icon-base ti tabler-eye me-1 "></i> View Rating</a>
+                                        @endif
                                         {{-- Admin Approval Actions - Only for Type 1 & 2 (Admins) --}}
                                         @if (
                                             (current_user()->type == 1 || current_user()->type == 2) &&
@@ -255,6 +259,29 @@
                 e.preventDefault();
                 $(".modal-dialog").removeClass('custom-modal-width');
                 var url = '{{ route('workshop.view', [$society, $conference]) }}';
+                var _token = '{{ csrf_token() }}';
+                var id = $(this).data('id');
+                $('#modalContent').html(`
+                    <div class="modal-body text-center">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span> 
+                        </div>
+                    </div>
+                `);
+                var data = {
+                    _token: _token,
+                    id: id
+                };
+                $.post(url, data, function(response) {
+                    setTimeout(function() {
+                        $('#modalContent').html(response);
+                    }, 1000);
+                });
+            });
+            $(document).on("click", ".viewRating", function(e) {
+                e.preventDefault();
+                $(".modal-dialog").removeClass('custom-modal-width');
+                var url = '{{ route('workshop.view.rating', [$society, $conference]) }}';
                 var _token = '{{ csrf_token() }}';
                 var id = $(this).data('id');
                 $('#modalContent').html(`

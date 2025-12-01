@@ -64,6 +64,7 @@ Route::middleware('auth')->group(function () {
 
     Route::controller(SubmissionController::class)->prefix('/my-society/{society}/conference/{conference}')->name('my-society.conference.submission.')->group(function () {
         Route::get('/submission', 'index')->name('index');
+        Route::get('/review-submission', 'submissionReview')->name('submissionReview');
         Route::get('/submission/create', 'create')->name('create');
         Route::post('/submission/store', 'store')->name('store');
         Route::get('/submission/{submission}/edit', 'edit')->name('edit');
@@ -96,7 +97,7 @@ Route::middleware('auth')->group(function () {
         Route::delete('/my-workshops/{workshop}/destroy', 'destroy')->name('destroy');
         Route::post('/my-workshops/view-data', 'view')->name('view');
         Route::post('/my-workshops/allocate-price-form', 'allocatePriceForm')->name('allocatePriceForm');
-        Route::post('/my-workshops/allocate-price-submit', 'allocatePriceSubmit')->name('allocatePriceSubmit'); 
+        Route::post('/my-workshops/allocate-price-submit', 'allocatePriceSubmit')->name('allocatePriceSubmit');
     });
 
     // Participant Workshop Trainer Management (for their approved workshops)
@@ -123,6 +124,8 @@ Route::middleware('auth')->group(function () {
         Route::post('/workshop-registration/meal', 'meal')->name('meal');
         Route::post('/workshop-registration/mealSubmit', 'submitMealPreference')->name('submitMealPreference');
         Route::post('/workshop-registration/store/{workshop}', 'store')->name('store');
+        Route::post('/workshop-registration/rating', 'rating')->name('rating');
+        Route::post('/workshop-registration/submit-rating', 'submitRating')->name('submitRating');
     });
 
     //workshopt payment controller

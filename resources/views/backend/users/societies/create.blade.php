@@ -11,7 +11,7 @@
             <div class="card-body">
                 <form class="needs-validation"
                     action="{{ isset($society) ? route('society.update', $society) : route('society.store') }}" method="POST"
-                    enctype="multipart/form-data" novalidate>
+                    enctype="multipart/form-data" novalidate> 
                     @csrf
 
                     @isset($society)

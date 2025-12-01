@@ -57,7 +57,7 @@ class ConferenceController extends Controller
         try {
             $req = $request->all();
             if (!empty($req['tags'])) {
-
+ 
                 $tagArray = json_decode($request->tags, true);
                 $req['tags']  = is_array($tagArray)
                     ? implode(',', array_column($tagArray, 'value'))

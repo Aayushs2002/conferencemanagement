@@ -205,6 +205,13 @@ class AuthorController extends Controller
             // Process main_author field
             $validated['main_author'] = $request->has('main_author') ? 1 : 0;
 
+            // If this author is being set as main author, remove main_author status from others
+            if ($validated['main_author'] == 1) {
+                Author::where('submission_id', $request->submission_id)
+                    ->where('status', 1)
+                    ->update(['main_author' => 0]);
+            }
+
             // Handle contributions
             $contributions = $validated['contributions'] ?? [];
             unset($validated['contributions']);
@@ -371,6 +378,14 @@ class AuthorController extends Controller
 
             // Process main_author field
             $validated['main_author'] = $request->has('main_author') ? 1 : 0;
+
+            // If this author is being set as main author, remove main_author status from others
+            if ($validated['main_author'] == 1) {
+                Author::where('submission_id', $request->submission_id)
+                    ->where('status', 1)
+                    ->where('id', '!=', $author->id)
+                    ->update(['main_author' => 0]);
+            }
 
             // Handle contributions
             $contributions = $validated['contributions'] ?? [];

@@ -34,9 +34,46 @@
                 <img src="{{ asset('frontend/assets/img/MEDCON-LOGO.png') }}" style="height: 60px;">
             </a>
         </a> --}}
+        @php
+            $nextConference = null;
+            if (!empty($society) && $society->conferences) {
+                $upcoming = $society->conferences
+                    ->filter(function ($c) {
+                        return \Carbon\Carbon::parse($c->start_date)->isToday() ||
+                            \Carbon\Carbon::parse($c->start_date)->isFuture();
+                    })
+                    ->sortBy('start_date');
+
+                $nextConference = $upcoming->first();
+
+                if (!$nextConference) {
+                    $nextConference = $society->conferences->sortByDesc('start_date')->first();
+                }
+            }
+        @endphp
+        {{-- <div class="app-
         <div class="text-center" class="app-brand-link">
             <img src="{{ asset('frontend/assets/img/MEDCON-LOGO-blue.png') }}" alt="Medcon Alert">
-        </div>
+        </div> --}}
+        @if (!empty($nextConference))
+            {{-- <a href="#" class="app-brand-link">
+
+                <img src="{{ asset('default-image/NESOG.png') }}" style="height: 60px;">
+            </a> --}}
+            @if (!empty($nextConference->conference_logo))
+                <a href="#" class="app-brand-link">
+                    <img src="{{ asset('storage/conference/conference/logo/' . $nextConference->conference_logo) }}"
+                        style="height:50px;">
+                </a>
+            @else
+                <div class="text-center">
+                    <h3>{{ $nextConference->conference_name ?? 'Upcoming Conference' }}</h3>
+                </div>
+            @endif
+        @else
+            <h3>Medcon Alert</h3>
+
+        @endif
 
     </div>
     <!-- /Logo -->
@@ -51,6 +88,21 @@
             @error('email')
                 <p class="text-danger">{{ $message }}</p>
             @enderror
+        </div>
+        <div class="my-8 form-control-validation" style="margin-block-start:0rem !important;">
+            <div class="form-check mb-0 ms-2">
+                <input class="form-check-input" type="checkbox" id="terms-conditions" name="terms" />
+                <label class="form-check-label" for="terms-conditions">
+                    I agree to
+                    @if ($nextConference)
+                        <a href="{{ route('conference.privacy-policy', $nextConference->slug) }}" target="blank">privacy
+                            policy</a> & <a href="{{ route('conference.terms-conditions', $nextConference->slug) }}"
+                            target="blank">terms</a>
+                    @else
+                        <a href="#">privacy policy</a> & <a href="#">terms</a>
+                    @endif
+                </label>
+            </div>
         </div>
         <button class="btn btn-primary d-grid w-100">Send Reset Link</button>
     </form>

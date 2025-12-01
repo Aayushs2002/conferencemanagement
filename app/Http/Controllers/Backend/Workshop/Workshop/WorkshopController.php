@@ -9,6 +9,7 @@ use App\Models\Workshop\Workshop;
 use App\Models\Workshop\WorkshopChairPersonDetail;
 use App\Models\Workshop\WorkshopRegistrationPrice;
 use App\Models\Workshop\WorkshopVenueDetail;
+use App\Models\WorkshopRating;
 use App\Services\File\FileService;
 use Exception;
 use Illuminate\Http\Request;
@@ -135,6 +136,41 @@ class WorkshopController extends Controller
         return view('backend.workshop.workshop.view', compact('workshop'));
     }
 
+    public function viewRating($society, $conference, Request $request)
+    {
+        $workshop = Workshop::with(['ratings.user'])->findOrFail($request->id);
+
+        // Get all ratings for this workshop
+        $ratings = WorkshopRating::where('workshop_id', $workshop->id)
+            ->with('user')
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        // Calculate statistics
+        $totalRatings = $ratings->count();
+        $averageRating = $totalRatings > 0 ? $ratings->avg('rating') : 0;
+        $ratingsWithComments = $ratings->filter(function ($rating) {
+            return !empty($rating->comment);
+        })->count();
+
+        // Rating distribution (count for each star rating)
+        $ratingDistribution = [
+            5 => $ratings->where('rating', 5)->count(),
+            4 => $ratings->where('rating', 4)->count(),
+            3 => $ratings->where('rating', 3)->count(),
+            2 => $ratings->where('rating', 2)->count(),
+            1 => $ratings->where('rating', 1)->count(),
+        ];
+
+        return view('backend.workshop.workshop.view-rating', compact(
+            'workshop',
+            'ratings',
+            'totalRatings',
+            'averageRating',
+            'ratingsWithComments',
+            'ratingDistribution'
+        ));
+    }
     /**
      * Show the form for editing the specified resource.
      */

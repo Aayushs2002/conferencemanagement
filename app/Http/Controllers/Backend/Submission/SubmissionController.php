@@ -230,7 +230,7 @@ class SubmissionController extends Controller
                     $validated['abstract_content'] = null; // Clear abstract content when using sections
                 } else {
                     $validated['sections'] = null; // Clear sections when using abstract content
-                }
+                } 
 
                 $expert = User::whereId($validated['expert_id'])->first();
                 $template = EmailTemplate::where(['conference_id' => $submission->conference_id, 'key' => 1])->first();

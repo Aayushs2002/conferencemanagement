@@ -41,6 +41,7 @@ class SubmissionSettingController extends Controller
                 'contribution_enabled' => 'nullable|boolean',
                 'competition_enabled' => 'nullable|boolean',
                 'submission_open_date' => 'nullable|date',
+                'copy_paste_allowed' => 'nullable|boolean',
 
             ]);
 

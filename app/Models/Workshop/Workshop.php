@@ -3,6 +3,7 @@
 namespace App\Models\Workshop;
 
 use App\Models\User;
+use App\Models\WorkshopRating;
 use Illuminate\Database\Eloquent\Model;
 use Vinkla\Hashids\Facades\Hashids;
 
@@ -141,7 +142,11 @@ class Workshop extends Model
             default => 'Unknown'
         };
     }
-
+    
+    public function ratings()
+    {
+        return $this->hasMany(WorkshopRating::class);
+    }
     // public function trainers()
     // {
     //     return $this->hasMany(WorkshopTrainer::class,'workshop_id', 'id');

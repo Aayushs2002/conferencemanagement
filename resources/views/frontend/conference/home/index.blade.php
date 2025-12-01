@@ -50,11 +50,13 @@
                             <i class="fa-regular fa-file-lines me-2"></i>
                             <span>Abstract Submission</span>
                         </button>
-                        <button class="nav-link d-flex align-items-center" id="tab-travel" data-bs-toggle="pill"
-                            data-bs-target="#travel" type="button" role="tab">
-                            <i class="fa-regular fa-building me-2"></i>
-                            <span>Travel & Accommodation</span>
-                        </button>
+                        @if (feature_enabled('hotel-and-accomodation-management', $conference->society))
+                            <button class="nav-link d-flex align-items-center" id="tab-travel" data-bs-toggle="pill"
+                                data-bs-target="#travel" type="button" role="tab">
+                                <i class="fa-regular fa-building me-2"></i>
+                                <span>Travel & Accommodation</span>
+                            </button>
+                        @endif
                         <button class="nav-link d-flex align-items-center" id="tab-sponsors" data-bs-toggle="pill"
                             data-bs-target="#sponsors" type="button" role="tab">
                             <i class="fa-regular fa-handshake me-2"></i>
@@ -398,7 +400,11 @@
                             <tbody>
                                 {{-- @dd($memberTypes) --}}
                                 @foreach ($memberTypes as $memberType)
-                                    @if ($memberType->early_bird_amount || $memberType->regular_amount || $memberType->on_site_amount || $memberType->guest_amount )
+                                    @if (
+                                        $memberType->early_bird_amount ||
+                                            $memberType->regular_amount ||
+                                            $memberType->on_site_amount ||
+                                            $memberType->guest_amount)
                                         <tr>
                                             <td>{{ $memberType->type }}
                                                 {{ $memberType->delegate == 1 ? '(Nepal)' : '(International)' }}</td>
@@ -482,10 +488,13 @@
                 <i class="fa-regular fa-file-lines me-2"></i>
                 <span>Abstract Submission</span>
             </button>
-            <button class="nav-link d-flex align-items-center mobile-tab-link" data-bs-target="#travel" type="button">
-                <i class="fa-regular fa-building me-2"></i>
-                <span>Travel & Accommodation</span>
-            </button>
+            @if (feature_enabled('hotel-and-accomodation-management', $conference->society))
+                <button class="nav-link d-flex align-items-center mobile-tab-link" data-bs-target="#travel"
+                    type="button">
+                    <i class="fa-regular fa-building me-2"></i>
+                    <span>Travel & Accommodation</span>
+                </button>
+            @endif
             <button class="nav-link d-flex align-items-center mobile-tab-link" data-bs-target="#sponsors" type="button">
                 <i class="fa-regular fa-handshake me-2"></i>
                 <span>Sponsors</span>

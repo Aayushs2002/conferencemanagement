@@ -2,7 +2,8 @@
       <div class="container">
           <div class="row gy-4">
               <div class="col-lg-3 col-md-6">
-                  <h5 class="footer-title mb-3 " style="text-transform: uppercase;">{{$conference->society->abbreviation}}</h5>
+                  <h5 class="footer-title mb-3 " style="text-transform: uppercase;">
+                      {{ $conference->society->abbreviation }}</h5>
                   <ul class="list-unstyled footer-links">
                       <li><a href="{{ route('conference.name', $conference->slug) }}" class="footer-link">Conference
                               Overview</a></li>
@@ -15,7 +16,7 @@
                               registration
                           </a></li>
                   </ul>
-              </div> 
+              </div>
               <div class="col-lg-3 col-md-6">
                   <h5 class="footer-title mb-3">About Conference</h5>
                   <ul class="list-unstyled footer-links">
@@ -26,19 +27,24 @@
                       </li>
                   </ul>
               </div>
-              <div class="col-lg-3 col-md-6">
-                  <h5 class="footer-title mb-3">Workshops</h5>
-                  <ul class="list-unstyled footer-links">
-                      @foreach ($workshops as $workshop)
-                          <li><a href="{{ route('conference.workshop.singlePage', [$conference->slug, $workshop->slug]) }}"
-                                  class="footer-link">{{ $workshop->workshop_title }}</a></li>
-                      @endforeach
-                  </ul>
-              </div>
+              @if (feature_enabled('workshop-management', $conference->society))
+
+                  <div class="col-lg-3 col-md-6">
+                      <h5 class="footer-title mb-3">Workshops</h5>
+                      <ul class="list-unstyled footer-links">
+                          @foreach ($workshops as $workshop)
+                              <li><a href="{{ route('conference.workshop.singlePage', [$conference->slug, $workshop->slug]) }}"
+                                      class="footer-link">{{ $workshop->workshop_title }}</a></li>
+                          @endforeach
+                      </ul>
+                  </div>
+              @endif
               <div class="col-lg-3 col-md-6">
                   <ul class="list-unstyled footer-links mt-4 mt-lg-0">
-                      <li><a href="{{ route('conference.terms-conditions', $conference->slug) }}" class="footer-link">Terms & Conditions</a></li>
-                      <li><a href="{{ route('conference.privacy-policy', $conference->slug) }}" class="footer-link">Privacy Policy</a></li>
+                      <li><a href="{{ route('conference.terms-conditions', $conference->slug) }}"
+                              class="footer-link">Terms & Conditions</a></li>
+                      <li><a href="{{ route('conference.privacy-policy', $conference->slug) }}"
+                              class="footer-link">Privacy Policy</a></li>
                   </ul>
               </div>
           </div>

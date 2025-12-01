@@ -201,16 +201,27 @@
                 <div class="row">
                     <input type="hidden" name="submission_id" value="{{ $submission->id }}">
 
-                    @if (!in_array(1, $checkMainAuthor) || (isset($author) ? $author->main_author == 1 : ''))
-                        <div class="col-md-12 form-check mb-3">
-                            <input type="checkbox" class="form-check-input" name="main_author" id="main_author"
-                                value="1"
-                                @isset($author) @if ($author->main_author == 1) checked @endif @endisset />
-                            <label for="main_author" class="form-check-label">Is Main Presenter ? </label>
+                    <div class="col-md-12 form-group mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="main_author" id="main_author" 
+                                value="1" {{ isset($author) && $author->main_author == 1 ? 'checked' : '' }}>
+                            <label class="form-check-label" for="main_author">
+                                <strong>Set as Main Author/Presenter</strong>
+                                <i class="ti tabler-info-circle text-primary ms-1" 
+                                   data-bs-toggle="tooltip" 
+                                   data-bs-placement="top" 
+                                   title="Only one author can be the main presenter. Selecting this will remove main author status from the current main author."></i>
+                            </label>
+                            @if(in_array(1, $checkMainAuthor) && (!isset($author) || $author->main_author != 1))
+                                <small class="text-warning d-block mt-1">
+                                    <i class="ti tabler-alert-circle"></i> 
+                                    A main author already exists. Checking this will replace them as the main author.
+                                </small>
+                            @endif
                         </div>
-                    @endif
+                    </div>
 
-                    <div class="@if (!in_array(1, $checkMainAuthor) || (isset($author) ? $author->main_author == 1 : '')) col-md-6 @else col-md-6 @endif form-group mb-3">
+                    <div class="col-md-6 form-group mb-3">
                         <label for="name">Full Name <code>*</code></label>
                         <input type="text" class="form-control" name="name" id="name"
                             value="{{ isset($author) ? $author->name : old('name') }}" placeholder="Enter author name"
@@ -218,7 +229,7 @@
                         <span class="invalid-feedback" id="name-error"></span>
                     </div>
 
-                    <div class="@if (!in_array(1, $checkMainAuthor) || (isset($author) ? $author->main_author == 1 : '')) col-md-6 @else col-md-6 @endif form-group mb-3">
+                    <div class="col-md-6 form-group mb-3">
                         <label for="email">Email <code>*</code></label>
                         <input type="email" class="form-control" name="email" id="email"
                             value="{{ isset($author) ? $author->email : old('email') }}"
@@ -347,6 +358,16 @@
                 if ($(this).is(":checked")) {
                     $("#phoneCondition").text('*')
                     $("#phone").attr('required', true)
+                    
+                    // Show confirmation if another main author exists
+                    @if(in_array(1, $checkMainAuthor) && (!isset($author) || $author->main_author != 1))
+                        if (!confirm('A main author already exists for this submission. Setting this author as the main author will remove the main author status from the current main author. Do you want to continue?')) {
+                            $(this).prop('checked', false);
+                            $("#phoneCondition").text('(Optional)')
+                            $("#phone").attr('required', false)
+                            return false;
+                        }
+                    @endif
                 } else {
                     $("#phoneCondition").text('(Optional)')
                     $("#phone").attr('required', false)

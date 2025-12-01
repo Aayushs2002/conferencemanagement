@@ -36,8 +36,7 @@
                             <select class="form-select" name="article_type_id" id="article_type_id" required>
                                 <option value="" hidden>-- Select Article Type --</option>
                                 @foreach ($articleTypes as $articleType)
-                                    <option value="{{ $articleType->id }}"
-                                        @selected(old('article_type_id', @$submission->article_type_id) == $articleType->id)>
+                                    <option value="{{ $articleType->id }}" @selected(old('article_type_id', @$submission->article_type_id) == $articleType->id)>
                                         {{ $articleType->name }}
                                     </option>
                                 @endforeach
@@ -49,11 +48,11 @@
                             @enderror
                         </div>
                         <div class="mb-6 col-md-6">
-                            <label for="submission_category_major_track_id" class="form-label">Category/Major Track
-                                <code>*</code></label>
+                            <label for="submission_category_major_track_id" class="form-label">Theme/Sub-theme
+                                <code>*</code></label> 
                             <select class="form-select" name="submission_category_major_track_id"
                                 id="submission_category_major_track_id" required>
-                                <option value="" hidden>-- Select Category/Major Track --</option>
+                                <option value="" hidden>-- Select Theme/Sub-theme --</option>
                                 @foreach ($submissionTracks as $submissionTrack)
                                     <option value="{{ $submissionTrack->id }}"
                                         data-content="{{ $submissionTrack->major_areas }}" @selected(old('submission_category_major_track_id', @$submission->submission_category_major_track_id) == $submissionTrack->id)>
@@ -61,7 +60,7 @@
                                 @endforeach
                             </select>
                             <div class="valid-feedback">Looks good!</div>
-                            <div class="invalid-feedback">Please select Category/Major Track.</div>
+                            <div class="invalid-feedback">Please select Theme/Sub-theme.</div>
                             @error('submission_category_major_track_id')
                                 <p class="text-danger">{{ $message }}</p>
                             @enderror
