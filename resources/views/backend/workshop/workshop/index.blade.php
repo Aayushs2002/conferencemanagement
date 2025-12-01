@@ -77,7 +77,7 @@
                             <td>
                                 <a
                                     href="{{ route('workshop.workshop-registration.index', [$society, $conference, $workshop]) }}">
-                                    {{ $workshop->registrations->where('verified_status', 1)->where('status', 1)->count() }}
+                                    {{ $workshop->registrations->where('verified_status', 1)->where('status', 1)->where('registrant_type', 1)->count() }}
                                 </a>
                             </td>
                             <td>
@@ -136,7 +136,7 @@
                                                     class="icon-base ti tabler-circle-letter-t me-1"></i>Trainers</a>
                                         @endif
                                         @if (auth()->user()->hasConferencePermissionBlade(getConference(request()->segment(4)), 'View Workshop Registrant'))
-                                            @if ($workshop->registrations->where('status', 1)->isNotEmpty())
+                                            @if ($workshop->registrations->where('status', 1)->where('registrant_type', 1)->isNotEmpty())
                                                 <a href="{{ route('workshop.workshop-registration.index', [$society, $conference, $workshop]) }}"
                                                     class="dropdown-item  mb-1"><i
                                                         class="icon-base ti tabler-user me-1"></i>Registrants</a>

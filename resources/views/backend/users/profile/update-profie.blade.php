@@ -16,7 +16,7 @@
                             return $society->$relation()->where('status', 1)->get();
                         }
                         return $model::where('status', 1)->get();  
-                    }; 
+                    };  
 
                     $institutions = $loadData('institutions', \App\Models\User\Institution::class);
                     $designations = $loadData('designations', \App\Models\User\Designation::class);
