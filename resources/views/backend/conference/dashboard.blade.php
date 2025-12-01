@@ -481,7 +481,12 @@
                                                 <strong>Note:</strong> Speakers do <u>not</u> need to register for the
                                                 conference separately.<br>
                                                 If your submission is <b>accepted</b>, you will be <b>automatically
-                                                    registered</b> for the conference.
+                                                    registered</b> for the conference.<br>
+                                                <b>
+                                                    Incase of rejection of Abstract, you have to go through registration
+                                                    process
+                                                    to attend the conference.
+                                                </b>
                                             </div>
                                         </div>
                                         <div class="modal-footer">
