@@ -27,22 +27,7 @@
                 <input type="hidden" id="submissionId" name="id" value="{{ $submission->id }}">
                 <div class="col-md-12 form-group mb-3">
 
-
                     <input type="hidden" name="type" value="{{ $submission->presentation_type == 1 ? 2 : 1 }}">
-
-
-                    {{-- @if ($submission->presentation_type == 2 || $submission->presentation_type == 3) --}}
-                    {{-- <div class="col-md-12 form-group mt-3 mb-3 decisionForm" style="display: none;"
-                        id="abstractContent">
-                        <label for="abstract_content">Abstract Content <code>* <span>(NOTE: Total number of
-                                    Abstract
-                                    Words limitation is
-                                    {{ !empty(@$setting->abstract_word_limit) ? $setting->abstract_word_limit : 'infinity' }})</span></code></label>
-                        <textarea class="form-control" name="abstract_content" id="abstract_content" cols="30" rows="5">{{ !empty(old('abstract_content')) ? old('abstract_content') : $submission->abstract_content }}</textarea>
-                        @error('abstract_content')
-                            <p class="text-danger">{{ $message }}</p>
-                        @enderror
-                    </div> --}}
 
                     @if (!empty($submission->sections))
                         {{-- Display sections if they exist --}}
@@ -52,7 +37,7 @@
                                     for="section_{{ $index }}">{{ $section['name'] ?? 'Section ' . ($index + 1) }}
                                     <code>*</code></label>
                                 <textarea class="form-control section-content" name="sections[{{ $index }}][content]"
-                                    id="section_{{ $index }}" cols="30" rows="5">{{ old('sections.' . $index . '.content', $section['content'] ?? '') }}</textarea>
+                                    id="section_{{ $index }}" cols="30" rows="5" readonly>{{ old('sections.' . $index . '.content', $section['content'] ?? '') }}</textarea>
                                 <input type="hidden" name="sections[{{ $index }}][name]"
                                     value="{{ $section['name'] ?? '' }}">
                                 <input type="hidden" name="sections[{{ $index }}][word_limit]"
@@ -67,79 +52,125 @@
                                         Abstract
                                         Words limitation is
                                         {{ !empty(@$setting->abstract_word_limit) ? $setting->abstract_word_limit : 'infinity' }})</span></code></label>
-                            <textarea class="form-control" name="abstract_content" id="abstract_content" cols="30" rows="5">{{ !empty(old('abstract_content')) ? old('abstract_content') : $submission->abstract_content }}</textarea>
+                            <textarea class="form-control" name="abstract_content" id="abstract_content" cols="30" rows="5" readonly>{{ !empty(old('abstract_content')) ? old('abstract_content') : $submission->abstract_content }}</textarea>
                             @error('abstract_content')
                                 <p class="text-danger">{{ $message }}</p>
                             @enderror
                             <p class="text-danger abstract_content"></p>
                         </div>
                     @endif
-
+                    <div class="col-md-12 form-group mb-3 decisionForm" style="display: none;" id="remarksDiv">
+                        <label for="remarks">Review Remarks <code>*</code></label>
+                        <textarea class="form-control" name="remarks" id="remarks" cols="30" rows="5">{{ isset($submission) ? $submission->remarks : old('remarks') }}</textarea>
+                        <p class="text-danger remarks"></p>
+                    </div> 
                     {{-- @endif --}}
                     @if ($setting->scoring_allowed == 1)
-                        <div class="row pl-3 decisionForm" style="display: none;">
-                            <div class="col-md-12 mb-3">
-                                <label class="text-danger" for="defaultCheck1">Score Base On below Topic
-                                    <code>(Check the box if the structure not applicable <input
-                                            class="form-check-input mt-1" type="checkbox" value="1"
-                                            name="structure" id="defaultCheck1" />) </code></label>
+                        {{-- Section-based ratings if article type has sections --}}
+                        @if (!empty($articleTypeSections) && is_array($articleTypeSections))
+                            <div class="row pl-3 decisionForm" style="display: none;">
+                                <div class="col-md-12 mb-3">
+                                    <label class="text-danger">Score Based On Sections <code>*</code></label>
+                                    <p class="text-muted small">Rate each section from 0-2 based on quality and content
+                                    </p>
+                                </div>
+                                @foreach ($articleTypeSections as $index => $section)
+                                    <div class="col-md-6 form-group mb-3 sectionRatingField">
+                                        <label
+                                            for="section_rating_{{ $index }}">{{ $section['name'] ?? 'Section ' . ($index + 1) }}
+                                            <code>*</code></label>
+                                        <select name="section_ratings[{{ $index }}][rating]"
+                                            id="section_rating_{{ $index }}"
+                                            class="form-control section-rating-select">
+                                            <option value="" hidden>-- Select Score --</option>
+                                            <option value="0">0</option>
+                                            <option value="1">1</option>
+                                            <option value="2">2</option>
+                                        </select>
+                                        <input type="hidden" name="section_ratings[{{ $index }}][name]"
+                                            value="{{ $section['name'] ?? 'Section ' . ($index + 1) }}">
+                                        <p class="text-danger section-rating-error-{{ $index }}"></p>
+                                    </div>
+                                @endforeach
+
+                                {{-- Grammar/Language rating for section-based --}}
+                                <div class="col-md-6 form-group mb-3 sectionRatingField">
+                                    <label for="grammar">Grammar/Languages <code>*</code></label>
+                                    <select name="grammar" id="grammar" class="form-control section-rating-select">
+                                        <option value="" hidden>-- Select Score --</option>
+                                        <option value="0">0</option>
+                                        <option value="1">1</option>
+                                        <option value="2">2</option>
+                                    </select>
+                                    <p class="text-danger grammar"></p>
+                                </div>
                             </div>
-                            <div class="col-md-4 form-group mb-3 ifAcceptContents">
-                                <label for="introduction">Introduction/Background <code>*</code></label>
-                                <select name="introduction" id="introduction"
-                                    class="form-control @error('introduction') is-invalid @enderror">
-                                    <option value="" hidden>-- Select Score --</option>
-                                    <option value="0" @selected(old('introduction') === 0)>0</option>
-                                    <option value="1" @selected(old('introduction') == 1)>1</option>
-                                    <option value="2" @selected(old('introduction') == 2)>2</option>
-                                </select>
-                                <p class="text-danger introduction"></p>
+                        @else
+                            {{-- Default ratings (Introduction, Method, Result, Conclusion, Grammar) --}}
+                            <div class="row pl-3 decisionForm" style="display: none;">
+                                <div class="col-md-12 mb-3">
+                                    <label class="text-danger" for="defaultCheck1">Score Base On below Topic
+                                        <code>(Check the box if the structure not applicable <input
+                                                class="form-check-input mt-1" type="checkbox" value="1"
+                                                name="structure" id="defaultCheck1" />) </code></label>
+                                </div>
+                                <div class="col-md-4 form-group mb-3 ifAcceptContents">
+                                    <label for="introduction">Introduction/Background <code>*</code></label>
+                                    <select name="introduction" id="introduction"
+                                        class="form-control @error('introduction') is-invalid @enderror">
+                                        <option value="" hidden>-- Select Score --</option>
+                                        <option value="0" @selected(old('introduction') === 0)>0</option>
+                                        <option value="1" @selected(old('introduction') == 1)>1</option>
+                                        <option value="2" @selected(old('introduction') == 2)>2</option>
+                                    </select>
+                                    <p class="text-danger introduction"></p>
+                                </div>
+                                <div class="col-md-4 form-group mb-3 ifAcceptContents">
+                                    <label for="method">Methods <code>*</code></label>
+                                    <select name="method" id="method"
+                                        class="form-control @error('method') is-invalid @enderror">
+                                        <option value="" hidden>-- Select Score --</option>
+                                        <option value="0" @selected(old('method') === 0)>0</option>
+                                        <option value="1" @selected(old('method') == 1)>1</option>
+                                        <option value="2" @selected(old('method') == 2)>2</option>
+                                    </select>
+                                    <p class="text-danger method"></p>
+                                </div>
+                                <div class="col-md-4 form-group mb-3 ifAcceptContents">
+                                    <label for="result">Results/Findings <code>*</code></label>
+                                    <select name="result" id="result"
+                                        class="form-control @error('result') is-invalid @enderror">
+                                        <option value="" hidden>-- Select Score --</option>
+                                        <option value="0" @selected(old('result') === 0)>0</option>
+                                        <option value="1" @selected(old('result') == 1)>1</option>
+                                        <option value="2" @selected(old('result') == 2)>2</option>
+                                    </select>
+                                    <p class="text-danger result"></p>
+                                </div>
+                                <div class="col-md-5 form-group mb-3 ifAcceptContents">
+                                    <label for="conclusion">Conclusion <code>*</code></label>
+                                    <select name="conclusion" id="conclusion"
+                                        class="form-control @error('conclusion') is-invalid @enderror">
+                                        <option value="" hidden>-- Select Score --</option>
+                                        <option value="0" @selected(old('conclusion') === 0)>0</option>
+                                        <option value="1" @selected(old('conclusion') == 1)>1</option>
+                                        <option value="2" @selected(old('conclusion') == 2)>2</option>
+                                    </select>
+                                    <p class="text-danger conclusion"></p>
+                                </div>
+                                <div class="col-md-5 form-group mb-3 ifAcceptContents">
+                                    <label for="grammar">Grammar/Languages <code>*</code></label>
+                                    <select name="grammar" id="grammar"
+                                        class="form-control @error('grammar') is-invalid @enderror">
+                                        <option value="" hidden>-- Select Score --</option>
+                                        <option value="0" @selected(old('grammar') === 0)>0</option>
+                                        <option value="1" @selected(old('grammar') == 1)>1</option>
+                                        <option value="2" @selected(old('grammar') == 2)>2</option>
+                                    </select>
+                                    <p class="text-danger grammar"></p>
+                                </div>
                             </div>
-                            <div class="col-md-4 form-group mb-3 ifAcceptContents">
-                                <label for="method">Methods <code>*</code></label>
-                                <select name="method" id="method"
-                                    class="form-control @error('method') is-invalid @enderror">
-                                    <option value="" hidden>-- Select Score --</option>
-                                    <option value="0" @selected(old('method') === 0)>0</option>
-                                    <option value="1" @selected(old('method') == 1)>1</option>
-                                    <option value="2" @selected(old('method') == 2)>2</option>
-                                </select>
-                                <p class="text-danger method"></p>
-                            </div>
-                            <div class="col-md-4 form-group mb-3 ifAcceptContents">
-                                <label for="result">Results/Findings <code>*</code></label>
-                                <select name="result" id="result"
-                                    class="form-control @error('result') is-invalid @enderror">
-                                    <option value="" hidden>-- Select Score --</option>
-                                    <option value="0" @selected(old('result') === 0)>0</option>
-                                    <option value="1" @selected(old('result') == 1)>1</option>
-                                    <option value="2" @selected(old('result') == 2)>2</option>
-                                </select>
-                                <p class="text-danger result"></p>
-                            </div>
-                            <div class="col-md-5 form-group mb-3 ifAcceptContents">
-                                <label for="conclusion">Conclusion <code>*</code></label>
-                                <select name="conclusion" id="conclusion"
-                                    class="form-control @error('conclusion') is-invalid @enderror">
-                                    <option value="" hidden>-- Select Score --</option>
-                                    <option value="0" @selected(old('conclusion') === 0)>0</option>
-                                    <option value="1" @selected(old('conclusion') == 1)>1</option>
-                                    <option value="2" @selected(old('conclusion') == 2)>2</option>
-                                </select>
-                                <p class="text-danger conclusion"></p>
-                            </div>
-                            <div class="col-md-5 form-group mb-3 ifAcceptContents">
-                                <label for="grammar">Grammar/Languages <code>*</code></label>
-                                <select name="grammar" id="grammar"
-                                    class="form-control @error('grammar') is-invalid @enderror">
-                                    <option value="" hidden>-- Select Score --</option>
-                                    <option value="0" @selected(old('grammar') === 0)>0</option>
-                                    <option value="1" @selected(old('grammar') == 1)>1</option>
-                                    <option value="2" @selected(old('grammar') == 2)>2</option>
-                                </select>
-                                <p class="text-danger grammar"></p>
-                            </div>
-                        </div>
+                        @endif
                         <div class="col-md-5 overall_ratings mb-3" style="display: none;">
                             <label for="overall_rating">Overall Rating <code>*</code></label>
                             <input type='number' class="form-control" name="overall_rating" id="overall_rating">
@@ -147,11 +178,7 @@
                         </div>
                     @endif
 
-                    <div class="col-md-12 form-group mb-3 decisionForm" style="display: none;" id="remarksDiv">
-                        <label for="remarks">Remarks <code>*</code></label>
-                        <textarea class="form-control" name="remarks" id="remarks" cols="30" rows="5">{{ isset($submission) ? $submission->remarks : old('remarks') }}</textarea>
-                        <p class="text-danger remarks"></p>
-                    </div>
+
 
                     <div class="col-md-12 form-group mb-3 decisionRejectRemark" style="display: none;">
                         <label for="reject_remarks">Remarks <code>*</code></label>
@@ -172,6 +199,17 @@
 
 <script>
     var ckeditorInstances = {};
+    var guidelineContent = '';
+    var guidelineTitle = '';
+
+    // Store guideline content
+    @if ($submission->presentation_type == 1 && !empty($setting->poster_reviewer_guide))
+        guidelineContent = {!! json_encode($setting->poster_reviewer_guide) !!};
+        guidelineTitle = 'Poster Reviewer Guidelines';
+    @elseif ($submission->presentation_type == 2 && !empty($setting->oral_reviewer_guide))
+        guidelineContent = {!! json_encode($setting->oral_reviewer_guide) !!};
+        guidelineTitle = 'Oral Reviewer Guidelines';
+    @endif
 
     @if (!empty($submission->sections))
         // Initialize CKEditor for each section
@@ -180,6 +218,7 @@
                 filebrowserUploadUrl: '{{ route('ckeditor.fileUpload', ['_token' => csrf_token()]) }}',
                 filebrowserUploadMethod: "form",
                 extraPlugins: 'wordcount',
+                readOnly: true,
                 wordcount: {
                     showWordCount: true,
                     maxWordCount: {{ $section['word_limit'] ?? 'Infinity' }},
@@ -192,6 +231,7 @@
             filebrowserUploadUrl: '{{ route('ckeditor.fileUpload', ['_token' => csrf_token()]) }}',
             filebrowserUploadMethod: "form",
             extraPlugins: 'wordcount',
+            readOnly: true,
             wordcount: {
                 showWordCount: true,
                 maxWordCount: {{ @$setting->abstract_word_limit ? @$setting->abstract_word_limit : 'Infinity' }},
@@ -203,9 +243,100 @@
         if ($(this).is(':checked')) {
             var data = $(this).val();
             $('#requestType').val(data);
-            $('.decisionRejectRemark').hide();
-            $('.decisionForm').show();
-            $('.formbutton').show();
+
+            // Check if guideline exists and has content
+            if (guidelineContent && guidelineContent.trim() !== '') {
+                // Show loading spinner in the review modal
+                var loadingHtml = `
+                    <div class="text-center py-5" id="guidelineLoading">
+                        <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="mt-3 text-muted">Loading Guidelines...</p>
+                    </div>
+                `;
+
+                // Hide radio buttons and show loader
+                $('.closeModal').hide();
+                $('#decisionForm').hide();
+                $('#pricingModal .modal-body').append(loadingHtml);
+
+                // Create guideline modal dynamically
+                var guidelineModalHtml = `
+                    <div class="modal fade" id="guidelineModal" tabindex="-1" aria-labelledby="guidelineModalLabel" aria-hidden="true" data-bs-backdrop="static">
+                        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="guidelineModalLabel">
+                                        <i class="ti tabler-info-circle"></i> ${guidelineTitle}
+                                    </h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    ${guidelineContent}
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">I Understand, Continue Review</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                // Remove existing guideline modal if any
+                $('#guidelineModal').remove();
+
+                // Append to body
+                $('body').append(guidelineModalHtml);
+
+                // Hide review modal with fade effect
+                setTimeout(function() {
+                    $('#pricingModal').modal('hide');
+
+                    // Show guideline modal after review modal is hidden
+                    $('#pricingModal').one('hidden.bs.modal', function() {
+                        var guideModal = new bootstrap.Modal(document.getElementById(
+                            'guidelineModal'));
+                        guideModal.show();
+
+                        // Remove loading spinner
+                        $('#guidelineLoading').remove();
+                        $('.closeModal').show();
+                        $('#decisionForm').show();
+                    });
+                }, 500);
+
+                // When guideline modal closes, reopen review modal with loader
+                $('#guidelineModal').on('hidden.bs.modal', function() {
+                    // Show loading in between
+                    var reopenLoadingHtml = `
+                        <div class="modal fade show" id="reopenLoader" style="display: flex !important; align-items: center; justify-content: center; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999;">
+                            <div class="text-center text-white">
+                                <div class="spinner-border" role="status" style="width: 3rem; height: 3rem;">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                                <p class="mt-3">Preparing Review Form...</p>
+                            </div>
+                        </div>
+                    `;
+                    $('body').append(reopenLoadingHtml);
+
+                    $('#guidelineModal').remove();
+
+                    setTimeout(function() {
+                        $('#reopenLoader').remove();
+                        $('#pricingModal').modal('show');
+                        $('.decisionRejectRemark').hide();
+                        $('.decisionForm').show();
+                        $('.formbutton').show();
+                    }, 400);
+                });
+            } else {
+                // No guideline, show review form directly
+                $('.decisionRejectRemark').hide();
+                $('.decisionForm').show();
+                $('.formbutton').show();
+            }
         }
     });
 
@@ -273,12 +404,26 @@
             error: function(response) {
                 var errors = response.responseJSON.errors;
                 $.each(errors, function(key, val) {
+                    // Handle nested keys like section_ratings.0.rating
+                    var sanitizedKey = key.replace(/\./g, '-');
+                    var fieldId = '#' + key.replace(/\./g, '_');
+
                     $('.' + key).html('');
                     $('.' + key).append(val);
+                    $('.section-rating-error-' + key.split('.')[1]).html(val);
+
+                    $(fieldId).addClass('border-danger');
                     $('#' + key).addClass('border-danger');
-                    $('#' + key).on('input', function() {
+
+                    $(fieldId).on('input change', function() {
                         $('.' + key).html('');
-                        $('#' + key).removeClass('border-danger');
+                        $('.section-rating-error-' + key.split('.')[1]).html('');
+                        $(this).removeClass('border-danger');
+                    });
+
+                    $('#' + key).on('input change', function() {
+                        $('.' + key).html('');
+                        $(this).removeClass('border-danger');
                     });
                 });
                 // }

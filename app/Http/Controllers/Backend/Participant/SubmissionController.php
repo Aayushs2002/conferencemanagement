@@ -69,7 +69,7 @@ class SubmissionController extends Controller
                 'status' => 1
             ])->orderBy('name', 'asc')->get();
         }
-
+ 
         return view('backend.participant.submission.create', compact('society', 'conference', 'submissionTracks', 'setting', 'articleTypes', 'contributions', 'contributionEnabled'));
     }
 
@@ -339,7 +339,7 @@ class SubmissionController extends Controller
             if (isset($validated['has_conflict_of_interest'])) {
                 if ($validated['has_conflict_of_interest'] === 'no') {
                     $validated['conflict_of_interest'] = null;
-                }
+                } 
                 unset($validated['has_conflict_of_interest']);
             }
 
@@ -470,22 +470,34 @@ class SubmissionController extends Controller
         return view('backend.participant.submission.review.index', compact('conference', 'submissions', 'society', 'submissionSetting'));
     }
 
-    public function review(Request $request, $society, $conference)
+    public function review(Request $request, $society, $conference) 
     {
         // dd('ok');
-        $submission = Submission::whereId($request->id)->first();
+        $submission = Submission::with('articleType.setting')->whereId($request->id)->first();
         $setting = SubmissionSetting::where(['conference_id' => $conference->id, 'status' => 1])->first();
-        return view('backend.participant.submission.review-modal', compact('submission', 'setting', 'conference', 'society'));
+        
+        // Get article type setting sections if available
+        $articleTypeSections = null;
+        if ($submission->articleType && $submission->articleType->setting) {
+            $articleTypeSections = $submission->articleType->setting->sections;
+        }
+        
+        return view('backend.participant.submission.review-modal', compact('submission', 'setting', 'conference', 'society', 'articleTypeSections'));
     }
 
     public function reviewSubmit(Request $request)
     {
         try {
-            $submission = Submission::findOrFail($request->id);
+            $submission = Submission::with('articleType.setting')->findOrFail($request->id);
             $setting = SubmissionSetting::where(['conference_id' => $submission->conference_id, 'status' => 1])->first();
 
             // Determine if scoring is required or nullable
             $scoreRule = $setting->scoring_allowed == 1 ? 'required|integer' : 'nullable|integer';
+
+            // Check if article type has sections for section-based rating
+            $hasSectionRatings = $submission->articleType && 
+                                 $submission->articleType->setting && 
+                                 !empty($submission->articleType->setting->sections);
 
             $rules = [];
 
@@ -502,16 +514,28 @@ class SubmissionController extends Controller
                     $rules['abstract_content'] = 'required';
                 }
 
-                if ($request->structure) {
-                    // Structured review: single overall rating
-                    $rules['overall_rating'] = $scoreRule;
+                // Validate ratings based on section-based or default structure
+                if ($hasSectionRatings) {
+                    // Section-based ratings validation
+                    if ($request->has('section_ratings') && is_array($request->section_ratings)) {
+                        foreach ($request->section_ratings as $index => $rating) {
+                            $rules["section_ratings.{$index}.rating"] = $scoreRule;
+                        }
+                    }
+                    $rules['grammar'] = $scoreRule; // Grammar is always required for section-based
                 } else {
-                    // Detailed review: individual scores
-                    $rules['introduction'] = $scoreRule;
-                    $rules['method'] = $scoreRule;
-                    $rules['result'] = $scoreRule;
-                    $rules['conclusion'] = $scoreRule;
-                    $rules['grammar'] = $scoreRule;
+                    // Default rating structure
+                    if ($request->structure) {
+                        // Structured review: single overall rating
+                        $rules['overall_rating'] = $scoreRule;
+                    } else {
+                        // Detailed review: individual scores
+                        $rules['introduction'] = $scoreRule;
+                        $rules['method'] = $scoreRule;
+                        $rules['result'] = $scoreRule;
+                        $rules['conclusion'] = $scoreRule;
+                        $rules['grammar'] = $scoreRule;
+                    }
                 }
             } elseif ($request->requestType == 2) {
                 // Rejection requires only reject remarks
@@ -542,15 +566,24 @@ class SubmissionController extends Controller
             }
 
             // Prepare submission rating data
-            $ratingData = $request->structure
-                ? ['overall_rating' => $validated['overall_rating']]
-                : collect($validated)->only([
-                    'grammar',
-                    'conclusion',
-                    'result',
-                    'method',
-                    'introduction'
-                ])->toArray();
+            if ($hasSectionRatings && $request->has('section_ratings')) {
+                // Section-based rating
+                $ratingData = [
+                    'section_ratings' => $request->section_ratings,
+                    'grammar' => $validated['grammar'] ?? null,
+                ];
+            } else {
+                // Default rating structure
+                $ratingData = $request->structure
+                    ? ['overall_rating' => $validated['overall_rating']]
+                    : collect($validated)->only([
+                        'grammar',
+                        'conclusion',
+                        'result',
+                        'method',
+                        'introduction'
+                    ])->toArray();
+            }
 
             // Update or create submission rating
             if ($submission->submissionRating) {

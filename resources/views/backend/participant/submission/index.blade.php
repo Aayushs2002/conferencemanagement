@@ -30,11 +30,15 @@
        <div class="modal fade" id="openAbstractGuidelineModal" tabindex="-1" role="dialog"
            aria-labelledby="exampleModalCenterTitleDuideline" aria-hidden="true">
            <div class="modal-dialog modal-lg modal-simple modal-pricing">
-               <div class="modal-content" id="modalContent">
+               <div class="modal-content" id="abstract_modalContent">
                    <div class="modal-body">
                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                        <h4 class="text-center mb-4">Abstract Submission Guidelines</h4>
                        {!! $submissionSetting->abstract_guidelines !!}
+                   </div>
+                   <div class="text-center">
+
+                       <button type="button" class="btn btn-primary m-3" data-bs-dismiss="modal">Ok</button>
                    </div>
                </div>
            </div>
@@ -47,11 +51,14 @@
        <div class="modal fade" id="openOralGuidelineModal" tabindex="-1" role="dialog"
            aria-labelledby="exampleModalCenterTitleDuideline" aria-hidden="true">
            <div class="modal-dialog modal-lg modal-simple modal-pricing">
-               <div class="modal-content" id="modalContent">
+               <div class="modal-content" id="oral_modalContent">
                    <div class="modal-body">
                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                        <h4 class="text-center mb-4">Oral Presentation Guidelines</h4>
                        {!! $submissionSetting->oral_guidelines !!}
+                   </div>
+                   <div class="text-center">
+                       <button type="button" class="btn btn-primary m-3" data-bs-dismiss="modal">Ok</button>
                    </div>
                </div>
            </div>
@@ -61,20 +68,21 @@
        <div class="modal fade" id="openPosterGuidelineModal" tabindex="-1" role="dialog"
            aria-labelledby="exampleModalCenterTitleDuideline" aria-hidden="true">
            <div class="modal-dialog modal-lg modal-simple modal-pricing">
-               <div class="modal-content" id="modalContent">
+               <div class="modal-content" id="poster_modalContent">
                    <div class="modal-body">
                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                        <h4 class="text-center mb-4">Poster Presentation Guidelines</h4>
                        {!! $submissionSetting->poster_guidelines !!}
+                   </div>
+                   <div class="text-center">
+                       <button type="button" class="btn btn-primary m-3" data-bs-dismiss="modal">Ok</button>
                    </div>
                </div>
            </div>
        </div>
    @endif
 
-   {{-- @if (
-       $submissions->where('expert_id', current_user()->id)->where('presentation_type', 1)->isNotEmpty() &&
-           $submissionSetting->poster_reviewer_guide)
+   {{-- @if ($submissions->where('expert_id', current_user()->id)->where('presentation_type', 1)->isNotEmpty() && $submissionSetting->poster_reviewer_guide)
        <div class="modal fade" id="openExpertPosterGuidelineModal" tabindex="-1" role="dialog"
            aria-labelledby="exampleModalCenterTitleDuideline" aria-hidden="true">
            <div class="modal-dialog modal-lg modal-simple modal-pricing">
@@ -88,9 +96,7 @@
            </div>
        </div>
    @endif
-   @if (
-       $submissions->where('expert_id', current_user()->id)->where('presentation_type', 2)->isNotEmpty() &&
-           $submissionSetting->oral_reviewer_guide)
+   @if ($submissions->where('expert_id', current_user()->id)->where('presentation_type', 2)->isNotEmpty() && $submissionSetting->oral_reviewer_guide)
        <div class="modal fade" id="openExpertOralGuidelineModal" tabindex="-1" role="dialog"
            aria-labelledby="exampleModalCenterTitleDuideline" aria-hidden="true">
            <div class="modal-dialog modal-lg modal-simple modal-pricing">
@@ -142,9 +148,7 @@
                        </div>
                    @endif
 
-                   {{-- @if (
-                       $submissions->where('expert_id', current_user()->id)->where('presentation_type', 1)->isNotEmpty() &&
-                           $conferenceSettings->expert_guideline_youtube)
+                   {{-- @if ($submissions->where('expert_id', current_user()->id)->where('presentation_type', 1)->isNotEmpty() && $conferenceSettings->expert_guideline_youtube)
                        <div class="col-md-6">
                            <div class="guideline-video-card"
                                style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); border-radius: 12px; padding: 20px; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 4px 6px rgba(0,0,0,0.1);"
@@ -271,7 +275,7 @@
                                        <i class="icon-base ti tabler-dots-vertical"></i>
                                    </button>
                                    <div class="dropdown-menu">
-                                       @if ($submission->expert_id != current_user()->id)
+                                       @if ($submission->expert_id != current_user()->id && $submission->request_status == 2)
                                            <a class="dropdown-item"
                                                href="{{ route('my-society.conference.submission.edit', [$society, $conference, $submission]) }}"><i
                                                    class="icon-base ti tabler-pencil me-1"></i> Edit</a>
@@ -285,7 +289,7 @@
                                    <a href="{{ route('my-society.conference.submission.author.index', [$society, $conference, $submission]) }}"
                                        class="btn btn-sm btn-success"
                                        {{ $submission->expert_id == current_user()->id ? 'hidden' : '' }}>Authors</a>
-                                  
+
                                    @if ($submission->discussions->isNotEmpty())
                                        <span class="mt-1">
                                            <a href="{{ route('my-society.conference.submission.viewDiscussion', [$society, $conference, $submission]) }}"
@@ -384,6 +388,7 @@
        $(document).ready(function() {
            $(document).off("click", ".viewData");
            $(document).on("click", ".viewData", function(e) {
+            // alert('ds');
                e.preventDefault();
                var url = '{{ route('my-society.conference.submission.view', [$society, $conference]) }}';
                var _token = '{{ csrf_token() }}';
@@ -408,7 +413,7 @@
                });
            });
 
-        
+
 
            $('.convertPresentationType').click(function(e) {
                e.preventDefault();

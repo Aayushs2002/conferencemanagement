@@ -41,7 +41,7 @@ class AuthorController extends Controller
             ->toArray();
 
         // Get contributions if enabled
-        $contributions = [];
+        $contributions = []; 
         $contributionEnabled = false;
         $submissionSetting = SubmissionSetting::where('conference_id', $conference->id)->first();
 

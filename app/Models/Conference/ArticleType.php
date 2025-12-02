@@ -10,7 +10,7 @@ class ArticleType extends Model
         'conference_id',
         'name',
         'display_order',
-        'status'
+        'status' 
     ];
 
     public function conference()

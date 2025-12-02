@@ -194,7 +194,7 @@
         <div class="rounded-top">
             <form id="authorForm" enctype="multipart/form-data">
                 @csrf
-                @isset($author)
+                @isset($author) 
                     <input type="hidden" name="_method" value="PATCH">
                     <input type="hidden" name="author_id" value="{{ $author->id }}">
                 @endisset

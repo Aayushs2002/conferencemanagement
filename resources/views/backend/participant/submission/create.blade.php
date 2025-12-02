@@ -18,6 +18,9 @@
                         <h4 class="text-center mb-4">Abstract Submission Guidelines</h4>
                         {!! $setting->abstract_guidelines !!}
                     </div>
+                    <div class="text-center">
+                        <button type="button" class="btn btn-primary m-3" data-bs-dismiss="modal">Ok</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -108,7 +111,7 @@
                             @error('submission_category_major_track_id')
                                 <p class="text-danger">{{ $message }}</p>
                             @enderror
-                            <p id="majorAreas" class="text-success">test</p>
+                            <p id="majorAreas" class="text-muted" style=" font-weight: semi-bold; font-size: 0.8rem; padding-top: 0.5rem;">loading</p>
                         </div>
 
                         <div class="mb-6 col-md-6">
@@ -155,10 +158,10 @@
                         <div class="mb-6 col-md-9">
                             <label for="keyWord" class="form-label">Keywords <code>*(NOTE: Total number of Keywords
                                     limitation is
-                                    {{ @$setting->key_word_limit ? @$setting->key_word_limit : 'infinity' }})
-                                    <span class="text-info">(Press enter after typing complete word/words to represent
+                                    {{ @$setting->key_word_limit ? @$setting->key_word_limit : 'infinity' }})</code>
+                                    <span class="text-muted" style=" font-weight: semi-bold; font-size: 0.7rem; padding-top: 0.5rem;">(Press enter after typing complete word/words to represent
                                         it
-                                        as a keyword.)</span></code></label>
+                                        as a keyword.)</span></label>
 
                             @php
                                 $keywordsJson =
@@ -168,8 +171,8 @@
                                         ->toJson();
                             @endphp
 
-                            <input id="keyWord" class="form-control" name="keywords" required placeholder="Enter Keywords"
-                                value='{{ $keywordsJson }}' />
+                            <input id="keyWord" class="form-control" name="keywords" required
+                                placeholder="Enter Keywords" value='{{ $keywordsJson }}' />
 
                             @error('email')
                                 <p class="text-danger">{{ $message }}</p>
@@ -195,8 +198,14 @@
                         <div id="attachmentContainer">
                             @if ($setting->attachment_name)
                                 <div class="mb-6 col-md-6" id="defaultAttachment" style="display: none;">
-                                    <label class="form-label" for="image">{{ $setting->attachment_name }}
-                                        <code>{{ $setting->attachment_required == true ? '*' : '(optional)' }}</code></label>
+                                    <label class="form-label" for="image">
+                                        {{ $setting->attachment_name }}
+                                        <small class="text-muted d-block">
+                                            Accepted formats: JPG, JPEG, PNG, PDF — Max size: 250KB
+                                            {{ $setting->attachment_required ? '*' : '(optional)' }}
+                                        </small>
+                                    </label>
+
                                     <input type="file" class="form-control" name="image" id="image"
                                         value="{{ !empty(old('image')) ? old('image') : @$submission->image }}" />
                                     <div class="row" id="imgPreview">
@@ -225,7 +234,7 @@
                         <!-- Co-Authors Section -->
                         <div class="col-md-12 mb-3">
                             <div class="d-flex justify-content-between align-items-center mb-3">
-                                <h5 class="mb-0">Co-Authors</h5>
+                                <h5 class="mb-0">Authors</h5>
                                 <button type="button" class="btn btn-primary btn-sm" id="addAuthorBtn">
                                     <i class="ti tabler-plus"></i> Add Co-Author
                                 </button>
@@ -236,18 +245,19 @@
                         @if (!isset($submission))
                             <div class="mb-6 col-md-12">
                                 <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" name="main_author" id="main_author_checkbox"
-                                        value="1" {{ old('main_author') == '1' ? 'checked' : '' }}>
+                                    <input class="form-check-input" type="checkbox" name="main_author"
+                                        id="main_author_checkbox" value="1"
+                                        {{ old('main_author') == '1' ? 'checked' : '' }}>
                                     <label class="form-check-label" for="main_author_checkbox">
                                         <strong>I am the Main Author/Presenter</strong>
-                                        <i class="ti tabler-info-circle text-primary ms-1" 
-                                           data-bs-toggle="tooltip" 
-                                           data-bs-placement="top" 
-                                           title="Only one author can be the main presenter. If you uncheck this, you can select one of the co-authors as the main presenter."></i>
+                                        <i class="ti tabler-info-circle text-primary ms-1" data-bs-toggle="tooltip"
+                                            data-bs-placement="top"
+                                            title="Only one author can be the main presenter. If you uncheck this, you can select one of the co-authors as the main presenter."></i>
                                     </label>
                                     <small class="text-muted d-block mt-1">
-                                        <i class="ti tabler-alert-circle"></i> 
-                                        If you are not the main presenter, please add co-authors and designate one of them as the main author.
+                                        <i class="ti tabler-alert-circle"></i>
+                                        If you are not the main presenter, please add co-authors and designate one of them
+                                        as the main author.
                                     </small>
                                 </div>
                                 @error('main_author')
@@ -316,6 +326,7 @@
             $(document).on('click', '.remove-author-btn', function() {
                 const index = $(this).data('index');
                 $(`#author_row_${index}`).remove();
+                updateExistingAuthorDropdowns();
             });
 
             // Populate existing authors if any
@@ -382,6 +393,48 @@
             const institution = data ? data.institution : '';
             const address = data ? data.institution_address : '';
             const isMainAuthor = data && data.main_author == 1 ? 'checked' : '';
+
+            // Build dropdown options for existing authors - only include authors added before this one
+            let existingAuthorsHtml = '<option value="">-- Select Existing Author Data --</option>';
+
+            // Add submission user data
+            existingAuthorsHtml +=
+                `<option value="submitter" data-designation="{{ current_user()->userDetail?->designation?->designation ?? '' }}" data-institution="{{ current_user()->userDetail?->institution?->name ?? '' }}" data-address="{{ current_user()->userDetail->institute_address ?? '' }}">Submitter ({{ current_user()->fullName(current_user()) }})</option>`;
+
+            // Add existing authors from database (for edit mode)
+            @if (isset($submission) && $submission->authors)
+                const existingAuthors = @json($submission->authors);
+                existingAuthors.forEach(author => {
+                    const safeDesignation = (author.designation || '').replace(/"/g, '&quot;');
+                    const safeInstitution = (author.institution || '').replace(/"/g, '&quot;');
+                    const safeAddress = (author.institution_address || '').replace(/"/g, '&quot;');
+                    existingAuthorsHtml +=
+                        `<option value="db_${author.id}" data-designation="${safeDesignation}" data-institution="${safeInstitution}" data-address="${safeAddress}">${author.name} (Existing)</option>`;
+                });
+            @endif
+
+            // Add previously added co-authors (only those with lower index)
+            $('.author-item').each(function() {
+                const authorCard = $(this);
+                const authorIndex = parseInt(authorCard.attr('id').replace('author_row_', ''));
+
+                // Only include authors with lower index than current
+                if (authorIndex < index) {
+                    const name = authorCard.find(`#author_name_${authorIndex}`).val();
+                    const designation = authorCard.find(`#author_designation_${authorIndex}`).val();
+                    const institution = authorCard.find(`#author_institution_${authorIndex}`).val();
+                    const address = authorCard.find(`#author_institution_address_${authorIndex}`).val();
+
+                    if (name) {
+                        const safeDesignation = (designation || '').replace(/"/g, '&quot;');
+                        const safeInstitution = (institution || '').replace(/"/g, '&quot;');
+                        const safeAddress = (address || '').replace(/"/g, '&quot;');
+                        const authorNumber = $('.author-item').index(authorCard) + 1;
+                        existingAuthorsHtml +=
+                            `<option value="author_${authorIndex}" data-designation="${safeDesignation}" data-institution="${safeInstitution}" data-address="${safeAddress}">Co-Author ${authorNumber} (${name})</option>`;
+                    }
+                }
+            });
 
             let contributionsHtml = '';
             if (contributionEnabled && contributions.length > 0) {
@@ -462,6 +515,12 @@
                 <div class="row g-3">
                     ${authorIdField}
                     <div class="col-md-12">
+                        <label class="form-label">Is Designation/Institution/Institution Address same as any of the following Author?</label>
+                        <select class="form-select" id="existing_author_${index}" onchange="populateAuthorData(${index})">
+                            ${existingAuthorsHtml}
+                        </select>
+                    </div>
+                    <div class="col-md-12">
                         <div class="form-check">
                             <input class="form-check-input co-author-main-checkbox" type="checkbox" 
                                 name="authors[${index}][main_author]" id="co_author_main_${index}"
@@ -520,11 +579,18 @@
 
             // Re-initialize tooltips
             $('[data-bs-toggle="tooltip"]').tooltip();
-            
+
+            // Update dropdowns when author data changes
+            $(document).on('input',
+                `#author_name_${index}, #author_designation_${index}, #author_institution_${index}, #author_institution_address_${index}`,
+                function() {
+                    updateExistingAuthorDropdowns();
+                });
+
             // Populate validation errors if they exist
-            @if($errors->any())
+            @if ($errors->any())
                 const errors = @json($errors->messages());
-                
+
                 // Check for errors for this specific author index
                 if (errors[`authors.${index}.name`]) {
                     $(`#author_name_${index}`).addClass('is-invalid');
@@ -555,9 +621,87 @@
                 }
                 if (errors[`authors.${index}.contribution_other_text`]) {
                     $(`#contribution_other_text_${index}`).addClass('is-invalid');
-                    $(`#contribution_other_text_error_${index}`).text(errors[`authors.${index}.contribution_other_text`][0]);
+                    $(`#contribution_other_text_error_${index}`).text(errors[`authors.${index}.contribution_other_text`][
+                        0
+                    ]);
                 }
             @endif
+        }
+
+        function populateAuthorData(index) {
+            const selectElement = $(`#existing_author_${index}`);
+            const selectedOption = selectElement.find('option:selected');
+
+            if (selectedOption.val()) {
+                const designation = selectedOption.data('designation') || '';
+                const institution = selectedOption.data('institution') || '';
+                const address = selectedOption.data('address') || '';
+
+                $(`#author_designation_${index}`).val(designation);
+                $(`#author_institution_${index}`).val(institution);
+                $(`#author_institution_address_${index}`).val(address);
+            }
+        }
+
+        function updateExistingAuthorDropdowns() {
+            // Update each dropdown individually to include only authors added before it
+            $('.author-item').each(function() {
+                const currentAuthorCard = $(this);
+                const currentAuthorIndex = currentAuthorCard.attr('id').replace('author_row_', '');
+                const currentDropdown = currentAuthorCard.find(`#existing_author_${currentAuthorIndex}`);
+
+                if (currentDropdown.length === 0) return;
+
+                // Build options HTML for this specific dropdown
+                let optionsHtml = '<option value="">-- Select Existing Author Data --</option>';
+
+                // Add submission user data
+                optionsHtml +=
+                    `<option value="submitter" data-designation="{{ current_user()->userDetail?->designation?->designation ?? '' }}" data-institution="{{ current_user()->userDetail?->institution?->name ?? '' }}" data-address="{{ current_user()->userDetail->institute_address ?? '' }}">Submitter ({{ current_user()->fullName(current_user()) }})</option>`;
+
+                // Add existing authors from database (for edit mode)
+                @if (isset($submission) && $submission->authors)
+                    const existingAuthors = @json($submission->authors);
+                    existingAuthors.forEach(author => {
+                        const safeDesignation = (author.designation || '').replace(/"/g, '&quot;');
+                        const safeInstitution = (author.institution || '').replace(/"/g, '&quot;');
+                        const safeAddress = (author.institution_address || '').replace(/"/g, '&quot;');
+                        optionsHtml +=
+                            `<option value="db_${author.id}" data-designation="${safeDesignation}" data-institution="${safeInstitution}" data-address="${safeAddress}">${author.name} (Existing)</option>`;
+                    });
+                @endif
+
+                // Add only co-authors that were added BEFORE the current one
+                $('.author-item').each(function() {
+                    const authorCard = $(this);
+                    const authorIndex = authorCard.attr('id').replace('author_row_', '');
+
+                    // Only include authors with lower index (added before current author)
+                    if (parseInt(authorIndex) < parseInt(currentAuthorIndex)) {
+                        const name = authorCard.find(`#author_name_${authorIndex}`).val();
+                        const designation = authorCard.find(`#author_designation_${authorIndex}`).val();
+                        const institution = authorCard.find(`#author_institution_${authorIndex}`).val();
+                        const address = authorCard.find(`#author_institution_address_${authorIndex}`).val();
+
+                        if (name) {
+                            const safeDesignation = (designation || '').replace(/"/g, '&quot;');
+                            const safeInstitution = (institution || '').replace(/"/g, '&quot;');
+                            const safeAddress = (address || '').replace(/"/g, '&quot;');
+                            const authorNumber = $('.author-item').index(authorCard) + 1;
+                            optionsHtml +=
+                                `<option value="author_${authorIndex}" data-designation="${safeDesignation}" data-institution="${safeInstitution}" data-address="${safeAddress}">Co-Author ${authorNumber} (${name})</option>`;
+                        }
+                    }
+                });
+
+                // Update this specific dropdown
+                const currentValue = currentDropdown.val();
+                currentDropdown.html(optionsHtml);
+                // Restore the previously selected value if it still exists
+                if (currentValue && currentDropdown.find(`option[value="${currentValue}"]`).length) {
+                    currentDropdown.val(currentValue);
+                }
+            });
         }
 
         function toggleOtherContribution(index) {
@@ -755,7 +899,7 @@
 
                 const attachmentHtml = `
                     <div class="mb-6 col-md-6">
-                        <label class="form-label" for="image">${setting.attachment_name} <code>${isRequired ? '*' : '(optional)'}</code></label>
+                        <label class="form-label" for="image">${setting.attachment_name} <code>Accepted formats: JPG, JPEG, PNG, PDF — Max size: 250KB ${isRequired ? '*' : '(optional)'}<\/code></label>
                         <input type="file" class="form-control @error('image') is-invalid @enderror" name="image" id="image" ${requiredAttr} />
                         ${imagePreview}
                         ${imageError}
