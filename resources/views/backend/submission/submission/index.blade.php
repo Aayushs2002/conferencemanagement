@@ -116,7 +116,7 @@
                 </small>
             </div>
             <table class="datatables-basic table">
-                <thead>
+                <thead> 
                     <tr>
                         <th>#</th>
                         <th scope="col">Speaker Name</th>
@@ -227,15 +227,29 @@
                             @if (auth()->user()->hasConferencePermissionBlade($conference, 'View Score') &&
                                     $submission_setting->scoring_allowed == 1)
                                 <td>
-                                    @if ($submission->submissionRating?->introduction)
+                                    @if ($submission->submissionRating)
+                                        @php
+                                            $totalScore = 0;
+                                            // Check if section ratings exist
+                                            if (!empty($submission->submissionRating->section_ratings) && is_array($submission->submissionRating->section_ratings)) {
+                                                $totalScore = collect($submission->submissionRating->section_ratings)->sum('rating') + ($submission->submissionRating->grammar ?? 0);
+                                            }
+                                            // Check if overall rating exists
+                                            elseif ($submission->submissionRating->overall_rating) {
+                                                $totalScore = $submission->submissionRating->overall_rating;
+                                            }
+                                            // Default rating calculation
+                                            else {
+                                                $totalScore = ($submission->submissionRating->introduction ?? 0) + 
+                                                             ($submission->submissionRating->method ?? 0) + 
+                                                             ($submission->submissionRating->result ?? 0) + 
+                                                             ($submission->submissionRating->conclusion ?? 0) + 
+                                                             ($submission->submissionRating->grammar ?? 0);
+                                            }
+                                        @endphp
                                         <a class="btn viewScore" data-id="{{ $submission->id }}" data-bs-toggle="modal"
                                             data-bs-target="#pricingModal">
-                                            {{ $submission->submissionRating->introduction + $submission->submissionRating->method + $submission->submissionRating->result + $submission->submissionRating->conclusion + $submission->submissionRating->grammar }}
-                                        </a>
-                                    @elseif ($submission->submissionRating?->overallrating)
-                                        <a class="btn viewScore" data-id="{{ $submission->id }}" data-bs-toggle="modal"
-                                            data-bs-target="#pricingModal">
-                                            {{ $submission->submissionRating->overallrating }}
+                                            {{ $totalScore }}
                                         </a>
                                     @else
                                         N/A

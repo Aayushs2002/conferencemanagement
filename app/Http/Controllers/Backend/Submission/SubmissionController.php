@@ -118,7 +118,8 @@ class SubmissionController extends Controller
     public function show(Request $request)
     {
         $submission = Submission::whereId($request->id)->first();
-
+        
+        
         return view('backend.submission.submission.view', compact('submission'));
     }
 
@@ -157,7 +158,7 @@ class SubmissionController extends Controller
                     ? implode(',', array_column($keywordArray, 'value'))
                     : '';
             }
-
+ 
             $abstractWordCount = str_word_count(strip_tags($request->abstract_content));
             if (!empty($setting->abstract_word_limit) && $abstractWordCount > $setting->abstract_word_limit) {
                 return redirect()->back()->withInput()->with('delete', 'Abstract word limit exceeded.');
@@ -474,9 +475,15 @@ class SubmissionController extends Controller
 
     public function viewScore(Request $request)
     {
-        $submission = Submission::whereId($request->id)->first();
+        $submission = Submission::with('articleType.setting', 'submissionRating')->whereId($request->id)->first();
+        
+        // Get article type setting sections if available
+        $articleTypeSections = null;
+        if ($submission->articleType && $submission->articleType->setting) {
+            $articleTypeSections = $submission->articleType->setting->sections;
+        }
 
-        return view('backend.submission.submission.view-score', compact('submission'));
+        return view('backend.submission.submission.view-score', compact('submission', 'articleTypeSections'));
     }
     public function destroy($society, $conference, Submission $submission)
     {

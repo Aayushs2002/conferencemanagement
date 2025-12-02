@@ -10,10 +10,15 @@ class SubmissionRating extends Model
         'submission_id',
         'introduction',
         'method',
-        'result',
+        'result', 
         'conclusion',
         'grammar',
         'overall_rating',
+        'section_ratings',
         'status'
+    ];
+
+    protected $casts = [
+        'section_ratings' => 'array',
     ];
 }

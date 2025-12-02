@@ -2,6 +2,7 @@
 
 namespace App\Models\Conference;
 
+use App\Models\SubmissionSetting;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Vinkla\Hashids\Facades\Hashids;
@@ -101,5 +102,10 @@ class Submission extends Model
     public function user()
     {
         return $this->belongsTo(User::class, 'user_id', 'id');
+    }
+
+    public function setting()
+    {
+        return $this->hasOne(SubmissionSetting::class, 'conference_id', 'conference_id');
     }
 }

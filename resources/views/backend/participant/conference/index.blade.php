@@ -104,8 +104,20 @@
                                         </div>
                                     </div>
                                 </div>
-
                                 <div class="col-6">
+                                    <div class="d-flex align-items-center">
+                                        <div class="bg-warning bg-opacity-10 rounded-circle p-2 me-3">
+                                            <i class="bi bi-clock text-warning"></i>
+                                        </div>
+                                        <div>
+                                            <small class="text-muted d-block">End Time</small>
+                                            <strong
+                                                class="text-dark">{{ \Carbon\Carbon::parse($conference->end_time)->format('g:i A') }}</strong>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {{-- <div class="col-6">
                                     <div class="d-flex align-items-center">
                                         <div class="bg-info bg-opacity-10 rounded-circle p-2 me-3">
                                             <i class="bi bi-lightning text-info"></i>
@@ -116,7 +128,7 @@
                                                 class="text-dark">{{ \Carbon\Carbon::parse($conference->early_bird_registration_deadline)->format('M d, Y') }}</strong>
                                         </div>
                                     </div>
-                                </div>
+                                </div> --}}
                             </div>
 
                             <div class="bg-light rounded-3 p-3 mb-4">

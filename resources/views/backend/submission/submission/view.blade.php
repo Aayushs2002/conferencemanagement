@@ -39,7 +39,7 @@
             @if (!empty($submission->is_student))
                 <div class="col-md-4 mb-4">
                     <p class="text-primary mb-1"><i class="i-ID-2 text-16 mr-1"></i>Student Status</p>
-                    <span>{{ $submission->is_student == True ? 'Student' : 'Non-Student' }}</span>
+                    <span>{{ $submission->is_student == true ? 'Student' : 'Non-Student' }}</span>
                 </div>
             @endif
             <div class="col-md-4 mb-4">
@@ -93,13 +93,29 @@
             @endif
 
             @if (!empty($submission->image))
-                <div class="mb-4">
-                    <p class="text-primary mb-1"><i class="i-File-Picture text-16 mr-1"></i>Attachment</p>
-                    <a href="{{ asset('storage/participant/submission/image/' . $submission->image) }}" target="_blank"
-                        class="btn btn-sm btn-primary">
-                        <i class="i-Download"></i> View/Download Attachment
-                    </a>
-                </div>
+                @if ($submission?->articleType?->setting)
+                    <div class="mb-4">
+                        <p class="text-primary mb-1">
+                            <i class="i-File-Picture text-16 mr-1"></i>
+                            {{ strip_tags(
+                                $submission?->articleType?->setting?->attachment_name ?? ($submission?->setting?->attachment_name ?? 'Attachment'),
+                            ) }}
+
+
+                        </p>
+
+                        <a href="{{ asset('storage/participant/submission/image/' . $submission->image) }}"
+                            target="_blank" class="btn btn-sm btn-primary">
+                            <i class="i-Download"></i>
+                            View/Download
+                            {{ strip_tags(
+                                $submission?->articleType?->setting?->attachment_name ?? ($submission?->setting?->attachment_name ?? 'Attachment'),
+                            ) }}
+
+
+                        </a>
+                    </div>
+                @endif
             @endif
         </div>
 

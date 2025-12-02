@@ -175,19 +175,33 @@
                     @enderror
                 </div>
             </div>
+            <style>
+                .tc-hover {
+                    text-decoration: underline !important;
+                    color: purple !important;
+                }
 
+                .tc-hover:hover {
+                    color: blue !important;
+                }
+            </style>
             <div class="my-8 form-control-validation" style="margin-block-start:0rem !important;">
                 <div class="form-check mb-0 ms-2">
                     <input class="form-check-input" type="checkbox" id="terms-conditions" name="terms" />
                     <label class="form-check-label" for="terms-conditions">
                         I agree to
                         @if ($nextConference)
-                            <a href="{{ route('conference.privacy-policy', $nextConference->slug) }}"
-                                target="blank">privacy policy</a> & <a
-                                href="{{ route('conference.terms-conditions', $nextConference->slug) }}"
-                                target="blank">terms</a>
+                            <a href="{{ route('conference.terms-conditions', $nextConference->slug) }}"
+                                class="tc-hover" target="blank">
+                                terms
+                                & conditions</a> | <a
+                                href="{{ route('conference.privacy-policy', $nextConference->slug) }}" target="blank"
+                                class="tc-hover">Privacy Policies</a>
                         @else
-                            <a href="#">privacy policy</a> & <a href="#">terms</a>
+                            <a href="" class="tc-hover" target="blank">
+                                terms
+                                & conditions</a> | <a href="" target="blank" class="tc-hover">Privacy
+                                Policies</a>
                         @endif
                     </label>
                 </div>

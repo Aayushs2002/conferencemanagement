@@ -27,7 +27,7 @@
        </style>
    @endsection
 
-   @if ($submissionSetting->poster_reviewer_guide)
+   {{-- @if ($submissionSetting->poster_reviewer_guide)
        <div class="modal fade" id="openExpertPosterGuidelineModal" tabindex="-1" role="dialog"
            aria-labelledby="exampleModalCenterTitleDuideline" aria-hidden="true">
            <div class="modal-dialog modal-lg modal-simple modal-pricing">
@@ -37,6 +37,9 @@
                        <h4 class="text-center mb-4">Poster Reviewer Guidelines</h4>
                        {!! $submissionSetting->poster_reviewer_guide !!}
                    </div>
+                   <div class="text-center">
+                       <button type="button" class="btn btn-primary m-3" data-bs-dismiss="modal">Ok</button>
+                   </div>
                </div>
            </div>
        </div>
@@ -45,16 +48,19 @@
        <div class="modal fade" id="openExpertOralGuidelineModal" tabindex="-1" role="dialog"
            aria-labelledby="exampleModalCenterTitleDuideline" aria-hidden="true">
            <div class="modal-dialog modal-lg modal-simple modal-pricing">
-               <div class="modal-content" id="modalContent">
+               <div class="modal-content" id="modalContent"> 
                    <div class="modal-body">
                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                        <h4 class="text-center mb-4">Oral Reviewer Guidelines</h4>
                        {!! $submissionSetting->oral_reviewer_guide !!}
                    </div>
+                   <div class="text-center">
+                       <button type="button" class="btn btn-primary m-3" data-bs-dismiss="modal">Ok</button>
+                   </div>
                </div>
            </div>
        </div>
-   @endif
+   @endif --}}
 
    {{-- Video Guidelines Section --}}
    @php
@@ -194,7 +200,7 @@
                            </td>
                            <td>
                                <div class="dropdown">
-                                   <button type="button" class="btn p-0 dropdown-toggle hide-arrow"
+                                   <button type="button" class="btn p-0 dropdown-toggle hide-arrow" 
                                        data-bs-toggle="dropdown">
                                        <i class="icon-base ti tabler-dots-vertical"></i>
                                    </button>
@@ -321,7 +327,7 @@
        });
 
        $(document).ready(function() {
-        //    $(document).off("click", ".viewData");
+           //    $(document).off("click", ".viewData");
            $(document).on("click", ".viewData", function(e) {
                e.preventDefault();
                var url = '{{ route('my-society.conference.submission.view', [$society, $conference]) }}';
@@ -349,7 +355,7 @@
 
            $(document).off("click", ".reviewNow");
            $(document).on("click", ".reviewNow", function(e) {
-            // alert('ok');
+               // alert('ok');
                e.preventDefault();
                var url =
                    '{{ route('my-society.conference.submission.review', [$society, $conference]) }}';
