@@ -68,7 +68,7 @@
                 <span>{{ $workshop->contact_person_email }}</span>
             </div>
             <div class="col-md-4 mb-4">
-                <p class="text-primary mb-1"><i class="i-ID-2 text-16 mr-1"></i>Contact Person Email </p>
+                <p class="text-primary mb-1"><i class="i-ID-2 text-16 mr-1"></i>No of Participants </p>
                 <span>{{ $workshop->no_of_participants }}</span>
             </div>
 
