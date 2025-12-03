@@ -103,9 +103,8 @@
                                                     class="icon-base ti tabler-eye me-1 "></i> View Rating</a>
                                         @endif
                                         {{-- Admin Approval Actions - Only for Type 1 & 2 (Admins) --}}
-                                        @if (
-                                            (current_user()->type == 1 || current_user()->type == 2) &&
-                                                in_array($workshop->approval_status, ['pending', 'correction_needed']))
+                                        {{-- @if ((current_user()->type == 1 || current_user()->type == 2) && in_array($workshop->approval_status, ['pending', 'correction_needed'])) --}}
+                                        @if (in_array($workshop->approval_status, ['pending', 'correction_needed']))
                                             <hr>
                                             <h6 class="dropdown-header">Approval Actions</h6>
                                             <a href="#" class="dropdown-item text-success approve-btn"
