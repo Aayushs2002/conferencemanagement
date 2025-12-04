@@ -85,10 +85,15 @@ class Society extends Model
         return $this->belongsToMany(Department::class, 'society_department')
             ->orderBy('society_department.display_order', 'asc')
             ->orderBy('society_department.department_id', 'asc');
-    }   
+    }
 
     public function societySetting()
     {
         return $this->hasOne(\App\Models\Society\SocietySetting::class, 'society_id', 'id');
+    }
+
+    public function memberTypes()
+    {
+        return $this->hasMany(MemberType::class, 'society_id', 'id');
     }
 }

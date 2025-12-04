@@ -107,6 +107,7 @@ Route::middleware('auth')->group(function () {
 
 
 //====================================================== Frontend Route Started=====================================================================================
+Route::get('get-member-type', [CommonController::class, 'getMemberType'])->name('getMemberTypes');
 Route::middleware('check.subdomain')
     ->group(function () {
 

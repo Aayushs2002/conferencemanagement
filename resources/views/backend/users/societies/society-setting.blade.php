@@ -7,7 +7,7 @@
     </div>
     <form action="#" method="POST" enctype="multipart/form-data" id="societySettingForm">
         <div class="row">
-
+ 
             <input type="hidden" name="id" value="{{ $societySetting?->id }}">
             <input type="hidden" name="society_id" value="{{ $society?->id }}">
 

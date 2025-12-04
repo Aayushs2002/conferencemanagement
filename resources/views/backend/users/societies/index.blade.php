@@ -5,7 +5,7 @@
 @section('content')
     <!-- DataTable with Buttons -->
     @if (is_super_admin())
-        <div class="card">
+        <div class="card"> 
             <div class="card-datatable table-responsive pt-0">
                 <div class="row card-header flex-column flex-md-row border-bottom mx-0 px-3">
                     <div

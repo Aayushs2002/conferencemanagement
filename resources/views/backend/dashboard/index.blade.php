@@ -211,7 +211,7 @@
         </style>
 
         <div class="societies-container">
-            <h2 class="section-title">My Societies</h2>
+            <h2 class="section-title">My Institutions</h2>
 
             <div class="societies-grid">
                 @foreach ($joinedSocities as $society)
@@ -229,7 +229,7 @@
                             <div class="society-footer">
                                 <span class="society-status">
                                     <i class="ti tabler-eye"></i>
-                                    View Society
+                                    View Institution
                                 </span>
                             </div>
                         </a>
@@ -242,8 +242,8 @@
                     <div class="join-icon">
                         <i class="ti tabler-plus"></i>
                     </div>
-                    <h5 class="join-title">Join New Society</h5>
-                    <p class="join-subtitle">Discover and join societies that match your interests and goals.</p>
+                    <h5 class="join-title">Join New Institution</h5>
+                    <p class="join-subtitle">Discover and join institutions that match your interests and goals.</p>
                 </div>
             </div>
         </div>

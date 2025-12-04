@@ -12,7 +12,7 @@
                       <li><a href="{{ route('conference.news-and-notice', $conference->slug) }}"
                               class="footer-link">News
                               & Notices</a></li>
-                      <li><a href="{{ route('conference.register', $conference->slug) }}" class="footer-link">Conference
+                      <li><a href="{{ route('register') }}" class="footer-link">Conference
                               registration
                           </a></li>
                   </ul>
@@ -25,7 +25,7 @@
                       <li><a href="{{ route('conference.speaker', $conference->slug) }}"
                               class="footer-link">Speakers</a>
                       </li>
-                  </ul>
+                  </ul> 
               </div>
               @if (feature_enabled('workshop-management', $conference->society))
 

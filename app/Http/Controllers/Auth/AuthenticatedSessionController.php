@@ -57,7 +57,7 @@ class AuthenticatedSessionController extends Controller
         if ($user->type == 2) {
             return redirect()->intended(route('society.dashboard', $user->societies->first()));
         }
-
+ 
         // For other user types:
         if ($society && $user->societies->contains('id', $society->id)) {
             // Redirect only if user's societies include this one

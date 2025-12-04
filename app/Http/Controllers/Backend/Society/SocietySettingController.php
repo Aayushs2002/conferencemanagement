@@ -11,7 +11,7 @@ use Vinkla\Hashids\Facades\Hashids;
 class SocietySettingController extends Controller
 {
     public function societySetting(Request $request)
-    {
+    { 
         // Handle both numeric ID and hashid
         $societyId = is_numeric($request->id) ? $request->id : Hashids::decode($request->id)[0] ?? null;
         $society = Society::where('id', $societyId)->first();

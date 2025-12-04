@@ -143,6 +143,19 @@
                         <p class="text-danger">{{ $message }}</p>
                     @enderror
                 </div>
+                @if ($society)
+                    <div class="mb-6 form-control-validation">
+                        <label for="member_type_id">Member Type <code>*</code></label>
+                        <select name="member_type_id"
+                            class="form-control form-control @error('member_type_id') is-invalid @enderror member_type_id"
+                            id="member_type_id" required>
+                            <option value="" hidden>-- Select Member Type --</option>
+                        </select>
+                        @error('member_type_id')
+                            <p class="text-danger">{{ $message }}</p>
+                        @enderror
+                    </div>
+                @endif
                 <div class="mb-6 form-password-toggle form-control-validation">
                     <label for="password">Password <code>* (Must be atleat 6
                             characters)</code></label>
@@ -216,5 +229,50 @@
             <span>Sign in instead</span>
         </a>
     </p>
-
 </x-guest-layout>
+<script>
+    $(document).ready(function() {
+        $.ajaxSetup({
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            }
+        });
+
+        $('#country_id').on('change', function() {
+            var country_id = $(this).val();
+            var memberTypeId = '{{ old('member_type_id') }}';
+            var society = '{{ $society->id ?? '' }}';
+            if (!country_id) return;
+            $.ajax({
+                type: 'GET',
+                url: '{{ route('getMemberTypes') }}',
+                data: {
+                    country_id: country_id,
+                    society: society
+                },
+                success: function(response) {
+                    $('#member_type_id').empty().append(
+                        '<option value=""  hidden>-- Select Member Type --</option>');
+                    var optionsHtml;
+                    if (response.type === 'success' && response.data.length > 0) {
+                        $.each(response.data, function(index, item) {
+                            var selected = (item.id ==
+                                memberTypeId) ? 'selected' : '';
+                            optionsHtml += '<option value="' + item
+                                .id + '" ' + selected + '>' + item
+                                .type + '</option>';
+                            $('#member_type_id').append(optionsHtml);
+                        });
+                    } else {
+                        $('#member_type_id').append(
+                            '<option disabled>No Member Types Found</option>');
+                    }
+                },
+                error: function(xhr) {
+                    console.log('AJAX Error:', xhr);
+                }
+            });
+        });
+        $("#country_id").trigger('change');
+    });
+</script>

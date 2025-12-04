@@ -50,11 +50,9 @@ class CommonController extends Controller
     public function memberType(Request $request, $society, $conference)
     {
         try {
-            $user = current_user();
             $country_id = $request->country_id;
-
             if (!$country_id) {
-                return response()->json(['type' => 'error', 'message' => 'Country ID is required.', 'data' => []]);
+                return response()->json(['type' => 'error', 'message' => 'Country is required.', 'data' => []]);
             }
 
             if ($request->country_id == 125) {
@@ -71,6 +69,41 @@ class CommonController extends Controller
                 ])->get();
             }
 
+            return response()->json([
+                'type' => 'success',
+                'message' => 'Member types fetched successfully.',
+                'data' => $types
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'type' => 'error',
+                'message' => 'Something went wrong.',
+                'data' => []
+            ]);
+        }
+    }
+
+    public function getMemberType(Request $request)
+    {
+        try {
+            $country_id = $request->country_id;
+            if (!$country_id) {
+                return response()->json(['type' => 'error', 'message' => 'Country is required.', 'data' => []]);
+            }
+
+            if ($request->country_id == 125) {
+                $types = MemberType::where([
+                    'delegate' => 1,
+                    'society_id' => $request->society,
+                    'status' => 1
+                ])->get();
+            } else {
+                $types = MemberType::where([
+                    'delegate' => 2,
+                    'society_id' => $request->society,
+                    'status' => 1
+                ])->get();
+            }
             return response()->json([
                 'type' => 'success',
                 'message' => 'Member types fetched successfully.',

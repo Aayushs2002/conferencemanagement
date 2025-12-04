@@ -23,16 +23,15 @@ class RegisteredUserController extends Controller
     public function create(Request $request): View
     {
         $society = $request->attributes->get('societyDomainDetail');
-        
+
         // Get only the name prefixes that the society has selected
         if ($society && $society->namePrefixes()->exists()) {
             $name_prefiexs = $society->namePrefixes()->where('status', 1)->get();
-            // dd($name_prefiexs);
         } else {
             // Fallback to all active prefixes if society hasn't selected any
             $name_prefiexs = NamePrefix::whereStatus(1)->get();
         }
-        
+
         return view('auth.register', compact('society', 'name_prefiexs'));
     }
 
@@ -44,6 +43,8 @@ class RegisteredUserController extends Controller
     public function store(Request $request): RedirectResponse
     {
         try {
+            $society = $request->attributes->get('societyDomainDetail');
+
             $validated = $request->validate(
                 [
                     'f_name' => ['required', 'string', 'max:255'],
@@ -57,11 +58,13 @@ class RegisteredUserController extends Controller
                     'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:' . User::class],
                     'password' => ['required', 'confirmed', Rules\Password::defaults()],
                     'website' => ['nullable', 'max:0'],
+                    'member_type_id' => $society ? 'required' : 'nullable',
                 ],
                 [
                     'gender.required' => 'Gender is required',
                     'country_id.required' => 'Country is required',
-                    'name_prefix_id.required' => 'Name Prefix is required'
+                    'name_prefix_id.required' => 'Name Prefix is required',
+                    'member_type_id.required' => 'Member Type is required'
                 ]
             );
             if ($request->filled('website')) {
@@ -80,6 +83,13 @@ class RegisteredUserController extends Controller
             $validated['user_id'] = $user->id;
 
             UserDetail::create($validated);
+            // $society = $request->attributes->get('societyDomainDetail');
+
+            if ($society) {
+                $user->societies()->attach($society->id, [
+                    'member_type_id' => $request->member_type_id,
+                ]);
+            }
             DB::commit();
 
             event(new Registered($user));
@@ -88,6 +98,10 @@ class RegisteredUserController extends Controller
 
             if (current_user()->type == 3 && current_user()->is_profile_updated == null) {
                 session(['show_profile_update_modal' => true]);
+            }
+            if ($society && $user->societies->contains('id', $society->id)) {
+                // Redirect only if user's societies include this one
+                return redirect()->intended(route('society.dashboard', $society));
             }
             return redirect(route('dashboard', absolute: false))->with('status', 'Successfully registered. Login to proceed further');
         } catch (\Exception $e) {
