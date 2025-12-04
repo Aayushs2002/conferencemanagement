@@ -6,29 +6,43 @@
                 {{ $submission->title }})</span></h5>
         <hr class="py-4">
 
-        <div class="row closeModal"> 
-            @if (!empty($articleTypeSections) && is_array($articleTypeSections) && !empty($submission->submissionRating?->section_ratings))
+        <div class="row closeModal">
+            @if (
+                !empty($articleTypeSections) &&
+                    is_array($articleTypeSections) &&
+                    !empty($submission->submissionRating?->section_ratings))
                 {{-- Section-based ratings --}}
                 <div class="col-12 mb-3">
                     <h6 class="text-primary"><i class="ti tabler-report-analytics me-2"></i>Section-Based Scores</h6>
                 </div>
-                
+
                 @foreach ($submission->submissionRating->section_ratings as $index => $sectionRating)
                     <div class="col-md-4 mb-4">
-                        <p class="text-primary mb-1"><i class="ti tabler-file-text text-16 me-1"></i>{{ $sectionRating['name'] ?? 'Section ' . ($index + 1) }}</p>
+                        <p class="text-primary mb-1"><i
+                                class="ti tabler-file-text text-16 me-1"></i>{{ $sectionRating['name'] ?? 'Section ' . ($index + 1) }}
+                        </p>
                         <span class="badge bg-label-primary">{{ $sectionRating['rating'] ?? 'N/A' }}</span>
                     </div>
                 @endforeach
-                
+
                 <div class="col-md-4 mb-4">
                     <p class="text-primary mb-1"><i class="ti tabler-language text-16 me-1"></i>Grammar/Languages</p>
                     <span class="badge bg-label-primary">{{ $submission->submissionRating->grammar ?? 'N/A' }}</span>
                 </div>
-                
+                @if ($submission->submissionRating->overall_rating)
+                    <div class="col-md-4 mb-4">
+                        <p class="text-primary mb-1"><i class="ti tabler-star text-16 me-1"></i>Overall Rating</p>
+                        <span class="badge bg-label-primary">{{ $submission->submissionRating->overall_rating }}</span>
+                    </div>
+                @endif
+
                 @php
-                    $totalSectionScore = collect($submission->submissionRating->section_ratings)->sum('rating') + ($submission->submissionRating->grammar ?? 0);
+                    $totalSectionScore =
+                        collect($submission->submissionRating->section_ratings)->sum('rating') +
+                        ($submission->submissionRating->grammar ?? 0) +
+                        ($submission->submissionRating->overall_rating ?? 0);
                 @endphp
-                
+
                 <div class="col-12 mt-3">
                     <hr>
                     <h6 class="text-success">Total Score: <strong>{{ $totalSectionScore }}</strong></h6>
@@ -44,10 +58,12 @@
                 <div class="col-12 mb-3">
                     <h6 class="text-primary"><i class="ti tabler-report-analytics me-2"></i>Detailed Scores</h6>
                 </div>
-                
+
                 <div class="col-md-4 mb-4">
-                    <p class="text-primary mb-1"><i class="ti tabler-file-info text-16 me-1"></i>Introduction/Background</p>
-                    <span class="badge bg-label-primary">{{ $submission->submissionRating->introduction ?? 'N/A' }}</span>
+                    <p class="text-primary mb-1"><i class="ti tabler-file-info text-16 me-1"></i>Introduction/Background
+                    </p>
+                    <span
+                        class="badge bg-label-primary">{{ $submission->submissionRating->introduction ?? 'N/A' }}</span>
                 </div>
                 <div class="col-md-4 mb-4">
                     <p class="text-primary mb-1"><i class="ti tabler-test-pipe text-16 me-1"></i>Methods</p>
@@ -59,22 +75,24 @@
                 </div>
                 <div class="col-md-4 mb-4">
                     <p class="text-primary mb-1"><i class="ti tabler-check text-16 me-1"></i>Conclusion</p>
-                    <span class="badge bg-label-primary">{{ $submission->submissionRating->conclusion ?? 'N/A' }}</span>
+                    <span
+                        class="badge bg-label-primary">{{ $submission->submissionRating->conclusion ?? 'N/A' }}</span>
                 </div>
                 <div class="col-md-4 mb-4">
                     <p class="text-primary mb-1"><i class="ti tabler-language text-16 me-1"></i>Grammar/Languages</p>
                     <span class="badge bg-label-primary">{{ $submission->submissionRating->grammar ?? 'N/A' }}</span>
                 </div>
-                
-                @if($submission->submissionRating)
+
+                @if ($submission->submissionRating)
                     @php
-                        $totalScore = ($submission->submissionRating->introduction ?? 0) + 
-                                     ($submission->submissionRating->method ?? 0) + 
-                                     ($submission->submissionRating->result ?? 0) + 
-                                     ($submission->submissionRating->conclusion ?? 0) + 
-                                     ($submission->submissionRating->grammar ?? 0);
+                        $totalScore =
+                            ($submission->submissionRating->introduction ?? 0) +
+                            ($submission->submissionRating->method ?? 0) +
+                            ($submission->submissionRating->result ?? 0) +
+                            ($submission->submissionRating->conclusion ?? 0) +
+                            ($submission->submissionRating->grammar ?? 0);
                     @endphp
-                    
+
                     <div class="col-12 mt-3">
                         <hr>
                         <h6 class="text-success">Total Score: <strong>{{ $totalScore }}</strong></h6>

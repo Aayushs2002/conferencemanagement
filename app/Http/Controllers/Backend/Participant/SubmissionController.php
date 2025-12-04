@@ -69,7 +69,7 @@ class SubmissionController extends Controller
                 'status' => 1
             ])->orderBy('name', 'asc')->get();
         }
- 
+
         return view('backend.participant.submission.create', compact('society', 'conference', 'submissionTracks', 'setting', 'articleTypes', 'contributions', 'contributionEnabled'));
     }
 
@@ -228,14 +228,14 @@ class SubmissionController extends Controller
                     $authorData['conference_id'] = $conference->id;
                     // Set main_author based on checkbox value
                     $authorData['main_author'] = isset($authorData['main_author']) && $authorData['main_author'] == 1 ? 1 : 0;
-                    
+
                     // Map contribution_other_text to contribution_other for database
                     if (isset($authorData['contribution_other_text'])) {
                         $authorData['contribution_other'] = $authorData['contribution_other_text'];
                         unset($authorData['contribution_other_text']);
                     }
                     unset($authorData['contribution_other_checkbox']);
-                    
+
                     $coAuthor = Author::create($authorData);
 
                     // Sync contributions
@@ -339,7 +339,7 @@ class SubmissionController extends Controller
             if (isset($validated['has_conflict_of_interest'])) {
                 if ($validated['has_conflict_of_interest'] === 'no') {
                     $validated['conflict_of_interest'] = null;
-                } 
+                }
                 unset($validated['has_conflict_of_interest']);
             }
 
@@ -404,7 +404,7 @@ class SubmissionController extends Controller
                 foreach ($request->authors as $authorData) {
                     // Set main_author based on checkbox value
                     $authorData['main_author'] = isset($authorData['main_author']) && $authorData['main_author'] == 1 ? 1 : 0;
-                    
+
                     // Map contribution_other_text to contribution_other for database
                     if (isset($authorData['contribution_other_text'])) {
                         $authorData['contribution_other'] = $authorData['contribution_other_text'];
@@ -470,23 +470,24 @@ class SubmissionController extends Controller
         return view('backend.participant.submission.review.index', compact('conference', 'submissions', 'society', 'submissionSetting'));
     }
 
-    public function review(Request $request, $society, $conference) 
+    public function review(Request $request, $society, $conference)
     {
         // dd('ok');
         $submission = Submission::with('articleType.setting')->whereId($request->id)->first();
         $setting = SubmissionSetting::where(['conference_id' => $conference->id, 'status' => 1])->first();
-        
+
         // Get article type setting sections if available
         $articleTypeSections = null;
         if ($submission->articleType && $submission->articleType->setting) {
             $articleTypeSections = $submission->articleType->setting->sections;
         }
-        
+
         return view('backend.participant.submission.review-modal', compact('submission', 'setting', 'conference', 'society', 'articleTypeSections'));
     }
 
     public function reviewSubmit(Request $request)
     {
+        // dd($request->all());
         try {
             $submission = Submission::with('articleType.setting')->findOrFail($request->id);
             $setting = SubmissionSetting::where(['conference_id' => $submission->conference_id, 'status' => 1])->first();
@@ -495,9 +496,9 @@ class SubmissionController extends Controller
             $scoreRule = $setting->scoring_allowed == 1 ? 'required|integer' : 'nullable|integer';
 
             // Check if article type has sections for section-based rating
-            $hasSectionRatings = $submission->articleType && 
-                                 $submission->articleType->setting && 
-                                 !empty($submission->articleType->setting->sections);
+            $hasSectionRatings = $submission->articleType &&
+                $submission->articleType->setting &&
+                !empty($submission->articleType->setting->sections);
 
             $rules = [];
 
@@ -523,6 +524,11 @@ class SubmissionController extends Controller
                         }
                     }
                     $rules['grammar'] = $scoreRule; // Grammar is always required for section-based
+
+                    // Overall rating may be required if section total + grammar < 10
+                    if ($request->has('overall_rating') && $request->overall_rating !== null) {
+                        $rules['overall_rating'] = 'required|integer|min:1|max:10';
+                    }
                 } else {
                     // Default rating structure
                     if ($request->structure) {
@@ -543,6 +549,13 @@ class SubmissionController extends Controller
             }
 
             $validated = $request->validate($rules);
+
+
+            // Manually add overall_rating to validated array if it exists (for section-based scoring)
+            if ($hasSectionRatings && $request->has('overall_rating') && $request->overall_rating !== null && $request->overall_rating !== '') {
+                $validated['overall_rating'] = $request->overall_rating;
+            }
+
             if ($request->has('sections') && is_array($request->sections)) {
                 $validated['sections'] = $request->sections;
                 $validated['abstract_content'] = null; // Clear abstract content when using sections
@@ -571,6 +584,7 @@ class SubmissionController extends Controller
                 $ratingData = [
                     'section_ratings' => $request->section_ratings,
                     'grammar' => $validated['grammar'] ?? null,
+                    'overall_rating' => $validated['overall_rating'] ?? null, // Store overall rating if provided
                 ];
             } else {
                 // Default rating structure
