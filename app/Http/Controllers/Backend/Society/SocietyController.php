@@ -49,7 +49,7 @@ class SocietyController extends Controller
      */
     public function store(AddSocietyRequest $request)
     {
-        try {
+        try { 
             $req = $request->all();
             $req['password'] = hash_password('password');
             $req['type'] = 2;

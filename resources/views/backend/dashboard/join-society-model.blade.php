@@ -2,16 +2,16 @@
     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
     <div class="">
         <div class="text-center mb-6">
-            <h4 class="mb-2">Join Society</h4>
-            <p>Choose Your Society And Member Type</p>
+            <h4 class="mb-2">Join Institution</h4>
+            <p>Choose Your Institution And Member Type</p>
         </div>
         <form class="needs-validation">
             <div class="row
             g-6">
                 <div class="mb-6 col-md-6">
-                    <label for="society_id" class="form-label">Society <code>*</code></label>
+                    <label for="society_id" class="form-label">Institution <code>*</code></label>
                     <select class="form-select" name="society_id" id="society_id" required>
-                        <option value="" hidden>-- Select Society --</option>
+                        <option value="" hidden>-- Select Institution --</option>
                         @foreach ($societies as $society)
                             <option value="{{ $society->id }}">
                                 {{ $society->users->where('type', 2)->value('f_name') }}</option>
