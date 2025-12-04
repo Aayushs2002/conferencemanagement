@@ -251,18 +251,22 @@
                     society: society
                 },
                 success: function(response) {
-                    $('#member_type_id').empty().append(
-                        '<option value=""  hidden>-- Select Member Type --</option>');
-                    var optionsHtml;
+                    $('#member_type_id')
+                        .empty()
+                        .append(
+                        '<option value="" hidden>-- Select Member Type --</option>');
+
                     if (response.type === 'success' && response.data.length > 0) {
+                        let optionsHtml = '';
+
                         $.each(response.data, function(index, item) {
-                            var selected = (item.id ==
-                                memberTypeId) ? 'selected' : '';
-                            optionsHtml += '<option value="' + item
-                                .id + '" ' + selected + '>' + item
-                                .type + '</option>';
-                            $('#member_type_id').append(optionsHtml);
+                            let selected = (item.id == memberTypeId) ? 'selected' :
+                                '';
+                            optionsHtml +=
+                                `<option value="${item.id}" ${selected}>${item.type}</option>`;
                         });
+
+                        $('#member_type_id').append(optionsHtml);
                     } else {
                         $('#member_type_id').append(
                             '<option disabled>No Member Types Found</option>');

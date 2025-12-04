@@ -111,7 +111,8 @@
                             @error('submission_category_major_track_id')
                                 <p class="text-danger">{{ $message }}</p>
                             @enderror
-                            <p id="majorAreas" class="text-muted" style=" font-weight: semi-bold; font-size: 0.8rem; padding-top: 0.5rem;">loading</p>
+                            <p id="majorAreas" class="text-muted"
+                                style=" font-weight: semi-bold; font-size: 0.8rem; padding-top: 0.5rem;">loading</p>
                         </div>
 
                         <div class="mb-6 col-md-6">
@@ -131,8 +132,6 @@
                                 <p class="text-danger">{{ $message }}</p>
                             @enderror
                         </div>
-
-
 
                         @if ($setting->competition_enabled)
                             <div class="mb-6 col-md-6">
@@ -159,9 +158,11 @@
                             <label for="keyWord" class="form-label">Keywords <code>*(NOTE: Total number of Keywords
                                     limitation is
                                     {{ @$setting->key_word_limit ? @$setting->key_word_limit : 'infinity' }})</code>
-                                    <span class="text-muted" style=" font-weight: semi-bold; font-size: 0.7rem; padding-top: 0.5rem;">(Press enter after typing complete word/words to represent
-                                        it
-                                        as a keyword.)</span></label>
+                                <span class="text-muted"
+                                    style=" font-weight: semi-bold; font-size: 0.7rem; padding-top: 0.5rem;">(Press enter
+                                    after typing complete word/words to represent
+                                    it
+                                    as a keyword.)</span></label>
 
                             @php
                                 $keywordsJson =
@@ -288,7 +289,22 @@
         const contributionEnabled = @json($contributionEnabled ?? false);
 
         $(document).ready(function() {
-            $('#openAbstractGuidelineModal').modal('show');
+            // Check if user has seen the abstract guidelines before
+            const abstractGuidelinesKey =
+                'abstract_guidelines_seen_{{ $conference->id }}_{{ current_user()->id }}';
+
+            const hasSeenGuidelines = localStorage.getItem(abstractGuidelinesKey);
+
+            @if ($setting?->abstract_guidelines)
+                if (!hasSeenGuidelines) {
+                    $('#openAbstractGuidelineModal').modal('show');
+                }
+
+                // Mark as seen when modal is closed
+                $('#openAbstractGuidelineModal').on('hidden.bs.modal', function() {
+                    localStorage.setItem(abstractGuidelinesKey, 'true');
+                });
+            @endif
 
             // Major Areas display
             $('#submission_category_major_track_id').on('change', function() {
@@ -345,6 +361,22 @@
                 });
             @endif
 
+            // Handle initial state for main author visibility on page load
+            setTimeout(function() {
+                if ($('#main_author_checkbox').is(':checked')) {
+                    $('.co-author-main-checkbox').each(function() {
+                        $(this).closest('.co-author-main-checkbox-container').hide();
+                    });
+                } else if ($('.co-author-main-checkbox:checked').length > 0) {
+                    $('#main_author_checkbox').closest('.mb-6').hide();
+                    $('.co-author-main-checkbox').each(function() {
+                        if (!$(this).is(':checked')) {
+                            $(this).closest('.co-author-main-checkbox-container').hide();
+                        }
+                    });
+                }
+            }, 100);
+
             // Initialize Tagify for keywords
             initializeTagify();
 
@@ -353,16 +385,42 @@
                 if ($(this).is(':checked')) {
                     // Uncheck submitter's main author checkbox
                     $('#main_author_checkbox').prop('checked', false);
-                    // Uncheck all other co-author main checkboxes
-                    $('.co-author-main-checkbox').not(this).prop('checked', false);
+                    // Hide submitter's main author checkbox container
+                    $('#main_author_checkbox').closest('.mb-6').hide();
+
+                    // Uncheck and hide all other co-author main checkboxes
+                    $('.co-author-main-checkbox').not(this).each(function() {
+                        $(this).prop('checked', false);
+                        $(this).closest('.co-author-main-checkbox-container').hide();
+                    });
+
+                    // Keep current checkbox visible
+                    $(this).closest('.co-author-main-checkbox-container').show();
+                } else {
+                    // If unchecked, show submitter's main author checkbox again
+                    $('#main_author_checkbox').closest('.mb-6').show();
+                    // Show all co-author main checkboxes again
+                    $('.co-author-main-checkbox').each(function() {
+                        $(this).closest('.co-author-main-checkbox-container').show();
+                    });
                 }
             });
 
             // Submitter main author checkbox logic
             $(document).on('change', '#main_author_checkbox', function() {
                 if ($(this).is(':checked')) {
-                    // Uncheck all co-author main checkboxes
-                    $('.co-author-main-checkbox').prop('checked', false);
+                    // Uncheck and hide all co-author main checkboxes
+                    $('.co-author-main-checkbox').each(function() {
+                        $(this).prop('checked', false);
+                        $(this).closest('.co-author-main-checkbox-container').hide();
+                    });
+                    // Keep submitter checkbox visible
+                    $(this).closest('.mb-6').show();
+                } else {
+                    // If unchecked, show all co-author main checkboxes again
+                    $('.co-author-main-checkbox').each(function() {
+                        $(this).closest('.co-author-main-checkbox-container').show();
+                    });
                 }
             });
 
@@ -520,7 +578,7 @@
                             ${existingAuthorsHtml}
                         </select>
                     </div>
-                    <div class="col-md-12">
+                    <div class="col-md-12 co-author-main-checkbox-container" style="display: ${$('#main_author_checkbox').is(':checked') || $('.co-author-main-checkbox:checked').length > 0 ? 'none' : 'block'};">
                         <div class="form-check">
                             <input class="form-check-input co-author-main-checkbox" type="checkbox" 
                                 name="authors[${index}][main_author]" id="co_author_main_${index}"

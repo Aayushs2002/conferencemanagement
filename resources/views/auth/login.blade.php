@@ -1,5 +1,3 @@
-
-
 <x-guest-layout>
     <x-auth-session-status class="mb-4" :status="session('status')" />
 
@@ -73,7 +71,7 @@
 
             @if (!empty($nextConference))
                 @if (!empty($nextConference->conference_logo))
-                    <a href="#" class="app-brand-link">
+                    <a href="#" class="app-brand-link justify-content-center">
                         <img src="{{ asset('storage/conference/conference/logo/' . $nextConference->conference_logo) }}"
                             style="height:50px;">
                     </a>
@@ -104,8 +102,7 @@
             @else
                 {{-- <h3>Medcon Alert</h3> --}}
                 <div class="text-center">
-                    <img src="{{ asset('frontend/assets/img/MEDCON-LOGO-blue.png') }}" 
-                        alt="Medcon Alert">
+                    <img src="{{ asset('frontend/assets/img/MEDCON-LOGO-blue.png') }}" alt="Medcon Alert">
                 </div>
             @endif
 
@@ -114,7 +111,7 @@
                 $conferenceSetting = $nextConference->conferenceSetting ?? null;
                 $hasGuidelines = false;
                 if ($conferenceSetting) {
-                    $hasGuidelines =
+                    $hasGuidelines = 
                         $conferenceSetting->registration_guideline ||
                         $conferenceSetting->registration_guideline_youtube;
                 }
