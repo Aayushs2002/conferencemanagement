@@ -5,7 +5,7 @@
                 $setting = $conference->conferenceSetting;
                 $displayType = $setting?->logo_display_type ?? 'logo';
             @endphp
-
+ 
             @if ($displayType == 'abbreviation' && !empty($conference->abbreviation))
                 <span
                     style="font-size: 1.5rem; font-weight: bold; text-transform: uppercase;">{{ $conference->abbreviation }}</span>

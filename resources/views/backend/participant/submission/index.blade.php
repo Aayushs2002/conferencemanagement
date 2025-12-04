@@ -211,6 +211,13 @@
                <div
                    class="d-md-flex justify-content-between align-items-center dt-layout-end col-md-auto ms-auto mt-0">
                    <div class="dt-buttons btn-group flex-wrap mb-0">
+                       @if ($submissionSetting?->abstract_guidelines && $submissions->isNotEmpty())
+                           <button type="button" class="btn btn-outline-secondary me-2" id="viewGuidelinesBtn"
+                               tabindex="0">
+                               <i class="icon-base ti tabler-info-circle icon-xs me-sm-1"></i>
+                               <span class="d-none d-sm-inline-block">View Guidelines</span>
+                           </button>
+                       @endif
 
                        <a href="{{ route('my-society.conference.submission.create', [$society, $conference]) }}"
                            class="btn btn-primary" tabindex="0">
@@ -318,6 +325,9 @@
    <script>
        let guideVideoModalInstance = null;
 
+       function showSubmissionVideoModal(url) {
+           showGuideVideo('Submission Video Guidelines', url);
+       }
 
        function showExpertVideoModal(url) {
            showGuideVideo('Expert/Reviewer Video Guidelines', url);
@@ -386,9 +396,30 @@
        });
 
        $(document).ready(function() {
+           // Check if user has seen the abstract guidelines before
+           const abstractGuidelinesKey =
+               'abstract_guidelines_seen_{{ $conference->id }}_{{ current_user()->id }}';
+           const hasSeenGuidelines = localStorage.getItem(abstractGuidelinesKey);
+
+           @if ($submissionSetting?->abstract_guidelines)
+               if (!hasSeenGuidelines) {
+                   $('#openAbstractGuidelineModal').modal('show');
+               }
+
+               // Mark as seen when modal is closed
+               $('#openAbstractGuidelineModal').on('hidden.bs.modal', function() {
+                   localStorage.setItem(abstractGuidelinesKey, 'true');
+               });
+
+               // Button to view guidelines again
+               $('#viewGuidelinesBtn').on('click', function() {
+                   $('#openAbstractGuidelineModal').modal('show');
+               });
+           @endif
+
            $(document).off("click", ".viewData");
            $(document).on("click", ".viewData", function(e) {
-            // alert('ds');
+               // alert('ds');
                e.preventDefault();
                var url = '{{ route('my-society.conference.submission.view', [$society, $conference]) }}';
                var _token = '{{ csrf_token() }}';
@@ -438,7 +469,7 @@
                });
            });
 
-           $('#openAbstractGuidelineModal').modal('show');
+           // $('#openAbstractGuidelineModal').modal('show'); // Removed - now controlled by localStorage
            $('#openExpertOralGuidelineModal').modal('show');
            $('#openExpertPosterGuidelineModal').modal('show');
 
