@@ -232,7 +232,7 @@
                                             $totalScore = 0;
                                             // Check if section ratings exist
                                             if (!empty($submission->submissionRating->section_ratings) && is_array($submission->submissionRating->section_ratings)) {
-                                                $totalScore = collect($submission->submissionRating->section_ratings)->sum('rating') + ($submission->submissionRating->grammar ?? 0);
+                                                $totalScore = collect($submission->submissionRating->section_ratings)->sum('rating') + ($submission->submissionRating->grammar ?? 0) + ($submission->submissionRating->overall_rating ?? 0);
                                             }
                                             // Check if overall rating exists
                                             elseif ($submission->submissionRating->overall_rating) {

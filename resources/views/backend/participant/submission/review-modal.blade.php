@@ -63,7 +63,7 @@
                         <label for="remarks">Review Remarks <code>*</code></label>
                         <textarea class="form-control" name="remarks" id="remarks" cols="30" rows="5">{{ isset($submission) ? $submission->remarks : old('remarks') }}</textarea>
                         <p class="text-danger remarks"></p>
-                    </div> 
+                    </div>
                     {{-- @endif --}}
                     @if ($setting->scoring_allowed == 1)
                         {{-- Section-based ratings if article type has sections --}}
@@ -103,6 +103,24 @@
                                         <option value="2">2</option>
                                     </select>
                                     <p class="text-danger grammar"></p>
+                                </div>
+                            </div>
+                            
+                            {{-- Overall rating field for section-based (shown when total < 10) --}}
+                            <div class="row pl-3 decisionForm" id="sectionOverallRatingDiv" style="display: none;">
+                                {{-- <div class="col-md-12 mb-3">
+                                    <div class="alert alert-warning">
+                                        <i class="ti ti-info-circle"></i> 
+                                        <strong>Additional Score Required:</strong> 
+                                        <span id="remainingScoreText"></span>
+                                    </div>
+                                </div> --}}
+                                <div class="col-md-6 form-group mb-3">
+                                    <label for="section_overall_rating">Overall Rating<code>*</code></label>
+                                    <select name="overall_rating" id="section_overall_rating" class="form-control">
+                                        <option value="" hidden>-- Select Additional Score --</option>
+                                    </select>
+                                    <p class="text-danger overall_rating"></p>
                                 </div>
                             </div>
                         @else
@@ -362,10 +380,64 @@
         }
     });
 
+    // Check if overall rating field should be shown for section-based ratings
+    function checkSectionOverallRatingRequired() {
+        // Count total number of section rating fields (excluding grammar)
+        const sectionCount = $('.section-rating-select').not('#grammar').length;
+        const grammarCount = 1; // Grammar field
+        
+        // Calculate maximum possible score
+        const maxPossibleScore = (sectionCount * 2) + (grammarCount * 2);
+        
+        if (maxPossibleScore < 10) {
+            // Show overall rating field
+            const remaining = 10 - maxPossibleScore;
+            $('#remainingScoreText').text(`Maximum section score is ${maxPossibleScore} (${sectionCount} sections × 2 + grammar × 2). You need up to ${remaining} additional point(s) for overall rating.`);
+            
+            // Populate options from 1 to remaining
+            const $select = $('#section_overall_rating');
+            $select.empty();
+            $select.append('<option value="" hidden>-- Select Additional Score --</option>');
+            for (let i = 1; i <= remaining; i++) {
+                $select.append(`<option value="${i}">${i}</option>`);
+            }
+            
+            $('#sectionOverallRatingDiv').show();
+            $('#section_overall_rating').attr('required', true);
+        } else {
+            // Hide overall rating field if max possible score is already 10 or more
+            $('#sectionOverallRatingDiv').hide();
+            $('#section_overall_rating').attr('required', false);
+            $('#section_overall_rating').val('');
+        }
+    }
+    
+    // Check on page load when "Yes" is selected and form is shown
+    $('#yes').on('change', function() {
+        if ($(this).is(':checked')) {
+            // Wait for the form to be displayed, then check
+            setTimeout(function() {
+                if ($('.section-rating-select').length > 0) {
+                    checkSectionOverallRatingRequired();
+                }
+            }, 100);
+        }
+    });
+
 
     $("#decideRequest").on('click', function(e) {
         e.preventDefault();
         var data = new FormData($('#decisionForm')[0]);
+        
+        // Explicitly add overall_rating if it exists and has a value
+        var overallRatingValue = $('#section_overall_rating').val();
+        if (overallRatingValue && overallRatingValue !== '' && overallRatingValue !== null) {
+            data.set('overall_rating', overallRatingValue);
+            console.log('Adding overall_rating to form data:', overallRatingValue);
+        } else {
+            console.log('overall_rating field value:', overallRatingValue);
+        }
+        
         @if (!empty($submission->sections))
             // Get data from section editors
             @foreach ($submission->sections as $index => $section)
