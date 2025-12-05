@@ -287,12 +287,50 @@
                         @endif
                         <div class="row">
                             <div class="col-12 text-end">
-                                <button type="submit"
-                                    class="btn btn-primary">{{ isset($submission) ? 'Update' : 'Submit' }}</button>
+                                @if(!isset($submission))
+                                    <button type="button" id="previewBtn" class="btn btn-primary">
+                                        <i class="ti tabler-eye me-1"></i>Preview Submission
+                                    </button>
+                                @else
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="ti tabler-device-floppy me-1"></i>Update
+                                    </button>
+                                @endif
                             </div>
                         </div>
                     </div>
                 </form>
+            </div>
+        </div>
+    </div>
+
+    {{-- Preview Modal --}}
+    <div class="modal fade" id="previewModal" tabindex="-1" aria-labelledby="previewModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="previewModalLabel">
+                        <i class="ti tabler-eye me-2"></i>Preview Submission
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="previewContent"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="previewCloseBtn">
+                        <i class="ti tabler-x me-1"></i>Close
+                    </button>
+                    <button type="button" id="confirmSubmitBtn" class="btn btn-primary">
+                        <span class="btn-text">
+                            <i class="ti tabler-send me-1"></i>Confirm & Submit
+                        </span>
+                        <span class="btn-spinner d-none">
+                            <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+                            Submitting...
+                        </span>
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -508,7 +546,204 @@
                 const errorId = $(this).attr('id') + '_error';
                 $('#' + errorId).text('');
             });
+
+            // Preview button click handler
+            $('#previewBtn').on('click', function(e) {
+                e.preventDefault();
+                showPreview();
+            });
+
+            // Confirm submit button in preview modal
+            $('#confirmSubmitBtn').on('click', function() {
+                const btn = $(this);
+                const closeBtn = $('#previewCloseBtn');
+                const form = $('form.needs-validation')[0];
+                
+                // Show loading state
+                btn.find('.btn-text').addClass('d-none');
+                btn.find('.btn-spinner').removeClass('d-none');
+                btn.prop('disabled', true);
+                closeBtn.prop('disabled', true);
+                
+                // Prevent modal close on backdrop click or escape
+                const modal = bootstrap.Modal.getInstance($('#previewModal')[0]);
+                if (modal) {
+                    modal._config.backdrop = 'static';
+                    modal._config.keyboard = false;
+                }
+                
+                // Submit the form using native submit (bypasses jQuery to avoid event conflicts)
+                setTimeout(function() {
+                    form.submit();
+                }, 100);
+            });
         });
+
+        function showPreview() {
+            let previewHtml = '<div class="container-fluid">';
+            
+            // Basic Information
+            previewHtml += '<h5 class="border-bottom pb-2 mb-3"><i class="ti tabler-info-circle me-2"></i>Basic Information</h5>';
+            previewHtml += '<div class="row mb-4">';
+            
+            const title = $('input[name="title"]').val() || 'Not provided';
+            previewHtml += `<div class="col-md-12 mb-3"><strong>Title:</strong><br>${escapeHtml(title)}</div>`;
+            
+            const articleType = $('#article_type_id option:selected').text() || 'Not selected';
+            previewHtml += `<div class="col-md-6 mb-3"><strong>Article Type:</strong><br>${escapeHtml(articleType)}</div>`;
+            
+            const presentationType = $('#presentation_type option:selected').text() || 'Not selected';
+            previewHtml += `<div class="col-md-6 mb-3"><strong>Presentation Type:</strong><br>${escapeHtml(presentationType)}</div>`;
+            
+            const track = $('#submission_category_major_track_id option:selected').text() || 'Not selected';
+            previewHtml += `<div class="col-md-6 mb-3"><strong>Submission Track:</strong><br>${escapeHtml(track)}</div>`;
+            
+            // Parse keywords from Tagify JSON format
+            let keywordsDisplay = 'Not provided';
+            const keywordsRaw = $('#keyWord').val();
+            if (keywordsRaw) {
+                try {
+                    const keywordsArray = JSON.parse(keywordsRaw);
+                    if (Array.isArray(keywordsArray) && keywordsArray.length > 0) {
+                        keywordsDisplay = keywordsArray.map(k => k.value).join(', ');
+                    }
+                } catch (e) {
+                    // If not JSON, use as is
+                    keywordsDisplay = keywordsRaw;
+                }
+            }
+            previewHtml += `<div class="col-md-6 mb-3"><strong>Keywords:</strong><br>${escapeHtml(keywordsDisplay)}</div>`;
+            
+            previewHtml += '</div>';
+            
+            // Abstract/Content
+            previewHtml += '<h5 class="border-bottom pb-2 mb-3"><i class="ti tabler-file-text me-2"></i>Content</h5>';
+            
+            // Check if using sections or abstract
+            if ($('#contentSectionsContainer .section-content').length > 0) {
+                $('#contentSectionsContainer .section-content').each(function() {
+                    const sectionName = $(this).closest('.form-group').find('label').text().replace('*', '').trim();
+                    const editorId = $(this).attr('id');
+                    let content = 'Not provided';
+                    if (ckeditorInstances[editorId]) {
+                        content = ckeditorInstances[editorId].getData() || 'Not provided';
+                    }
+                    previewHtml += `<div class="mb-3"><strong>${escapeHtml(sectionName)}:</strong><div class="border p-3 mt-2">${content}</div></div>`;
+                });
+            } else if (ckeditorInstances['description2']) {
+                const abstractContent = ckeditorInstances['description2'].getData() || 'Not provided';
+                previewHtml += `<div class="mb-3"><strong>Abstract Content:</strong><div class="border p-3 mt-2">${abstractContent}</div></div>`;
+            }
+            
+            // Attachment
+            const attachmentInput = $('#image')[0];
+            if (attachmentInput && attachmentInput.files && attachmentInput.files.length > 0) {
+                const fileName = attachmentInput.files[0].name;
+                const fileSize = (attachmentInput.files[0].size / 1024).toFixed(2); // Convert to KB
+                previewHtml += `<div class="mb-3"><strong>Attachment:</strong><br>
+                    <span class="badge bg-info">${escapeHtml(fileName)}</span> 
+                    <small class="text-muted">(${fileSize} KB)</small>
+                </div>`;
+            }
+            
+            // Authors
+            previewHtml += '<h5 class="border-bottom pb-2 mb-3 mt-4"><i class="ti tabler-users me-2"></i>Authors</h5>';
+            
+            // Submitter
+            const submitterName = '{{ current_user()->fullName(current_user()) }}';
+            const submitterEmail = '{{ current_user()->email }}';
+            const isMainAuthor = $('#main_author_checkbox').is(':checked');
+            const isMainPresenter = $('#main_presenter_checkbox').is(':checked');
+            let submitterBadges = '';
+            if (isMainAuthor) submitterBadges += '<span class=\"badge bg-success ms-2\">Main Author</span>';
+            if (isMainPresenter) submitterBadges += '<span class=\"badge bg-primary ms-2\">Main Presenter</span>';
+            
+            previewHtml += `<div class="card mb-2">
+                <div class="card-body">
+                    <strong>${escapeHtml(submitterName)}</strong> ${submitterBadges}
+                    <br><small class="text-muted">${escapeHtml(submitterEmail)}</small>
+                </div>
+            </div>`;
+            
+            // Co-authors
+            $('.author-item').each(function() {
+                const authorIndex = $(this).attr('id').replace('author_row_', '');
+                const name = $(`#author_name_${authorIndex}`).val() || 'Not provided';
+                const email = $(`#author_email_${authorIndex}`).val() || 'Not provided';
+                const phone = $(`#author_phone_${authorIndex}`).val() || 'Not provided';
+                const designation = $(`#author_designation_${authorIndex}`).val() || 'Not provided';
+                const institution = $(`#author_institution_${authorIndex}`).val() || 'Not provided';
+                const address = $(`#author_institution_address_${authorIndex}`).val() || 'Not provided';
+                const isCoMainAuthor = $(`#co_author_main_author_${authorIndex}`).is(':checked');
+                const isCoMainPresenter = $(`#co_author_main_presenter_${authorIndex}`).is(':checked');
+                
+                let badges = '';
+                if (isCoMainAuthor) badges += '<span class=\"badge bg-success ms-2\">Main Author</span>';
+                if (isCoMainPresenter) badges += '<span class=\"badge bg-primary ms-2\">Main Presenter</span>';
+                
+                // Get contributions
+                let contributionsHtml = '';
+                const selectedContributions = [];
+                $(`input[name="authors[${authorIndex}][contributions][]"]:checked`).each(function() {
+                    const contributionLabel = $(this).parent().find('label').text().trim();
+                    selectedContributions.push(contributionLabel);
+                });
+                
+                // Check for "Other" contribution
+                const otherContribution = $(`#contribution_other_text_${authorIndex}`).val();
+                if (otherContribution) {
+                    selectedContributions.push('Other: ' + otherContribution);
+                }
+                
+                if (selectedContributions.length > 0) {
+                    contributionsHtml = '<br><small class="text-muted"><strong>Contributions:</strong> ' + 
+                                       escapeHtml(selectedContributions.join(', ')) + '</small>';
+                }
+                
+                previewHtml += `<div class="card mb-2">
+                    <div class="card-body">
+                        <strong>${escapeHtml(name)}</strong> ${badges}
+                        <br><small class="text-muted">Email: ${escapeHtml(email)}</small>
+                        <br><small class="text-muted">Phone: ${escapeHtml(phone)}</small>
+                        <br><small class="text-muted">Designation: ${escapeHtml(designation)}</small>
+                        <br><small class="text-muted">Institution: ${escapeHtml(institution)}</small>
+                        <br><small class="text-muted">Address: ${escapeHtml(address)}</small>
+                        ${contributionsHtml}
+                    </div>
+                </div>`;
+            });
+            
+            // Additional Information
+            if ($('#has_conflict_of_interest_yes').is(':checked') || $('#has_source_of_funding_yes').is(':checked')) {
+                previewHtml += '<h5 class="border-bottom pb-2 mb-3 mt-4"><i class="ti tabler-file-info me-2\"></i>Additional Information</h5>';
+                
+                if ($('#has_conflict_of_interest_yes').is(':checked')) {
+                    const conflict = $('#conflict_of_interest').val() || 'Not provided';
+                    previewHtml += `<div class="mb-3"><strong>Conflict of Interest:</strong><br>${escapeHtml(conflict)}</div>`;
+                }
+                
+                if ($('#has_source_of_funding_yes').is(':checked')) {
+                    const funding = $('#source_of_funding').val() || 'Not provided';
+                    previewHtml += `<div class="mb-3"><strong>Source of Funding:</strong><br>${escapeHtml(funding)}</div>`;
+                }
+            }
+            
+            previewHtml += '</div>';
+            
+            $('#previewContent').html(previewHtml);
+            $('#previewModal').modal('show');
+        }
+
+        function escapeHtml(text) {
+            const map = {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#039;'
+            };
+            return String(text).replace(/[&<>"']/g, m => map[m]);
+        }
 
         function initializeTagify() {
             const keywordInput = document.querySelector('#keyWord');
@@ -699,7 +934,7 @@
                             name="authors[${index}][email]" id="author_email_${index}" value="${email}" required>
                         <div class="invalid-feedback" id="author_email_error_${index}"></div>
                     </div>
-                    <div class="col-md-6">
+                    <div class="col-md-6"> 
                         <label class="form-label">Phone</label>
                         <input type="text" class="form-control @error('authors.${index}.phone') is-invalid @enderror" 
                             name="authors[${index}][phone]" id="author_phone_${index}" value="${phone}">
