@@ -15,8 +15,8 @@
                         if ($society && $society->$relation()->exists()) {
                             return $society->$relation()->where('status', 1)->get();
                         }
-                        return $model::where('status', 1)->get();  
-                    };  
+                        return $model::where('status', 1)->get();
+                    };
 
                     $institutions = $loadData('institutions', \App\Models\User\Institution::class);
                     $designations = $loadData('designations', \App\Models\User\Designation::class);
@@ -65,8 +65,8 @@
 
                         {{-- Designation --}}
                         <div class="col-12 col-md-6" id="designationWrapper">
-                            <label for="designation_id" class="form-label">Designation <code>*</code></label>
-                            <select class="form-select" name="designation_id" id="designation_id" required>
+                            <label for="designation_id" class="form-label">Designation </label>
+                            <select class="form-select" name="designation_id" id="designation_id">
                                 <option value="" hidden>-- Select Designation --</option>
                                 @foreach ($designations as $designation)
                                     <option value="{{ $designation->id }}" @selected(old('designation_id', current_user()?->userDetail?->designation_id) == $designation->id)>
@@ -240,7 +240,7 @@
             submitBtn.textContent = 'Submitting...';
 
             const formData = new FormData(form);
-            formData.append('_method', 'PATCH'); 
+            formData.append('_method', 'PATCH');
             formData.append('_token', '{{ csrf_token() }}');
 
             fetch('{{ route('profile.update-profile') }}', {

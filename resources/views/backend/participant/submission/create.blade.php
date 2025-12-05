@@ -706,9 +706,9 @@
                         <div class="invalid-feedback" id="author_phone_error_${index}"></div>
                     </div>
                     <div class="col-md-6">
-                        <label class="form-label">Designation <code>*</code></label>
+                        <label class="form-label">Designation <code>(optional)</code></label>
                         <input type="text" class="form-control @error('authors.${index}.designation') is-invalid @enderror" 
-                            name="authors[${index}][designation]" id="author_designation_${index}" value="${designation}" required>
+                            name="authors[${index}][designation]" id="author_designation_${index}" value="${designation}">
                         <div class="invalid-feedback" id="author_designation_error_${index}"></div>
                     </div>
                     <div class="col-md-6">

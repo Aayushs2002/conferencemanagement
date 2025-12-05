@@ -779,7 +779,7 @@ class ConferenceRegistrationController extends Controller
         //     $prefixesAll = NamePrefix::whereStatus(1)->get();
         // }
 
-        $loadData = function ($relation, $model) use ($society) {
+        $loadData = function ($relation, $model) use ($society) { 
             if ($society && $society->$relation()->exists()) {
                 return $society->$relation()->where('status', 1)->get();
             }

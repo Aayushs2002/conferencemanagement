@@ -26,10 +26,10 @@ class ProfileController extends Controller
         try {
             $rules = [
                 'institution_id' => 'required',
-                'designation_id' => 'required',
+                'designation_id' => 'nullable',
                 'department_id' => 'required',
                 'institute_address' => 'required',
-                'dob_ad' => 'required|date',
+                'dob_ad' => 'required|date|before:' . now()->subYears(18)->format('Y-m-d'),
                 'image' => 'required',
             ];
 
@@ -37,12 +37,13 @@ class ProfileController extends Controller
                 'institution_id.required' => 'Please select institution Name.',
                 'designation_id.required' => 'Please select Designation.',
                 'department_id.required' => 'Please select Department.',
+                'dob_ad.before' => 'You must be at least 18 years old.',
             ];
 
             $namePrefixId = current_user()->userDetail->name_prefix_id;
             if (($namePrefixId == 1 || $namePrefixId == 3) && current_user()->userDetail->country_id == 125) {
                 $rules['council_number'] = 'required|unique:user_details,council_number,' . current_user()->userDetail->id . ',id';
- 
+
                 $messages['council_number.required'] = 'The council number is required.';
             } else {
                 $rules['council_number'] = 'nullable';
