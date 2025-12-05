@@ -65,7 +65,7 @@
                                 <p class="text-danger">{{ $message }}</p>
                             @enderror
                             <p id="majorAreas" class="text-success">test</p>
-                        </div>
+                        </div> 
 
                         <div class="mb-6 col-md-6">
                             <label for="presentation_type" class="form-label">Presentation Type <code>*</code></label>

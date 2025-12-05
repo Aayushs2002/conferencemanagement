@@ -50,7 +50,7 @@ class SubmissionController extends Controller
             ->select('abstract_word_limit', 'key_word_limit', 'deadline', 'attachment_name', 'attachment_required', 'abstract_guidelines', 'competition_enabled', 'contribution_enabled', 'copy_paste_allowed')
             ->first();
         // dd($setting);
-        if (!$setting) {
+        if (!$setting) { 
             return redirect()->back()->with('delete', 'Submission settings not found.');
         }
         if (is_past($setting->deadline)) {
