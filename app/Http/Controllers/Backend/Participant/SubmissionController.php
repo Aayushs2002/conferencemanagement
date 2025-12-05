@@ -71,7 +71,7 @@ class SubmissionController extends Controller
         }
 
         return view('backend.participant.submission.create', compact('society', 'conference', 'submissionTracks', 'setting', 'articleTypes', 'contributions', 'contributionEnabled'));
-    }
+    } 
 
     public function store(SubmissionRequest $request, $society, $conference)
     {
@@ -149,26 +149,40 @@ class SubmissionController extends Controller
             $validated['conference_id'] = $conference->id;
             $validated['submitted_date'] = now();
             $validated['main_author'] = $validated['main_author'] ?? 0;
+            $validated['main_presenter'] = $validated['main_presenter'] ?? 0;
 
             // Check if any co-author is marked as main author
-            $coAuthorIsMain = false;
+            $coAuthorIsMainAuthor = false;
+            $coAuthorIsMainPresenter = false;
             if ($request->has('authors') && is_array($request->authors)) {
                 foreach ($request->authors as $authorData) {
                     if (isset($authorData['main_author']) && $authorData['main_author'] == 1) {
-                        $coAuthorIsMain = true;
-                        break;
+                        $coAuthorIsMainAuthor = true;
+                    }
+                    if (isset($authorData['main_presenter']) && $authorData['main_presenter'] == 1) {
+                        $coAuthorIsMainPresenter = true;
                     }
                 }
             }
 
             // Validation: At least one author must be main author
-            if ($validated['main_author'] == 0 && !$coAuthorIsMain) {
-                return redirect()->back()->withInput()->with('delete', 'At least one author must be designated as the main author/presenter.');
+            if ($validated['main_author'] == 0 && !$coAuthorIsMainAuthor) {
+                return redirect()->back()->withInput()->with('delete', 'At least one author must be designated as the main author.');
             }
 
             // Validation: Only one author can be main author
-            if ($validated['main_author'] == 1 && $coAuthorIsMain) {
-                return redirect()->back()->withInput()->with('delete', 'Only one author can be the main author/presenter.');
+            if ($validated['main_author'] == 1 && $coAuthorIsMainAuthor) {
+                return redirect()->back()->withInput()->with('delete', 'Only one author can be the main author.');
+            }
+
+            // Validation: At least one author must be main presenter
+            if ($validated['main_presenter'] == 0 && !$coAuthorIsMainPresenter) {
+                return redirect()->back()->withInput()->with('delete', 'At least one author must be designated as the main presenter.');
+            }
+
+            // Validation: Only one author can be main presenter
+            if ($validated['main_presenter'] == 1 && $coAuthorIsMainPresenter) {
+                return redirect()->back()->withInput()->with('delete', 'Only one author can be the main presenter.');
             }
 
             $start = \Carbon\Carbon::parse($conference->start_date);
@@ -226,8 +240,9 @@ class SubmissionController extends Controller
                 foreach ($request->authors as $authorData) {
                     $authorData['submission_id'] = $submission->id;
                     $authorData['conference_id'] = $conference->id;
-                    // Set main_author based on checkbox value
+                    // Set main_author and main_presenter based on checkbox values
                     $authorData['main_author'] = isset($authorData['main_author']) && $authorData['main_author'] == 1 ? 1 : 0;
+                    $authorData['main_presenter'] = isset($authorData['main_presenter']) && $authorData['main_presenter'] == 1 ? 1 : 0;
 
                     // Map contribution_other_text to contribution_other for database
                     if (isset($authorData['contribution_other_text'])) {

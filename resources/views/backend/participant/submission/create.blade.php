@@ -94,7 +94,7 @@
                             @enderror
                         </div>
                         <div class="mb-6 col-md-6">
-                            <label for="submission_category_major_track_id" class="form-label">Theme/Sub-theme
+                            <label for="submission_category_major_track_id" class="form-label">Theme and Sub-theme
                                 <code>*</code></label>
                             <select class="form-select" name="submission_category_major_track_id"
                                 id="submission_category_major_track_id" required>
@@ -105,7 +105,7 @@
                                         {{ $submissionTrack->title }}
                                     </option>
                                 @endforeach
-                            </select>
+                            </select> 
                             <div class="valid-feedback">Looks good!</div>
                             <div class="invalid-feedback">Please select Theme/Sub-theme.</div>
                             @error('submission_category_major_track_id')
@@ -245,25 +245,44 @@
 
                         @if (!isset($submission))
                             <div class="mb-6 col-md-12">
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" name="main_author"
-                                        id="main_author_checkbox" value="1"
-                                        {{ old('main_author') == '1' ? 'checked' : '' }}>
-                                    <label class="form-check-label" for="main_author_checkbox">
-                                        <strong>I am the Main Author/Presenter</strong>
-                                        <i class="ti tabler-info-circle text-primary ms-1" data-bs-toggle="tooltip"
-                                            data-bs-placement="top"
-                                            title="Only one author can be the main presenter. If you uncheck this, you can select one of the co-authors as the main presenter."></i>
-                                    </label>
-                                    <small class="text-muted d-block mt-1">
-                                        <i class="ti tabler-alert-circle"></i>
-                                        If you are not the main presenter, please add co-authors and designate one of them
-                                        as the main author.
-                                    </small>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" name="main_author"
+                                                id="main_author_checkbox" value="1"
+                                                {{ old('main_author') == '1' ? 'checked' : '' }}>
+                                            <label class="form-check-label" for="main_author_checkbox">
+                                                <strong>I am the Main Author</strong>
+                                                <i class="ti tabler-info-circle text-primary ms-1" data-bs-toggle="tooltip"
+                                                    data-bs-placement="top"
+                                                    title="Only one author can be designated as the main author. If you uncheck this, you can select one of the co-authors as the main author."></i>
+                                            </label>
+                                        </div>
+                                        @error('main_author')
+                                            <p class="text-danger">{{ $message }}</p>
+                                        @enderror
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" name="main_presenter"
+                                                id="main_presenter_checkbox" value="1"
+                                                {{ old('main_presenter') == '1' ? 'checked' : '' }}>
+                                            <label class="form-check-label" for="main_presenter_checkbox">
+                                                <strong>I am the Main Presenter</strong>
+                                                <i class="ti tabler-info-circle text-primary ms-1" data-bs-toggle="tooltip"
+                                                    data-bs-placement="top"
+                                                    title="Only one author can be designated as the main presenter. If you uncheck this, you can select one of the co-authors as the main presenter."></i>
+                                            </label>
+                                        </div>
+                                        @error('main_presenter')
+                                            <p class="text-danger">{{ $message }}</p>
+                                        @enderror
+                                    </div>
                                 </div>
-                                @error('main_author')
-                                    <p class="text-danger">{{ $message }}</p>
-                                @enderror
+                                <small class="text-muted d-block mt-2">
+                                    <i class="ti tabler-alert-circle"></i>
+                                    You can be the main author, main presenter, or both. If not, designate co-authors accordingly.
+                                </small>
                             </div>
                         @endif
                         <div class="row">
@@ -361,17 +380,32 @@
                 });
             @endif
 
-            // Handle initial state for main author visibility on page load
+            // Handle initial state for main author and presenter visibility on page load
             setTimeout(function() {
+                // Handle Main Author visibility
                 if ($('#main_author_checkbox').is(':checked')) {
-                    $('.co-author-main-checkbox').each(function() {
-                        $(this).closest('.co-author-main-checkbox-container').hide();
+                    $('.co-author-main-author').each(function() {
+                        $(this).closest('.co-author-main-author-container').hide();
                     });
-                } else if ($('.co-author-main-checkbox:checked').length > 0) {
-                    $('#main_author_checkbox').closest('.mb-6').hide();
-                    $('.co-author-main-checkbox').each(function() {
+                } else if ($('.co-author-main-author:checked').length > 0) {
+                    $('#main_author_checkbox').closest('.col-md-6').hide();
+                    $('.co-author-main-author').each(function() {
                         if (!$(this).is(':checked')) {
-                            $(this).closest('.co-author-main-checkbox-container').hide();
+                            $(this).closest('.co-author-main-author-container').hide();
+                        }
+                    });
+                }
+
+                // Handle Main Presenter visibility
+                if ($('#main_presenter_checkbox').is(':checked')) {
+                    $('.co-author-main-presenter').each(function() {
+                        $(this).closest('.co-author-main-presenter-container').hide();
+                    });
+                } else if ($('.co-author-main-presenter:checked').length > 0) {
+                    $('#main_presenter_checkbox').closest('.col-md-6').hide();
+                    $('.co-author-main-presenter').each(function() {
+                        if (!$(this).is(':checked')) {
+                            $(this).closest('.co-author-main-presenter-container').hide();
                         }
                     });
                 }
@@ -380,28 +414,28 @@
             // Initialize Tagify for keywords
             initializeTagify();
 
-            // Main author checkbox logic
-            $(document).on('change', '.co-author-main-checkbox', function() {
+            // Main author checkbox logic for co-authors
+            $(document).on('change', '.co-author-main-author', function() {
                 if ($(this).is(':checked')) {
                     // Uncheck submitter's main author checkbox
                     $('#main_author_checkbox').prop('checked', false);
                     // Hide submitter's main author checkbox container
-                    $('#main_author_checkbox').closest('.mb-6').hide();
+                    $('#main_author_checkbox').closest('.col-md-6').hide();
 
-                    // Uncheck and hide all other co-author main checkboxes
-                    $('.co-author-main-checkbox').not(this).each(function() {
+                    // Uncheck and hide all other co-author main author checkboxes
+                    $('.co-author-main-author').not(this).each(function() {
                         $(this).prop('checked', false);
-                        $(this).closest('.co-author-main-checkbox-container').hide();
+                        $(this).closest('.co-author-main-author-container').hide();
                     });
 
                     // Keep current checkbox visible
-                    $(this).closest('.co-author-main-checkbox-container').show();
+                    $(this).closest('.co-author-main-author-container').show();
                 } else {
                     // If unchecked, show submitter's main author checkbox again
-                    $('#main_author_checkbox').closest('.mb-6').show();
-                    // Show all co-author main checkboxes again
-                    $('.co-author-main-checkbox').each(function() {
-                        $(this).closest('.co-author-main-checkbox-container').show();
+                    $('#main_author_checkbox').closest('.col-md-6').show();
+                    // Show all co-author main author checkboxes again
+                    $('.co-author-main-author').each(function() {
+                        $(this).closest('.co-author-main-author-container').show();
                     });
                 }
             });
@@ -409,17 +443,61 @@
             // Submitter main author checkbox logic
             $(document).on('change', '#main_author_checkbox', function() {
                 if ($(this).is(':checked')) {
-                    // Uncheck and hide all co-author main checkboxes
-                    $('.co-author-main-checkbox').each(function() {
+                    // Uncheck and hide all co-author main author checkboxes
+                    $('.co-author-main-author').each(function() {
                         $(this).prop('checked', false);
-                        $(this).closest('.co-author-main-checkbox-container').hide();
+                        $(this).closest('.co-author-main-author-container').hide();
                     });
                     // Keep submitter checkbox visible
-                    $(this).closest('.mb-6').show();
+                    $(this).closest('.col-md-6').show();
                 } else {
-                    // If unchecked, show all co-author main checkboxes again
-                    $('.co-author-main-checkbox').each(function() {
-                        $(this).closest('.co-author-main-checkbox-container').show();
+                    // If unchecked, show all co-author main author checkboxes again
+                    $('.co-author-main-author').each(function() {
+                        $(this).closest('.co-author-main-author-container').show();
+                    });
+                }
+            });
+
+            // Main presenter checkbox logic for co-authors
+            $(document).on('change', '.co-author-main-presenter', function() {
+                if ($(this).is(':checked')) {
+                    // Uncheck submitter's main presenter checkbox
+                    $('#main_presenter_checkbox').prop('checked', false);
+                    // Hide submitter's main presenter checkbox container
+                    $('#main_presenter_checkbox').closest('.col-md-6').hide();
+
+                    // Uncheck and hide all other co-author main presenter checkboxes
+                    $('.co-author-main-presenter').not(this).each(function() {
+                        $(this).prop('checked', false);
+                        $(this).closest('.co-author-main-presenter-container').hide();
+                    });
+
+                    // Keep current checkbox visible
+                    $(this).closest('.co-author-main-presenter-container').show();
+                } else {
+                    // If unchecked, show submitter's main presenter checkbox again
+                    $('#main_presenter_checkbox').closest('.col-md-6').show();
+                    // Show all co-author main presenter checkboxes again
+                    $('.co-author-main-presenter').each(function() {
+                        $(this).closest('.co-author-main-presenter-container').show();
+                    });
+                }
+            });
+
+            // Submitter main presenter checkbox logic
+            $(document).on('change', '#main_presenter_checkbox', function() {
+                if ($(this).is(':checked')) {
+                    // Uncheck and hide all co-author main presenter checkboxes
+                    $('.co-author-main-presenter').each(function() {
+                        $(this).prop('checked', false);
+                        $(this).closest('.co-author-main-presenter-container').hide();
+                    });
+                    // Keep submitter checkbox visible
+                    $(this).closest('.col-md-6').show();
+                } else {
+                    // If unchecked, show all co-author main presenter checkboxes again
+                    $('.co-author-main-presenter').each(function() {
+                        $(this).closest('.co-author-main-presenter-container').show();
                     });
                 }
             });
@@ -451,6 +529,7 @@
             const institution = data ? data.institution : '';
             const address = data ? data.institution_address : '';
             const isMainAuthor = data && data.main_author == 1 ? 'checked' : '';
+            const isMainPresenter = data && data.main_presenter == 1 ? 'checked' : '';
 
             // Build dropdown options for existing authors - only include authors added before this one
             let existingAuthorsHtml = '<option value="">-- Select Existing Author Data --</option>';
@@ -578,18 +657,34 @@
                             ${existingAuthorsHtml}
                         </select>
                     </div>
-                    <div class="col-md-12 co-author-main-checkbox-container" style="display: ${$('#main_author_checkbox').is(':checked') || $('.co-author-main-checkbox:checked').length > 0 ? 'none' : 'block'};">
-                        <div class="form-check">
-                            <input class="form-check-input co-author-main-checkbox" type="checkbox" 
-                                name="authors[${index}][main_author]" id="co_author_main_${index}"
-                                value="1" data-index="${index}" ${isMainAuthor}>
-                            <label class="form-check-label" for="co_author_main_${index}">
-                                <strong>Set as Main Author/Presenter</strong>
-                                <i class="ti tabler-info-circle text-primary ms-1" 
-                                   data-bs-toggle="tooltip" 
-                                   data-bs-placement="top" 
-                                   title="Only one author can be the main presenter. Selecting this will uncheck the submitter and other co-authors."></i>
-                            </label>
+                    <div class="row mt-4">
+                        <div class="col-md-6 co-author-main-author-container" style="display: ${$('#main_author_checkbox').is(':checked') || $('.co-author-main-author:checked').length > 0 ? 'none' : 'block'};">
+                            <div class="form-check">
+                                <input class="form-check-input co-author-main-author" type="checkbox" 
+                                    name="authors[${index}][main_author]" id="co_author_main_author_${index}"
+                                    value="1" data-index="${index}" ${isMainAuthor}>
+                                <label class="form-check-label" for="co_author_main_author_${index}">
+                                    <strong>Set as Main Author</strong>
+                                    <i class="ti tabler-info-circle text-primary ms-1" 
+                                       data-bs-toggle="tooltip" 
+                                       data-bs-placement="top" 
+                                       title="Only one author can be the main author. Selecting this will uncheck the submitter and other co-authors."></i>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-md-6 co-author-main-presenter-container" style="display: ${$('#main_presenter_checkbox').is(':checked') || $('.co-author-main-presenter:checked').length > 0 ? 'none' : 'block'};">
+                            <div class="form-check">
+                                <input class="form-check-input co-author-main-presenter" type="checkbox" 
+                                    name="authors[${index}][main_presenter]" id="co_author_main_presenter_${index}"
+                                    value="1" data-index="${index}" ${isMainPresenter}>
+                                <label class="form-check-label" for="co_author_main_presenter_${index}">
+                                    <strong>Set as Main Presenter</strong>
+                                    <i class="ti tabler-info-circle text-primary ms-1" 
+                                       data-bs-toggle="tooltip" 
+                                       data-bs-placement="top" 
+                                       title="Only one author can be the main presenter. Selecting this will uncheck the submitter and other co-authors."></i>
+                                </label>
+                            </div>
                         </div>
                     </div>
                     <div class="col-md-6">

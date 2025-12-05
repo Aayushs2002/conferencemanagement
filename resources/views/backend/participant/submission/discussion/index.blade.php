@@ -22,7 +22,7 @@
                          <tr>
                              <th>#</th>
                              <th>Remarks</th>
-                             <th>Scientific Commitee Comment</th>
+                             <th>Reviewer Comment</th>
                          </tr>
                      </thead>
                      <tbody>

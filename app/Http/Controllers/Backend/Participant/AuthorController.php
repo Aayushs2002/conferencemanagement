@@ -40,8 +40,14 @@ class AuthorController extends Controller
             ->pluck('main_author')
             ->toArray();
 
+        $checkMainPresenter = Author::select('main_presenter')
+            ->where('submission_id', $submission->id)
+            ->get()
+            ->pluck('main_presenter')
+            ->toArray();
+
         // Get contributions if enabled
-        $contributions = []; 
+        $contributions = [];
         $contributionEnabled = false;
         $submissionSetting = SubmissionSetting::where('conference_id', $conference->id)->first();
 
@@ -53,7 +59,7 @@ class AuthorController extends Controller
             ])->orderBy('name', 'asc')->get();
         }
 
-        return view('backend.participant.submission.author.create', compact('society', 'submission', 'author', 'authors', 'authorLimit', 'checkMainAuthor', 'conference', 'contributions', 'contributionEnabled'));
+        return view('backend.participant.submission.author.create', compact('society', 'submission', 'author', 'authors', 'authorLimit', 'checkMainAuthor', 'checkMainPresenter', 'conference', 'contributions', 'contributionEnabled'));
     }
 
     public function oldAuthor(Request $request)
@@ -82,6 +88,7 @@ class AuthorController extends Controller
                 'institution' => 'required|string|max:255',
                 'institution_address' => 'required|string|max:500',
                 'main_author' => 'nullable',
+                'main_presenter' => 'nullable',
             ];
 
             // Check if contributions are enabled
@@ -109,7 +116,7 @@ class AuthorController extends Controller
                 $rules['contribution_other_text'] = 'nullable|string|max:255';
             }
 
-            if ($request->has('main_author') && $request->main_author == '1') {
+            if (($request->has('main_author') && $request->main_author == '1') || ($request->has('main_presenter') && $request->main_presenter == '1')) {
                 $rules['phone'] = [
                     'required',
                     'string',
@@ -141,7 +148,7 @@ class AuthorController extends Controller
                 'designation.required' => 'The designation is required.',
                 'institution.required' => 'The institution name is required.',
                 'institution_address.required' => 'The institution address is required.',
-                'phone.required' => 'Phone number is required for main author.',
+                'phone.required' => 'Phone number is required for main author or main presenter.',
                 'phone.unique' => 'This phone number is already used by another author in this submission.',
                 'contributions.required' => 'Please select at least one contribution.',
                 'contributions.min' => 'Please select at least one contribution.',
@@ -280,6 +287,7 @@ class AuthorController extends Controller
                 'institution' => 'required|string|max:255',
                 'institution_address' => 'required|string|max:500',
                 'main_author' => 'nullable',
+                'main_presenter' => 'nullable',
             ];
 
             // Check if contributions are enabled
@@ -307,7 +315,7 @@ class AuthorController extends Controller
                 $rules['contribution_other_text'] = 'nullable|string|max:255';
             }
 
-            if ($request->has('main_author') && $request->main_author == '1') {
+            if (($request->has('main_author') && $request->main_author == '1') || ($request->has('main_presenter') && $request->main_presenter == '1')) {
                 $rules['phone'] = [
                     'required',
                     'string',
@@ -378,6 +386,7 @@ class AuthorController extends Controller
 
             // Process main_author field
             $validated['main_author'] = $request->has('main_author') ? 1 : 0;
+            $validated['main_presenter'] = $request->has('main_presenter') ? 1 : 0;
 
             // If this author is being set as main author, remove main_author status from others
             if ($validated['main_author'] == 1) {
@@ -385,6 +394,14 @@ class AuthorController extends Controller
                     ->where('status', 1)
                     ->where('id', '!=', $author->id)
                     ->update(['main_author' => 0]);
+            }
+
+            // If this author is being set as main presenter, remove main_presenter status from others
+            if ($validated['main_presenter'] == 1) {
+                Author::where('submission_id', $request->submission_id)
+                    ->where('status', 1)
+                    ->where('id', '!=', $author->id)
+                    ->update(['main_presenter' => 0]);
             }
 
             // Handle contributions

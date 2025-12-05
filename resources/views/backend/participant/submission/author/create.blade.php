@@ -202,11 +202,20 @@
                     <input type="hidden" name="submission_id" value="{{ $submission->id }}">
 
                     @if (!in_array(1, $checkMainAuthor) || (isset($author) ? $author->main_author == 1 : ''))
-                        <div class="col-md-12 form-check mb-3">
+                        <div class="col-md-6 form-check mb-3">
                             <input type="checkbox" class="form-check-input" name="main_author" id="main_author"
                                 value="1"
                                 @isset($author) @if ($author->main_author == 1) checked @endif @endisset />
-                            <label for="main_author" class="form-check-label">Is Main Author ? </label>
+                            <label for="main_author" class="form-check-label">Is Main Author?</label>
+                        </div>
+                    @endif
+                    
+                    @if (!in_array(1, $checkMainPresenter) || (isset($author) ? $author->main_presenter == 1 : ''))
+                        <div class="col-md-6 form-check mb-3">
+                            <input type="checkbox" class="form-check-input" name="main_presenter" id="main_presenter"
+                                value="1"
+                                @isset($author) @if ($author->main_presenter == 1) checked @endif @endisset />
+                            <label for="main_presenter" class="form-check-label">Is Main Presenter?</label>
                         </div>
                     @endif
                     <div class="@if (!in_array(1, $checkMainAuthor) || (isset($author) ? $author->main_author == 1 : '')) col-md-6 @else col-md-6 @endif form-group mb-3">
