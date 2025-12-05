@@ -22,7 +22,7 @@
                            <th>#</th>
                            <th scope="col">Sender</th>
                            <th scope="col">Remarks</th>
-                           <th scope="col">Scientific Commitee Comment</th>
+                           <th scope="col">Reviewer Comment</th>
                            <th scope="col">Date/Time</th>
                        </tr>
                    </thead>

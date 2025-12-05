@@ -116,7 +116,7 @@
                 </small>
             </div>
             <table class="datatables-basic table">
-                <thead> 
+                <thead>
                     <tr>
                         <th>#</th>
                         <th scope="col">Speaker Name</th>
@@ -160,20 +160,20 @@
                                 @if ($submission->presentation_type_change === null)
                                     @if (auth()->user()->hasConferencePermissionBlade($conference, 'Convert Presentation Type'))
                                         @if ($submission->presentation_type == 2)
-                                            {{-- <a href="{{ route('submission.convertPresentationTypeRequest', [$society, $conference, $submission->id]) }}"
+                                            <a href="{{ route('submission.convertPresentationTypeRequest', [$society, $conference, $submission->id]) }}"
                                                 class="btn btn-sm btn-primary convertPresentationTypeRequest mt-1">
                                                 <span style="font-size: 10px;">
                                                     Convert
                                                     To
                                                     Poster
                                                 </span>
-                                            </a> --}}
-                                        @else
-                                            <a href="{{ route('submission.convertPresentationTypeRequest', [$society, $conference, $submission->id]) }}"
+                                            </a>
+                                            {{-- @else --}}
+                                            {{-- <a href="{{ route('submission.convertPresentationTypeRequest', [$society, $conference, $submission->id]) }}"
                                                 class="btn btn-sm btn-primary convertPresentationTypeRequest mt-1"><span
                                                     style="font-size: 10px;">Convert
                                                     To
-                                                    Oral</span></a>
+                                                    Oral</span></a> --}}
                                         @endif
                                     @endif
                                 @endif
@@ -231,8 +231,16 @@
                                         @php
                                             $totalScore = 0;
                                             // Check if section ratings exist
-                                            if (!empty($submission->submissionRating->section_ratings) && is_array($submission->submissionRating->section_ratings)) {
-                                                $totalScore = collect($submission->submissionRating->section_ratings)->sum('rating') + ($submission->submissionRating->grammar ?? 0) + ($submission->submissionRating->overall_rating ?? 0);
+                                            if (
+                                                !empty($submission->submissionRating->section_ratings) &&
+                                                is_array($submission->submissionRating->section_ratings)
+                                            ) {
+                                                $totalScore =
+                                                    collect($submission->submissionRating->section_ratings)->sum(
+                                                        'rating',
+                                                    ) +
+                                                    ($submission->submissionRating->grammar ?? 0) +
+                                                    ($submission->submissionRating->overall_rating ?? 0);
                                             }
                                             // Check if overall rating exists
                                             elseif ($submission->submissionRating->overall_rating) {
@@ -240,11 +248,12 @@
                                             }
                                             // Default rating calculation
                                             else {
-                                                $totalScore = ($submission->submissionRating->introduction ?? 0) + 
-                                                             ($submission->submissionRating->method ?? 0) + 
-                                                             ($submission->submissionRating->result ?? 0) + 
-                                                             ($submission->submissionRating->conclusion ?? 0) + 
-                                                             ($submission->submissionRating->grammar ?? 0);
+                                                $totalScore =
+                                                    ($submission->submissionRating->introduction ?? 0) +
+                                                    ($submission->submissionRating->method ?? 0) +
+                                                    ($submission->submissionRating->result ?? 0) +
+                                                    ($submission->submissionRating->conclusion ?? 0) +
+                                                    ($submission->submissionRating->grammar ?? 0);
                                             }
                                         @endphp
                                         <a class="btn viewScore" data-id="{{ $submission->id }}" data-bs-toggle="modal"

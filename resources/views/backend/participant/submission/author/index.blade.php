@@ -41,7 +41,16 @@
                    @foreach ($authors as $author)
                        <tr>
                            <th scope="row">{{ $loop->iteration }}</th>
-                           <td>{{ $author->name }}{!! $author->main_author == 1 ? ' <span class="badge bg-success">Main</span>' : '' !!}</td>
+                           <td>{{ $author->name }}
+                               @if ($author->main_author == 1 && $author->main_presenter == 1)
+                                   <span class="badge bg-success">Main Author/Presenter</span>
+                                   {{-- <span class="badge bg-primary">Main Presenter</span> --}}
+                               @elseif ($author->main_author == 1)
+                                   <span class="badge bg-success">Main Author</span>
+                               @elseif ($author->main_presenter == 1)
+                                   <span class="badge bg-primary">Main Presenter</span>
+                               @endif
+                           </td>
                            <td>{{ $author->email }}</td>
                            <td>{{ $author->designation }}</td>
                            <td>{{ $author->institution }}</td>
