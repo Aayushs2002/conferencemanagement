@@ -137,8 +137,8 @@
 
                         {{-- Date of Birth --}}
                         <div class="col-12 col-md-6">
-                            <label class="form-label" for="dob_ad">Date of Birth<code>*(AD)</code></label>
-                            <input type="date" id="dob_ad" name="dob_ad" class="form-control" required
+                            <label class="form-label" for="dob_ad">Date of Birth<code>(AD)</code></label>
+                            <input type="date" id="dob_ad" name="dob_ad" class="form-control"
                                 placeholder="Enter Institution Address"
                                 value="{{ old('dob_ad', current_user()?->userDetail?->dob_ad) }}">
                             @error('dob_ad')

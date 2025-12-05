@@ -29,7 +29,7 @@ class ProfileController extends Controller
                 'designation_id' => 'nullable',
                 'department_id' => 'required',
                 'institute_address' => 'required',
-                'dob_ad' => 'required|date|before:' . now()->subYears(18)->format('Y-m-d'),
+                'dob_ad' => 'nullable|date|before:' . now()->subYears(18)->format('Y-m-d'),
                 'image' => 'required',
             ];
 
