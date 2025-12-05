@@ -118,8 +118,8 @@ class SubmissionController extends Controller
     public function show(Request $request)
     {
         $submission = Submission::whereId($request->id)->first();
-        
-        
+
+
         return view('backend.submission.submission.view', compact('submission'));
     }
 
@@ -158,7 +158,7 @@ class SubmissionController extends Controller
                     ? implode(',', array_column($keywordArray, 'value'))
                     : '';
             }
- 
+
             $abstractWordCount = str_word_count(strip_tags($request->abstract_content));
             if (!empty($setting->abstract_word_limit) && $abstractWordCount > $setting->abstract_word_limit) {
                 return redirect()->back()->withInput()->with('delete', 'Abstract word limit exceeded.');
@@ -191,7 +191,23 @@ class SubmissionController extends Controller
         $setting = SubmissionSetting::where('conference_id', $conference->id)->select('abstract_word_limit', 'key_word_limit')->first();
 
         $submission = Submission::whereId($request->id)->first();
-        $experts = Expert::where(['conference_id' => $submission->conference_id, 'status' => 1])->whereNot('user_id', $submission->user_id)->get();
+
+        // Get all author user IDs for this submission
+        $authorUserIds = Author::where('submission_id', $submission->id)
+            ->whereNotNull('email')
+            ->get()
+            ->map(function ($author) {
+                // Match authors by email with users table
+                return User::where('email', $author->email)->value('id');
+            })
+            ->filter()
+            ->toArray();
+
+        // Exclude experts who are authors of this submission
+        $experts = Expert::where(['conference_id' => $submission->conference_id, 'status' => 1])
+            ->whereNotIn('user_id', $authorUserIds)
+            ->get();
+
         return view('backend.submission.submission.expert-forward-modal', compact('submission', 'experts', 'setting', 'society', 'conference'));
     }
 
@@ -219,8 +235,21 @@ class SubmissionController extends Controller
             $validated = $request->validate($rules);
 
             if ($validated) {
+                // Check if expert is the main submitter
                 if ($validated['expert_id'] == $submission->user_id) {
                     throw new Exception("Presenter and Expert should not be same.", 1);
+                }
+
+                // Check if expert is one of the authors (including co-authors)
+                $expertUser = User::find($validated['expert_id']);
+                if ($expertUser) {
+                    $isAuthor = Author::where('submission_id', $submission->id)
+                        ->where('email', $expertUser->email)
+                        ->exists();
+
+                    if ($isAuthor) {
+                        throw new Exception("Expert cannot be assigned to review their own submission. This expert is listed as an author.", 1);
+                    }
                 }
 
                 $validated['forward_expert'] = 1;
@@ -231,7 +260,7 @@ class SubmissionController extends Controller
                     $validated['abstract_content'] = null; // Clear abstract content when using sections
                 } else {
                     $validated['sections'] = null; // Clear sections when using abstract content
-                } 
+                }
 
                 $expert = User::whereId($validated['expert_id'])->first();
                 $template = EmailTemplate::where(['conference_id' => $submission->conference_id, 'key' => 1])->first();
@@ -476,7 +505,7 @@ class SubmissionController extends Controller
     public function viewScore(Request $request)
     {
         $submission = Submission::with('articleType.setting', 'submissionRating')->whereId($request->id)->first();
-        
+
         // Get article type setting sections if available
         $articleTypeSections = null;
         if ($submission->articleType && $submission->articleType->setting) {

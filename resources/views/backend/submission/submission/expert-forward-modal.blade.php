@@ -132,7 +132,7 @@
                     notyf.error(response.message);
                 }
             },
-            error: function(response) {
+            error: function(response) { 
                 var errors = response.responseJSON.errors;
                 $.each(errors, function(key, val) {
                     $('.' + key).html('');

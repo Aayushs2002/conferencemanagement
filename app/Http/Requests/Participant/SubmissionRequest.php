@@ -67,7 +67,7 @@ class SubmissionRequest extends FormRequest
             'authors.*.name' => 'required|string',
             'authors.*.email' => 'required|email',
             'authors.*.phone' => 'nullable|string',
-            'authors.*.designation' => 'required|string',
+            'authors.*.designation' => 'nullable|string',
             'authors.*.institution' => 'required|string',
             'authors.*.institution_address' => 'required|string',
             'authors.*.main_author' => 'nullable|in:0,1',
@@ -80,7 +80,7 @@ class SubmissionRequest extends FormRequest
         if ($this->has('authors') && is_array($this->authors)) {
             $emails = [];
             $phones = [];
-            
+
             foreach ($this->authors as $index => $author) {
                 // Check email uniqueness
                 if (!empty($author['email'])) {
@@ -89,7 +89,7 @@ class SubmissionRequest extends FormRequest
                     }
                     $emails[] = $author['email'];
                 }
-                
+
                 // Check phone uniqueness
                 if (!empty($author['phone'])) {
                     if (in_array($author['phone'], $phones)) {
@@ -102,7 +102,7 @@ class SubmissionRequest extends FormRequest
                 if ($setting && $setting->contribution_enabled) {
                     $hasContributions = !empty($author['contributions']) && count($author['contributions']) > 0;
                     $hasOtherText = !empty($author['contribution_other_checkbox']) && !empty($author['contribution_other_text']);
-                    
+
                     // If neither contributions nor other text is provided, make contributions required
                     if (!$hasContributions && !$hasOtherText) {
                         $rules["authors.{$index}.contributions"] = 'required|array|min:1';

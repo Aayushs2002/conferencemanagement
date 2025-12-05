@@ -13,6 +13,9 @@ use App\Models\Conference\Submission;
 use App\Models\LoginHistory;
 use App\Models\User;
 use App\Models\User\ConferenceUserPassDesignation;
+use App\Models\User\Department;
+use App\Models\User\Designation;
+use App\Models\User\Institution;
 use App\Models\User\MemberType;
 use App\Models\User\NamePrefix;
 use App\Models\User\Society;
@@ -173,15 +176,29 @@ class SignupUserController extends Controller
     public function editProfile(Request $request, $society, $conference)
     {
         $user = User::whereId($request->id)->first();
+        // dd($user);
         // $prefixesAll = NamePrefix::whereStatus(1)->get();
-         if ($society && $society->namePrefixes()->exists()) {
-            $prefixesAll = $society->namePrefixes()->where('status', 1)->get();
-            // dd($prefixesAll);
-        } else {
-            // Fallback to all active prefixes if society hasn't selected any
-            $prefixesAll = NamePrefix::whereStatus(1)->get();
-        }
-        return view('backend.users.signup-user.edit-user-profile', compact('user', 'prefixesAll', 'society', 'conference'));
+        // if ($society && $society->namePrefixes()->exists()) {
+        //     $prefixesAll = $society->namePrefixes()->where('status', 1)->get();
+        //     // dd($prefixesAll);
+        // } else {
+        //     // Fallback to all active prefixes if society hasn't selected any
+        //     $prefixesAll = NamePrefix::whereStatus(1)->get();
+        // }
+        $loadData = function ($relation, $model) use ($society) {
+            if ($society && $society->$relation()->exists()) {
+                return $society->$relation()->where('status', 1)->get();
+            }
+            return $model::where('status', 1)->get();
+        };
+
+        $institutions = $loadData('institutions', Institution::class);
+        // dd($institutions);
+        $designations = $loadData('designations', Designation::class);
+        $departments = $loadData('departments', Department::class);
+        $prefixesAll = $loadData('namePrefixes', NamePrefix::class);
+
+        return view('backend.users.signup-user.edit-user-profile', compact('user', 'prefixesAll', 'society', 'conference', 'institutions', 'designations', 'departments'));
     }
 
     public function editProfileSubmit(Request $request, $society, $conference)

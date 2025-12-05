@@ -84,7 +84,7 @@ class AuthorController extends Controller
                             ->where('status', 1);
                     })
                 ],
-                'designation' => 'required|string|max:255',
+                'designation' => 'nullable|string|max:255',
                 'institution' => 'required|string|max:255',
                 'institution_address' => 'required|string|max:500',
                 'main_author' => 'nullable',
@@ -283,7 +283,7 @@ class AuthorController extends Controller
                             ->where('status', 1);
                     })->ignore($author->id)
                 ],
-                'designation' => 'required|string|max:255',
+                'designation' => 'nullable|string|max:255',
                 'institution' => 'required|string|max:255',
                 'institution_address' => 'required|string|max:500',
                 'main_author' => 'nullable',

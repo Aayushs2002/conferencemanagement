@@ -209,7 +209,7 @@
                             <label for="main_author" class="form-check-label">Is Main Author?</label>
                         </div>
                     @endif
-                    
+
                     @if (!in_array(1, $checkMainPresenter) || (isset($author) ? $author->main_presenter == 1 : ''))
                         <div class="col-md-6 form-check mb-3">
                             <input type="checkbox" class="form-check-input" name="main_presenter" id="main_presenter"
@@ -228,13 +228,13 @@
                         @enderror
                     </div>
 
-                    <div class="col-md-6 form-group mb-3">
+                    {{-- <div class="col-md-6 form-group mb-3">
                         <label for="name">Full Name <code>*</code></label>
                         <input type="text" class="form-control" name="name" id="name"
                             value="{{ isset($author) ? $author->name : old('name') }}" placeholder="Enter author name"
                             required />
                         <span class="invalid-feedback" id="name-error"></span>
-                    </div>
+                    </div> --}}
 
                     <div class="col-md-6 form-group mb-3">
                         <label for="email">Email <code>*</code></label>
@@ -258,10 +258,10 @@
                     @endif
 
                     <div class="col-md-6 form-group mb-3">
-                        <label for="designation">Designation <code>*</code></label>
+                        <label for="designation">Designation <code>(optional)</code></label>
                         <input type="text" class="form-control" name="designation" id="designation"
                             value="{{ isset($author) ? $author->designation : old('designation') }}"
-                            placeholder="Enter author designation" required />
+                            placeholder="Enter author designation" />
                         <span class="invalid-feedback" id="designation-error"></span>
                     </div>
 
@@ -370,7 +370,7 @@
                     @if (in_array(1, $checkMainAuthor) && (!isset($author) || $author->main_author != 1))
                         if (!confirm(
                                 'A main author already exists for this submission. Setting this author as the main author will remove the main author status from the current main author. Do you want to continue?'
-                                )) {
+                            )) {
                             $(this).prop('checked', false);
                             $("#phoneCondition").text('(Optional)')
                             $("#phone").attr('required', false)
