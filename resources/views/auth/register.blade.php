@@ -145,11 +145,11 @@
                 </div>
                 @if ($society)
                     <div class="mb-6 form-control-validation">
-                        <label for="member_type_id">Member Type <code>*</code></label>
+                        <label for="member_type_id">Participant Type <code>*</code></label>
                         <select name="member_type_id"
                             class="form-control form-control @error('member_type_id') is-invalid @enderror member_type_id"
                             id="member_type_id" required>
-                            <option value="" hidden>-- Select Member Type --</option>
+                            <option value="" hidden>-- Select Participant Type --</option>
                         </select>
                         @error('member_type_id')
                             <p class="text-danger">{{ $message }}</p>

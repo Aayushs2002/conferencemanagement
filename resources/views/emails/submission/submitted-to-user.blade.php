@@ -12,7 +12,7 @@
     <div>
         <h3>Dear {{ $data['namePrefix'] . ' ' . $data['name'] }},</h3>
     </div>
-    <br> 
+    <br>
     <div>
         @if ($bodyContent)
             {!! $bodyContent !!}
@@ -22,7 +22,8 @@
             <p>Please note that your abstract is currently under review by our selection committee. We will be in touch
                 once
                 the review process is complete.</p>
-            <p>If you have any questions in the meantime, feel free to contact us at {{ $data['societyEmail'] }}.</p>
+            <p>If you have any questions in the meantime, feel free to contact us at
+                {{ $data['conferenceEmail'] ?? $data['societyEmail'] }}.</p>
             <p>Thank you again for your submission!</p>
         @endif
         {{-- @dd($bodyContent) --}}

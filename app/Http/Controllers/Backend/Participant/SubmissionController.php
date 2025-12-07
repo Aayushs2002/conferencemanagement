@@ -50,7 +50,7 @@ class SubmissionController extends Controller
             ->select('abstract_word_limit', 'key_word_limit', 'deadline', 'attachment_name', 'attachment_required', 'abstract_guidelines', 'competition_enabled', 'contribution_enabled', 'copy_paste_allowed')
             ->first();
         // dd($setting);
-        if (!$setting) { 
+        if (!$setting) {
             return redirect()->back()->with('delete', 'Submission settings not found.');
         }
         if (is_past($setting->deadline)) {
@@ -71,7 +71,7 @@ class SubmissionController extends Controller
         }
 
         return view('backend.participant.submission.create', compact('society', 'conference', 'submissionTracks', 'setting', 'articleTypes', 'contributions', 'contributionEnabled'));
-    } 
+    }
 
     public function store(SubmissionRequest $request, $society, $conference)
     {
@@ -209,7 +209,8 @@ class SubmissionController extends Controller
                 'societyEmail' => $society->users->where('type', 2)->value('email'),
                 'societyName' => $society->abbreviation,
                 'conferenceDate' => $conferenceDate,
-                'conferenceName' => $conference->conference_name
+                'conferenceName' => $conference->conference_name,
+                'conferenceEmail' => $conference->conference_email,
             ];
 
             $data = [
@@ -538,11 +539,16 @@ class SubmissionController extends Controller
                             $rules["section_ratings.{$index}.rating"] = $scoreRule;
                         }
                     }
-                    $rules['grammar'] = $scoreRule; // Grammar is always required for section-based
+                    // $rules['grammar'] = $scoreRule; // Grammar is always required for section-based
 
-                    // Overall rating may be required if section total + grammar < 10
-                    if ($request->has('overall_rating') && $request->overall_rating !== null) {
-                        $rules['overall_rating'] = 'required|integer|min:1|max:10';
+                    // Calculate maximum possible score based on number of sections
+                    $sectionCount = count($submission->articleType->setting->sections ?? []);
+                    $maxPossibleScore = ($sectionCount * 2) + 2; // Each section max 2 + grammar max 2
+
+                    // Overall rating is required only if maximum possible score < 10
+                    if ($maxPossibleScore < 10) {
+                        $remaining = 10 - $maxPossibleScore;
+                        $rules['overall_rating'] = "required|integer|min:1|max:{$remaining}";
                     }
                 } else {
                     // Default rating structure

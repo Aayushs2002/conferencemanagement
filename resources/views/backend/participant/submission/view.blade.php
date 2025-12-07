@@ -4,10 +4,12 @@
     <div class="rounded-top">
         <h4 class="text-center mb-4">View Data</h4>
         <div class="row closeModal">
-            <div class="col-md-4 mb-4">
-                <p class="text-primary mb-1"><i class="i-ID-2 text-16 mr-1"></i>Presenter Name</p>
-                <span>{{ $submission->presenter->fullName($submission->presenter) }}</span>
-            </div>
+            @if ($submission->expert_id != current_user()->id)
+                <div class="col-md-4 mb-4">
+                    <p class="text-primary mb-1"><i class="i-ID-2 text-16 mr-1"></i>Presenter Name</p>
+                    <span>{{ $submission->presenter->fullName($submission->presenter) }}</span>
+                </div>
+            @endif
             <div class="col-md-4 mb-4">
                 <p class="text-primary mb-1"><i class="i-ID-2 text-16 mr-1"></i>Presentation Type</p>
                 <span>
@@ -43,7 +45,7 @@
                         <span class="badge bg-warning">Correction</span>
                     @endif
                 </span>
-            </div> 
+            </div>
 
         </div>
 
