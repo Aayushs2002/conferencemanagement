@@ -793,4 +793,41 @@ class SubmissionController extends Controller
 
         return response()->download($filePath)->deleteFileAfterSend(true);
     }
+
+    public function viewSubmissions(Request $request, $society, $conference)
+    {
+        $submissionTracks = SubmissionCategoryMajorTrack::where(['conference_id' => $conference->id, 'status' => 1])->get();
+        $articleTypes = ArticleType::where(['conference_id' => $conference->id, 'status' => 1])->get();
+        
+        $query = Submission::with(['authors', 'submissionCategoryMajorTrack', 'articleType.setting', 'expert'])
+            ->where(['conference_id' => $conference->id, 'status' => 1]);
+        
+        if ($request->filled('article_type_id')) {
+            $query->where('article_type_id', $request->article_type_id);
+        }
+
+        if ($request->filled('presentation_type')) {
+            $query->where('presentation_type', $request->presentation_type);
+        }
+
+        if ($request->filled('request_status')) {
+            $query->where('request_status', $request->request_status);
+        }
+        
+        if ($request->filled('submission_category_major_track_id')) {
+            $query->where('submission_category_major_track_id', $request->submission_category_major_track_id);
+        }
+
+        if ($request->filled('from')) {
+            $query->whereDate('created_at', '>=', $request->from);
+        }
+
+        if ($request->filled('to')) {
+            $query->whereDate('created_at', '<=', $request->to);
+        }
+
+        $submissions = $query->latest()->get();
+
+        return view('backend.submission.submission.view-submissions', compact('submissions', 'submissionTracks', 'conference', 'society', 'articleTypes'));
+    }
 }
