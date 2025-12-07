@@ -178,6 +178,7 @@ Route::middleware('auth')->group(function () {
     //Submission Route Started
     Route::controller(SubmissionController::class)->middleware(['auto.conf.permission', 'feature:abstract-submission-management'])->prefix('/society/{society}/conference/{conference}/submission')->name('submission.')->group(function () {
         Route::get('/', 'index')->name('index');
+        Route::get('/view-submissions', 'viewSubmissions')->name('viewSubmissions');
         Route::post('show', 'show')->name('show');
         Route::get('edit/{submission}', 'edit')->name('edit');
         Route::patch('update/{submission}', 'update')->name('update');

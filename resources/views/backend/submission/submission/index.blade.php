@@ -6,7 +6,7 @@
 @section('content')
     <div class="card border my-4 container">
         <h5 class="pt-3">Filter By:</h5>
-        <form method="GET" action="{{ route('submission.index', [$society, $conference]) }}" id="filterForm">
+        <form method="GET" action="{{ route('submission.viewSubmissions', [$society, $conference]) }}" id="filterForm">
             <div class="row">
                 <div class="col-md-3 form-group mb-3">
                     <label for="article_type_id" class="mb-2">Presentation Category</label>
@@ -80,6 +80,7 @@
                     <div class="col-12 text-end">
                         <a href="{{ route('submission.index', [$society, $conference]) }}" class="btn btn-danger">Reset</a>
                         <button type="submit" id="ExportBtn" class="btn btn-success">Export Word</button>
+
                         <button type="submit" id="filterBtn" class="btn btn-primary">Filter</button>
                     </div>
                 </div>
@@ -96,6 +97,10 @@
                 </div>
                 <div class="d-md-flex justify-content-between align-items-center dt-layout-end col-md-auto ms-auto mt-0">
                     <div class="dt-buttons btn-group flex-wrap mb-0">
+                        <a href="{{ route('submission.viewSubmissions', [$society, $conference]) }}" class="btn btn-info mr-2">
+                            <i class="icon-base ti tabler-eye icon-xs me-sm-1"></i>
+                            <span class="d-none d-sm-inline-block">View Abstract Book Format</span>
+                        </a>
                         @if (auth()->user()->hasConferencePermissionBlade($conference, 'Send Mail'))
                             <a href="" class="btn btn-primary sendMail" data-bs-toggle="modal"
                                 data-bs-target="#pricingModal" tabindex="0">
@@ -505,7 +510,7 @@
             $('#filterBtn').on('click', function(e) {
                 e.preventDefault();
                 form.attr('action',
-                    '{{ route('submission.index', [$society, $conference]) }}');
+                    '{{ route('submission.viewSubmissions', [$society, $conference]) }}');
                 form.submit();
             });
         });
