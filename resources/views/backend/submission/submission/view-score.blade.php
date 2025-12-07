@@ -25,10 +25,10 @@
                     </div>
                 @endforeach
 
-                <div class="col-md-4 mb-4">
+                {{-- <div class="col-md-4 mb-4">
                     <p class="text-primary mb-1"><i class="ti tabler-language text-16 me-1"></i>Grammar/Languages</p>
                     <span class="badge bg-label-primary">{{ $submission->submissionRating->grammar ?? 'N/A' }}</span>
-                </div>
+                </div> --}}
                 @if ($submission->submissionRating->overall_rating)
                     <div class="col-md-4 mb-4">
                         <p class="text-primary mb-1"><i class="ti tabler-star text-16 me-1"></i>Overall Rating</p>
@@ -75,8 +75,7 @@
                 </div>
                 <div class="col-md-4 mb-4">
                     <p class="text-primary mb-1"><i class="ti tabler-check text-16 me-1"></i>Conclusion</p>
-                    <span
-                        class="badge bg-label-primary">{{ $submission->submissionRating->conclusion ?? 'N/A' }}</span>
+                    <span class="badge bg-label-primary">{{ $submission->submissionRating->conclusion ?? 'N/A' }}</span>
                 </div>
                 <div class="col-md-4 mb-4">
                     <p class="text-primary mb-1"><i class="ti tabler-language text-16 me-1"></i>Grammar/Languages</p>

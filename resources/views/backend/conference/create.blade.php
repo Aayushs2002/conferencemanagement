@@ -316,7 +316,7 @@
                             @enderror
                         </div>
 
-                        {{-- <div class="col-12">
+                        <div class="col-12">
                             <h6>3. Organizer Details</h6>
                             <hr class="mt-0" style="height:1px;border:none;color:#333;background-color:#333;" />
                         </div>
@@ -348,7 +348,7 @@
                                 <p class="text-danger">{{ $message }}</p>
                             @enderror
                         </div>
- 
+
                         <div class="mb-6 col-md-4">
                             <label class="form-label" for="organizer_phone_number">Organizer Phone Number
                                 <code>*</code></label>
@@ -407,7 +407,7 @@
                             @error('organizer_description')
                                 <p class="text-danger">{{ $message }}</p>
                             @enderror
-                        </div> --}}
+                        </div>
 
                         <div class="row">
                             <div class="col-12 text-end">

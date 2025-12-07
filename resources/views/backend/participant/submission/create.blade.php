@@ -105,7 +105,7 @@
                                         {{ $submissionTrack->title }}
                                     </option>
                                 @endforeach
-                            </select> 
+                            </select>
                             <div class="valid-feedback">Looks good!</div>
                             <div class="invalid-feedback">Please select Theme/Sub-theme.</div>
                             @error('submission_category_major_track_id')
@@ -202,7 +202,7 @@
                                     <label class="form-label" for="image">
                                         {{ $setting->attachment_name }}
                                         <small class="text-muted d-block">
-                                            Accepted formats: JPG, JPEG, PNG, PDF — Max size: 250KB
+
                                             {{ $setting->attachment_required ? '*' : '(optional)' }}
                                         </small>
                                     </label>
@@ -253,8 +253,8 @@
                                                 {{ old('main_author') == '1' ? 'checked' : '' }}>
                                             <label class="form-check-label" for="main_author_checkbox">
                                                 <strong>I am the Main Author</strong>
-                                                <i class="ti tabler-info-circle text-primary ms-1" data-bs-toggle="tooltip"
-                                                    data-bs-placement="top"
+                                                <i class="ti tabler-info-circle text-primary ms-1"
+                                                    data-bs-toggle="tooltip" data-bs-placement="top"
                                                     title="Only one author can be designated as the main author. If you uncheck this, you can select one of the co-authors as the main author."></i>
                                             </label>
                                         </div>
@@ -269,8 +269,8 @@
                                                 {{ old('main_presenter') == '1' ? 'checked' : '' }}>
                                             <label class="form-check-label" for="main_presenter_checkbox">
                                                 <strong>I am the Main Presenter</strong>
-                                                <i class="ti tabler-info-circle text-primary ms-1" data-bs-toggle="tooltip"
-                                                    data-bs-placement="top"
+                                                <i class="ti tabler-info-circle text-primary ms-1"
+                                                    data-bs-toggle="tooltip" data-bs-placement="top"
                                                     title="Only one author can be designated as the main presenter. If you uncheck this, you can select one of the co-authors as the main presenter."></i>
                                             </label>
                                         </div>
@@ -281,13 +281,14 @@
                                 </div>
                                 <small class="text-muted d-block mt-2">
                                     <i class="ti tabler-alert-circle"></i>
-                                    You can be the main author, main presenter, or both. If not, designate co-authors accordingly.
+                                    You can be the main author, main presenter, or both. If not, designate co-authors
+                                    accordingly.
                                 </small>
                             </div>
                         @endif
                         <div class="row">
                             <div class="col-12 text-end">
-                                @if(!isset($submission))
+                                @if (!isset($submission))
                                     <button type="button" id="previewBtn" class="btn btn-primary">
                                         <i class="ti tabler-eye me-1"></i>Preview Submission
                                     </button>
@@ -558,20 +559,20 @@
                 const btn = $(this);
                 const closeBtn = $('#previewCloseBtn');
                 const form = $('form.needs-validation')[0];
-                
+
                 // Show loading state
                 btn.find('.btn-text').addClass('d-none');
                 btn.find('.btn-spinner').removeClass('d-none');
                 btn.prop('disabled', true);
                 closeBtn.prop('disabled', true);
-                
+
                 // Prevent modal close on backdrop click or escape
                 const modal = bootstrap.Modal.getInstance($('#previewModal')[0]);
                 if (modal) {
                     modal._config.backdrop = 'static';
                     modal._config.keyboard = false;
                 }
-                
+
                 // Submit the form using native submit (bypasses jQuery to avoid event conflicts)
                 setTimeout(function() {
                     form.submit();
@@ -581,23 +582,25 @@
 
         function showPreview() {
             let previewHtml = '<div class="container-fluid">';
-            
+
             // Basic Information
-            previewHtml += '<h5 class="border-bottom pb-2 mb-3"><i class="ti tabler-info-circle me-2"></i>Basic Information</h5>';
+            previewHtml +=
+                '<h5 class="border-bottom pb-2 mb-3"><i class="ti tabler-info-circle me-2"></i>Basic Information</h5>';
             previewHtml += '<div class="row mb-4">';
-            
+
             const title = $('input[name="title"]').val() || 'Not provided';
             previewHtml += `<div class="col-md-12 mb-3"><strong>Title:</strong><br>${escapeHtml(title)}</div>`;
-            
+
             const articleType = $('#article_type_id option:selected').text() || 'Not selected';
             previewHtml += `<div class="col-md-6 mb-3"><strong>Article Type:</strong><br>${escapeHtml(articleType)}</div>`;
-            
+
             const presentationType = $('#presentation_type option:selected').text() || 'Not selected';
-            previewHtml += `<div class="col-md-6 mb-3"><strong>Presentation Type:</strong><br>${escapeHtml(presentationType)}</div>`;
-            
+            previewHtml +=
+                `<div class="col-md-6 mb-3"><strong>Presentation Type:</strong><br>${escapeHtml(presentationType)}</div>`;
+
             const track = $('#submission_category_major_track_id option:selected').text() || 'Not selected';
             previewHtml += `<div class="col-md-6 mb-3"><strong>Submission Track:</strong><br>${escapeHtml(track)}</div>`;
-            
+
             // Parse keywords from Tagify JSON format
             let keywordsDisplay = 'Not provided';
             const keywordsRaw = $('#keyWord').val();
@@ -613,12 +616,12 @@
                 }
             }
             previewHtml += `<div class="col-md-6 mb-3"><strong>Keywords:</strong><br>${escapeHtml(keywordsDisplay)}</div>`;
-            
+
             previewHtml += '</div>';
-            
+
             // Abstract/Content
             previewHtml += '<h5 class="border-bottom pb-2 mb-3"><i class="ti tabler-file-text me-2"></i>Content</h5>';
-            
+
             // Check if using sections or abstract
             if ($('#contentSectionsContainer .section-content').length > 0) {
                 $('#contentSectionsContainer .section-content').each(function() {
@@ -628,13 +631,15 @@
                     if (ckeditorInstances[editorId]) {
                         content = ckeditorInstances[editorId].getData() || 'Not provided';
                     }
-                    previewHtml += `<div class="mb-3"><strong>${escapeHtml(sectionName)}:</strong><div class="border p-3 mt-2">${content}</div></div>`;
+                    previewHtml +=
+                        `<div class="mb-3"><strong>${escapeHtml(sectionName)}:</strong><div class="border p-3 mt-2">${content}</div></div>`;
                 });
             } else if (ckeditorInstances['description2']) {
                 const abstractContent = ckeditorInstances['description2'].getData() || 'Not provided';
-                previewHtml += `<div class="mb-3"><strong>Abstract Content:</strong><div class="border p-3 mt-2">${abstractContent}</div></div>`;
+                previewHtml +=
+                    `<div class="mb-3"><strong>Abstract Content:</strong><div class="border p-3 mt-2">${abstractContent}</div></div>`;
             }
-            
+
             // Attachment
             const attachmentInput = $('#image')[0];
             if (attachmentInput && attachmentInput.files && attachmentInput.files.length > 0) {
@@ -645,10 +650,10 @@
                     <small class="text-muted">(${fileSize} KB)</small>
                 </div>`;
             }
-            
+
             // Authors
             previewHtml += '<h5 class="border-bottom pb-2 mb-3 mt-4"><i class="ti tabler-users me-2"></i>Authors</h5>';
-            
+
             // Submitter
             const submitterName = '{{ current_user()->fullName(current_user()) }}';
             const submitterEmail = '{{ current_user()->email }}';
@@ -657,14 +662,14 @@
             let submitterBadges = '';
             if (isMainAuthor) submitterBadges += '<span class=\"badge bg-success ms-2\">Main Author</span>';
             if (isMainPresenter) submitterBadges += '<span class=\"badge bg-primary ms-2\">Main Presenter</span>';
-            
+
             previewHtml += `<div class="card mb-2">
                 <div class="card-body">
                     <strong>${escapeHtml(submitterName)}</strong> ${submitterBadges}
                     <br><small class="text-muted">${escapeHtml(submitterEmail)}</small>
                 </div>
             </div>`;
-            
+
             // Co-authors
             $('.author-item').each(function() {
                 const authorIndex = $(this).attr('id').replace('author_row_', '');
@@ -676,11 +681,11 @@
                 const address = $(`#author_institution_address_${authorIndex}`).val() || 'Not provided';
                 const isCoMainAuthor = $(`#co_author_main_author_${authorIndex}`).is(':checked');
                 const isCoMainPresenter = $(`#co_author_main_presenter_${authorIndex}`).is(':checked');
-                
+
                 let badges = '';
                 if (isCoMainAuthor) badges += '<span class=\"badge bg-success ms-2\">Main Author</span>';
                 if (isCoMainPresenter) badges += '<span class=\"badge bg-primary ms-2\">Main Presenter</span>';
-                
+
                 // Get contributions
                 let contributionsHtml = '';
                 const selectedContributions = [];
@@ -688,18 +693,18 @@
                     const contributionLabel = $(this).parent().find('label').text().trim();
                     selectedContributions.push(contributionLabel);
                 });
-                
+
                 // Check for "Other" contribution
                 const otherContribution = $(`#contribution_other_text_${authorIndex}`).val();
                 if (otherContribution) {
                     selectedContributions.push('Other: ' + otherContribution);
                 }
-                
+
                 if (selectedContributions.length > 0) {
-                    contributionsHtml = '<br><small class="text-muted"><strong>Contributions:</strong> ' + 
-                                       escapeHtml(selectedContributions.join(', ')) + '</small>';
+                    contributionsHtml = '<br><small class="text-muted"><strong>Contributions:</strong> ' +
+                        escapeHtml(selectedContributions.join(', ')) + '</small>';
                 }
-                
+
                 previewHtml += `<div class="card mb-2">
                     <div class="card-body">
                         <strong>${escapeHtml(name)}</strong> ${badges}
@@ -712,24 +717,26 @@
                     </div>
                 </div>`;
             });
-            
+
             // Additional Information
             if ($('#has_conflict_of_interest_yes').is(':checked') || $('#has_source_of_funding_yes').is(':checked')) {
-                previewHtml += '<h5 class="border-bottom pb-2 mb-3 mt-4"><i class="ti tabler-file-info me-2\"></i>Additional Information</h5>';
-                
+                previewHtml +=
+                    '<h5 class="border-bottom pb-2 mb-3 mt-4"><i class="ti tabler-file-info me-2\"></i>Additional Information</h5>';
+
                 if ($('#has_conflict_of_interest_yes').is(':checked')) {
                     const conflict = $('#conflict_of_interest').val() || 'Not provided';
-                    previewHtml += `<div class="mb-3"><strong>Conflict of Interest:</strong><br>${escapeHtml(conflict)}</div>`;
+                    previewHtml +=
+                        `<div class="mb-3"><strong>Conflict of Interest:</strong><br>${escapeHtml(conflict)}</div>`;
                 }
-                
+
                 if ($('#has_source_of_funding_yes').is(':checked')) {
                     const funding = $('#source_of_funding').val() || 'Not provided';
                     previewHtml += `<div class="mb-3"><strong>Source of Funding:</strong><br>${escapeHtml(funding)}</div>`;
                 }
             }
-            
+
             previewHtml += '</div>';
-            
+
             $('#previewContent').html(previewHtml);
             $('#previewModal').modal('show');
         }
@@ -1287,7 +1294,7 @@
 
                 const attachmentHtml = `
                     <div class="mb-6 col-md-6">
-                        <label class="form-label" for="image">${setting.attachment_name} <code>Accepted formats: JPG, JPEG, PNG, PDF — Max size: 250KB ${isRequired ? '*' : '(optional)'}<\/code></label>
+                        <label class="form-label" for="image">${setting.attachment_name} <code> ${isRequired ? '*' : '(optional)'}<\/code></label>
                         <input type="file" class="form-control @error('image') is-invalid @enderror" name="image" id="image" ${requiredAttr} />
                         ${imagePreview}
                         ${imageError}

@@ -94,7 +94,7 @@
                                 @endforeach
 
                                 {{-- Grammar/Language rating for section-based --}}
-                                <div class="col-md-6 form-group mb-3 sectionRatingField">
+                                {{-- <div class="col-md-6 form-group mb-3 sectionRatingField">
                                     <label for="grammar">Grammar/Languages <code>*</code></label>
                                     <select name="grammar" id="grammar" class="form-control section-rating-select">
                                         <option value="" hidden>-- Select Score --</option>
@@ -103,26 +103,28 @@
                                         <option value="2">2</option>
                                     </select>
                                     <p class="text-danger grammar"></p>
-                                </div>
+                                </div> --}}
                             </div>
-                            
+
                             {{-- Overall rating field for section-based (shown when total < 10) --}}
-                            <div class="row pl-3 decisionForm" id="sectionOverallRatingDiv" style="display: none;">
-                                {{-- <div class="col-md-12 mb-3">
+                            {{-- <div class="row pl-3 decisionForm" id="sectionOverallRatingDiv" style="display: none;"> --}}
+                            {{-- <div class="col-md-12 mb-3">
                                     <div class="alert alert-warning">
                                         <i class="ti ti-info-circle"></i> 
                                         <strong>Additional Score Required:</strong> 
                                         <span id="remainingScoreText"></span>
                                     </div>
                                 </div> --}}
-                                <div class="col-md-6 form-group mb-3">
-                                    <label for="section_overall_rating">Overall Rating<code>*</code></label>
-                                    <select name="overall_rating" id="section_overall_rating" class="form-control">
-                                        <option value="" hidden>-- Select Additional Score --</option>
-                                    </select>
-                                    <p class="text-danger overall_rating"></p>
-                                </div>
+                            <div class="col-md-6 form-group mb-3 decisionForm" id="sectionOverallRatingDiv"
+                                style="display: none;">
+                                <label for="section_overall_rating">Overall Rating (Consistency, Grammar, language,
+                                    correct parameter, etc)<code>*</code></label>
+                                <select name="overall_rating" id="section_overall_rating" class="form-control">
+                                    <option value="" hidden>-- Select Additional Score --</option>
+                                </select>
+                                <p class="text-danger overall_rating"></p>
                             </div>
+                            {{-- </div> --}}
                         @else
                             {{-- Default ratings (Introduction, Method, Result, Conclusion, Grammar) --}}
                             <div class="row pl-3 decisionForm" style="display: none;">
@@ -347,6 +349,11 @@
                         $('.decisionRejectRemark').hide();
                         $('.decisionForm').show();
                         $('.formbutton').show();
+
+                        // Check if overall rating is needed
+                        if ($('.section-rating-select').length > 0) {
+                            checkSectionOverallRatingRequired();
+                        }
                     }, 400);
                 });
             } else {
@@ -354,6 +361,11 @@
                 $('.decisionRejectRemark').hide();
                 $('.decisionForm').show();
                 $('.formbutton').show();
+
+                // Check if overall rating is needed
+                if ($('.section-rating-select').length > 0) {
+                    checkSectionOverallRatingRequired();
+                }
             }
         }
     });
@@ -382,18 +394,21 @@
 
     // Check if overall rating field should be shown for section-based ratings
     function checkSectionOverallRatingRequired() {
+        // Only proceed if section rating fields exist
+        if ($('.section-rating-select').length === 0) {
+            return;
+        }
+
         // Count total number of section rating fields (excluding grammar)
         const sectionCount = $('.section-rating-select').not('#grammar').length;
-        const grammarCount = 1; // Grammar field
-        
-        // Calculate maximum possible score
-        const maxPossibleScore = (sectionCount * 2) + (grammarCount * 2);
-        
+
+        // Calculate maximum possible score (each field can have max 2 points)
+        const maxPossibleScore = (sectionCount * 2);
+
         if (maxPossibleScore < 10) {
-            // Show overall rating field
+            // Show overall rating field if maximum possible score is less than 10
             const remaining = 10 - maxPossibleScore;
-            $('#remainingScoreText').text(`Maximum section score is ${maxPossibleScore} (${sectionCount} sections × 2 + grammar × 2). You need up to ${remaining} additional point(s) for overall rating.`);
-            
+
             // Populate options from 1 to remaining
             const $select = $('#section_overall_rating');
             $select.empty();
@@ -401,7 +416,7 @@
             for (let i = 1; i <= remaining; i++) {
                 $select.append(`<option value="${i}">${i}</option>`);
             }
-            
+
             $('#sectionOverallRatingDiv').show();
             $('#section_overall_rating').attr('required', true);
         } else {
@@ -411,7 +426,7 @@
             $('#section_overall_rating').val('');
         }
     }
-    
+
     // Check on page load when "Yes" is selected and form is shown
     $('#yes').on('change', function() {
         if ($(this).is(':checked')) {
@@ -428,7 +443,7 @@
     $("#decideRequest").on('click', function(e) {
         e.preventDefault();
         var data = new FormData($('#decisionForm')[0]);
-        
+
         // Explicitly add overall_rating if it exists and has a value
         var overallRatingValue = $('#section_overall_rating').val();
         if (overallRatingValue && overallRatingValue !== '' && overallRatingValue !== null) {
@@ -437,7 +452,7 @@
         } else {
             console.log('overall_rating field value:', overallRatingValue);
         }
-        
+
         @if (!empty($submission->sections))
             // Get data from section editors
             @foreach ($submission->sections as $index => $section)
