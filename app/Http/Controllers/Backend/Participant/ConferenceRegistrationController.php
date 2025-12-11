@@ -12,7 +12,6 @@ use App\Models\Conference\ConferenceSetting;
 use App\Models\Conference\Submission;
 use App\Models\Payment\InternationalPayment;
 use App\Models\Payment\NationalPayment;
-use App\Models\User\UserSociety;
 use App\Models\Workshop\Workshop;
 use App\Models\Workshop\WorkshopRegistration;
 use App\Services\File\FileService;
@@ -88,7 +87,21 @@ class ConferenceRegistrationController extends Controller
                 return true;
             });
 
-        $conferenceAddons = ConferenceAddon::where(['conference_id' => $conference->id, 'status' => 1])->get();
+        // Get conference addons grouped by name with pricing for user's member type
+        $conferenceAddons = ConferenceAddon::where([
+            'conference_id' => $conference->id,
+            'member_type_id' => $membetType->id,
+            'status' => 1
+        ])
+            ->select('id', 'addon_name', 'early_bird_amount', 'regular_amount', 'on_site_amount', 'guest_amount', 'member_type_id')
+            ->get()
+            ->groupBy('addon_name')
+            ->map(function ($group) {
+                return $group->first(); // Take first item from each group (since all have same pricing for this member type)
+            })
+            ->values();
+        // dd($conferenceAddons);
+
         return view('backend.participant.conference-registration.create', compact('conference', 'amount', 'memberTypePrice', 'society', 'national_payemnt_setting', 'international_payemnt_setting', 'checkPayment', 'workshops', 'conferenceAddons'));
     }
 
@@ -146,7 +159,8 @@ class ConferenceRegistrationController extends Controller
 
     public function store(Request $request, $society, $conference)
     {
-        // dd($request->all());
+        dd($request->all(), 'store method called');
+
         $rules = [
             'accompany_person' => 'nullable|numeric',
             'registrant_type' => 'required',
@@ -197,11 +211,18 @@ class ConferenceRegistrationController extends Controller
                     if (!empty($request->selected_addons)) {
                         $addons = explode(',', $request->selected_addons);
                         foreach ($addons as $addon) {
-                            [$addonId, $amount] = explode(':', $addon);
+                            $parts = explode(':', $addon);
+                            $addonId = $parts[0];
+                            $mainAmount = $parts[1];
+                            $guestAmount = isset($parts[2]) ? $parts[2] : $parts[1]; // Use main amount if guest not specified
+                            $includeGuest = isset($parts[3]) ? $parts[3] : '1'; // Default to include guest
+
                             $addonDetail = ConferenceAddon::find($addonId);
                             $addonsData[] = [
                                 'name'   => $addonDetail->addon_name ?? 'Addon ' . $addonId,
-                                'amount' => $amount
+                                'amount' => $mainAmount,
+                                'guest_amount' => $guestAmount,
+                                'include_guest' => $includeGuest == '1'
                             ];
                         }
                     }
@@ -267,27 +288,31 @@ class ConferenceRegistrationController extends Controller
                     Mail::to($authUser->email)->send(new RegisteredByUserMail($mailData, $conference->conference_name));
 
                     DB::beginTransaction();
-
                     $conferenceRegistration = ConferenceRegistration::create($validated);
+                    // Insert Addons
                     if (!empty($request->selected_addons)) {
                         $addons = explode(',', $request->selected_addons);
                         $insertData = [];
 
                         foreach ($addons as $addon) {
-                            [$addonId, $amount] = explode(':', $addon);
+                            $parts = explode(':', $addon);
+                            $addonId = $parts[0];
+                            $amount = $parts[1]; // Main attendee amount
+                            $guestAmount = isset($parts[2]) ? $parts[2] : $parts[1]; // Guest amount
+                            $includeGuest = isset($parts[3]) && $parts[3] == '1' ? 1 : 0;
+
                             $insertData[] = [
                                 'conference_registration_id' => $conferenceRegistration->id,
                                 'conference_addon_id'        => $addonId,
                                 'amount'                     => $amount,
+                                'include_for_guests'         => $includeGuest,
                                 'created_at'                 => now(),
                                 'updated_at'                 => now(),
                             ];
                         }
 
                         DB::table('conference_registration_addons')->insert($insertData);
-                    }
-
-                    // Create Workshop Registration
+                    }                    // Create Workshop Registration
                     if (!empty($request->selected_workshops)) {
                         $workshops = explode(',', $request->selected_workshops);
                         $insertWorkshopData = [];
@@ -365,8 +390,9 @@ class ConferenceRegistrationController extends Controller
 
     public function onlinePaymentSubmit(Request $request, $society, $conference)
     {
-        try {
 
+        try {
+            // dd($request->all());
             if (is_past($conference->regular_registration_deadline)) {
                 return redirect()->back()->with('delete', 'Registration deadline has ended.');
             }
@@ -435,11 +461,18 @@ class ConferenceRegistrationController extends Controller
             if (!empty($onlinePayment['selected_addons'])) {
                 $addons = explode(',', $onlinePayment['selected_addons']);
                 foreach ($addons as $addon) {
-                    [$addonId, $amount] = explode(':', $addon);
+                    $parts = explode(':', $addon);
+                    $addonId = $parts[0];
+                    $mainAmount = $parts[1];
+                    $guestAmount = isset($parts[2]) ? $parts[2] : $parts[1]; // Use main amount if guest not specified
+                    $includeGuest = isset($parts[3]) ? $parts[3] : '1'; // Default to include guest
+
                     $addonDetail = ConferenceAddon::find($addonId); // Make sure model exists
                     $addonsData[] = [
                         'name'   => $addonDetail->addon_name ?? 'Addon ' . $addonId,
-                        'amount' => $amount
+                        'amount' => $mainAmount,
+                        'guest_amount' => $guestAmount,
+                        'include_guest' => $includeGuest == '1'
                     ];
                 }
             }
@@ -506,20 +539,24 @@ class ConferenceRegistrationController extends Controller
                 $insertData = [];
 
                 foreach ($addons as $addon) {
-                    [$addonId, $amount] = explode(':', $addon);
+                    $parts = explode(':', $addon);
+                    $addonId = $parts[0];
+                    $amount = $parts[1]; // Main attendee amount
+                    $guestAmount = isset($parts[2]) ? $parts[2] : $parts[1]; // Guest amount
+                    $includeGuest = isset($parts[3]) && $onlinePayment['accompany_person'] > 0  && $parts[3] == '1' ? 1 : 0;
+
                     $insertData[] = [
                         'conference_registration_id' => $conference_registration->id,
                         'conference_addon_id'        => $addonId,
                         'amount'                     => $amount,
+                        'include_for_guests'         => $includeGuest,
                         'created_at'                 => now(),
                         'updated_at'                 => now(),
                     ];
                 }
 
                 DB::table('conference_registration_addons')->insert($insertData);
-            }
-
-            // Create Workshop Registration
+            }            // Create Workshop Registration
             if (!empty($onlinePayment['selected_workshops'])) {
                 $workshops = explode(',', $onlinePayment['selected_workshops']);
                 $insertWorkshopData = [];

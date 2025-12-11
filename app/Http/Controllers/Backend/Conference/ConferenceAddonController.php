@@ -6,29 +6,40 @@ use App\Http\Controllers\Controller;
 use App\Models\Conference\Conference;
 use App\Models\Conference\ConferenceAddon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 
 class ConferenceAddonController extends Controller
-{
+{ 
     public function addon(Request $request)
     {
         $conference = Conference::where('id', $request->id)->first();
+        
+        // Get member types for this conference's society
+        $sql = "SELECT id, type, delegate 
+                FROM member_types 
+                WHERE society_id = " . $conference->society_id;
+        $memberTypes = DB::select($sql);
+        
+        // Get existing addons grouped by name
         $addOns = ConferenceAddon::where('conference_id', $conference->id)->get();
-        return view('backend.conference.addon-form', compact('conference', 'addOns'));
+        $addonsByName = $addOns->groupBy('addon_name');
+        
+        return view('backend.conference.addon-form', compact('conference', 'memberTypes', 'addonsByName'));
     }
 
     public function addOnSubmit(Request $request)
     {
+        // dd($request->all());
         $validator = Validator::make($request->all(), [
             'conference_id' => 'required|exists:conferences,id',
-            'addon_name' => 'required|array|min:1',
-            'addon_name.*' => 'required|string|max:255',
-            'addon_national_amount' => 'required|array|min:1',
-            'addon_national_amount.*' => 'required|numeric|min:0',
-            'addon_international_amount' => 'required|array|min:1',
-            'addon_international_amount.*' => 'required|numeric|min:0',
-            'addon_ids' => 'nullable|array',
-            'addon_ids.*' => 'nullable|integer|exists:conference_addons,id',
+            'addon_names' => 'nullable|array|min:1',
+            'addon_names.*' => 'nullable|string|max:255',
+            'member_type_ids' => 'nullable|array',
+            'early_bird_amounts' => 'nullable|array',
+            'regular_amounts' => 'nullable|array',
+            'on_site_amounts' => 'nullable|array',
+            'guest_amounts' => 'nullable|array',
         ]);
 
         if ($validator->fails()) {
@@ -39,43 +50,57 @@ class ConferenceAddonController extends Controller
             ], 422);
         }
 
-        $validated = $validator->validated();
-        $conferenceId = $validated['conference_id'];
-        $submittedIds = array_filter($request->addon_ids ?? []);
-        $savedIds = $submittedIds; // will merge new IDs into this
+        try {
+            $conferenceId = $request->conference_id;
+            $savedIds = [];
 
-        foreach ($validated['addon_name'] as $index => $addonName) {
-            $id = $request->addon_ids[$index] ?? null;
-
-            if ($id) {
-                // Update existing
-                ConferenceAddon::where('id', $id)->update([
-                    'conference_id' => $conferenceId,
-                    'addon_name' => $addonName,
-                    'addon_national_amount' => $validated['addon_national_amount'][$index],
-                    'addon_international_amount' => $validated['addon_international_amount'][$index],
-                    'updated_at' => now(),
-                ]);
-            } else {
-                // Insert and capture ID
-                $newAddon = ConferenceAddon::create([
-                    'conference_id' => $conferenceId,
-                    'addon_name' => $addonName,
-                    'addon_national_amount' => $validated['addon_national_amount'][$index],
-                    'addon_international_amount' => $validated['addon_international_amount'][$index],
-                ]);
-                $savedIds[] = $newAddon->id;
+            // Process each addon name
+            foreach ($request->addon_names as $index => $addonName) {
+                $memberTypeIds = $request->member_type_ids[$addonName] ?? [];
+                
+                foreach ($memberTypeIds as $mtIndex => $memberTypeId) {
+                    $addonId = $request->addon_ids[$addonName][$mtIndex] ?? null;
+                    
+                    $data = [
+                        'conference_id' => $conferenceId,
+                        'addon_name' => $addonName,
+                        'member_type_id' => $memberTypeId,
+                        'early_bird_amount' => $request->early_bird_amounts[$addonName][$mtIndex] ?? null,
+                        'regular_amount' => $request->regular_amounts[$addonName][$mtIndex] ?? null,
+                        'on_site_amount' => $request->on_site_amounts[$addonName][$mtIndex] ?? null,
+                        'guest_amount' => $request->guest_amounts[$addonName][$mtIndex] ?? null,
+                    ];
+                    
+                    if ($addonId) {
+                        // Update existing
+                        ConferenceAddon::where('id', $addonId)->update(array_merge($data, [
+                            'updated_at' => now(),
+                        ]));
+                        $savedIds[] = $addonId;
+                    } else {
+                        // Create new
+                        $newAddon = ConferenceAddon::create($data);
+                        $savedIds[] = $newAddon->id;
+                    }
+                }
             }
+
+            // Delete records not in the saved IDs list
+            ConferenceAddon::where('conference_id', $conferenceId)
+                ->whereNotIn('id', $savedIds)
+                ->delete();
+
+            return response()->json([
+                'type' => 'success',
+                'message' => 'Conference add-ons saved successfully!',
+            ]);
+        } catch (\Exception $e) {
+            // dd($e->getMessage());
+            return response()->json([
+                'type' => 'error',
+                'message' => 'An error occurred: ' . $e->getMessage(),
+            ], 500);
         }
-
-        // Delete only records NOT in final saved IDs
-        ConferenceAddon::where('conference_id', $conferenceId)
-            ->whereNotIn('id', $savedIds)
-            ->delete();
-
-        return response()->json([
-            'type' => 'success',
-            'message' => 'Conference add-ons saved successfully!',
-        ]);
     }
 }
+

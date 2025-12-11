@@ -91,6 +91,8 @@ Route::middleware('auth')->group(function () {
         Route::delete('/accompany-person/{accompanyPerson}', 'deleteAccompanyPerson')->name('deleteAccompanyPerson');
         Route::get('/register-for-exceptional-case', 'registerForExceptionalCase')->name('registerForExceptionalCase');
         Route::post('/register-for-exceptional-case-submit', 'registerForExceptionalCaseSubmit')->name('registerForExceptionalCaseSubmit');
+        Route::get('/get-user-member-type-addons', 'getUserMemberTypeAddons')->name('getUserMemberTypeAddons');
+        Route::get('/get-member-type-addons', 'getMemberTypeAddons')->name('getMemberTypeAddons');
         Route::post('/add-person', 'addPerson')->name('addPerson');
         Route::post('/add-person-submit', 'addPersonSubmit')->name('addPersonSubmit');
         Route::post('/import-conference-registrant', 'importExcel')->name('importExcel');
