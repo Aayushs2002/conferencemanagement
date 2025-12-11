@@ -92,7 +92,7 @@
                                 {{-- <a href="#" class="btn btn-success btn-sm mt-3 priceForm"
                                     data-id="{{ $conference->id }}" data-bs-toggle="modal"
                                     data-bs-target="#pricingModal">Registration Price</a> --}}
-                            </td>
+                            </td> 
                         </tr>
                     @endforeach
                 </tbody>

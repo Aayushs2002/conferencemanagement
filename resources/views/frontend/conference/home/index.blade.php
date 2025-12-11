@@ -300,7 +300,7 @@
                     <div class="tab-pane fade" id="contact" role="tabpanel"
                         style="background-color: #F1F4FC; padding: 40px; border-radius: 20px;">
                         <h2 class="section-title">Contact Information</h2>
-                        <p class="span-text mt-4">Contact Our Event Manager</p>
+                        {{-- <p class="span-text mt-4">Contact Our Event Manager</p> --}}
                         <div class="contact-section">
                             <p class="contact-manager mb-3 mt-5">
                                 {{ $conference->ConferenceOrganizer->organizer_contact_person }}</p>

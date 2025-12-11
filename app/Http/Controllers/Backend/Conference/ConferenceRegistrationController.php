@@ -499,15 +499,124 @@ class ConferenceRegistrationController extends Controller
             'id' => $conference->society_id,
             'status' => 1
         ])->first();
-        $conferenceAddons = ConferenceAddon::where('conference_id', $conference->id)->get();
         $users = $society ? $society->users : collect();
 
+        return view('backend.conference.conference-registration.register-for-exceptional-case', compact('users', 'society', 'conference'));
+    }
 
-        return view('backend.conference.conference-registration.register-for-exceptional-case', compact('users', 'society', 'conference', 'conferenceAddons'));
+    public function getUserMemberTypeAddons(Request $request, $society, $conference)
+    {
+        try {
+            $userId = $request->user_id;
+
+            if (!$userId) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'User ID is required'
+                ]);
+            }
+
+            // Get user's member type for this society
+            $user = User::find($userId);
+            $userSociety = $user->societies->where('id', $conference->society_id)->first();
+            $memberType = $userSociety?->pivot?->memberType;
+
+            if (!$memberType) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Member type not found for this user'
+                ]);
+            }
+
+            // Get addons for this member type
+            $addons = ConferenceAddon::where([
+                'conference_id' => $conference->id,
+                'member_type_id' => $memberType->id,
+                'status' => 1
+            ])
+                ->select('id', 'addon_name', 'early_bird_amount', 'regular_amount', 'on_site_amount', 'guest_amount')
+                ->get()
+                ->map(function ($addon) use ($conference) {
+                    // Determine which amount to use based on registration period
+                    $amount = $addon->on_site_amount;
+                    if ($conference->early_bird_registration_deadline >= date('Y-m-d')) {
+                        $amount = $addon->early_bird_amount ?? $addon->on_site_amount;
+                    } elseif ($conference->regular_registration_deadline >= date('Y-m-d')) {
+                        $amount = $addon->regular_amount ?? $addon->on_site_amount;
+                    }
+
+                    return [
+                        'id' => $addon->id,
+                        'addon_name' => $addon->addon_name,
+                        'amount' => $amount,
+                        'guest_amount' => $addon->guest_amount ?? $amount
+                    ];
+                });
+
+            return response()->json([
+                'success' => true,
+                'addons' => $addons
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error fetching addons: ' . $e->getMessage()
+            ]);
+        }
+    }
+
+    public function getMemberTypeAddons(Request $request, $society, $conference)
+    {
+        try {
+            $memberTypeId = $request->member_type_id;
+
+            if (!$memberTypeId) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Member type ID is required'
+                ]);
+            }
+
+            // Get addons for this member type
+            $addons = ConferenceAddon::where([
+                'conference_id' => $conference->id,
+                'member_type_id' => $memberTypeId,
+                'status' => 1
+            ])
+                ->select('id', 'addon_name', 'early_bird_amount', 'regular_amount', 'on_site_amount', 'guest_amount')
+                ->get()
+                ->map(function ($addon) use ($conference) {
+                    // Determine which amount to use based on registration period
+                    $amount = $addon->on_site_amount;
+                    if ($conference->early_bird_registration_deadline >= date('Y-m-d')) {
+                        $amount = $addon->early_bird_amount ?? $addon->on_site_amount;
+                    } elseif ($conference->regular_registration_deadline >= date('Y-m-d')) {
+                        $amount = $addon->regular_amount ?? $addon->on_site_amount;
+                    }
+
+                    return [
+                        'id' => $addon->id,
+                        'addon_name' => $addon->addon_name,
+                        'amount' => $amount,
+                        'guest_amount' => $addon->guest_amount ?? $amount
+                    ];
+                });
+
+            return response()->json([
+                'success' => true,
+                'addons' => $addons
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error fetching addons: ' . $e->getMessage()
+            ]);
+        }
     }
 
     public function registerForExceptionalCaseSubmit(Request $request, $society, $conference)
     {
+        // dd($request->all());
         try {
             $rules = [
                 'user_id' => 'required',
@@ -603,16 +712,40 @@ class ConferenceRegistrationController extends Controller
                 }
                 AccompanyPerson::insert($insertArray);
             }
-            if ($request->conference_addon_id) {
-                foreach ($request->conference_addon_id as $addon_id) {
-                    $addon = ConferenceAddon::where('id', $request->conference_addon_id)->first();
-                    // dd($addon);
-                    ConferenceRegistration_addon::create([
+            // if ($request->conference_addon_id) {
+            //     foreach ($request->conference_addon_id as $addon_id) {
+            //         $addon = ConferenceAddon::where('id', $request->conference_addon_id)->first();
+            //         // dd($addon);
+            //         ConferenceRegistration_addon::create([
+            //             'conference_registration_id' => $registration->id,
+            //             'conference_addon_id' => $addon_id,
+            //             'amount' => $user->userDetail->country_id == 125 ? $addon->addon_national_amount : $addon->addon_international_amount,
+            //         ]);
+            //     }
+            // }
+            if (!empty($request->selected_addons)) {
+
+                $addons = explode(',', $request->selected_addons);
+                $insertData = [];
+
+                // dd($request->selected_addons);
+                foreach ($addons as $addon) {
+                    $parts = explode(':', $addon);
+                    $addonId = $parts[0];
+                    $amount = $parts[1]; // Main attendee amount
+                    $guestAmount = isset($parts[2]) ? $parts[2] : $parts[1]; // Guest amount
+                    $includeGuest = isset($parts[3]) && $request->additional_guests >= 1 && $parts[3] == '1' ? 1 : 0;
+
+                    $insertData[] = [
                         'conference_registration_id' => $registration->id,
-                        'conference_addon_id' => $addon_id,
-                        'amount' => $user->userDetail->country_id == 125 ? $addon->addon_national_amount : $addon->addon_international_amount,
-                    ]);
+                        'conference_addon_id'        => $addonId,
+                        'amount'                     => $amount,
+                        'include_for_guests'         => $includeGuest,
+                        'created_at'                 => now(),
+                        'updated_at'                 => now(),
+                    ];
                 }
+                ConferenceRegistration_addon::insert($insertData);
             }
             logActivity($conference->id, 'Registered Conference', $user->fullName($user) . ' is registered to conference');
 
@@ -769,17 +902,7 @@ class ConferenceRegistrationController extends Controller
 
     public function registrationOrInvitation($society, $conference)
     {
-        // $prefixesAll = NamePrefix::whereStatus(1)->get();
-        $conferenceAddons = ConferenceAddon::where('conference_id', $conference->id)->get();
-        // if ($society && $society->namePrefixes()->exists()) {
-        //     $prefixesAll = $society->namePrefixes()->where('status', 1)->get();
-        //     // dd($prefixesAll);
-        // } else {
-        //     // Fallback to all active prefixes if society hasn't selected any
-        //     $prefixesAll = NamePrefix::whereStatus(1)->get();
-        // }
-
-        $loadData = function ($relation, $model) use ($society) { 
+        $loadData = function ($relation, $model) use ($society) {
             if ($society && $society->$relation()->exists()) {
                 return $society->$relation()->where('status', 1)->get();
             }
@@ -787,13 +910,11 @@ class ConferenceRegistrationController extends Controller
         };
 
         $institutions = $loadData('institutions', Institution::class);
-        // dd($institutions);
         $designations = $loadData('designations', Designation::class);
         $departments = $loadData('departments', Department::class);
         $prefixesAll = $loadData('namePrefixes', NamePrefix::class);
 
-
-        return view('backend.conference.conference-registration.registration-or-invitation', compact('prefixesAll', 'society', 'conference', 'conferenceAddons', 'institutions', 'designations', 'departments'));
+        return view('backend.conference.conference-registration.registration-or-invitation', compact('prefixesAll', 'society', 'conference', 'institutions', 'designations', 'departments'));
     }
 
     public function registrationOrInvitationSubmit(Request $request, $society, $conference)
@@ -888,6 +1009,32 @@ class ConferenceRegistrationController extends Controller
 
             // for values end
 
+            // Prepare addon data for email
+            $addonData = [];
+            // if (!empty($request->selected_addons)) {
+
+            //     $addons = explode(',', $request->selected_addons);
+            //     foreach ($addons as $addon) {
+            //         // dd($addon);
+            //         $parts = explode(':', $addon);
+            //         $addonId = $parts[0];
+            //         $mainAmount = $parts[1];
+            //         $guestAmount = isset($parts[2]) ? $parts[2] : $parts[1]; // Use main amount if guest not specified
+            //         $includeGuest = isset($parts[3]) ? $parts[3] : '1'; // Default to include guest
+
+            //         $addonDetail = ConferenceAddon::find($addonId);
+            //         $addonData[] = [
+            //             'name'   => $addonDetail->addon_name ?? 'Addon ' . $addonId,
+            //             'amount' => $mainAmount,
+            //             'guest_amount' => $guestAmount,
+            //             'include_guest' => $includeGuest == '1',
+            //             'quantity' => $validated['total_attendee'] ?? 1
+
+            //         ];
+            //     }
+            // }
+
+
             $middleName = !empty($validated['m_name']) ? $validated['m_name'] . ' ' : '';
             $namePrefix = DB::table('name_prefixes')->whereId($validated['name_prefix_id'])->first()->prefix;
             $data = [
@@ -912,9 +1059,9 @@ class ConferenceRegistrationController extends Controller
                 'signatureName' => $conferenceSetting->name,
                 'signature' => $conferenceSetting->signature,
                 'conferenceAmount' => $validated['amount'],
-                'addons'           => [],
+                'addons'           => $addonData,
                 'workshop'         => [],
-                'accompany' => null,
+                'accompany' => $validated['additional_guests'] ?? 0,
                 'serviceCharge' =>  null,
                 'invitationType' => 1,
                 'is_invited' => $request->has('invited_guest') ? 1 : 0,
@@ -995,16 +1142,29 @@ class ConferenceRegistrationController extends Controller
                 }
                 AccompanyPerson::insert($insertArray);
             }
-            if ($request->conference_addon_id) {
-                foreach ($request->conference_addon_id as $addon_id) {
-                    $addon = ConferenceAddon::where('id', $request->conference_addon_id)->first();
-                    // dd($addon);
-                    ConferenceRegistration_addon::create([
+
+            // Store addons with proper format: addonId:mainAmount:guestAmount:includeGuest
+            if (!empty($request->selected_addons)) {
+                $addons = explode(',', $request->selected_addons);
+                $insertData = [];
+
+                foreach ($addons as $addon) {
+                    $parts = explode(':', $addon);
+                    $addonId = $parts[0];
+                    $amount = $parts[1]; // Main attendee amount
+                    $guestAmount = isset($parts[2]) ? $parts[2] : $parts[1]; // Guest amount
+                    $includeGuest = isset($parts[3]) && $request->additional_guests >= 1 && $parts[3] == '1' ? 1 : 0;
+
+                    $insertData[] = [
                         'conference_registration_id' => $registration->id,
-                        'conference_addon_id' => $addon_id,
-                        'amount' => $storeUser->userDetail->country_id == 125 ? $addon->addon_national_amount : $addon->addon_international_amount,
-                    ]);
+                        'conference_addon_id'        => $addonId,
+                        'amount'                     => $amount,
+                        'include_for_guests'         => $includeGuest,
+                        'created_at'                 => now(),
+                        'updated_at'                 => now(),
+                    ];
                 }
+                ConferenceRegistration_addon::insert($insertData);
             }
             logActivity($conference->id, $request->has('invited_guest') ? 'Invited Conference' : 'Registered Conference', $validated['f_name'] . ' ' . $middleName . $validated['l_name'] . ' is registered to conference');
             DB::commit();

@@ -13,7 +13,7 @@
         body {
             font-family: 'Segoe UI', sans-serif;
             background: #f4f7fb;
-            margin: 0;
+            margin: 0; 
             padding: 20px;
         }
 
@@ -234,14 +234,21 @@
                 @endif
                 @if (!empty($data['addons']))
                     @foreach ($data['addons'] as $addon)
-                        {{-- @dd($addon) --}}
+                        {{-- Main Attendee Addon --}}
                         <tr>
-                            <td>{{ $addon['name'] }} X
-                                {{ $data['accompany'] == null ? '1' : $data['accompany']['accompany_person'] + 1 }}
-                            </td>
-                            <td>{{ $data['country'] == 125 ? 'Rs.' : '$' }}{{ $data['accompany'] == null ? $addon['amount'] * 1 : $addon['amount'] * ($data['accompany']['accompany_person'] + 1) }}
-                            </td>
+                            <td>{{ $addon['name'] }} (Main Attendee)</td>
+                            <td>{{ $data['country'] == 125 ? 'Rs.' : '$' }}{{ $addon['amount'] }}</td>
                         </tr>
+                        {{-- Accompanying Persons Addon (only if include_guest is true) --}}
+                        @if (!empty($data['accompany']) && $addon['include_guest'])
+                            @php
+                                $guestAddonPrice = isset($addon['guest_amount']) && $addon['guest_amount'] > 0 ? $addon['guest_amount'] : $addon['amount'];
+                            @endphp
+                            <tr>
+                                <td>{{ $addon['name'] }} (Accompanying Persons) X {{ $data['accompany']['accompany_person'] }}</td>
+                                <td>{{ $data['country'] == 125 ? 'Rs.' : '$' }}{{ $guestAddonPrice * $data['accompany']['accompany_person'] }}</td>
+                            </tr>
+                        @endif
                     @endforeach
                 @endif
                 {{-- @dd($data) --}}

@@ -12,7 +12,7 @@
         .registration-card:hover {
             transform: translateY(-2px);
             box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
-        }
+        } 
 
         .step-indicator {
             display: flex;
@@ -401,19 +401,32 @@
                                             <div class="card">
                                                 <div class="card-body" style="max-height: 250px; overflow-y: auto;">
                                                     @foreach ($conferenceAddons as $addon)
-                                                        <div class="form-check mb-2 p-2  rounded">
+                                                        @php
+                                                            // Determine which amount to show based on registration period
+                                                            $addonAmount = 0;
+                                                            if ($conference->early_bird_registration_deadline >= date('Y-m-d')) {
+                                                                $addonAmount = $addon->early_bird_amount ?? 0;
+                                                            } elseif ($conference->regular_registration_deadline >= date('Y-m-d')) {
+                                                                $addonAmount = $addon->regular_amount ?? 0;
+                                                            } else {
+                                                                $addonAmount = $addon->on_site_amount ?? 0;
+                                                            }
+                                                            $addonGuestAmount = $addon->guest_amount ?? 0;
+                                                        @endphp
+                                                        <div class="form-check mb-3 p-2 rounded border">
                                                             <input class="form-check-input addon-checkbox" type="checkbox"
                                                                 name="selected_addons[]" value="{{ $addon->id }}"
                                                                 data-name="{{ $addon->addon_name }}"
-                                                                data-amount="{{ @$memberTypePrice->memberType->delegate == 1 ? $addon->addon_national_amount : $addon->addon_international_amount }}"
+                                                                data-amount="{{ $addonAmount }}"
+                                                                data-guest-amount="{{ $addonGuestAmount }}"
                                                                 id="addon_{{ $addon->id }}"
                                                                 @if (isset($conference_registration) &&
                                                                         $conference_registration->registrationAddons &&
                                                                         $conference_registration->registrationAddons->contains('addon_id', $addon->id)) checked @endif>
                                                             <label
-                                                                class="form-check-label d-flex justify-content-between align-items-center w-100"
+                                                                class="form-check-label d-flex justify-content-between align-items-start w-100"
                                                                 for="addon_{{ $addon->id }}">
-                                                                <div>
+                                                                <div class="flex-grow-1">
                                                                     <strong>{{ $addon->addon_name }}</strong>
                                                                     @if ($addon->addon_description)
                                                                         <br><small
@@ -421,17 +434,34 @@
                                                                     @endif
                                                                 </div>
                                                                 <span class="badge bg-primary ms-2">
-                                                                    {{ @$memberTypePrice->memberType->delegate == 1 ? 'Rs. ' : '$ ' }}{{ number_format(@$memberTypePrice->memberType->delegate == 1 ? $addon->addon_national_amount : $addon->addon_international_amount, 2) }}
+                                                                    {{ @$memberTypePrice->memberType->delegate == 1 ? 'Rs. ' : '$ ' }}{{ number_format($addonAmount, 2) }}
                                                                     <small>/person</small>
+                                                                    @if($addonGuestAmount > 0 && $addonGuestAmount != $addonAmount)
+                                                                        <br><small>Guest: {{ @$memberTypePrice->memberType->delegate == 1 ? 'Rs. ' : '$ ' }}{{ number_format($addonGuestAmount, 2) }}</small>
+                                                                    @endif
                                                                 </span>
                                                             </label>
+                                                            
+                                                            <!-- Guest Inclusion Option -->
+                                                            <div class="ms-4 mt-2 addon-guest-option" id="guest_option_{{ $addon->id }}" style="display: none;">
+                                                                <div class="form-check form-check-inline">
+                                                                    <input class="form-check-input addon-guest-checkbox" 
+                                                                        type="checkbox" 
+                                                                        id="include_guest_{{ $addon->id }}"
+                                                                        data-addon-id="{{ $addon->id }}"
+                                                                        checked>
+                                                                    <label class="form-check-label text-muted small" for="include_guest_{{ $addon->id }}">
+                                                                        <i class="fas fa-user-friends"></i> Include for guests
+                                                                    </label>
+                                                                </div>
+                                                            </div>
                                                         </div>
                                                     @endforeach
                                                 </div>
                                             </div>
                                             <small class="text-muted">
                                                 <i class="fas fa-info-circle"></i>
-                                                Selected add-ons will be applied to all attendees (you + guests)
+                                                You can choose whether add-ons apply to guests or only to you
                                             </small>
                                         </div>
                                     @endif
@@ -1122,11 +1152,15 @@
                     const addonId = $(this).val();
                     const addonName = $(this).data('name');
                     const addonAmount = parseFloat($(this).data('amount')) || 0;
+                    const addonGuestAmount = parseFloat($(this).data('guest-amount')) || 0;
+                    const includeGuest = $(`#include_guest_${addonId}`).is(':checked');
 
                     selectedAddOns.push({
                         id: addonId,
                         name: addonName,
-                        amount: addonAmount
+                        amount: addonAmount,
+                        guest_amount: addonGuestAmount,
+                        include_guest: includeGuest
                     });
                 });
 
@@ -1137,6 +1171,25 @@
                     resetPriceCalculation('add-on selection');
                 }
             }
+            
+            // Show/hide guest option when addon is checked/unchecked
+            $(document).on('change', '.addon-checkbox', function() {
+                const addonId = $(this).val();
+                const guestOption = $(`#guest_option_${addonId}`);
+                
+                if ($(this).is(':checked')) {
+                    guestOption.slideDown(200);
+                } else {
+                    guestOption.slideUp(200);
+                }
+                
+                handleAddOnChange();
+            });
+            
+            // Handle guest inclusion checkbox changes
+            $(document).on('change', '.addon-guest-checkbox', function() {
+                handleAddOnChange();
+            });
 
             // Reset price calculation
             function resetPriceCalculation(changeType) {
@@ -1223,12 +1276,18 @@
             }
 
             // Calculate total add-on price
-            function calculateAddOnTotal(delegate, totalAttendee) {
+            function calculateAddOnTotal(delegate, totalAttendee, additionalGuest) {
                 let addOnTotal = 0;
 
                 selectedAddOns.forEach(addon => {
-                    // Each add-on applies to all attendees (main + guests)
-                    addOnTotal += addon.amount * totalAttendee;
+                    // Main attendee gets the regular addon price
+                    addOnTotal += addon.amount;
+                    
+                    // Guests get the guest price only if include_guest is true
+                    if (additionalGuest > 0 && addon.include_guest) {
+                        const guestPrice = addon.guest_amount > 0 ? addon.guest_amount : addon.amount;
+                        addOnTotal += guestPrice * additionalGuest;
+                    }
                 });
 
                 return addOnTotal;
@@ -1270,8 +1329,8 @@
                         totalWorkshopGuestPrice += workshop.guest_price;
                     });
 
-                    // Calculate add-on total price
-                    const addOnTotalPrice = calculateAddOnTotal(delegate, totalAttendee);
+                    // Calculate add-on total price (no longer used for total, calculated per item below)
+                    const addOnTotalPrice = calculateAddOnTotal(delegate, totalAttendee, additionalGuest);
 
                     // Initialize totals
                     let preTotalPrice = 0;
@@ -1358,22 +1417,44 @@
                     // Add-ons pricing (multiple add-ons)
                     if (selectedAddOns.length > 0) {
                         selectedAddOns.forEach(addon => {
-                            const addonTotalForThisItem = addon.amount * totalAttendee;
-
+                            // Main attendee addon price
+                            const mainAddonPrice = addon.amount;
+                            
                             if (delegate == 2) {
-                                preTotalPrice += addonTotalForThisItem;
+                                preTotalPrice += mainAddonPrice;
                             } else {
-                                totalPrice += addonTotalForThisItem;
+                                totalPrice += mainAddonPrice;
                             }
 
                             calculatedData.append(generatePriceTableRow(
                                 rowNumber++,
                                 `Add-on: ${addon.name}`,
-                                totalAttendee,
+                                1,
                                 addon.amount,
-                                addonTotalForThisItem,
+                                mainAddonPrice,
                                 currencyCondition
                             ));
+                            
+                            // Guest addon pricing if there are guests AND include_guest is true
+                            if (additionalGuest > 0 && addon.include_guest) {
+                                const guestAddonPrice = addon.guest_amount > 0 ? addon.guest_amount : addon.amount;
+                                const guestAddonTotal = guestAddonPrice * additionalGuest;
+                                
+                                if (delegate == 2) {
+                                    preTotalPrice += guestAddonTotal;
+                                } else {
+                                    totalPrice += guestAddonTotal;
+                                }
+
+                                calculatedData.append(generatePriceTableRow(
+                                    rowNumber++,
+                                    `${addon.name} - Additional Guests`,
+                                    additionalGuest,
+                                    guestAddonPrice,
+                                    guestAddonTotal,
+                                    currencyCondition
+                                ));
+                            }
                         });
                     }
 
@@ -1478,8 +1559,10 @@
                     `${workshop.id}:${workshop.main_price}:${workshop.guest_price}`
                 ).join(',');
 
-                // Create add-ons data string for form submission
-                const addOnsData = selectedAddOns.map(addon => `${addon.id}:${addon.amount}`).join(',');
+                // Create add-ons data string with main amount, guest amount, and guest inclusion flag
+                const addOnsData = selectedAddOns.map(addon => 
+                    `${addon.id}:${addon.amount}:${addon.guest_amount}:${addon.include_guest ? '1' : '0'}`
+                ).join(',');
 
                 // Update all registrant type fields
                 $('input[name="registrant_type"]').val(registrantType);
@@ -1794,7 +1877,7 @@
                         _token: $('meta[name="csrf-token"]').attr('content')
                     },
                     dataType: 'json',
-                    success: function(response) {
+                    success: function(response) { 
                         if (response.txnStatus === 'success') {
                             $("#mocoPayStatus").removeClass('bg-warning bg-danger').addClass(
                                 'bg-success').text('Completed');

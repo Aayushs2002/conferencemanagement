@@ -55,7 +55,21 @@
         <h4>Selected Add-ons:</h4>
         <ul>
             @foreach ($data['addons'] as $addon)
-                <li>{{ $addon['name'] }} – {{ $addon['amount'] }}</li>
+                @php
+                    $totalAddonQty = 1; // Main attendee
+                    $totalAddonAmount = $addon['amount']; // Main amount
+                    
+                    if (!empty($data['accompany']) && $addon['include_guest']) {
+                        $totalAddonQty += $data['accompany']['accompany_person']; // Add guests if included
+                        $guestAddonPrice = isset($addon['guest_amount']) && $addon['guest_amount'] > 0 ? $addon['guest_amount'] : $addon['amount'];
+                        $totalAddonAmount += ($guestAddonPrice * $data['accompany']['accompany_person']); // Add guest costs
+                    }
+                @endphp
+                <li>{{ $addon['name'] }} (x{{ $totalAddonQty }}) – {{ $totalAddonAmount }}
+                    @if ($totalAddonQty > 1)
+                        <em>(Includes accompanying persons)</em>
+                    @endif
+                </li>
             @endforeach
         </ul>
     @endif

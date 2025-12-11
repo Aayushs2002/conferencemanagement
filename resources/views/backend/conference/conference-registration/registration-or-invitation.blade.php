@@ -271,16 +271,14 @@
                                 <p class="text-danger">{{ $message }}</p>
                             @enderror
                         </div>
-                        <div class="col-md-4 form-group mb-3">
-                            <label for="meal_type">Add On</label>
-                            <select name="conference_addon_id[]" class="form-control select2" id="conference_addon_id"
-                                multiple>
-                                <option value="" hidden>-- Select Addon --</option>
-                                @foreach ($conferenceAddons as $addon)
-                                    <option value="{{ $addon->id }}">{{ $addon->addon_name }}</option>
-                                @endforeach
-                            </select>
-                            <div class="valid-feedback">Looks good!</div>
+                        <div class="col-md-12 form-group mb-3">
+                            <label for="addons_section">Add Ons</label>
+                            <div id="addons_container" class="row">
+                                <div class="col-md-12 text-muted">
+                                    <em>Please select a member type to view available add-ons</em>
+                                </div>
+                            </div>
+                            <input type="hidden" name="selected_addons" id="selected_addons">
                             @error('conference_addon_id')
                                 <p class="text-danger">{{ $message }}</p>
                             @enderror
@@ -354,7 +352,7 @@
             var personsValue = @json([]);
             var errorMessages = @json([]);
         </script>
-    @endif
+    @endif 
     <script>
         $(document).ready(function() {
 
@@ -496,6 +494,98 @@
                 });
             });
             $("#country_id").trigger('change');
+
+            // Load addons when member type is selected
+            $('#member_type_id').on('change', function() {
+                var memberTypeId = $(this).val();
+                if (!memberTypeId) {
+                    $('#addons_container').html('<div class="col-md-12 text-muted"><em>Please select a member type to view available add-ons</em></div>');
+                    return;
+                }
+
+                $.ajax({
+                    type: 'GET',
+                    url: '{{ route('conference.conference-registration.getMemberTypeAddons', [$society, $conference]) }}',
+                    data: {
+                        member_type_id: memberTypeId
+                    },
+                    success: function(response) {
+                        if (response.success && response.addons.length > 0) {
+                            var html = '';
+                            $.each(response.addons, function(index, addon) {
+                                html += '<div class="col-md-6 mb-3">';
+                                html += '<div class="card">';
+                                html += '<div class="card-body">';
+                                html += '<div class="form-check">';
+                                html += '<input class="form-check-input addon-checkbox" type="checkbox" ';
+                                html += 'name="conference_addon_id[]" value="' + addon.id + '" ';
+                                html += 'id="addon_' + addon.id + '" ';
+                                html += 'data-addon-id="' + addon.id + '" ';
+                                html += 'data-name="' + addon.addon_name + '" ';
+                                html += 'data-amount="' + addon.amount + '" ';
+                                html += 'data-guest-amount="' + addon.guest_amount + '">';
+                                html += '<label class="form-check-label" for="addon_' + addon.id + '">';
+                                html += '<strong>' + addon.addon_name + '</strong><br>';
+                                html += '<small>Main: Rs. ' + addon.amount + ' | Guest: Rs. ' + addon.guest_amount + '</small>';
+                                html += '</label>';
+                                html += '</div>';
+                                html += '<div id="guest_option_' + addon.id + '" class="mt-2" style="display: none;">';
+                                html += '<div class="form-check">';
+                                html += '<input class="form-check-input addon-guest-checkbox" type="checkbox" ';
+                                html += 'id="include_guest_' + addon.id + '" data-addon-id="' + addon.id + '" checked>';
+                                html += '<label class="form-check-label" for="include_guest_' + addon.id + '">Include for guests</label>';
+                                html += '</div></div></div></div></div>';
+                            });
+                            $('#addons_container').html(html);
+                        } else {
+                            $('#addons_container').html('<div class="col-md-12 text-muted"><em>No add-ons available for this member type</em></div>');
+                        }
+                    },
+                    error: function(xhr) {
+                        console.log('AJAX Error:', xhr);
+                        $('#addons_container').html('<div class="col-md-12 text-danger"><em>Error loading add-ons</em></div>');
+                    }
+                });
+            });
+
+            // Handle addon checkbox changes
+            $(document).on('change', '.addon-checkbox', function() {
+                const addonId = $(this).data('addon-id');
+                const guestOption = $(`#guest_option_${addonId}`);
+                
+                if ($(this).is(':checked')) {
+                    guestOption.slideDown(200);
+                } else {
+                    guestOption.slideUp(200);
+                }
+                
+                updateSelectedAddons();
+            });
+
+            // Handle guest inclusion checkbox changes
+            $(document).on('change', '.addon-guest-checkbox', function() {
+                updateSelectedAddons();
+            });
+
+            // Update selected addons hidden field
+            function updateSelectedAddons() {
+                const selectedAddons = [];
+                $('.addon-checkbox:checked').each(function() {
+                    const addonId = $(this).val();
+                    const addonAmount = $(this).data('amount');
+                    const guestAmount = $(this).data('guest-amount');
+                    const includeGuest = $(`#include_guest_${addonId}`).is(':checked') ? '1' : '0';
+                    
+                    selectedAddons.push(`${addonId}:${addonAmount}:${guestAmount}:${includeGuest}`);
+                });
+                
+                $('#selected_addons').val(selectedAddons.join(','));
+            }
+
+            // Update on form submit
+            $('#registrationForm').on('submit', function() {
+                updateSelectedAddons();
+            });
 
             $(".numericValue").on("keydown", function(event) {
                 // Allow backspace, delete, tab, escape, and enter keys
