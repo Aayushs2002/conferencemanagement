@@ -203,7 +203,7 @@
                                         {{ $setting->attachment_name }}
                                         <small class="text-muted d-block">
 
-                                            {{ $setting->attachment_required ? '*' : '(optional)' }}
+                                            {{'JPG, JPEG, PNG, PDF - Max size: 250 KB' . ($setting->attachment_required ? '*' :' (optional)') }}
                                         </small>
                                     </label>
 
@@ -1294,7 +1294,7 @@
 
                 const attachmentHtml = `
                     <div class="mb-6 col-md-6">
-                        <label class="form-label" for="image">${setting.attachment_name} <code> ${isRequired ? '*' : '(optional)'}<\/code></label>
+                        <label class="form-label" for="image">${setting.attachment_name} <code> JPG, JPEG, PNG, PDF - Max size: 250 KB ${isRequired ? '*' : '(optional)'}<\/code></label>
                         <input type="file" class="form-control @error('image') is-invalid @enderror" name="image" id="image" ${requiredAttr} />
                         ${imagePreview}
                         ${imageError}
