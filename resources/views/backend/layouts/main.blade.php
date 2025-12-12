@@ -270,7 +270,7 @@
         });
 
 
-        //Ck editor inisilize
+        //Ck editor inisilize 
         document.querySelectorAll('.ckeditor').forEach(function(element) {
             CKEDITOR.replace(element.id, {
                 filebrowserUploadUrl: '{{ route('ckeditor.fileUpload', ['_token' => csrf_token()]) }}',

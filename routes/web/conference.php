@@ -198,6 +198,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/get-author/{id}', 'getAuthors')->name('getAuthors');
         Route::delete('/submission/destroy/{submission}', 'destroy')->name('submission.destroy');
     });
+    
 
     Route::prefix('/society/{society}/conference/{conference}')->group(function () {
         Route::controller(AuthorController::class)->middleware(['auto.conf.permission', 'feature:abstract-submission-management'])->prefix('/submission/{submission}')->name('submission.author.')->group(function () {
