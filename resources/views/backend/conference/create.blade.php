@@ -364,7 +364,7 @@
                                 <p class="text-danger">{{ $message }}</p>
                             @enderror
                         </div>
-
+ 
                         <div class="mb-6 col-md-4">
                             <label class="form-label" for="organizer_email">Organizer Email
                                 <code>*</code></label>

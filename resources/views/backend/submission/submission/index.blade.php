@@ -281,7 +281,7 @@
                                             <a class="dropdown-item"
                                                 href="{{ route('submission.edit', [$society, $conference, $submission]) }}"><i
                                                     class="icon-base ti tabler-pencil me-1"></i>
-                                                Edit</a>
+                                                Edit</a> 
                                         @endif
                                         <a class="dropdown-item viewData" data-id="{{ $submission->id }}"
                                             data-bs-toggle="modal" data-bs-target="#pricingModal"><i

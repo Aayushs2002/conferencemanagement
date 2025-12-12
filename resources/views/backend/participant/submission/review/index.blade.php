@@ -158,6 +158,9 @@
                        <th>Topic</th>
                        <th>Presentation Type</th>
                        <th>Request Status</th>
+                       @if ($submissionSetting->scoring_allowed == 1)
+                           <th>Score</th>
+                       @endif
                        <th>Action</th>
                    </tr>
                </thead>
@@ -198,9 +201,49 @@
                                    <span class="badge fw-light bg-danger text-white">Rejected</span>
                                @endif
                            </td>
+                           @if ($submissionSetting->scoring_allowed == 1)
+                               <td>
+                                   @if ($submission->submissionRating)
+                                       @php
+                                           $totalScore = 0;
+                                           // Check if section ratings exist
+                                           if (
+                                               !empty($submission->submissionRating->section_ratings) &&
+                                               is_array($submission->submissionRating->section_ratings)
+                                           ) {
+                                               $totalScore =
+                                                   collect($submission->submissionRating->section_ratings)->sum(
+                                                       'rating',
+                                                   ) +
+                                                   ($submission->submissionRating->grammar ?? 0) +
+                                                   ($submission->submissionRating->overall_rating ?? 0);
+                                           }
+                                           // Check if overall rating exists
+                                           elseif ($submission->submissionRating->overall_rating) {
+                                               $totalScore = $submission->submissionRating->overall_rating;
+                                           }
+                                           // Default rating calculation
+                                           else {
+                                               $totalScore =
+                                                   ($submission->submissionRating->introduction ?? 0) +
+                                                   ($submission->submissionRating->method ?? 0) +
+                                                   ($submission->submissionRating->result ?? 0) +
+                                                   ($submission->submissionRating->conclusion ?? 0) +
+                                                   ($submission->submissionRating->grammar ?? 0);
+                                           }
+                                       @endphp
+                                       <a class="btn viewScore" data-id="{{ $submission->id }}" data-bs-toggle="modal"
+                                           data-bs-target="#pricingModal">
+                                           {{ $totalScore }}
+                                       </a>
+                                   @else
+                                       N/A
+                                   @endif
+                               </td>
+                           @endif
                            <td>
                                <div class="dropdown">
-                                   <button type="button" class="btn p-0 dropdown-toggle hide-arrow" 
+                                   <button type="button" class="btn p-0 dropdown-toggle hide-arrow"
                                        data-bs-toggle="dropdown">
                                        <i class="icon-base ti tabler-dots-vertical"></i>
                                    </button>
@@ -408,7 +451,31 @@
            $('#openExpertOralGuidelineModal').modal('show');
            $('#openExpertPosterGuidelineModal').modal('show');
 
-
+           $(document).off("click", ".viewScore");
+           $(document).on("click", ".viewScore", function(e) {
+               e.preventDefault();
+               var url =
+                   '{{ route('my-society.conference.submission.viewScore', [$society, $conference]) }}';
+               var _token = '{{ csrf_token() }}';
+               var id = $(this).data('id');
+               $('#modalData').html(`
+                    <div class="modal-body text-center">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                `);
+               var data = {
+                   _token: _token,
+                   id: id
+               };
+               $.post(url, data, function(response) {
+                   $('#openModal .modal-dialog').removeClass('custom-modal-width');
+                   setTimeout(function() {
+                       $('#modalData').html(response);
+                   }, 1000);
+               });
+           });
        });
    </script>
 @endsection

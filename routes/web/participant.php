@@ -65,6 +65,7 @@ Route::middleware('auth')->group(function () {
     Route::controller(SubmissionController::class)->prefix('/my-society/{society}/conference/{conference}')->name('my-society.conference.submission.')->group(function () {
         Route::get('/submission', 'index')->name('index');
         Route::get('/review-submission', 'submissionReview')->name('submissionReview');
+        Route::post('view-score', 'viewScore')->name('viewScore');
         Route::get('/submission/create', 'create')->name('create');
         Route::post('/submission/store', 'store')->name('store');
         Route::get('/submission/{submission}/edit', 'edit')->name('edit');

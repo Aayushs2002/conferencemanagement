@@ -474,6 +474,18 @@ class SubmissionController extends Controller
         }
     }
 
+    public function viewScore(Request $request)
+    {
+        $submission = Submission::with('articleType.setting', 'submissionRating')->whereId($request->id)->first();
+
+        // Get article type setting sections if available
+        $articleTypeSections = null;
+        if ($submission->articleType && $submission->articleType->setting) {
+            $articleTypeSections = $submission->articleType->setting->sections;
+        }
+
+        return view('backend.submission.submission.view-score', compact('submission', 'articleTypeSections'));
+    }
 
     public function submissionReview($society, $conference)
     {
