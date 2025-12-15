@@ -10,7 +10,7 @@ class ConferenceRequest extends FormRequest
      * Determine if the user is authorized to make this request.
      */
     public function authorize(): bool
-    {
+    { 
         return true;
     }
 
@@ -34,7 +34,7 @@ class ConferenceRequest extends FormRequest
             'regular_registration_deadline' => 'required|date|after_or_equal:early_bird_registration_deadline',
             'primary_color' => 'required',
             'secendary_color' => 'required',
-            'venue_name' => 'required|regex:/^[a-zA-Z0-9\s]+$/',
+            'venue_name' => 'required', 
             'venue_address' => 'required',
             'venue_contact_person_name' => 'required',
             'venue_phone_number' => 'required|regex:/^\d{10}$/',
