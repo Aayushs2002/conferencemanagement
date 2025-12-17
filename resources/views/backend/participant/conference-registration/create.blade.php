@@ -12,7 +12,7 @@
         .registration-card:hover {
             transform: translateY(-2px);
             box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
-        } 
+        }
 
         .step-indicator {
             display: flex;
@@ -404,9 +404,15 @@
                                                         @php
                                                             // Determine which amount to show based on registration period
                                                             $addonAmount = 0;
-                                                            if ($conference->early_bird_registration_deadline >= date('Y-m-d')) {
+                                                            if (
+                                                                $conference->early_bird_registration_deadline >=
+                                                                date('Y-m-d')
+                                                            ) {
                                                                 $addonAmount = $addon->early_bird_amount ?? 0;
-                                                            } elseif ($conference->regular_registration_deadline >= date('Y-m-d')) {
+                                                            } elseif (
+                                                                $conference->regular_registration_deadline >=
+                                                                date('Y-m-d')
+                                                            ) {
                                                                 $addonAmount = $addon->regular_amount ?? 0;
                                                             } else {
                                                                 $addonAmount = $addon->on_site_amount ?? 0;
@@ -436,22 +442,26 @@
                                                                 <span class="badge bg-primary ms-2">
                                                                     {{ @$memberTypePrice->memberType->delegate == 1 ? 'Rs. ' : '$ ' }}{{ number_format($addonAmount, 2) }}
                                                                     <small>/person</small>
-                                                                    @if($addonGuestAmount > 0 && $addonGuestAmount != $addonAmount)
-                                                                        <br><small>Guest: {{ @$memberTypePrice->memberType->delegate == 1 ? 'Rs. ' : '$ ' }}{{ number_format($addonGuestAmount, 2) }}</small>
+                                                                    @if ($addonGuestAmount > 0 && $addonGuestAmount != $addonAmount)
+                                                                        <br><small>Guest:
+                                                                            {{ @$memberTypePrice->memberType->delegate == 1 ? 'Rs. ' : '$ ' }}{{ number_format($addonGuestAmount, 2) }}</small>
                                                                     @endif
                                                                 </span>
                                                             </label>
-                                                            
+
                                                             <!-- Guest Inclusion Option -->
-                                                            <div class="ms-4 mt-2 addon-guest-option" id="guest_option_{{ $addon->id }}" style="display: none;">
+                                                            <div class="ms-4 mt-2 addon-guest-option"
+                                                                id="guest_option_{{ $addon->id }}"
+                                                                style="display: none;">
                                                                 <div class="form-check form-check-inline">
-                                                                    <input class="form-check-input addon-guest-checkbox" 
-                                                                        type="checkbox" 
+                                                                    <input class="form-check-input addon-guest-checkbox"
+                                                                        type="checkbox"
                                                                         id="include_guest_{{ $addon->id }}"
-                                                                        data-addon-id="{{ $addon->id }}"
-                                                                        checked>
-                                                                    <label class="form-check-label text-muted small" for="include_guest_{{ $addon->id }}">
-                                                                        <i class="fas fa-user-friends"></i> Include for guests
+                                                                        data-addon-id="{{ $addon->id }}" checked>
+                                                                    <label class="form-check-label text-muted small"
+                                                                        for="include_guest_{{ $addon->id }}">
+                                                                        <i class="fas fa-user-friends"></i> Include for
+                                                                        guests
                                                                     </label>
                                                                 </div>
                                                             </div>
@@ -609,7 +619,7 @@
                                 </div>
                             @endif
 
-                            @if (in_array(current_user()->userDetail->country_id, [78, 134, 165]))
+                            @if (in_array(current_user()->userDetail->country_id, [78, 134, 165]) && $international_payemnt_setting?->bank_detail)
                                 <div class="col-md-3 mb-3">
                                     <label class="card payment-method-card w-100" for="bankTransferRadio"
                                         style="cursor:pointer;">
@@ -629,6 +639,28 @@
                                     </label>
                                 </div>
                             @endif
+
+                            @if (current_user()->userDetail->country_id == 125 && $national_payemnt_setting?->account_detail)
+                                <div class="col-md-3 mb-3">
+                                    <label class="card payment-method-card w-100" for="bankTransferRadio"
+                                        style="cursor:pointer;">
+                                        <div class="card-body text-center">
+                                            <h5 class="text-primary">🏦 Bank Transfer</h5>
+                                            <p class="small">We Accept</p>
+                                            <img src="{{ asset('default-image/bankTransfer.jpg') }}"
+                                                class="img-fluid mb-2" style="max-height: 50px;">
+                                            <div class="form-check mt-3 d-flex justify-content-center">
+                                                <input class="form-check-input" type="radio" name="paymentMode"
+                                                    value="bankTransfer" id="bankTransferRadio">
+                                                <label class="form-check-label fw-bold ms-2" for="bankTransferRadio">
+                                                    Select
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </label>
+                                </div>
+                            @endif
+
 
                             @if (current_user()->userDetail->country_id == 125)
                                 @if ($national_payemnt_setting?->moco_merchant_id)
@@ -706,12 +738,20 @@
                                         </div>
                                         <div class="card-body">
                                             <div class="bankTransferProcessingDiv">
-                                                @if (current_user()->userDetail->country_id != 125)
+                                                @if (current_user()->userDetail->country_id != 125 && $international_payemnt_setting?->bank_detail)
                                                     <h6 class="text-info">Bank Transfer Details</h6>
                                                     <img src="{{ asset('default-image/bankTransfer.jpg') }}"
                                                         height="40" class="mb-2">
                                                     <div class="small">
                                                         {!! $international_payemnt_setting?->bank_detail !!}
+                                                    </div>
+                                                @endif
+                                                @if (current_user()->userDetail->country_id == 125 && $national_payemnt_setting?->account_detail)
+                                                    <h6 class="text-info">Bank Transfer Details</h6>
+                                                    <img src="{{ asset('default-image/bankTransfer.jpg') }}"
+                                                        height="40" class="mb-2">
+                                                    <div class="small">
+                                                        {!! $national_payemnt_setting?->account_detail !!}
                                                     </div>
                                                 @endif
                                             </div>
@@ -879,63 +919,61 @@
                                                         </div>
                                                     </form>
                                                 </div>
-
-                                                <!-- Bank Transfer Form -->
-                                                <div class="bankTransferProcessingDiv" style="display: none;">
-                                                    <form
-                                                        action="{{ route('my-society.conference.store', [$society, $conference]) }}"
-                                                        method="POST" enctype="multipart/form-data"
-                                                        id="bankTranferForm">
-                                                        @csrf
-                                                        <div class="row my-4">
-                                                            <div class="col-md-6 form-group mb-3">
-                                                                <label for="transaction_id" class="fw-bold">
-                                                                    <i class="fas fa-receipt"></i> Transaction ID/Reference
-                                                                    <span class="text-danger">*</span>
-                                                                </label>
-                                                                <input type="text" class="form-control"
-                                                                    name="transaction_id" id="transaction_id"
-                                                                    placeholder="Enter transaction ID" required>
-                                                                @error('transaction_id')
-                                                                    <p class="text-danger">{{ $message }}</p>
-                                                                @enderror
-                                                            </div>
-                                                            <div class="col-md-6 form-group mb-3">
-                                                                <label for="payment_voucher" class="fw-bold">
-                                                                    <i class="fas fa-file-upload"></i> Payment Receipt
-                                                                    <small class="text-muted">(JPG/PNG/PDF)</small>
-                                                                </label>
-                                                                <input type="file" class="form-control"
-                                                                    name="payment_voucher" id="payment_voucher"
-                                                                    accept=".jpg,.jpeg,.png,.pdf">
-                                                                @error('payment_voucher')
-                                                                    <p class="text-danger">{{ $message }}</p>
-                                                                @enderror
-                                                            </div>
-                                                        </div>
-
-                                                        <input type="hidden" name="registrant_type"
-                                                            id="registrant_type_bank_transfer">
-                                                        <input type="hidden" name="accompany_person"
-                                                            id="accompany_person_bank">
-                                                        <input type="hidden" name="selected_workshops"
-                                                            id="selected_workshops_bank">
-                                                        <input type="hidden" name="workshop_amount"
-                                                            id="workshop_amount_bank">
-                                                        <input type="hidden" name="payment_type" value="6">
-                                                        <input type="hidden" name="amount" class="amount"
-                                                            id="bankAmount">
-                                                        <input type="hidden" name="selected_addons"
-                                                            id="selected_addons_bank">
-                                                        <div class="d-grid d-flex justify-content-center">
-                                                            <button type="submit" id="submitButtonBankTransfer"
-                                                                class="btn btn-success btn-lg" disabled>
-                                                                <i class="fas fa-university"></i> Submit Bank Transfer
-                                                            </button>
-                                                        </div>
-                                                    </form>
-                                                </div>
                                             @endif
+
+                                            <!-- Bank Transfer Form -->
+                                            <div class="bankTransferProcessingDiv" style="display: none;">
+                                                <form
+                                                    action="{{ route('my-society.conference.store', [$society, $conference]) }}"
+                                                    method="POST" enctype="multipart/form-data" id="bankTranferForm">
+                                                    @csrf
+                                                    <div class="row my-4">
+                                                        <div class="col-md-6 form-group mb-3">
+                                                            <label for="transaction_id" class="fw-bold">
+                                                                <i class="fas fa-receipt"></i> Transaction ID/Reference
+                                                                <span class="text-danger">*</span>
+                                                            </label>
+                                                            <input type="text" class="form-control"
+                                                                name="transaction_id" id="transaction_id"
+                                                                placeholder="Enter transaction ID" required>
+                                                            @error('transaction_id')
+                                                                <p class="text-danger">{{ $message }}</p>
+                                                            @enderror
+                                                        </div>
+                                                        <div class="col-md-6 form-group mb-3">
+                                                            <label for="payment_voucher" class="fw-bold">
+                                                                <i class="fas fa-file-upload"></i> Payment Receipt
+                                                                <small class="text-muted">(JPG/PNG/PDF)</small>
+                                                            </label>
+                                                            <input type="file" class="form-control"
+                                                                name="payment_voucher" id="payment_voucher"
+                                                                accept=".jpg,.jpeg,.png,.pdf">
+                                                            @error('payment_voucher')
+                                                                <p class="text-danger">{{ $message }}</p>
+                                                            @enderror
+                                                        </div>
+                                                    </div>
+
+                                                    <input type="hidden" name="registrant_type"
+                                                        id="registrant_type_bank_transfer">
+                                                    <input type="hidden" name="accompany_person"
+                                                        id="accompany_person_bank">
+                                                    <input type="hidden" name="selected_workshops"
+                                                        id="selected_workshops_bank">
+                                                    <input type="hidden" name="workshop_amount"
+                                                        id="workshop_amount_bank">
+                                                    <input type="hidden" name="payment_type" value="6">
+                                                    <input type="hidden" name="amount" class="amount" id="bankAmount">
+                                                    <input type="hidden" name="selected_addons"
+                                                        id="selected_addons_bank">
+                                                    <div class="d-grid d-flex justify-content-center">
+                                                        <button type="submit" id="submitButtonBankTransfer"
+                                                            class="btn btn-success btn-lg" disabled>
+                                                            <i class="fas fa-university"></i> Submit Bank Transfer
+                                                        </button>
+                                                    </div>
+                                                </form>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -1171,21 +1209,21 @@
                     resetPriceCalculation('add-on selection');
                 }
             }
-            
+
             // Show/hide guest option when addon is checked/unchecked
             $(document).on('change', '.addon-checkbox', function() {
                 const addonId = $(this).val();
                 const guestOption = $(`#guest_option_${addonId}`);
-                
+
                 if ($(this).is(':checked')) {
                     guestOption.slideDown(200);
                 } else {
                     guestOption.slideUp(200);
                 }
-                
+
                 handleAddOnChange();
             });
-            
+
             // Handle guest inclusion checkbox changes
             $(document).on('change', '.addon-guest-checkbox', function() {
                 handleAddOnChange();
@@ -1282,7 +1320,7 @@
                 selectedAddOns.forEach(addon => {
                     // Main attendee gets the regular addon price
                     addOnTotal += addon.amount;
-                    
+
                     // Guests get the guest price only if include_guest is true
                     if (additionalGuest > 0 && addon.include_guest) {
                         const guestPrice = addon.guest_amount > 0 ? addon.guest_amount : addon.amount;
@@ -1330,7 +1368,8 @@
                     });
 
                     // Calculate add-on total price (no longer used for total, calculated per item below)
-                    const addOnTotalPrice = calculateAddOnTotal(delegate, totalAttendee, additionalGuest);
+                    const addOnTotalPrice = calculateAddOnTotal(delegate, totalAttendee,
+                        additionalGuest);
 
                     // Initialize totals
                     let preTotalPrice = 0;
@@ -1419,7 +1458,7 @@
                         selectedAddOns.forEach(addon => {
                             // Main attendee addon price
                             const mainAddonPrice = addon.amount;
-                            
+
                             if (delegate == 2) {
                                 preTotalPrice += mainAddonPrice;
                             } else {
@@ -1434,12 +1473,13 @@
                                 mainAddonPrice,
                                 currencyCondition
                             ));
-                            
+
                             // Guest addon pricing if there are guests AND include_guest is true
                             if (additionalGuest > 0 && addon.include_guest) {
-                                const guestAddonPrice = addon.guest_amount > 0 ? addon.guest_amount : addon.amount;
+                                const guestAddonPrice = addon.guest_amount > 0 ? addon
+                                    .guest_amount : addon.amount;
                                 const guestAddonTotal = guestAddonPrice * additionalGuest;
-                                
+
                                 if (delegate == 2) {
                                     preTotalPrice += guestAddonTotal;
                                 } else {
@@ -1560,7 +1600,7 @@
                 ).join(',');
 
                 // Create add-ons data string with main amount, guest amount, and guest inclusion flag
-                const addOnsData = selectedAddOns.map(addon => 
+                const addOnsData = selectedAddOns.map(addon =>
                     `${addon.id}:${addon.amount}:${addon.guest_amount}:${addon.include_guest ? '1' : '0'}`
                 ).join(',');
 
@@ -1877,7 +1917,7 @@
                         _token: $('meta[name="csrf-token"]').attr('content')
                     },
                     dataType: 'json',
-                    success: function(response) { 
+                    success: function(response) {
                         if (response.txnStatus === 'success') {
                             $("#mocoPayStatus").removeClass('bg-warning bg-danger').addClass(
                                 'bg-success').text('Completed');

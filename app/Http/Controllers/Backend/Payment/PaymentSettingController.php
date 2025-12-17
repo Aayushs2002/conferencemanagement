@@ -16,9 +16,10 @@ class PaymentSettingController extends Controller
         $internationalPayment = InternationalPayment::where(['society_id' => $society->id, 'status' => 1])->first();
         return view('backend.payment-setting.index', compact('nationalPayment', 'internationalPayment', 'society'));
     }
-
+ 
     public function store(Request $request, $society)
     {
+        // dd($request->all());
         $section = $request->input('section');
         $activeTab = $request->input('active_tab');
 
@@ -93,6 +94,26 @@ class PaymentSettingController extends Controller
                 }
 
                 $message = empty($validated['id']) ? 'Successfully inserted Khalti payment.' : 'Successfully updated Khalti payment';
+            } elseif ($activeTab === 'account_details') {
+                $validated = $request->validate([
+                    'national_bank_detail' => 'required',
+                    'id' => 'nullable'
+                ]);
+
+                if (empty($validated['id'])) {
+                    $validated['society_id'] = $society->id;
+                    $validated['payment_type'] = 'account_details';
+                    $validated['account_detail'] = $validated['national_bank_detail'];
+                    unset($validated['national_bank_detail']);
+                    $submitData = NationalPayment::create($validated);
+                } else {
+                    $nationalPayment = NationalPayment::whereId($validated['id'])->first();
+                    $validated['account_detail'] = $validated['national_bank_detail'];
+                    unset($validated['national_bank_detail']);
+                    $submitData = $nationalPayment->update($validated);
+                }
+
+                $message = empty($validated['id']) ? 'Successfully inserted Account Detail.' : 'Successfully updated Account Detail';
             }
 
             if (!$submitData) {

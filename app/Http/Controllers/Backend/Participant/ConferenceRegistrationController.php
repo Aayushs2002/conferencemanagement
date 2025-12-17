@@ -159,7 +159,6 @@ class ConferenceRegistrationController extends Controller
 
     public function store(Request $request, $society, $conference)
     {
-        dd($request->all(), 'store method called');
 
         $rules = [
             'accompany_person' => 'nullable|numeric',
@@ -276,8 +275,8 @@ class ConferenceRegistrationController extends Controller
                         'societyAddress'   => $society->address,
                         'primaryColor'     => $conference->primary_color,
                         'country'          => $authUser->userDetail->country_id,
-                        'signatureName'    => $conferenceSetting->name,
-                        'signature'        => $conferenceSetting->signature,
+                        'signatureName'    => $conferenceSetting?->name,
+                        'signature'        => $conferenceSetting?->signature,
                         'conferenceAmount' => $conferenceAmount,
                         'addons'           => $addonsData,
                         'workshop'         => $workshopData,
