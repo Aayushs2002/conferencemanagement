@@ -10,7 +10,7 @@
         <div class="separator-breadcrumb border-top mb-4"></div>
         <div class="col-md-12 my-4">
             <div>
-                <div class="row">
+                <div class="row"> 
                     <div class="col-md-4">
                         <div class="card mb-4 position-relative p-3" style="background-color: #D9D8D4">
                             <label for="national">
@@ -234,8 +234,19 @@
                                 </div>
                                 <div class="tab-pane fade" id="bankPIll" role="tabpanel"
                                     aria-labelledby="profile-icon-pill">
-                                    Etsyas
-                                    beer, iphone skateboard locavore.
+                                    <input type="hidden" name="id" id="id"
+                                        value="{{ $nationalPayment ? $nationalPayment->id : '' }}">
+                                    <div class="mb-6">
+                                        <textarea class="form-control ckeditor" id="national_bank_detail" name="national_bank_detail" rows="5" cols="30">{{ !empty(old('national_bank_detail')) ? old('national_bank_detail') : $nationalPayment?->account_detail }}</textarea>
+                                        <div class="text-danger" id="nationalBankDetailError"></div>
+                                        @error('national_bank_detail')
+                                            <p class="text-danger">{{ $message }}</p>
+                                        @enderror
+                                    </div>
+                                    <div class="col-md-12" style="display: flex; justify-content: end;">
+                                        <button type="submit" class="btn btn-primary submitData"
+                                            id="submitData">{{ $nationalPayment ? 'Update' : 'Save' }}</button>
+                                    </div>
                                 </div>
 
                             </div>
@@ -406,7 +417,7 @@
                 } else if (target === '#khaltiPIll') {
                     $('#currentNationalTab').val('khalti');
                 } else if (target === '#bankPIll') {
-                    $('#currentNationalTab').val('bank');
+                    $('#currentNationalTab').val('account_details');
                 }
 
                 // International tabs
@@ -520,6 +531,17 @@
                             isValid = false;
                             $('#khaltiLiveSecretKeyError').text('Live Secret Key is required.');
                         }
+                    } else if (activeTab === 'account_details') {
+                        if (CKEDITOR.instances['national_bank_detail']) {
+                            CKEDITOR.instances['national_bank_detail'].updateElement();
+                        }
+
+                        let nationalBankDetailId = $('#national_bank_detail').val().trim();
+                        console.log(nationalBankDetailId);
+                        if (!nationalBankDetailId) {
+                            isValid = false;
+                            $('#nationalBankDetailError').text('Bank Detail is required.');
+                        }
                     }
                 }
 
@@ -600,6 +622,8 @@
                         esewa_secret_key: $('#esewa_secret_key').val(),
                         //Khalti Field
                         khalti_live_secret_key: $('#khalti_live_secret_key').val(),
+                        //National Bank Detail
+                        national_bank_detail: $('#national_bank_detail').val(),
                         // Himalayan Bank fields 
                         merchant_key: $('#merchant_key').val(),
                         api_key: $('#api_key').val(),
