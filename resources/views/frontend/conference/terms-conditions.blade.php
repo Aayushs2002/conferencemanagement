@@ -1,5 +1,7 @@
 @extends('frontend.conference.layouts.main')
-
+@section('title')
+    {{ $conference->society->sub_domain_name }} | Terms & Conditions
+@endsection
 @section('content')
     <section class="main-section py-5">
         <div class="container">

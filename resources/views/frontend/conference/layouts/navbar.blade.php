@@ -37,12 +37,12 @@
                     </a>
                     <ul class="dropdown-menu" aria-labelledby="aboutDropdown">
                         <li><a class="dropdown-item"
-                                href="{{ route('conference.committe', $conference->slug) }}">Committe</a></li>
+                                href="{{ route('conference.committe', $conference->slug) }}">Committee</a></li>
                         <li><a class="dropdown-item"
                                 href="{{ route('conference.speaker', $conference->slug) }}">Speakers</a></li>
                     </ul>
                 </li>
-
+                    
                 <li class="nav-item">
                     <a class="nav-link"
                         href="{{ route('conference.scientific-session', $conference->slug) }}">Scientific

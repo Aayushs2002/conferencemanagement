@@ -598,7 +598,8 @@
                                 </div>
                             @endif
 
-                            @if (current_user()->userDetail->country_id != 125 && !in_array(current_user()->userDetail->country_id, [78, 134, 165]))
+                            @if (current_user()->userDetail->country_id != 125 )
+                            {{-- && !in_array(current_user()->userDetail->country_id, [78, 134, 165]) --}}
                                 <div class="col-md-3 mb-3">
                                     <label class="card payment-method-card w-100" for="dollarCardRadio"
                                         style="cursor:pointer;">
@@ -619,7 +620,8 @@
                                 </div>
                             @endif
 
-                            @if (in_array(current_user()->userDetail->country_id, [78, 134, 165]) && $international_payemnt_setting?->bank_detail)
+                            @if (current_user()->userDetail->country_id != 125 && $international_payemnt_setting?->bank_detail)
+                            {{-- in_array(current_user()->userDetail->country_id, [78, 134, 165]) && --}}
                                 <div class="col-md-3 mb-3">
                                     <label class="card payment-method-card w-100" for="bankTransferRadio"
                                         style="cursor:pointer;">

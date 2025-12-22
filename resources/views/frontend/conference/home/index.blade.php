@@ -1,4 +1,8 @@
 @extends('frontend.conference.layouts.main')
+@section('title')
+    {{ $conference->society->sub_domain_name }} | {{ $conference->conference_name }}
+
+@endsection
 @section('content')
     <section class="container">
         <div class="row g-4 text-center stats-dashboard">
@@ -383,39 +387,64 @@
                 <section class="mt-5">
                     <h3 class="section-title">Registration Fee Structure</h3>
                     <div class="table-responsive mt-4">
+                        @php
+                            $hasEarlyBird = collect($memberTypes)->contains(fn($mt) => $mt->early_bird_amount);
+                            $hasRegular = collect($memberTypes)->contains(fn($mt) => $mt->regular_amount);
+                            $hasOnSite = collect($memberTypes)->contains(fn($mt) => $mt->on_site_amount);
+                            $hasGuest = collect($memberTypes)->contains(fn($mt) => $mt->guest_amount);
+                            $hasData = $hasEarlyBird || $hasRegular || $hasOnSite || $hasGuest;
+                        @endphp
                         <table class="table table-bordered text-center align-middle">
-                            <thead class="table-light">
-                                <tr>
-                                    <th scope="col">Description</th>
-                                    <th scope="col">Early Bird (till
-                                        {{ \Carbon\Carbon::parse($conference->early_bird_registration_deadline)->format('M j') }})
-                                    </th>
-                                    <th scope="col">Regular (till
-                                        {{ \Carbon\Carbon::parse($conference->regular_registration_deadline)->format('M j') }})
-                                    </th>
-                                    <th scope="col">Spot Registration</th>
-                                    <th scope="col">Accompany Registration Fee</th>
-                                </tr>
-                            </thead>
+                            @if($hasData)
+                                <thead class="table-light">
+                                    <tr>
+                                        <th scope="col">Description</th>
+                                        @if($hasEarlyBird)
+                                            <th scope="col">Early Bird (till
+                                                {{ \Carbon\Carbon::parse($conference->early_bird_registration_deadline)->format('M j') }})
+                                            </th>
+                                        @endif
+                                        @if($hasRegular)
+                                            <th scope="col">Regular (till
+                                                {{ \Carbon\Carbon::parse($conference->regular_registration_deadline)->format('M j') }})
+                                            </th>
+                                        @endif
+                                        @if($hasOnSite)
+                                            <th scope="col">Spot Registration</th>
+                                        @endif
+                                        @if($hasGuest)
+                                            <th scope="col">Accompany Registration Fee</th>
+                                        @endif
+                                    </tr>
+                                </thead>
+                            @endif
                             <tbody>
                                 {{-- @dd($memberTypes) --}}
                                 @foreach ($memberTypes as $memberType)
-                                    @if (
+                                    @if ( 
                                         $memberType->early_bird_amount ||
-                                            $memberType->regular_amount ||
+                                            $memberType->regular_amount || 
                                             $memberType->on_site_amount ||
                                             $memberType->guest_amount)
                                         <tr>
                                             <td>{{ $memberType->type }}
                                                 {{ $memberType->delegate == 1 ? '(Nepal)' : '(International)' }}</td>
-                                            <td>{{ $memberType->early_bird_amount ?? 'N/A' }}
-                                                {{ $memberType->delegate == 1 ? '(NRs)' : '(USD)' }}</td>
-                                            <td>{{ $memberType->regular_amount ?? 'N/A' }}
-                                                {{ $memberType->delegate == 1 ? '(NRs)' : '(USD)' }}</td>
-                                            <td>{{ $memberType->on_site_amount ?? 'N/A' }}
-                                                {{ $memberType->delegate == 1 ? '(NRs)' : '(USD)' }}</td>
-                                            <td>{{ $memberType->guest_amount ?? 'N/A' }}
-                                                {{ $memberType->delegate == 1 ? '(NRs)' : '(USD)' }}</td>
+                                            @if($hasEarlyBird)
+                                                <td>{{ $memberType->early_bird_amount ?? 'N/A' }}
+                                                    {{ $memberType->delegate == 1 ? '(NRs)' : '(USD)' }}</td>
+                                            @endif
+                                            @if($hasRegular)
+                                                <td>{{ $memberType->regular_amount ?? 'N/A' }}
+                                                    {{ $memberType->delegate == 1 ? '(NRs)' : '(USD)' }}</td>
+                                            @endif
+                                            @if($hasOnSite)
+                                                <td>{{ $memberType->on_site_amount ?? 'N/A' }}
+                                                    {{ $memberType->delegate == 1 ? '(NRs)' : '(USD)' }}</td>
+                                            @endif
+                                            @if($hasGuest)
+                                                <td>{{ $memberType->guest_amount ?? 'N/A' }}
+                                                    {{ $memberType->delegate == 1 ? '(NRs)' : '(USD)' }}</td>
+                                            @endif
                                         </tr>
                                     @endif
                                 @endforeach
@@ -428,6 +457,79 @@
                             </tbody>
                         </table>
                     </div>
+
+                    @if($conferenceAddons && $conferenceAddons->count() > 0)
+                        @foreach($conferenceAddons as $addonName => $addons)
+                            @php
+                                $hasAddonEarlyBird = $addons->contains(fn($a) => $a->early_bird_amount);
+                                $hasAddonRegular = $addons->contains(fn($a) => $a->regular_amount);
+                                $hasAddonOnSite = $addons->contains(fn($a) => $a->on_site_amount);
+                                $hasAddonGuest = $addons->contains(fn($a) => $a->guest_amount);
+                                $hasAddonData = $hasAddonEarlyBird || $hasAddonRegular || $hasAddonOnSite || $hasAddonGuest;
+                            @endphp
+                            
+                            @if($hasAddonData)
+                                <div class="d-flex align-items-center mt-5 mb-3">
+                                    <span class="badge bg-primary me-2" style="font-size: 0.75rem; padding: 0.4rem 0.8rem;">
+                                        <i class="fa-solid fa-puzzle-piece me-1"></i> ADD-ON
+                                    </span>
+                                    <h4 class="section-title mb-0">{{ $addonName }}</h4>
+                                </div>
+                                <div class="table-responsive">
+                                    <table class="table table-bordered text-center align-middle">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th scope="col">Description</th>
+                                                @if($hasAddonEarlyBird)
+                                                    <th scope="col">Early Bird (till
+                                                        {{ \Carbon\Carbon::parse($conference->early_bird_registration_deadline)->format('M j') }})
+                                                    </th>
+                                                @endif
+                                                @if($hasAddonRegular)
+                                                    <th scope="col">Regular (till
+                                                        {{ \Carbon\Carbon::parse($conference->regular_registration_deadline)->format('M j') }})
+                                                    </th>
+                                                @endif
+                                                @if($hasAddonOnSite)
+                                                    <th scope="col">Spot Registration</th>
+                                                @endif
+                                                @if($hasAddonGuest)
+                                                    <th scope="col">Accompany Registration Fee</th>
+                                                @endif
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach($addons as $addon)
+                                                @if($addon->early_bird_amount || $addon->regular_amount || $addon->on_site_amount || $addon->guest_amount)
+                                                    <tr>
+                                                        <td>{{ $addon->memberType->type }}
+                                                            {{ $addon->memberType->delegate == 1 ? '(Nepal)' : '(International)' }}</td>
+                                                        @if($hasAddonEarlyBird)
+                                                            <td>{{ $addon->early_bird_amount ?? 'N/A' }}
+                                                                {{ $addon->memberType->delegate == 1 ? '(NRs)' : '(USD)' }}</td>
+                                                        @endif
+                                                        @if($hasAddonRegular)
+                                                            <td>{{ $addon->regular_amount ?? 'N/A' }}
+                                                                {{ $addon->memberType->delegate == 1 ? '(NRs)' : '(USD)' }}</td>
+                                                        @endif
+                                                        @if($hasAddonOnSite)
+                                                            <td>{{ $addon->on_site_amount ?? 'N/A' }}
+                                                                {{ $addon->memberType->delegate == 1 ? '(NRs)' : '(USD)' }}</td>
+                                                        @endif
+                                                        @if($hasAddonGuest)
+                                                            <td>{{ $addon->guest_amount ?? 'N/A' }}
+                                                                {{ $addon->memberType->delegate == 1 ? '(NRs)' : '(USD)' }}</td>
+                                                        @endif
+                                                    </tr>
+                                                @endif
+                                            @endforeach
+                                        </tbody>
+                                    </table>
+                                </div>
+                            @endif
+                        @endforeach
+                    @endif
+                    
                     <p class="span-text mt-3">Payment Instructions</p>
                     @if ($conference->conferenceSetting?->payment_instruction)
                         {!! $conference->conferenceSetting->payment_instruction !!}

@@ -1,4 +1,7 @@
 @extends('frontend.conference.layouts.main')
+@section('title')
+    {{ $conference->society->sub_domain_name }} | Speakers
+@endsection
 @section('content')
     <section class="container my-5">
         <div class="mb-2">

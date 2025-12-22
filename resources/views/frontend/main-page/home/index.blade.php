@@ -12,7 +12,7 @@
 
         <i class="fa-solid fa-dna tech-icon icon-4"></i>
 
-
+ 
         <div class="container">
             <div class="row align-items-center">
                 <div class="col-lg-6">
@@ -32,7 +32,7 @@
                     </div>
                 </div>
 
-                <div class="col-lg-6 hero-image">
+                <div class="col-lg-6 hero-image"> 
                     <img src="{{ asset('frontend/assets/img/Group 9.png') }}" alt="Medical Conference" class="img-fluid">
 
                 </div>
