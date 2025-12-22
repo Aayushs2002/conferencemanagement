@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Frontend\Conference;
 use App\Models\Faq\Faq;
 use App\Models\Sponsor\SponsorCategory;
 use App\Models\Conference\ConferenceRegistration;
+use App\Models\Conference\ConferenceAddon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Cache;
@@ -13,7 +14,7 @@ class HomeController extends BaseConferenceController
 {
     public function index()
     { 
-        // dd($this->conference);  
+        // dd($this->conference);   
         $submissionSetting = $this->conference->submissionSetting;
         $hotels = $this->conference->hotels;
         $sponsorCategories = SponsorCategory::where([
@@ -52,7 +53,7 @@ class HomeController extends BaseConferenceController
                         member_type_id,
                         early_bird_amount,
                         regular_amount,
-                        on_site_amount,
+                        on_site_amount, 
                         guest_amount
                     FROM
                         conference_member_type_prices
@@ -61,6 +62,15 @@ class HomeController extends BaseConferenceController
                     WHERE MT.society_id = " . $this->conference->society_id;
 
         $memberTypes = DB::select($sql);
+ 
+        // Get conference addons grouped by addon name
+        $conferenceAddons = ConferenceAddon::where([
+            'conference_id' => $this->conference->id,
+            'status' => 1
+        ])
+            ->with('memberType')
+            ->get()
+            ->groupBy('addon_name');
  
         $faqs = Faq::where(['conference_id' => $this->conference->id, 'status' => 1])->get();
 
@@ -73,7 +83,7 @@ class HomeController extends BaseConferenceController
             $url = "http://{$subdomain}.{$mainDomain}" . request()->getRequestUri();
             return redirect()->to($url);
         }
-        return view('frontend.conference.home.index', compact('submissionSetting', 'hotels', 'sponsorCategories', 'downloads', 'memberTypes', 'faqs', 'stats'));
+        return view('frontend.conference.home.index', compact('submissionSetting', 'hotels', 'sponsorCategories', 'downloads', 'memberTypes', 'faqs', 'stats', 'conferenceAddons'));
     }
 
     public function termsConditions()

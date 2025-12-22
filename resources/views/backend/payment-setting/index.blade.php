@@ -60,7 +60,7 @@
                                             class="nav-icon i-Home1 mr-1"></i>Khalti</a></li>
                                 <li class="nav-item"><a class="nav-link" id="profile-icon-pill" data-bs-toggle="pill"
                                         href="#bankPIll" role="tab" aria-controls="bankPIll" aria-selected="false"><i
-                                            class="nav-icon i-Home1 mr-1"></i>Account Details</a></li>
+                                            class="nav-icon i-Home1 mr-1"></i>QR + Account Details</a></li>
                             </ul>
                             <div class="tab-content  mt-4" id="myPillTabContent">
                                 <div class="tab-pane fade show active" id="fonePIll" role="tabpanel"

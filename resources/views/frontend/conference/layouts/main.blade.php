@@ -11,7 +11,9 @@
     <!-- Favicon Icon -->
     <link rel="icon" href="{{ Storage::url('society/logo/' . $conference->society->logo) }}">
     <!-- Site Title -->
-    <title>{{ $conference->abbreviation ? $conference->abbreviation : $conference->society->abbreviation }}</title>
+    <title>
+        @section('title') @show
+    </title>
     <link rel="stylesheet" href="{{ asset('frontend/assets/css/bootstrap.min.css') }}">
     <link rel="stylesheet" href="{{ asset('frontend/assets/css/fontawesome.min.css') }}">
     <link rel="stylesheet" href="{{ asset('frontend/assets/css/slick.min.css') }}">
