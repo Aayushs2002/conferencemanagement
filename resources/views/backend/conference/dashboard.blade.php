@@ -12,7 +12,7 @@
                                     <i class="icon-base ti tabler-truck text-primary fs-4"></i>
                                 </div>
                                 <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2 rounded-pill">Total</span>
-                            </div>
+                            </div> 
                             <a href="{{ route('conference.conference-registration.index', [$society, $conference]) }}">
                                 <h3 class="fw-bold text-dark mb-2">{{ $conferenceRegistrationCount }}</h3>
                             </a>
@@ -213,7 +213,7 @@
                     </div>
                 </div>
                 @if (feature_enabled('workshop-management', getSociety(request()->segment(2))))
-                    <div class="col-lg-4 col-md-6">
+                    <div class="col-lg-5 col-md-6">
                         <div class="card border-0 shadow h-100">
                             <div class="card-body p-4">
                                 <div class="d-flex align-items-center justify-content-between mb-4">
@@ -224,20 +224,25 @@
                                         class="badge bg-warning bg-opacity-10 text-warning px-3 py-2 rounded-pill">Meals</span>
                                 </div>
 
-                                <h5 class="fw-semibold text-dark mb-3">Workshop Meal Distribution And Registation</h5>
+                                <h5 class="fw-semibold text-dark mb-3">Workshop Meal Distribution And Registration</h5>
 
-                                <div class="dropdown mb-4">
-                                    <button class="btn btn-outline-primary dropdown-toggle rounded-pill px-4"
-                                        type="button" data-bs-toggle="dropdown">
-                                        <i class="ti tabler-calendar me-2"></i>Filter by Workshop
+                                <div class="dropdown mb-4" style="position: relative; z-index: 5000;">
+                                    <button class="btn btn-outline-primary dropdown-toggle rounded-pill px-4" id="workshopFilterBtn"
+                                        type="button" data-bs-toggle="dropdown" data-bs-auto-close="true" 
+                                        style="max-width: 280px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: inline-flex; align-items: center;" 
+                                        title="">
+                                        <i class="ti tabler-calendar me-2 flex-shrink-0"></i>
+                                        <span id="workshopFilterText" style="overflow: hidden; text-overflow: ellipsis;">Filter by Workshop</span>
                                     </button>
-                                    <ul class="dropdown-menu dropdown-menu-end border-0 shadow-lg"
+                                    <ul class="dropdown-menu dropdown-menu-end border-0 shadow-lg" 
+                                        style="position: absolute !important; right: 0 !important; left: auto !important; max-width: 300px; z-index: 9999 !important; transform: translate3d(0px, 0px, 0px) !important;"
                                         id="workshopMealFilterDropdown">
                                         @foreach ($workshops as $workshop)
                                             <li>
                                                 <a href="#"
-                                                    class="dropdown-item workshop-meal-count rounded-3 mx-2 my-1"
-                                                    data-workshop-id="{{ $workshop->id }}">
+                                                    class="dropdown-item workshop-meal-count rounded-3 mx-2 my-1 text-wrap"
+                                                    data-workshop-id="{{ $workshop->id }}"
+                                                    title="{{ $workshop->workshop_title }}">
                                                     {{ $workshop->workshop_title }}
                                                 </a>
                                             </li>
@@ -254,28 +259,30 @@
                                             $nonVeg = $counts->nonveg ?? 0;
                                             $total = $counts->total ?? 0;
                                         @endphp
-                                        <div class="meal-count-group mb-4" data-workshop-id="{{ $workshop->id }}">
-                                            <h6 class="text-primary fw-bold">{{ $workshop->workshop_title }}</h6>
+                                        <div class="meal-count-group mb-3" data-workshop-id="{{ $workshop->id }}" style="display: {{ $loop->first ? 'block' : 'none' }};">
                                             <a
-                                                href="{{ route('workshop.workshop-registration.index', [$society, $conference, $workshop]) . '?meal_type=1' }}">
-                                                <div class="d-flex justify-content-between align-items-center">
+                                                href="{{ route('workshop.workshop-registration.index', [$society, $conference, $workshop]) . '?meal_type=1' }}"
+                                                class="text-decoration-none">
+                                                <div class="d-flex justify-content-between align-items-center py-2">
                                                     <span class="text-muted">Veg</span>
                                                     <span
                                                         class="badge bg-success bg-opacity-10 text-success rounded-pill px-3 py-1">{{ $veg }}</span>
                                                 </div>
                                             </a>
                                             <a
-                                                href="{{ route('workshop.workshop-registration.index', [$society, $conference, $workshop]) . '?meal_type=2' }}">
-                                                <div class="d-flex justify-content-between align-items-center mt-2">
+                                                href="{{ route('workshop.workshop-registration.index', [$society, $conference, $workshop]) . '?meal_type=2' }}"
+                                                class="text-decoration-none">
+                                                <div class="d-flex justify-content-between align-items-center py-2">
                                                     <span class="text-muted">Non-Veg</span>
                                                     <span
                                                         class="badge bg-danger bg-opacity-10 text-danger rounded-pill px-3 py-1">{{ $nonVeg }}</span>
                                                 </div>
                                             </a>
                                             <a
-                                                href="{{ route('workshop.workshop-registration.index', [$society, $conference, $workshop]) }}">
-                                                <div class="d-flex justify-content-between align-items-center mt-2">
-                                                    <span class="fw-bold text-dark">Total Registation</span>
+                                                href="{{ route('workshop.workshop-registration.index', [$society, $conference, $workshop]) }}"
+                                                class="text-decoration-none">
+                                                <div class="d-flex justify-content-between align-items-center py-2">
+                                                    <span class="fw-bold text-dark">Total Registration</span>
                                                     <span
                                                         class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-3 py-1">{{ $total }}</span>
                                                 </div>
@@ -290,7 +297,7 @@
 
                 {{-- <div class="row mt-5"> --}}
                 <!-- Attendance & Meal Count Card -->
-                <div class="col-lg-8 col-12">
+                <div class="col-lg-7 col-12">
                     <div class="card border-0 shadow-sm h-100">
                         <div class="card-header bg-transparent border-0 pt-4 px-4 pb-0">
                             <div class="d-flex justify-content-between align-items-start">
@@ -755,10 +762,34 @@
                 });
             });
 
-            document.querySelectorAll('.workshop-meal-count').forEach(item => {
+            // Workshop meal filtering
+            const workshopFilterButton = document.getElementById('workshopFilterBtn');
+            const workshopFilterText = document.getElementById('workshopFilterText');
+            const workshopMealItems = document.querySelectorAll('.workshop-meal-count');
+            
+            // Function to truncate text
+            const truncateText = (text, maxLength = 70) => {
+                return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
+            };
+            
+            // Set initial button text to first workshop
+            if (workshopMealItems.length > 0) {
+                const firstWorkshopName = workshopMealItems[0].textContent.trim();
+                workshopFilterText.textContent = truncateText(firstWorkshopName);
+                workshopFilterButton.setAttribute('title', firstWorkshopName);
+            }
+            
+            workshopMealItems.forEach(item => {
                 item.addEventListener('click', function(e) {
                     e.preventDefault();
                     let selectedId = this.getAttribute('data-workshop-id');
+                    let selectedTitle = this.textContent.trim();
+                    
+                    // Update button text with truncation
+                    workshopFilterText.textContent = truncateText(selectedTitle);
+                    workshopFilterButton.setAttribute('title', selectedTitle);
+                    
+                    // Show/hide workshop meal groups
                     document.querySelectorAll('.meal-count-group').forEach(group => {
                         group.style.display = group.getAttribute('data-workshop-id') ===
                             selectedId ? 'block' : 'none';

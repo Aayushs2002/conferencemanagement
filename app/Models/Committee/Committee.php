@@ -14,6 +14,7 @@ class Committee extends Model
         'email',
         'phone',
         'description',
+        'display_order',
         'status'
     ];
 

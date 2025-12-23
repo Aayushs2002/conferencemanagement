@@ -20,7 +20,7 @@ class CommitteeController extends Controller
         $committees = Committee::where([
             'society_id' => $society->id,
             'status' => 1
-        ])->latest()->get();
+        ])->orderBy('display_order', 'asc')->get();
         // dd($committees);
         return view('backend.committee.committee.index', compact('committees', 'society', 'conference'));
     }
@@ -105,5 +105,31 @@ class CommitteeController extends Controller
         $committee->update(['status' => 0]);
 
         return redirect()->route('committee.index', [$society, $conference])->with('delete', 'Committee Deleted Successfully');
+    }
+
+    /**
+     * Update display order of committees.
+     */
+    public function updateOrder(Request $request, $society, $conference)
+    {
+        try {
+            $orders = $request->orders;
+            
+            foreach ($orders as $order) {
+                Committee::where('id', $order['id'])->update([
+                    'display_order' => $order['position']
+                ]);
+            }
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Order updated successfully'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to update order: ' . $e->getMessage()
+            ], 500);
+        }
     }
 }

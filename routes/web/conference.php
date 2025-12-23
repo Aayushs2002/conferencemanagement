@@ -296,6 +296,7 @@ Route::middleware('auth')->group(function () {
 
         Route::resource('/committee/committe-designation', CommitteeDesignationController::class)->except('show');
 
+        Route::post('/committee/update-order', [CommitteeController::class, 'updateOrder'])->name('committee.update-order');
         Route::resource('/committee', CommitteeController::class)->except('show');
 
         // committee member routes

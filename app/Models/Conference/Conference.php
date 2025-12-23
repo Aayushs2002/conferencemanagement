@@ -20,6 +20,7 @@ class Conference extends Model
         'conference_theme',
         'conference_logo',
         'conference_banner',
+        'partner_logos',
         'start_date',
         'end_date',
         'start_time',
@@ -31,6 +32,10 @@ class Conference extends Model
         'tags',
         'slug',
         'status'
+    ];
+
+    protected $casts = [
+        'partner_logos' => 'array',
     ];
 
 

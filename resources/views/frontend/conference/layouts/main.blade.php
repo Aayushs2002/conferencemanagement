@@ -84,11 +84,16 @@
                 </div>
 
                 <div class="col-auto">
-                    @if ($conference->conference_logo)
-                        <img src="{{ Storage::url('conference/conference/logo/' . $conference->conference_logo) }}"
-                            alt="SAFOG Logo" class="hero-logo">
+                    @if (is_array($conference->partner_logos) && count($conference->partner_logos) > 0)
+                        <div class="d-flex align-items-center gap-3">
+                            @foreach ($conference->partner_logos as $logo)
+                                <img src="{{ Storage::url('conference/partner-logos/' . $logo) }}" alt="Partner Logo"
+                                    class="hero-logo">
+                            @endforeach
+                        </div>
                     @endif
                 </div>
+                
             </div>
 
             <div class="row align-items-center hero-info position-relative">
