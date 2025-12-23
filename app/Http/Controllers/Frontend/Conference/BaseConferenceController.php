@@ -24,6 +24,7 @@ class BaseConferenceController extends Controller
             $this->workshops = Workshop::where('conference_id', $this->conference->id)
                 ->where('approval_status', 'approved')
                 ->where('status', 1)
+                ->orderBy('display_order', 'ASC')
                 ->get();
 
             view()->share([

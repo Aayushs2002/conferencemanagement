@@ -21,11 +21,11 @@ class HomeController extends BaseConferenceController
             'status' => 1,
             'society_id' => $this->conference->society_id
         ])
-            ->orderBy('id', 'ASC')
+            ->orderBy('display_order', 'ASC')
             ->with(['sponsors' => function ($query) {
                 $query->where('conference_id', $this->conference->id);
             }])
-            ->get();
+            ->get(); 
         $downloads = $this->conference->downloads;
 
         $cacheKey = "conference_stats_{$this->conference->id}";

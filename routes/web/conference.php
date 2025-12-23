@@ -258,6 +258,7 @@ Route::middleware('auth')->group(function () {
     });
 
     Route::prefix('/society/{society}/conference/{conference}')->middleware('auto.conf.permission')->group(function () {
+        Route::post('/workshop/update-order', [WorkshopController::class, 'updateOrder'])->name('workshop.update-order');
         Route::resource('/workshop', WorkshopController::class)->except('show');
         Route::controller(WorkshopController::class)->name('workshop.')->prefix('/workshop')->group(function () {
             Route::post('/view-data', 'view')->name('view');
@@ -319,6 +320,7 @@ Route::middleware('auth')->group(function () {
     });
 
     Route::prefix('/society/{society}/conference/{conference}')->middleware('auto.conf.permission')->group(function () {
+        Route::post('/sponsor/sponsor-category/update-order', [SponsorCategoryController::class, 'updateOrder'])->name('sponsor-category.update-order');
         Route::resource('sponsor/sponsor-category', SponsorCategoryController::class)->except('show');
         Route::resource('/sponsor', SponsorController::class)->except('show');
         Route::get('generate-pass', [SponsorController::class, 'generatePass'])->name('sponsor.generaate-pass');

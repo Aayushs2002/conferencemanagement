@@ -41,7 +41,7 @@
                 </div>
             </div>
             <div class="px-3 py-2">
-                <small class="text-info">
+                <small class="text-info"> 
                     <i class="ti tabler-grip-vertical"></i> <strong>Drag and drop rows to reorder committees</strong>
                 </small>
             </div>
