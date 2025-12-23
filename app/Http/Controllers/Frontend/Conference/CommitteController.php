@@ -19,6 +19,7 @@ class CommitteController extends BaseConferenceController
             'committeeMembers.designation'
         ])
             ->where('status', 1)
+            ->orderBy('display_order', 'asc')
             ->where('society_id', $this->conference->society_id)
             ->get();
 

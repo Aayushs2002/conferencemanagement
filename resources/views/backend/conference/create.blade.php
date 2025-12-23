@@ -204,6 +204,48 @@
                                 <p class="text-danger">{{ $message }}</p>
                             @enderror
                         </div>
+                        <div class="mb-6 col-md-8">
+                            <label class="form-label" for="partner_logos">Partner Logos <code> (Only JPG/PNG) (Max: 250 KB
+                                    each) (Multiple)</code></label>
+                            <input type="file" class="form-control" name="partner_logos[]" id="partner_logos"
+                                multiple accept="image/jpeg,image/png" />
+                            <small class="text-muted">You can select multiple logo files at once</small>
+
+                            <div class="row mt-3" id="partnerLogoPreview"></div>
+
+                            @if (isset($conference) && is_array($conference->partner_logos) && count($conference->partner_logos) > 0)
+                                <div class="row mt-3" id="existingPartnerLogos">
+                                    <h6 class="mb-2">Existing Partner Logos:</h6>
+                                    @foreach ($conference->partner_logos as $index => $logo)
+                                        <div class="col-md-2 col-sm-3 mb-3 partner-logo-item"
+                                            data-logo="{{ $logo }}">
+                                            <div class="position-relative">
+                                                <a href="{{ asset('storage/conference/partner-logos/' . $logo) }}"
+                                                    target="_blank">
+                                                    <img src="{{ asset('storage/conference/partner-logos/' . $logo) }}"
+                                                        class="img-fluid rounded" alt="partner logo">
+                                                </a>
+                                                <button type="button"
+                                                    class="btn btn-danger btn-sm position-absolute top-0 end-0 m-1 delete-existing-logo"
+                                                    data-logo="{{ $logo }}">
+                                                    <i class="ti tabler-x"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                </div>
+                                <input type="hidden" name="deleted_partner_logos" id="deleted_partner_logos"
+                                    value="">
+                            @endif
+
+                            @error('partner_logos')
+                                <p class="text-danger">{{ $message }}</p>
+                            @enderror
+                            @error('partner_logos.*')
+                                <p class="text-danger">{{ $message }}</p>
+                            @enderror
+                        </div>
+
                         <div class="mb-6 col-md-12">
                             <label for="tags" class="form-label">Tags <code>*
                                     <span class="text-info">(Press enter after typing complete word/words to represent it
@@ -364,7 +406,7 @@
                                 <p class="text-danger">{{ $message }}</p>
                             @enderror
                         </div>
- 
+
                         <div class="mb-6 col-md-4">
                             <label class="form-label" for="organizer_email">Organizer Email
                                 <code>*</code></label>
@@ -463,6 +505,73 @@
                 };
 
                 reader.readAsDataURL(this.files[0]);
+            });
+
+            // Multiple partner logos preview
+            let partnerLogoFiles = [];
+            $("#partner_logos").change(function() {
+                const files = Array.from(this.files);
+                const startIndex = partnerLogoFiles.length;
+
+                // Accumulate files instead of replacing
+                files.forEach((file) => {
+                    partnerLogoFiles.push(file);
+                });
+
+                renderPartnerLogoPreviews();
+
+                // Update file input with all accumulated files
+                updateFileInput();
+            });
+
+            function updateFileInput() {
+                const dt = new DataTransfer();
+                partnerLogoFiles.forEach(file => dt.items.add(file));
+                document.getElementById('partner_logos').files = dt.files;
+            }
+
+            function renderPartnerLogoPreviews() {
+                $("#partnerLogoPreview").html('');
+
+                partnerLogoFiles.forEach((file, index) => {
+                    let reader = new FileReader();
+
+                    reader.onload = function(e) {
+                        $("#partnerLogoPreview").append(
+                            '<div class="col-md-2 col-sm-3 mb-3 new-logo-item" data-index="' +
+                            index + '">' +
+                            '<div class="position-relative">' +
+                            '<img src="' + e.target.result + '" class="img-fluid rounded" />' +
+                            '<button type="button" class="btn btn-danger btn-sm position-absolute top-0 end-0 m-1 delete-new-logo" data-index="' +
+                            index + '">' +
+                            '<i class="ti tabler-x"></i>' +
+                            '</button>' +
+                            '</div>' +
+                            '</div>'
+                        );
+                    };
+
+                    reader.readAsDataURL(file);
+                });
+            }
+
+            // Delete newly added logo from preview
+            $(document).on('click', '.delete-new-logo', function() {
+                const index = $(this).data('index');
+                partnerLogoFiles.splice(index, 1);
+                renderPartnerLogoPreviews();
+                updateFileInput();
+            });
+
+            // Delete existing logo
+            let deletedLogos = [];
+            $(document).on('click', '.delete-existing-logo', function() {
+                const logo = $(this).data('logo');
+                deletedLogos.push(logo);
+                $('#deleted_partner_logos').val(JSON.stringify(deletedLogos));
+                $(this).closest('.partner-logo-item').fadeOut(300, function() {
+                    $(this).remove();
+                });
             });
         });
     </script>

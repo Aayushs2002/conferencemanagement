@@ -135,7 +135,7 @@
                 var orders = [];
                 $('#sortable-table tr').each(function(index) {
                     orders.push({
-                        id: $(this).data('id'),
+                        id: $(this).data('id'), 
                         position: index + 1
                     });
                 });
