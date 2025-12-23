@@ -26,7 +26,9 @@ class WorkshopController extends Controller
     public function index($society, $conference)
     {
         // Admin panel - shows all workshops for Type 1 & 2 (admins)
-        $workshops = Workshop::where(['conference_id' => $conference->id, 'status' => 1])->get();
+        $workshops = Workshop::where(['conference_id' => $conference->id, 'status' => 1])
+            ->orderBy('display_order', 'asc')
+            ->get();
 
         return view('backend.workshop.workshop.index', compact('workshops', 'society', 'conference'));
     }
@@ -404,6 +406,32 @@ class WorkshopController extends Controller
             return redirect()->back()->with('status', 'Correction request sent successfully!');
         } catch (Exception $e) {
             return redirect()->back()->with('delete', 'Failed to send correction request: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Update display order of workshops.
+     */
+    public function updateOrder(Request $request, $society, $conference)
+    {
+        try {
+            $orders = $request->orders;
+            
+            foreach ($orders as $order) {
+                Workshop::where('id', $order['id'])->update([
+                    'display_order' => $order['position']
+                ]);
+            }
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Order updated successfully'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to update order: ' . $e->getMessage()
+            ], 500);
         }
     }
 }

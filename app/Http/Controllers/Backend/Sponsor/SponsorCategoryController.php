@@ -20,7 +20,7 @@ class SponsorCategoryController extends Controller
         $categories = SponsorCategory::where([
             'society_id' => $society->id,
             'status' => 1
-        ])->latest()->get();
+        ])->orderBy('display_order', 'asc')->get();
         return view('backend.sponsor.category.index', compact('categories', 'society', 'conference'));
     }
 
@@ -95,6 +95,32 @@ class SponsorCategoryController extends Controller
             return redirect()->back()->with('delete', 'Cannot delete this sponser category.');
         } catch (Exception $e) {
             throw $e;
+        }
+    }
+
+    /**
+     * Update display order of sponsor categories.
+     */
+    public function updateOrder(Request $request, $society, $conference)
+    {
+        try {
+            $orders = $request->orders;
+            
+            foreach ($orders as $order) {
+                SponsorCategory::where('id', $order['id'])->update([
+                    'display_order' => $order['position']
+                ]);
+            }
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Order updated successfully'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to update order: ' . $e->getMessage()
+            ], 500);
         }
     }
 }

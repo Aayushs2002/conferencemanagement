@@ -10,7 +10,8 @@ class SponsorCategory extends Model
         'society_id',
         'category_name',
         'slug',
-        'status'
+        'status',
+        'display_order'
     ];
 
     public function sponsors()

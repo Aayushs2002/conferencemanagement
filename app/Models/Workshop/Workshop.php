@@ -36,7 +36,8 @@ class Workshop extends Model
         'registration_fee',
         'overview_of_organiztion',
         'training_method_expected_outcome',
-        'resource_requirement'
+        'resource_requirement',
+        'display_order'
     ];
 
     protected $casts = [

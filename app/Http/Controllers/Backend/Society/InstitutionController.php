@@ -13,7 +13,7 @@ class InstitutionController extends Controller
      */
     public function index()
     {
-        $institutions = Institution::whereStatus(1)->get();
+        $institutions = Institution::whereStatus(1)->orderBy('name', 'ASC')->get();
         return view('backend.users.institution.index', compact('institutions'));
     }
 

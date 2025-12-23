@@ -28,6 +28,8 @@ class WorkshopController extends BaseConferenceController
         $relevantWorkshops = Workshop::where('id', '!=', $workshop->id)
             ->where('conference_id', $this->conference->id)
             ->where('approval_status', 'approved')
+            ->where('status', 1)
+            ->orderBy('display_order', 'ASC')
             ->latest()
             // ->take(3)
             ->get();
