@@ -35,7 +35,7 @@ class ConferenceDashboardController extends Controller
                 $dates = collect(range(0, 6))->map(fn($i) => Carbon::now()->subDays(6 - $i)->toDateString());
                 break;
 
-            case 'last_30_days':
+            case 'last_30_days': 
                 $start = Carbon::now()->subDays(29)->startOfDay();
                 $end = Carbon::now()->endOfDay();
                 $dates = collect(range(0, 29))->map(fn($i) => Carbon::now()->subDays(29 - $i)->toDateString());

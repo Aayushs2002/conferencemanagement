@@ -57,7 +57,7 @@ class ConferenceController extends Controller
         try {
             $req = $request->all();
             if (!empty($req['tags'])) {
- 
+
                 $tagArray = json_decode($request->tags, true);
                 $req['tags']  = is_array($tagArray)
                     ? implode(',', array_column($tagArray, 'value'))
@@ -209,7 +209,7 @@ class ConferenceController extends Controller
 
             // Handle partner logos update
             $existingPartnerLogos = is_array($conference->partner_logos) ? $conference->partner_logos : [];
-            
+
             // Delete logos marked for deletion
             if (!empty($request->deleted_partner_logos)) {
                 $deletedLogos = json_decode($request->deleted_partner_logos, true) ?? [];
@@ -221,7 +221,7 @@ class ConferenceController extends Controller
                     $existingPartnerLogos = array_values($existingPartnerLogos); // Re-index array
                 }
             }
-            
+
             // Upload new partner logos
             if (!empty($request->file('partner_logos'))) {
                 foreach ($request->file('partner_logos') as $index => $logo) {
@@ -229,7 +229,7 @@ class ConferenceController extends Controller
                     $existingPartnerLogos[] = $fileName;
                 }
             }
-            
+
             $req['partner_logos'] = !empty($existingPartnerLogos) ? $existingPartnerLogos : null; // No json_encode - model cast handles it
 
             //updating in conference table
@@ -300,6 +300,8 @@ class ConferenceController extends Controller
         $workshopMealCounts = DB::table('workshop_registrations as wr')
             ->join('workshops as w', 'w.id', '=', 'wr.workshop_id')
             ->where('w.conference_id', $conference->id)
+            ->where('wr.status', 1)
+            ->where('wr.registrant_type', 1)
             ->select(
                 'wr.workshop_id',
                 DB::raw("SUM(CASE WHEN wr.meal_type = 1 THEN 1 ELSE 0 END) as veg"),
@@ -311,7 +313,7 @@ class ConferenceController extends Controller
             ->keyBy('workshop_id');
         $submissionCount = Submission::where(['conference_id' => $conference->id, 'user_id' => current_user()->id, 'status' => 1])->count();
         $workshop = Workshop::where(['conference_id' => $conference->id, 'status' => 1])->pluck('id');
-        $workshopRegistrationCount = WorkshopRegistration::where(['user_id' => current_user()->id, 'status' => 1])->whereIn('workshop_id', $workshop)->count();
+        $workshopRegistrationCount = WorkshopRegistration::where(['user_id' => current_user()->id, 'registrant_type' => 1, 'status' => 1])->whereIn('workshop_id', $workshop)->count();
         $submissionCategoryMajorTracks = SubmissionCategoryMajorTrack::where(['conference_id' => $conference->id, 'status' => 1])->get();
         return view('backend.conference.dashboard', compact('conferenceRegistrationCount', 'totalNationalRegistrants', 'totalInternationalRegistrants', 'mealCounts', 'conference', 'society', 'data', 'dates', 'workshops', 'workshopMealCounts', 'submissionCount', 'workshopRegistrationCount', 'submissionCategoryMajorTracks'));
     }

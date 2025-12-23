@@ -13,7 +13,7 @@ use App\Models\WorkshopRating;
 use App\Services\File\FileService;
 use Exception;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\DB; 
 use Batch;
 
 class WorkshopController extends Controller
