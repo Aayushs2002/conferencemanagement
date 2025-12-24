@@ -10,7 +10,7 @@ use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
 
 class HotelController extends Controller
-{
+{  
     /**
      * Display a listing of the resource.
      */
@@ -44,10 +44,10 @@ class HotelController extends Controller
                 'phone' => 'required',
                 'email' => 'required|email',
                 'rating' => 'nullable',
-                'featured_image' => 'nullable|mimes:jpg,png',
-                'cover_image' => 'required|mimes:jpg,png',
+                'featured_image' => 'nullable|mimes:jpg,png|max:2048',
+                'cover_image' => 'required|mimes:jpg,png|max:5120',
                 'pics' => 'nullable',
-                'pics.*' => 'mimes:jpg,png',
+                'pics.*' => 'mimes:jpg,png|max:2048',
                 'room_type' => 'nullable',
                 'description' => 'nullable',
                 'google_map' => 'nullable',
@@ -57,7 +57,17 @@ class HotelController extends Controller
                 'promo_code' => 'nullable',
             ];
 
-            $validated = $request->validate($rules);
+            $messages = [
+                'featured_image.max' => 'The logo image must not be larger than 2MB.',
+                'featured_image.mimes' => 'The logo must be a JPG or PNG image.',
+                'cover_image.max' => 'The cover image must not be larger than 5MB.',
+                'cover_image.mimes' => 'The cover image must be a JPG or PNG image.',
+                'cover_image.required' => 'The cover image is required.',
+                'pics.*.max' => 'Each image must not be larger than 2MB.',
+                'pics.*.mimes' => 'Each image must be a JPG or PNG file.',
+            ];
+
+            $validated = $request->validate($rules, $messages);
 
             if (!empty($validated['pics']) && count($validated['pics']) > 5) {
                 return redirect()->back()->withInput()->with('delete', 'Images Limitation Crossed.');
@@ -121,10 +131,10 @@ class HotelController extends Controller
                 'phone' => 'nullable',
                 'email' => 'nullable|email',
                 'rating' => 'nullable',
-                'featured_image' => 'nullable|mimes:jpg,png',
-                'cover_image' => 'nullable|mimes:jpg,png',
+                'featured_image' => 'nullable|mimes:jpg,png|max:2048',
+                'cover_image' => 'nullable|mimes:jpg,png|max:5120',
                 'pics' => 'nullable',
-                'pics.*' => 'mimes:jpg,png',
+                'pics.*' => 'mimes:jpg,png|max:2048',
                 'room_type' => 'nullable',
                 'room_type_old' => 'nullable',
                 'description' => 'nullable',
@@ -135,7 +145,16 @@ class HotelController extends Controller
                 'promo_code' => 'nullable',
             ];
 
-            $validated = $request->validate($rules);
+            $messages = [
+                'featured_image.max' => 'The logo image must not be larger than 2MB.',
+                'featured_image.mimes' => 'The logo must be a JPG or PNG image.',
+                'cover_image.max' => 'The cover image must not be larger than 5MB.',
+                'cover_image.mimes' => 'The cover image must be a JPG or PNG image.',
+                'pics.*.max' => 'Each image must not be larger than 2MB.',
+                'pics.*.mimes' => 'Each image must be a JPG or PNG file.',
+            ];
+
+            $validated = $request->validate($rules, $messages);
 
             $countOldImages = 0;
             if (!empty($hotel->images)) {

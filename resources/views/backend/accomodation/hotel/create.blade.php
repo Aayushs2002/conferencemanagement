@@ -4,7 +4,7 @@
     {{ isset($hotel) ? 'Edit' : 'Add' }} Hotel
 @endsection
 @section('content')
-    <div class="col-md">
+    <div class="col-md"> 
         <div class="card">
             <h4 class="card-header"><a href="{{ route('hotel.index', [$society, $conference]) }}"><i
                         class="ti tabler-arrow-narrow-left"></i></a>
@@ -128,7 +128,7 @@
                             @enderror
                         </div>
                         <div class="col-md-4 form-group mb-3">
-                            <label for="featured_image">Logo <code>(Only JPG/PNG)</code></label>
+                            <label for="featured_image">Logo <code>(Only JPG/PNG, Max 2MB)</code></label>
                             <input type="file" class="form-control @error('featured_image') is-invalid @enderror"
                                 name="featured_image" id="image" />
                             @error('featured_image')
@@ -144,7 +144,7 @@
                             </div>
                         </div>
                         <div class="col-md-4 form-group mb-3">
-                            <label for="cover_image">Cover Image <code>*(Only JPG/PNG)</code></label>
+                            <label for="cover_image">Cover Image <code>*(Only JPG/PNG, Max 5MB)</code></label>
                             <input type="file" class="form-control @error('cover_image') is-invalid @enderror"
                                 name="cover_image" id="image2" {{ !isset($hotel) ? 'required' : '' }} />
                             <div class="valid-feedback">Looks good!</div>
@@ -164,14 +164,16 @@
 
 
                         <div class="col-md-12 form-group mb-3">
-                            <label for="pics">Other Images <code>(Maximum Images: 5 & Only JPG/PNG)</code></label>
+                            <label for="pics">Other Images <code>(Maximum Images: 5, Max 2MB per image, Only JPG/PNG)</code></label>
                             <input type="file" class="form-control @error('pics') is-invalid @enderror"
                                 name="pics[]" id="imagesMultiple" multiple />
                             @error('pics')
                                 <p class="text-danger">{{ $message }}</p>
                             @enderror
                             @if ($errors->get('pics.*'))
-                                <p class="text-danger">Images must be jpg or png.</p>
+                                @foreach ($errors->get('pics.*') as $message)
+                                    <p class="text-danger">{{ $message[0] }}</p>
+                                @endforeach
                             @endif
                             <div class="row" id="imagesPreview"></div>
                             <div class="row">
