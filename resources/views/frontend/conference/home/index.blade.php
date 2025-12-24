@@ -214,7 +214,7 @@
                                                 <h6 class="card-title">{{ $hotel->name }}</h6>
                                                 <small class="text-muted">{{ $hotel->address }}</small>
                                             </div>
-                                            <a href="AccomadationDetail.html" class="default-btn">
+                                            <a href="{{ route('conference.hotel.detail', [$conference->slug, $hotel->slug]) }}" class="default-btn">
                                                 <i class="fa-solid fa-arrow-up-right-from-square"></i>
                                             </a>
                                         </div>
