@@ -137,4 +137,5 @@ Route::prefix('conference/{conference_front:slug}')->middleware('check.subdomain
         Route::get('/register', [AuthController::class, 'register'])->name('register');
         Route::get('/terms-conditions', [ConferenceHomeController::class, 'termsConditions'])->name('terms-conditions');
         Route::get('/privacy-policy', [ConferenceHomeController::class, 'privacyPolicy'])->name('privacy-policy');
+        Route::get('/hotel/{slug}', [ConferenceHomeController::class, 'hotelDetail'])->name('hotel.detail');
     });

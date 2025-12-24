@@ -16,7 +16,7 @@ class HomeController extends BaseConferenceController
     { 
         // dd($this->conference);   
         $submissionSetting = $this->conference->submissionSetting;
-        $hotels = $this->conference->hotels;
+        $hotels = $this->conference->hotels()->where('visible_status', 1)->get();
         $sponsorCategories = SponsorCategory::where([
             'status' => 1,
             'society_id' => $this->conference->society_id
@@ -94,5 +94,15 @@ class HomeController extends BaseConferenceController
     public function privacyPolicy()
     {
         return view('frontend.conference.privacy-policy');
+    }
+
+    public function hotelDetail($conference_front, $slug)
+    {
+        $hotel = $this->conference->hotels()
+            ->where('slug', $slug)
+            ->where('visible_status', 1)
+            ->firstOrFail();
+        
+        return view('frontend.conference.accommodation.single-page', compact('hotel'));
     }
 }
