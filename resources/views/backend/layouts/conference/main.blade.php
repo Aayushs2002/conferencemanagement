@@ -95,7 +95,7 @@
         $showAccommodationPopup = false;
         if (auth()->check() && auth()->user()->type == 3) {
             $conferenceId = getConference(request()->segment(4))->id;
-            // dd($conferenceId); 
+            // dd($conferenceId);
 
             $registration = auth()
                 ->user()
@@ -199,7 +199,7 @@
     <!-- build:js assets/vendor/js/theme.js -->
 
     <script src="{{ asset('backend/assets/vendor/libs/jquery/jquery.js') }}"></script>
-    
+
 
     <script src="{{ asset('backend/assets/vendor/libs/popper/popper.js') }}"></script>
     <script src="{{ asset('backend/assets/vendor/js/bootstrap.js') }}"></script>
@@ -354,7 +354,7 @@
     </script>
 
     <script>
-        $('.delete').click(function(e) {
+        $(document).on("click", ".delete", function(e) {
             e.preventDefault();
             Swal.fire({
                 title: 'Are you sure to delete?',

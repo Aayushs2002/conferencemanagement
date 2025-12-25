@@ -97,7 +97,8 @@
                 </div>
                 <div class="d-md-flex justify-content-between align-items-center dt-layout-end col-md-auto ms-auto mt-0">
                     <div class="dt-buttons btn-group flex-wrap mb-0">
-                        <a href="{{ route('submission.viewSubmissions', [$society, $conference]) }}" class="btn btn-info mr-2">
+                        <a href="{{ route('submission.viewSubmissions', [$society, $conference]) }}"
+                            class="btn btn-info mr-2">
                             <i class="icon-base ti tabler-eye icon-xs me-sm-1"></i>
                             <span class="d-none d-sm-inline-block">View Abstract Book Format</span>
                         </a>
@@ -134,7 +135,7 @@
                             <th>Assign to Expert ?</th>
                         @endif
                         @if (auth()->user()->hasConferencePermissionBlade($conference, 'View Score') &&
-                                $submission_setting->scoring_allowed == 1)
+                                $submission_setting?->scoring_allowed == 1)
                             <th>Score</th>
                         @endif
                         <th>Action</th>
@@ -148,10 +149,10 @@
 
                             <td> {{ $submission->articleType?->name ?? 'N/A' }}
                             </td>
-                            <td>
+                            <td >
                                 {{ $submission->submissionCategoryMajorTrack->title }}
                             </td>
-                            <td>
+                            <td class="viewData " data-id="{{ $submission->id }}" data-bs-toggle="modal" data-bs-target="#pricingModal" style="cursor: pointer;">
                                 {{ \Illuminate\Support\Str::words($submission->title, 5, '...') }}
                             </td>
 
@@ -229,8 +230,9 @@
                                     @endif
                                 </td>
                             @endif
+                            
                             @if (auth()->user()->hasConferencePermissionBlade($conference, 'View Score') &&
-                                    $submission_setting->scoring_allowed == 1)
+                                    $submission_setting?->scoring_allowed == 1)
                                 <td>
                                     @if ($submission->submissionRating)
                                         @php
@@ -281,7 +283,7 @@
                                             <a class="dropdown-item"
                                                 href="{{ route('submission.edit', [$society, $conference, $submission]) }}"><i
                                                     class="icon-base ti tabler-pencil me-1"></i>
-                                                Edit</a> 
+                                                Edit</a>
                                         @endif
                                         <a class="dropdown-item viewData" data-id="{{ $submission->id }}"
                                             data-bs-toggle="modal" data-bs-target="#pricingModal"><i

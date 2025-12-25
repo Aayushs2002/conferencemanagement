@@ -12,7 +12,7 @@ use App\Models\User\Society;
 use Exception;
 use Illuminate\Http\Request;
 
-class CommitteeMemberController extends Controller
+class CommitteeMemberController extends Controller 
 {
     public function index($society, $conference, $slug)
     {
