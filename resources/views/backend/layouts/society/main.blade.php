@@ -13,10 +13,11 @@
 
     <meta name="description" content="" />
     <meta name="csrf-token" content="{{ csrf_token() }}">
- 
+
     <!-- Favicon -->
-    <link rel="icon" type="image/x-icon" href="{{ asset('storage/society/logo/' . getSociety(request()->segment(2))->logo) }}" />
- 
+    <link rel="icon" type="image/x-icon"
+        href="{{ asset('storage/society/logo/' . getSociety(request()->segment(2))->logo) }}" />
+
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -303,7 +304,7 @@
     </script>
 
     <script>
-        $('.delete').click(function(e) {
+        $(document).on("click", ".delete", function(e) {
             e.preventDefault();
             Swal.fire({
                 title: 'Are you sure to delete?',

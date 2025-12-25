@@ -29,7 +29,18 @@ class RoleController extends Controller
         ])->first();
 
         $users = $society ? $society->users : collect();
-        return view('backend.user-management.role.index', compact('society', 'conference', 'roles', 'users'));
+        
+        // Count users per role for this conference
+        $roleCounts = [];
+        foreach ($roles as $role) {
+            $count = DB::table('conference_user_roles')
+                ->where('conference_id', $conference->id)
+                ->where('role_id', $role->id)
+                ->count();
+            $roleCounts[$role->id] = $count;
+        }
+        
+        return view('backend.user-management.role.index', compact('society', 'conference', 'roles', 'users', 'roleCounts'));
     }
 
     /**

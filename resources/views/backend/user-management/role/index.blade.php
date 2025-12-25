@@ -14,17 +14,17 @@
         <div class="row g-6">
             @foreach ($roles as $role)
                 <div class="col-xl-4 col-lg-6 col-md-6">
-                    <div class="card">
+                    <div class="card role-card" data-role-name="{{ $role->name }}" style="cursor: pointer;">
                         <div class="card-body">
                             <div class="d-flex justify-content-between align-items-center mb-4">
-                                <h6 class="fw-normal mb-0 text-body">Total 4 users</h6>
+                                <h6  class="fw-normal mb-0 text-body">Total {{ $roleCounts[$role->id] ?? 0 }} {{ Str::plural('user', $roleCounts[$role->id] ?? 0) }}</h6>
                             </div>
                             <div class="d-flex justify-content-between align-items-end">
                                 <div class="role-heading">
                                     <h5 class="mb-1">{{ $role->name }}</h5>
                                     @if (auth()->user()->hasConferencePermissionBlade($conference, 'Edit Role'))
                                         <a href="javascript:;" data-bs-toggle="modal" data-bs-target="#pricingModal"
-                                            data-role-id="{{ $role->id }}" class="role-edit-modal"><span>Edit
+                                            data-role-id="{{ $role->id }}" class="role-edit-modal" ><span>Edit
                                                 Role</span></a>
                                     @endif
                                 </div>
@@ -61,7 +61,10 @@
             @endif
             <div class="col-12">
                 <h4 class="mt-6 mb-1">Total users with their roles</h4>
-                <p class="mb-0">Find all of your company’s administrator accounts and their associate roles.</p>
+                <p class="mb-0">
+                    Find all of your company's administrator accounts and their associate roles.
+                    <button class="btn btn-sm btn-outline-primary ms-2" id="clearFilter" style="display: none;">Show All Users</button>
+                </p>
             </div>
             <div class="card">
                 <div class="card-datatable table-responsive pt-0">
@@ -89,18 +92,15 @@
                                         ->conferenceRoles()
                                         ->wherePivot('conference_id', $conference->id)
                                         ->first();
+                                    $roleName = $role ? $role->name : 'User';
                                 @endphp
 
-                                <tr>
+                                <tr class="user-row" data-user-role="{{ $roleName }}">
                                     <th scope="row">{{ $loop->iteration }}</th>
                                     <td>{{ $user->fullName($user) }}</td>
                                     <td>{{ $user->email }}</td>
                                     <td>
-                                        @if ($role)
-                                            {{ $role->name }}
-                                        @else
-                                            User
-                                        @endif
+                                        {{ $roleName }}
                                     </td>
                                     <td>
                                         <div class="dropdown">
@@ -142,6 +142,49 @@
 
     <script>
         $(document).ready(function() {
+
+            // Filter users by role
+            $(document).on("click", ".role-card", function(e) {
+                const roleName = $(this).data('role-name');
+                
+                // Remove active class from all cards
+                $('.role-card').removeClass('border-primary').css('box-shadow', '');
+                
+                // Add active class to clicked card
+                $(this).addClass('border-primary').css('box-shadow', '0 0 0 2px rgba(115, 103, 240, 0.4)');
+                
+                // Filter users
+                $('.user-row').each(function() {
+                    const userRole = $(this).data('user-role');
+                    if (userRole === roleName) {
+                        $(this).show();
+                    } else {
+                        $(this).hide();
+                    }
+                });
+                
+                // Show clear filter button
+                $('#clearFilter').show();
+                
+                // Re-number visible rows
+                let index = 1;
+                $('.user-row:visible').each(function() {
+                    $(this).find('th:first').text(index++);
+                });
+            });
+
+            // Clear filter
+            $(document).on("click", "#clearFilter", function() {
+                $('.user-row').show();
+                $('.role-card').removeClass('border-primary').css('box-shadow', '');
+                $(this).hide();
+                
+                // Re-number all rows
+                let index = 1;
+                $('.user-row').each(function() {
+                    $(this).find('th:first').text(index++);
+                });
+            });
 
             $(document).on("click", ".add-new-role", function(e) {
                 e.preventDefault();

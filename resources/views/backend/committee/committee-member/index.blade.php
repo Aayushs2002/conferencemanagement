@@ -81,9 +81,9 @@
                                     @endif
                                 </td>
                             @endif
-                            <td class="text-center viewData cursor-pointer" data-id="{{ $conference->id }}" data-bs-toggle="modal"
-                                data-bs-target="#pricingModal">
-                                {{ $userRegistered }}
+                            <td class="text-center viewData cursor-pointer" data-id="{{ $member->id }}" data-bs-toggle="modal"
+                                data-bs-target="#pricingModal"> 
+                                {{ $userRegistered }} 
                             </td>
                             <td>
                                 <div class="dropdown">
