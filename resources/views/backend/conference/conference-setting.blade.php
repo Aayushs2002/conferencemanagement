@@ -12,7 +12,7 @@
                 <hr class="mt-0" style="height:1px;border:none;color:#333;background-color:#333;" />
             </div>
 
-            <div class="col-md-4 mb-4"> 
+            <div class="col-md-4 mb-4">  
                 <label>Name</label> 
                 <input type="text" class="form-control" name="name" value="{{ $conferenceSetting?->name }}">
             </div>
@@ -162,6 +162,28 @@
                     <i class="ti tabler-info-circle"></i>
                     Enter CSS code with class selectors. Example: .navbar-brand, .hero-title, .countdown-box, etc.
                 </small>
+            </div>
+
+            <div class="col-12 mt-3">
+                <h6>9. Section Visibility Settings</h6>
+                <hr class="mt-0" style="height:1px;border:none;color:#333;background-color:#333;" />
+                <p class="text-muted small">Control which sections are displayed on the conference home page.</p>
+            </div>
+
+            <div class="col-md-12 mb-4">
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <div class="form-check form-switch">
+                            <input type="hidden" name="show_stats_dashboard" value="0">
+                            <input class="form-check-input" type="checkbox" name="show_stats_dashboard" id="show_stats_dashboard" value="1"
+                                {{ ($conferenceSetting?->show_stats_dashboard ?? 1) ? 'checked' : '' }}>
+                            <label class="form-check-label" for="show_stats_dashboard">
+                                <strong>Show Stats Dashboard</strong>
+                                <small class="d-block text-muted">Speakers, participants count</small>
+                            </label>
+                        </div>
+                    </div>
+                </div>
             </div>
 
         </div>

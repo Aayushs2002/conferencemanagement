@@ -4,6 +4,7 @@
 
 @endsection
 @section('content')
+    @if($conference->conferenceSetting?->show_stats_dashboard ?? 1)
     <section class="container">
         <div class="row g-4 text-center stats-dashboard">
             <div class="col-lg-3 col-md-6 col-6">
@@ -33,13 +34,14 @@
         </div>
     </section>
     <div class="td_height_40 td_height_lg_40"></div>
+    @endif
     <section class="container">
         <div class="mb-2">
             {{-- @dd($conference->society) --}}
             <a href="{{ route('our-client.detail', $conference->society->slug) }}" class="back-btn mb-4">
                 <i class="fa-solid fa-arrow-left me-2"></i> Back to {{ $conference->society->abbreviation }}
             </a>
-        </div>
+        </div> 
         <div class="row g-5">
             <aside class="col-lg-3 order-1 order-lg-2">
                 <div class="sidebar-sticky" style="position:sticky; top:20px;">
@@ -204,7 +206,7 @@
                             apps/websites.</p> --}}
 
                         <div class="row g-4">
-                            @foreach ($hotels as $hotel)
+                            @foreach ($hotels as $hotel) 
                                 <div class="col-md-4">
                                     <div class="accom-card p-3 rounded-4 shadow-sm d-flex flex-column">
                                         <img src="{{ Storage::url('hotel/cover-image/' . $hotel->cover_image) }}"
