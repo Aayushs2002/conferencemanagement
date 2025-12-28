@@ -13,7 +13,7 @@ class DesignationController extends Controller
      */
     public function index()
     {
-        $designations = Designation::whereStatus(1)->get();
+        $designations = Designation::whereStatus(1)->orderBy('designation', 'ASC')->get();
         return view('backend.users.designation.index', compact('designations'));
     }
 
