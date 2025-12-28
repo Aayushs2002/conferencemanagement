@@ -11,7 +11,7 @@ use App\Models\User\ActivityLog;
 use App\Models\User\Society;
 use Exception;
 use Illuminate\Http\Request;
-
+ 
 class CommitteeMemberController extends Controller 
 {
     public function index($society, $conference, $slug)
@@ -146,7 +146,7 @@ class CommitteeMemberController extends Controller
         }
 
         $committee_member->update(['is_featured' => $isFeatured]);
-
+ 
         return redirect()->back()->with('status', 'Committee Member featured status changed successfully.');
     }
 

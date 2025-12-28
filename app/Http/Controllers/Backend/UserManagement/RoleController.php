@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Backend\UserManagement;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Models\User\ActivityLog;
 use App\Models\User\Society;
 use Dotenv\Exception\ValidationException;
 use Exception;
@@ -35,7 +36,7 @@ class RoleController extends Controller
         foreach ($roles as $role) {
             $count = DB::table('conference_user_roles')
                 ->where('conference_id', $conference->id)
-                ->where('role_id', $role->id)
+                ->where('role_id', $role->id) 
                 ->count();
             $roleCounts[$role->id] = $count;
         }
@@ -188,7 +189,7 @@ class RoleController extends Controller
 
             return response()->json(['success' => true, 'message' => 'Role Updated successfully']);
         } catch (\Exception $e) {
-            dd($e);
+            // dd($e);
             return response()->json(['error' => true, 'message' => 'Failed to update role. Please try again.']);
         }
     }
@@ -261,5 +262,20 @@ class RoleController extends Controller
                 'message' => $e->getMessage(),
             ]);
         }
+    }
+
+    public function getUserActivityLog(Request $request, $society, $conference)
+    {
+        $userId = $request->user_id;
+        $user = User::findOrFail($userId);
+        
+        $activityLogs = ActivityLog::where('conference_id', $conference->id)
+            ->where('user_id', $userId)
+            ->where('action', 'Registered Conference')
+            ->orWhere('action', 'Invited Conference')
+            ->orderByDesc('created_at')
+            ->get();
+        
+        return view('backend.user-management.role.activity-log', compact('user', 'activityLogs', 'society', 'conference'));
     }
 }

@@ -15,7 +15,7 @@ class SocietyInstitutionController extends Controller
      */
     public function index($society)
     {
-        $institutions = Institution::where('status', 1)->get();
+        $institutions = Institution::where('status', 1)->orderBy('name', 'ASC')->get();
         $selectedInstitutions = $society->institutions->pluck('id')->toArray();
 
         return view('backend.society.institution.index', compact('society', 'institutions', 'selectedInstitutions'));
