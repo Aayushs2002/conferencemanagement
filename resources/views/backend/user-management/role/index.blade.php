@@ -17,14 +17,15 @@
                     <div class="card role-card" data-role-name="{{ $role->name }}" style="cursor: pointer;">
                         <div class="card-body">
                             <div class="d-flex justify-content-between align-items-center mb-4">
-                                <h6  class="fw-normal mb-0 text-body">Total {{ $roleCounts[$role->id] ?? 0 }} {{ Str::plural('user', $roleCounts[$role->id] ?? 0) }}</h6>
+                                <h6 class="fw-normal mb-0 text-body">Total {{ $roleCounts[$role->id] ?? 0 }}
+                                    {{ Str::plural('user', $roleCounts[$role->id] ?? 0) }}</h6>
                             </div>
                             <div class="d-flex justify-content-between align-items-end">
                                 <div class="role-heading">
                                     <h5 class="mb-1">{{ $role->name }}</h5>
                                     @if (auth()->user()->hasConferencePermissionBlade($conference, 'Edit Role'))
                                         <a href="javascript:;" data-bs-toggle="modal" data-bs-target="#pricingModal"
-                                            data-role-id="{{ $role->id }}" class="role-edit-modal" ><span>Edit
+                                            data-role-id="{{ $role->id }}" class="role-edit-modal"><span>Edit
                                                 Role</span></a>
                                     @endif
                                 </div>
@@ -63,7 +64,8 @@
                 <h4 class="mt-6 mb-1">Total users with their roles</h4>
                 <p class="mb-0">
                     Find all of your company's administrator accounts and their associate roles.
-                    <button class="btn btn-sm btn-outline-primary ms-2" id="clearFilter" style="display: none;">Show All Users</button>
+                    <button class="btn btn-sm btn-outline-primary ms-2" id="clearFilter" style="display: none;">Show All
+                        Users</button>
                 </p>
             </div>
             <div class="card">
@@ -93,6 +95,16 @@
                                         ->wherePivot('conference_id', $conference->id)
                                         ->first();
                                     $roleName = $role ? $role->name : 'User';
+
+                                    // Check if user has activity logs for this conference
+                                    $hasActivityLogs = \App\Models\User\ActivityLog::where(
+                                        'conference_id',
+                                        $conference->id,
+                                    )
+                                        ->where('user_id', $user->id)
+                                        ->where('action', 'Registered Conference')
+                                        ->orWhere('action', 'Invited Conference')
+                                        ->exists();
                                 @endphp
 
                                 <tr class="user-row" data-user-role="{{ $roleName }}">
@@ -114,6 +126,12 @@
                                                         data-bs-toggle="modal" data-bs-target="#pricingModal"
                                                         data-id="{{ $user->id }}"><i
                                                             class="icon-base ti tabler-pencil me-1"></i>Assign Role</a>
+                                                @endif
+                                                @if ($hasActivityLogs)
+                                                    <a class="dropdown-item viewActivityLog" href="javascript:;"
+                                                        data-bs-toggle="modal" data-bs-target="#pricingModal"
+                                                        data-user-id="{{ $user->id }}"><i
+                                                            class="icon-base ti tabler-file-text me-1"></i>User Registered</a>
                                                 @endif
                                             </div>
                                         </div>
@@ -145,27 +163,52 @@
 
             // Filter users by role
             $(document).on("click", ".role-card", function(e) {
+                // Don't filter if clicking on the edit link
+                if ($(e.target).closest('.role-edit-modal').length > 0) {
+                    return;
+                }
+
+                e.preventDefault();
+                e.stopPropagation();
+
                 const roleName = $(this).data('role-name');
-                
+                const currentlyActive = $(this).hasClass('border-primary');
+
+                // If clicking the same card, toggle it off
+                if (currentlyActive) {
+                    $('.role-card').removeClass('border-primary').css('box-shadow', '');
+                    $('.user-row').show();
+                    $('#clearFilter').hide();
+
+                    // Re-number all rows
+                    let index = 1;
+                    $('.user-row').each(function() {
+                        $(this).find('th:first').text(index++);
+                    });
+                    return;
+                }
+
                 // Remove active class from all cards
                 $('.role-card').removeClass('border-primary').css('box-shadow', '');
-                
+
                 // Add active class to clicked card
                 $(this).addClass('border-primary').css('box-shadow', '0 0 0 2px rgba(115, 103, 240, 0.4)');
-                
+
                 // Filter users
+                let visibleCount = 0;
                 $('.user-row').each(function() {
                     const userRole = $(this).data('user-role');
                     if (userRole === roleName) {
                         $(this).show();
+                        visibleCount++;
                     } else {
                         $(this).hide();
                     }
                 });
-                
+
                 // Show clear filter button
                 $('#clearFilter').show();
-                
+
                 // Re-number visible rows
                 let index = 1;
                 $('.user-row:visible').each(function() {
@@ -178,7 +221,7 @@
                 $('.user-row').show();
                 $('.role-card').removeClass('border-primary').css('box-shadow', '');
                 $(this).hide();
-                
+
                 // Re-number all rows
                 let index = 1;
                 $('.user-row').each(function() {
@@ -201,7 +244,7 @@
                 $('#pricingModal .modal-dialog').removeClass('modal-md');
                 $('#pricingModal .modal-dialog').addClass('modal-xl');
                 $.get(url, function(response) {
-                    setTimeout(function() { 
+                    setTimeout(function() {
                         $('#modalContent').html(response);
                     }, 1000);
                 });
@@ -248,6 +291,33 @@
                 };
                 $('#pricingModal .modal-dialog').removeClass('modal-xl');
                 $('#pricingModal .modal-dialog').addClass('modal-md');
+                $.post(url, data, function(response) {
+                    setTimeout(function() {
+                        $('#modalContent').html(response);
+                    }, 1000);
+                });
+            });
+
+            $(document).on("click", ".viewActivityLog", function(e) {
+                e.preventDefault();
+
+                var url = '{{ route('roles.getUserActivityLog', [$society, $conference]) }}';
+                var _token = '{{ csrf_token() }}';
+                var userId = $(this).data('user-id');
+
+                $('#modalContent').html(`
+        <div class="modal-body text-center">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+    `);
+                var data = {
+                    _token: _token,
+                    user_id: userId
+                };
+                $('#pricingModal .modal-dialog').removeClass('modal-md');
+                $('#pricingModal .modal-dialog').addClass('modal-xl');
                 $.post(url, data, function(response) {
                     setTimeout(function() {
                         $('#modalContent').html(response);

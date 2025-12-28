@@ -357,6 +357,7 @@ Route::middleware('auth')->group(function () {
         Route::resource('roles', RoleController::class);
         Route::post('/assign-role-form', [RoleController::class, 'assignRoleForm'])->name('assignRoleForm');
         Route::post('/assign-role-form-submit', [RoleController::class, 'assignRoleFormSubmit'])->name('assignRoleFormSubmit');
+        Route::post('/roles/get-user-activity-log', [RoleController::class, 'getUserActivityLog'])->name('roles.getUserActivityLog');
 
         //Activity log
         Route::get('/activity-log', [logActivityController::class, 'index'])->name('activity-log.index');

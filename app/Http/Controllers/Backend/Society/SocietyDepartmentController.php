@@ -15,7 +15,7 @@ class SocietyDepartmentController extends Controller
      */
     public function index($society)
     {
-        $departments = Department::where('status', 1)->get();
+        $departments = Department::where('status', 1)->orderBy('name', 'ASC')->get();
         $selectedDepartments = $society->departments()
             ->orderBy('society_department.display_order', 'asc')
             ->orderBy('society_department.department_id', 'asc')

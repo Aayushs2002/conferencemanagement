@@ -15,7 +15,7 @@ class SocietyDesignationController extends Controller
      */
     public function index($society)
     {
-        $designations = Designation::where('status', 1)->get();
+        $designations = Designation::where('status', 1)->orderBy('designation', 'ASC')->get();
         $selectedDesignations = $society->designations()
             ->orderBy('society_designation.display_order', 'asc')
             ->orderBy('society_designation.designation_id', 'asc')
