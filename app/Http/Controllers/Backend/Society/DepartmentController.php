@@ -13,7 +13,7 @@ class DepartmentController extends Controller
      */
     public function index()
     {
-        $departments = Department::whereStatus(1)->get();
+        $departments = Department::whereStatus(1)->orderBy('name', 'ASC')->get();
         return view('backend.users.department.index', compact('departments'));
     }
 
