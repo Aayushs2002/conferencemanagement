@@ -96,7 +96,6 @@
                                         ->first();
                                     $roleName = $role ? $role->name : 'User';
 
-                                    // Check if user has activity logs for this conference
                                     $hasActivityLogs = \App\Models\User\ActivityLog::where(
                                         'conference_id',
                                         $conference->id,
@@ -160,6 +159,13 @@
 
     <script>
         $(document).ready(function() {
+            // Store reference to DataTable
+            var table = null;
+            
+            // Wait for DataTable to be initialized
+            setTimeout(function() {
+                table = $('.datatables-basic').DataTable();
+            }, 500);
 
             // Filter users by role
             $(document).on("click", ".role-card", function(e) {
@@ -177,14 +183,12 @@
                 // If clicking the same card, toggle it off
                 if (currentlyActive) {
                     $('.role-card').removeClass('border-primary').css('box-shadow', '');
-                    $('.user-row').show();
                     $('#clearFilter').hide();
-
-                    // Re-number all rows
-                    let index = 1;
-                    $('.user-row').each(function() {
-                        $(this).find('th:first').text(index++);
-                    });
+                    
+                    // Clear DataTable search
+                    if (table) {
+                        table.search('').draw();
+                    }
                     return;
                 }
 
@@ -194,39 +198,33 @@
                 // Add active class to clicked card
                 $(this).addClass('border-primary').css('box-shadow', '0 0 0 2px rgba(115, 103, 240, 0.4)');
 
-                // Filter users
-                let visibleCount = 0;
-                $('.user-row').each(function() {
-                    const userRole = $(this).data('user-role');
-                    if (userRole === roleName) {
-                        $(this).show();
-                        visibleCount++;
-                    } else {
-                        $(this).hide();
-                    }
-                });
-
                 // Show clear filter button
                 $('#clearFilter').show();
-
-                // Re-number visible rows
-                let index = 1;
-                $('.user-row:visible').each(function() {
-                    $(this).find('th:first').text(index++);
-                });
+                
+                // Filter using DataTable API
+                if (table) {
+                    // Use custom search function
+                    $.fn.dataTable.ext.search.push(
+                        function(settings, data, dataIndex) {
+                            var role = $(table.row(dataIndex).node()).data('user-role');
+                            return role === roleName;
+                        }
+                    );
+                    table.draw();
+                    // Remove the search function after drawing
+                    $.fn.dataTable.ext.search.pop();
+                }
             });
 
             // Clear filter
             $(document).on("click", "#clearFilter", function() {
-                $('.user-row').show();
                 $('.role-card').removeClass('border-primary').css('box-shadow', '');
                 $(this).hide();
-
-                // Re-number all rows
-                let index = 1;
-                $('.user-row').each(function() {
-                    $(this).find('th:first').text(index++);
-                });
+                
+                // Clear DataTable search
+                if (table) {
+                    table.search('').draw();
+                }
             });
 
             $(document).on("click", ".add-new-role", function(e) {
