@@ -1315,7 +1315,7 @@ class ConferenceRegistrationController extends Controller
         if ($conferenceUserPassDesignation) {
             $designation = $conferenceUserPassDesignation->pass_designation;
         } else {
-            $designation = $conferenceMemberTypeNameTag->name_tag;
+            $designation = $conferenceMemberTypeNameTag?->name_tag; 
         }
         if (!$passSetting) {
             return redirect()->back()->with('delete', 'Please Create Pass Setting');
