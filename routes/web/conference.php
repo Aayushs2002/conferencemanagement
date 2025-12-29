@@ -84,7 +84,7 @@ Route::middleware('auth')->group(function () {
 
     Route::controller(ConferenceRegistrationController::class)->name('conference.conference-registration.')->middleware(['auto.conf.permission', 'feature:conference-registration-management'])->prefix('/society/{society}/conference/{conference}/conference-registration')->group(function () {
         Route::get('/registrant', 'index')->name('index');
-        Route::post('/view-data', 'show')->name('show');
+        Route::post('/view-data', 'show')->name('show'); 
         Route::get('/registrant/{registrant}/edit', 'edit')->name('edit');
         Route::put('/registrant/{registrant}', 'update')->name('update');
         Route::delete('/registrant/{registrant}/delete-voucher', 'deleteVoucher')->name('deleteVoucher');
@@ -357,6 +357,8 @@ Route::middleware('auth')->group(function () {
         Route::resource('roles', RoleController::class);
         Route::post('/assign-role-form', [RoleController::class, 'assignRoleForm'])->name('assignRoleForm');
         Route::post('/assign-role-form-submit', [RoleController::class, 'assignRoleFormSubmit'])->name('assignRoleFormSubmit');
+        Route::post('/remove-role-form', [RoleController::class, 'removeRoleForm'])->name('removeRoleForm');
+        Route::post('/remove-role-form-submit', [RoleController::class, 'removeRoleFormSubmit'])->name('removeRoleFormSubmit');
         Route::post('/roles/get-user-activity-log', [RoleController::class, 'getUserActivityLog'])->name('roles.getUserActivityLog');
 
         //Activity log

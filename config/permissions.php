@@ -199,6 +199,8 @@ return [
         'roles.update' => 'Edit Role',
         'assignRoleForm' => 'Assign Role',
         'assignRoleFormSubmit' => 'Assign Role',
+        'removeRoleForm' => 'Remove Role',
+        'removeRoleFormSubmit' => 'Remove Role',
 
         //Download Permission
         'download.index' => 'View Download',

@@ -90,11 +90,12 @@
                         <tbody>
                             @foreach ($users as $user)
                                 @php
-                                    $role = $user
+                                    $userRoles = $user
                                         ->conferenceRoles()
                                         ->wherePivot('conference_id', $conference->id)
-                                        ->first();
-                                    $roleName = $role ? $role->name : 'User';
+                                        ->get();
+                                    $roleNames = $userRoles->pluck('name')->toArray();
+                                    $roleDisplay = !empty($roleNames) ? implode(', ', $roleNames) : 'User';
 
                                     $hasActivityLogs = \App\Models\User\ActivityLog::where(
                                         'conference_id',
@@ -106,12 +107,18 @@
                                         ->exists();
                                 @endphp
 
-                                <tr class="user-row" data-user-role="{{ $roleName }}">
+                                <tr class="user-row" data-user-roles="{{ implode('|', $roleNames) }}">
                                     <th scope="row">{{ $loop->iteration }}</th>
                                     <td>{{ $user->fullName($user) }}</td>
                                     <td>{{ $user->email }}</td>
                                     <td>
-                                        {{ $roleName }}
+                                        @if(!empty($roleNames))
+                                            @foreach($roleNames as $roleName)
+                                                <span class="badge bg-label-primary me-1">{{ $roleName }}</span>
+                                            @endforeach
+                                        @else
+                                            <span class="badge bg-label-secondary">User</span>
+                                        @endif
                                     </td>
                                     <td>
                                         <div class="dropdown">
@@ -125,6 +132,12 @@
                                                         data-bs-toggle="modal" data-bs-target="#pricingModal"
                                                         data-id="{{ $user->id }}"><i
                                                             class="icon-base ti tabler-pencil me-1"></i>Assign Role</a>
+                                                @endif
+                                                @if (auth()->user()->hasConferencePermissionBlade($conference, 'Remove Role') && !empty($roleNames))
+                                                    <a class="dropdown-item removeRole"href="javascript:;"
+                                                        data-bs-toggle="modal" data-bs-target="#pricingModal"
+                                                        data-id="{{ $user->id }}"><i
+                                                            class="icon-base ti tabler-trash me-1"></i>Remove Role</a>
                                                 @endif
                                                 @if ($hasActivityLogs)
                                                     <a class="dropdown-item viewActivityLog" href="javascript:;"
@@ -206,8 +219,13 @@
                     // Use custom search function
                     $.fn.dataTable.ext.search.push(
                         function(settings, data, dataIndex) {
-                            var role = $(table.row(dataIndex).node()).data('user-role');
-                            return role === roleName;
+                            var roles = $(table.row(dataIndex).node()).data('user-roles');
+                            // Check if user has the role (could be multiple roles separated by |)
+                            if (roles) {
+                                var roleArray = roles.toString().split('|');
+                                return roleArray.includes(roleName);
+                            }
+                            return false;
                         }
                     );
                     table.draw();
@@ -316,6 +334,33 @@
                 };
                 $('#pricingModal .modal-dialog').removeClass('modal-md');
                 $('#pricingModal .modal-dialog').addClass('modal-xl');
+                $.post(url, data, function(response) {
+                    setTimeout(function() {
+                        $('#modalContent').html(response);
+                    }, 1000);
+                });
+            });
+
+            $(document).on("click", ".removeRole", function(e) {
+                e.preventDefault();
+
+                var url = '{{ route('removeRoleForm', [$society, $conference]) }}';
+                var _token = '{{ csrf_token() }}';
+                var id = $(this).data('id');
+
+                $('#modalContent').html(`
+        <div class="modal-body text-center">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+    `);
+                var data = {
+                    _token: _token,
+                    id: id
+                };
+                $('#pricingModal .modal-dialog').removeClass('modal-xl');
+                $('#pricingModal .modal-dialog').addClass('modal-md');
                 $.post(url, data, function(response) {
                     setTimeout(function() {
                         $('#modalContent').html(response);

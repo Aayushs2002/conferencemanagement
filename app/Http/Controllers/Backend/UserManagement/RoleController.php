@@ -226,17 +226,25 @@ class RoleController extends Controller
                 ->where('society_id', $society->id)
                 ->firstOrFail();
 
-            $user->assignRole($role->name);
-            
+            // Check if user already has this role for this conference
             $existingRole = $user->conferenceRoles()
                 ->wherePivot('role_id', $role->id)
                 ->wherePivot('conference_id', $conference->id)
                 ->exists();
 
-            if (! $existingRole) {
-                $user->conferenceRoles()->attach($role->id, ['conference_id' => $conference->id]);
+            if ($existingRole) {
+                throw new \Exception('User already has this role assigned for this conference.');
             }
 
+            // Assign role globally (for Spatie)
+            if (!$user->hasRole($role->name)) {
+                $user->assignRole($role->name);
+            }
+            
+            // Attach role for this specific conference
+            $user->conferenceRoles()->attach($role->id, ['conference_id' => $conference->id]);
+
+            // Add permissions for this conference
             foreach ($role->permissions as $permission) {
                 $exists = $user->conferencePermissions()
                     ->wherePivot('permission_id', $permission->id)
@@ -260,7 +268,7 @@ class RoleController extends Controller
             return response()->json([
                 'type' => 'error',
                 'message' => $e->getMessage(),
-            ]);
+            ], 422);
         }
     }
 
@@ -277,5 +285,89 @@ class RoleController extends Controller
             ->get();
         
         return view('backend.user-management.role.activity-log', compact('user', 'activityLogs', 'society', 'conference'));
+    }
+
+    public function removeRoleForm(Request $request, $society, $conference)
+    {
+        $user = User::where('id', $request->id)->first();
+        
+        // Get all roles assigned to this user for this conference
+        $userRoles = $user->conferenceRoles()
+            ->wherePivot('conference_id', $conference->id)
+            ->get();
+            
+        return view('backend.user-management.role.remove-role', compact('user', 'society', 'conference', 'userRoles'));
+    }
+
+    public function removeRoleFormSubmit(Request $request, $society, $conference)
+    {
+        DB::beginTransaction();
+
+        try {
+            $request->validate([
+                'id' => 'required|exists:users,id',
+                'role_id' => 'required|exists:roles,id',
+            ]);
+
+            $user = User::findOrFail($request->id);
+            $role = Role::findOrFail($request->role_id);
+
+            // Check if the user has this role for this conference
+            $hasRole = $user->conferenceRoles()
+                ->wherePivot('role_id', $role->id)
+                ->wherePivot('conference_id', $conference->id)
+                ->exists();
+
+            if (!$hasRole) {
+                throw new \Exception('User does not have this role for the selected conference.');
+            }
+
+            // Remove the role from conference_user_roles
+            DB::table('conference_user_roles')
+                ->where('user_id', $user->id)
+                ->where('role_id', $role->id)
+                ->where('conference_id', $conference->id)
+                ->delete();
+
+            // Get permissions that should be removed
+            // Only remove permissions that are not granted by other roles
+            $otherRoles = $user->conferenceRoles()
+                ->wherePivot('conference_id', $conference->id)
+                ->get();
+            
+            $permissionsToKeep = collect();
+            foreach ($otherRoles as $otherRole) {
+                $permissionsToKeep = $permissionsToKeep->merge($otherRole->permissions->pluck('id'));
+            }
+            $permissionsToKeep = $permissionsToKeep->unique();
+
+            // Get permissions from the role being removed
+            $rolePermissions = $role->permissions->pluck('id');
+
+            // Remove permissions that are not in other roles
+            $permissionsToRemove = $rolePermissions->diff($permissionsToKeep);
+
+            if ($permissionsToRemove->isNotEmpty()) {
+                DB::table('conference_user_permission')
+                    ->where('user_id', $user->id)
+                    ->where('conference_id', $conference->id)
+                    ->whereIn('permission_id', $permissionsToRemove->toArray())
+                    ->delete();
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'type' => 'success',
+                'message' => 'Role removed successfully.'
+            ]);
+        } catch (\Throwable $e) {
+            DB::rollBack();
+
+            return response()->json([
+                'type' => 'error',
+                'message' => $e->getMessage(),
+            ], 422);
+        }
     }
 }
