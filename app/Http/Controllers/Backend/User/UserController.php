@@ -92,31 +92,76 @@ class UserController extends Controller
         DB::beginTransaction();
 
         try {
-            $user->userDetail()->delete();
-            $user->institution()->delete();
-            $user->societies()->detach();
-
+            // 1. Delete submission related records
             $submissionIds = Submission::where('user_id', $user->id)->pluck('id');
-            Author::whereIn('submission_id', $submissionIds)->delete();
-            SubmissionDiscussion::whereIn('submission_id', $submissionIds)->delete();
-            SubmissionRating::whereIn('submission_id', $submissionIds)->delete();
-            Submission::whereIn('id', $submissionIds)->delete();
+            if ($submissionIds->isNotEmpty()) {
+                Author::whereIn('submission_id', $submissionIds)->delete();
+                SubmissionDiscussion::whereIn('submission_id', $submissionIds)->delete();
+                SubmissionRating::whereIn('submission_id', $submissionIds)->delete();
+                Submission::whereIn('id', $submissionIds)->delete();
+            }
 
+            // 2. Delete conference registration related records
             $registrationIds = ConferenceRegistration::where('user_id', $user->id)->pluck('id');
-            Attendance::whereIn('conference_id', $registrationIds)->delete();
-            Meal::whereIn('conference_id', $registrationIds)->delete();
-            ConferenceRegistration::whereIn('id', $registrationIds)->delete();
+            if ($registrationIds->isNotEmpty()) {
+                Attendance::whereIn('conference_registration_id', $registrationIds)->delete();
+                Meal::whereIn('conference_registration_id', $registrationIds)->delete();
+                ConferenceRegistration::whereIn('id', $registrationIds)->delete();
+            }
 
-            CommitteeMember::where('user_id', $user->id)->delete();
+            // 3. Delete workshop registrations
             WorkshopRegistration::where('user_id', $user->id)->delete();
 
+            // 4. Delete committee members
+            CommitteeMember::where('user_id', $user->id)->delete();
+
+            // 5. Delete experts
+            DB::table('experts')->where('user_id', $user->id)->delete();
+
+            // 6. Delete conference user pass designations
+            DB::table('conference_user_pass_designations')->where('user_id', $user->id)->delete();
+
+            // 7. Delete activity logs
+            DB::table('activity_logs')->where('user_id', $user->id)->delete();
+
+            // 8. Delete login history
+            DB::table('login_histories')->where('user_id', $user->id)->delete();
+
+            // 9. Delete workshop ratings
+            DB::table('workshop_ratings')->where('user_id', $user->id)->delete();
+
+            // 10. Delete international accommodations
+            DB::table('international_accommodations')->where('user_id', $user->id)->delete();
+
+            // 11. Delete conference user permissions
+            DB::table('conference_user_permission')->where('user_id', $user->id)->delete();
+
+            // 12. Delete conference user roles
+            DB::table('conference_user_roles')->where('user_id', $user->id)->delete();
+
+            // 13. Delete user societies (pivot table)
+            $user->societies()->detach();
+
+            // 14. Delete user details
+            $user->userDetail()->delete();
+
+            // 15. Delete user institutions
+            DB::table('user_institutions')->where('user_id', $user->id)->delete();
+
+            // 16. Delete user designations
+            DB::table('user_designations')->where('user_id', $user->id)->delete();
+
+            // 17. Delete user departments
+            DB::table('user_departments')->where('user_id', $user->id)->delete();
+
+            // 18. Finally, delete the user
             $user->delete();
 
             DB::commit();
             return redirect()->back()->with('status', 'User Successfully Deleted.');
         } catch (\Exception $e) {
             DB::rollBack();
-            return redirect()->back()->with('delete', 'Internal Server Error.');
+            return redirect()->back()->with('delete', 'Error: ' . $e->getMessage());
         }
     }
 }
