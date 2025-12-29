@@ -54,10 +54,14 @@
                                     <button type="button" class="btn p-0 dropdown-toggle hide-arrow"
                                         data-bs-toggle="dropdown">
                                         <i class="icon-base ti tabler-dots-vertical"></i>
-                                    </button>
+                                    </button> 
                                     <div class="dropdown-menu">
                                         <a class="dropdown-item" href="{{ route('institution.edit', $institution->id) }}"><i
                                                 class="icon-base ti tabler-pencil me-1"></i> Edit</a>
+                                        <a class="dropdown-item mergeInstitution" href="javascript:;" 
+                                            data-bs-toggle="modal" data-bs-target="#pricingModal"
+                                            data-id="{{ $institution->id }}"><i
+                                                class="icon-base ti tabler-arrows-join me-1"></i> Merge Institution</a>
                                     </div>
 
                                 </div>
@@ -76,4 +80,41 @@
             </div>
         </div>
     </div>
+@endsection
+@section('scripts')
+    <script>
+        $(document).ready(function() {
+            $.ajaxSetup({
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                }
+            });
+
+            $(document).on("click", ".mergeInstitution", function(e) {
+                e.preventDefault();
+                var url = '{{ route('institution.mergeForm') }}';
+                var _token = '{{ csrf_token() }}';
+                var id = $(this).data('id');
+
+                $('#modalContent').html(`
+                    <div class="modal-body text-center">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                `);
+                var data = {
+                    _token: _token,
+                    id: id
+                };
+                $('#pricingModal .modal-dialog').removeClass('modal-lg');
+                $('#pricingModal .modal-dialog').addClass('modal-md');
+                $.post(url, data, function(response) {
+                    setTimeout(function() {
+                        $('#modalContent').html(response);
+                    }, 1000);
+                });
+            });
+        });
+    </script>
 @endsection

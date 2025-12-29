@@ -67,6 +67,8 @@ Route::middleware('auth','check.subdomain')->group(function () {
 
     //name institution started
     Route::resource('/institution', InstitutionController::class)->middleware('check.superadmin')->except('show');
+    Route::post('/institution-merge-form', [InstitutionController::class, 'mergeForm'])->name('institution.mergeForm')->middleware('check.superadmin');
+    Route::post('/institution-merge-submit', [InstitutionController::class, 'mergeSubmit'])->name('institution.mergeSubmit')->middleware('check.superadmin');
     //name institution ended
 
     //name designation started

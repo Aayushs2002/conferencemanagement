@@ -17,7 +17,7 @@ class InstitutionController extends Controller
         return view('backend.users.institution.index', compact('institutions'));
     }
 
-    /**
+    /** 
      * Show the form for creating a new resource.
      */
     public function create()
@@ -80,6 +80,71 @@ class InstitutionController extends Controller
             return redirect()->route('institution.index')->with('status', 'Institution Deleted Successfully');
         } catch (\Throwable $th) {
             return redirect()->back()->with('delete', 'Internal Server Error');
+        }
+    }
+
+    /**
+     * Show the merge form
+     */
+    public function mergeForm(Request $request)
+    {
+        $institution = Institution::findOrFail($request->id);
+        
+        // Get all other active institutions except the current one
+        $institutions = Institution::where('status', 1)
+            ->where('id', '!=', $institution->id)
+            ->orderBy('name', 'ASC')
+            ->get();
+            
+        return view('backend.users.institution.merge-institution', compact('institution', 'institutions'));
+    }
+
+    /**
+     * Process the merge
+     */
+    public function mergeSubmit(Request $request)
+    {
+        try {
+            $validated = $request->validate([
+                'institution_id' => 'required|exists:institutions,id',
+                'second_institution_id' => 'required|exists:institutions,id|different:institution_id',
+            ], [
+                'second_institution_id.required' => 'Please select an institution to merge.',
+                'second_institution_id.different' => 'Cannot merge an institution with itself.',
+            ]);
+
+            $mainInstitution = Institution::findOrFail($request->institution_id);
+            $secondInstitution = Institution::findOrFail($request->second_institution_id);
+
+            \DB::beginTransaction();
+
+            // Update all user_details records to point to the main institution
+            \DB::table('user_details')
+                ->where('institution_id', $secondInstitution->id)
+                ->update(['institution_id' => $mainInstitution->id]);
+
+            // Delete the second institution
+            $secondInstitution->delete();
+
+            \DB::commit();
+
+            return response()->json([
+                'type' => 'success',
+                'message' => 'Institution merged successfully. All users have been transferred to ' . $mainInstitution->name
+            ]);
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'type' => 'error',
+                'message' => 'Validation failed',
+                'errors' => $e->errors()
+            ], 422);
+        } catch (\Exception $e) {
+            \DB::rollBack();
+            return response()->json([
+                'type' => 'error',
+                'message' => 'Error: ' . $e->getMessage()
+            ], 500);
         }
     }
 }

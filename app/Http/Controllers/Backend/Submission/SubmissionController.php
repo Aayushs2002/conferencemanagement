@@ -232,7 +232,7 @@ class SubmissionController extends Controller
                 $rules['abstract_content'] = 'required';
             }
 
-            $validated = $request->validate($rules);
+            $validated = $request->validate($rules); 
 
             if ($validated) {
                 // Check if expert is the main submitter

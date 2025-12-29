@@ -5,6 +5,17 @@
 @endsection
 
 @section('content')
+    <style>
+        .submission-container {
+            font-family: 'Times New Roman', Times, serif;
+        }
+        .submission-container .abstract-content,
+        .submission-container .section-content {
+            text-align: justify;
+            text-justify: inter-word;
+        }
+    </style>
+    
     <div class="card border my-4 container">
         <h5 class="pt-3">Filter By:</h5>
         <form method="GET" action="{{ route('submission.viewSubmissions', [$society, $conference]) }}" id="filterForm">
@@ -88,7 +99,7 @@
         </form>
     </div>
 
-    <div class="container">
+    <div class="container submission-container">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h2>Submissions ({{ $submissions->count() }})</h2>
             <button class="btn btn-success" id="copy-all-btn">
@@ -217,12 +228,12 @@
                                 <h4 style="font-size: 20px; font-weight: 800" class="mb-3">
                                     {{ $section['name'] ?? 'Section ' . ($index + 1) }}
                                 </h4>
-                                <div class="mb-4">{!! $section['content'] ?? 'No content' !!}</div>
+                                <div class="mb-4 section-content">{!! $section['content'] ?? 'No content' !!}</div>
                             @endforeach
                         @else
                             {{-- Display abstract content --}}
                             <h4 style="font-size: 20px; font-weight: 800" class="mb-3">Abstract</h4>
-                            <div class="mb-4">{!! $submission->abstract_content !!}</div>
+                            <div class="mb-4 abstract-content">{!! $submission->abstract_content !!}</div>
                         @endif
 
                         <p class="mb-0">
