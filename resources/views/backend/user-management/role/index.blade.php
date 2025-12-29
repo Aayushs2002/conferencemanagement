@@ -17,8 +17,8 @@
                     <div class="card role-card" data-role-name="{{ $role->name }}" style="cursor: pointer;">
                         <div class="card-body">
                             <div class="d-flex justify-content-between align-items-center mb-4">
-                                <h6 class="fw-normal mb-0 text-body">Total {{ $roleCounts[$role->id] ?? 0 }}
-                                    {{ Str::plural('user', $roleCounts[$role->id] ?? 0) }}</h6>
+                                <span class="fw-normal mb-0 text-body badge text-white"><span class="text-white">Total {{ $roleCounts[$role->id] ?? 0 }}
+                                    {{ Str::plural('user', $roleCounts[$role->id] ?? 0) }}</span></span>
                             </div>
                             <div class="d-flex justify-content-between align-items-end">
                                 <div class="role-heading">
@@ -83,6 +83,7 @@
                                 <th>#</th>
                                 <th>User</th>
                                 <th>Email</th>
+                                <th>Council Number</th>
                                 <th>Role</th>
                                 <th>Action</th>
                             </tr>
@@ -111,6 +112,7 @@
                                     <th scope="row">{{ $loop->iteration }}</th>
                                     <td>{{ $user->fullName($user) }}</td>
                                     <td>{{ $user->email }}</td>
+                                    <td>{{ $user->userDetail?->council_number ?? '-' }}</td>
                                     <td>
                                         @if(!empty($roleNames))
                                             @foreach($roleNames as $roleName)
