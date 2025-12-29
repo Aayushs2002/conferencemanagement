@@ -43,6 +43,7 @@
                         <th>SN</th>
                         <th>Name</th>
                         <th>Email</th>
+                        <th>Council Number</th>
                         <th>Has Registered Conference</th>
                         <th>Number of Workshops Registration</th>
                         <th>Number of Submission</th>
@@ -60,6 +61,7 @@
                             <th scope="row">{{ $loop->iteration }}</th>
                             <td>{{$user->userDetail->namePrefix->prefix .' '. $user->fullName($user) }}</td>
                             <td>{{ $user->email }}</td>
+                            <td>{{ $user->userDetail?->council_number ?? '-' }}</td>
                             <td>
                                 @if (!empty($user->conferenceRegistration->where('conference_id', $conference->id)->first()))
                                     <span class="badge bg-success" style="font-size: 10px;">Registered</span>
