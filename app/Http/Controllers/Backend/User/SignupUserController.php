@@ -296,41 +296,166 @@ class SignupUserController extends Controller
             $mainUser = User::findOrFail($request->user_id);
             $secondUser = User::findOrFail($request->second_user_id);
 
-            $conferenceId = $conference->id;
-            ConferenceRegistration::where('user_id', $secondUser->id)
-                ->where('conference_id', $conferenceId)
-                ->update(['user_id' => $mainUser->id]);
-
-
-            Submission::where('user_id', $secondUser->id)
-                ->where('conference_id', $conferenceId)
-                ->update(['user_id' => $mainUser->id]);
-
-
-            $conferenceWorkshopIds = Workshop::where('conference_id', $conferenceId)
-                ->pluck('id')
-                ->toArray();
-
-            $secondUserWorkshops = WorkshopRegistration::where('user_id', $secondUser->id)
-                ->whereIn('workshop_id', $conferenceWorkshopIds)
-                ->get();
-
-            foreach ($secondUserWorkshops as $registration) {
-                $alreadyRegistered = WorkshopRegistration::where('user_id', $mainUser->id)
-                    ->where('workshop_id', $registration->workshop_id)
-                    ->exists();
-
-                if (!$alreadyRegistered) {
-                    $registration->user_id = $mainUser->id;
-                    $registration->save();
-                } else {
-                    $registration->delete();
-                }
+            // Prevent merging a user with itself
+            if ($mainUser->id === $secondUser->id) {
+                throw new \Exception('Cannot merge a user with itself.');
             }
 
-            $message = 'User Merged Successfully';
+            DB::beginTransaction();
+
+            // 1. Merge Conference Registrations (avoid duplicates)
+            DB::table('conference_registrations')
+                ->where('user_id', $secondUser->id)
+                ->whereNotIn('conference_id', function($query) use ($mainUser) {
+                    $query->select('conference_id')
+                        ->from('conference_registrations')
+                        ->where('user_id', $mainUser->id);
+                })
+                ->update(['user_id' => $mainUser->id]);
+            
+            DB::table('conference_registrations')->where('user_id', $secondUser->id)->delete();
+
+            // 2. Merge Submissions
+            DB::table('submissions')
+                ->where('user_id', $secondUser->id)
+                ->update(['user_id' => $mainUser->id]);
+
+            // 3. Merge Workshop Registrations (avoid duplicates)
+            DB::table('workshop_registrations')
+                ->where('user_id', $secondUser->id)
+                ->whereNotIn('workshop_id', function($query) use ($mainUser) {
+                    $query->select('workshop_id')
+                        ->from('workshop_registrations')
+                        ->where('user_id', $mainUser->id);
+                })
+                ->update(['user_id' => $mainUser->id]);
+            
+            DB::table('workshop_registrations')->where('user_id', $secondUser->id)->delete();
+
+            // 4. Merge Experts (avoid duplicates)
+            DB::table('experts')
+                ->where('user_id', $secondUser->id)
+                ->whereNotIn('conference_id', function($query) use ($mainUser) {
+                    $query->select('conference_id')
+                        ->from('experts')
+                        ->where('user_id', $mainUser->id);
+                })
+                ->update(['user_id' => $mainUser->id]);
+            
+            DB::table('experts')->where('user_id', $secondUser->id)->delete();
+
+            // 5. Merge Conference User Pass Designations (avoid duplicates)
+            DB::table('conference_user_pass_designations')
+                ->where('user_id', $secondUser->id)
+                ->whereNotIn('conference_id', function($query) use ($mainUser) {
+                    $query->select('conference_id')
+                        ->from('conference_user_pass_designations')
+                        ->where('user_id', $mainUser->id);
+                })
+                ->update(['user_id' => $mainUser->id]);
+            
+            DB::table('conference_user_pass_designations')->where('user_id', $secondUser->id)->delete();
+
+            // 6. Merge Activity Logs
+            DB::table('activity_logs')
+                ->where('user_id', $secondUser->id)
+                ->update(['user_id' => $mainUser->id]);
+
+            // 7. Merge Login History
+            DB::table('login_histories')
+                ->where('user_id', $secondUser->id)
+                ->update(['user_id' => $mainUser->id]);
+
+            // 8. Merge Workshop Ratings (avoid duplicates)
+            DB::table('workshop_ratings')
+                ->where('user_id', $secondUser->id)
+                ->whereNotIn('workshop_id', function($query) use ($mainUser) {
+                    $query->select('workshop_id')
+                        ->from('workshop_ratings')
+                        ->where('user_id', $mainUser->id);
+                })
+                ->update(['user_id' => $mainUser->id]);
+            
+            DB::table('workshop_ratings')->where('user_id', $secondUser->id)->delete();
+
+            // 9. Merge International Accommodations
+            DB::table('international_accommodations')
+                ->where('user_id', $secondUser->id)
+                ->update(['user_id' => $mainUser->id]);
+
+            // 10. Merge Conference User Permissions (avoid duplicates)
+            DB::table('conference_user_permission')
+                ->where('user_id', $secondUser->id)
+                ->whereNotExists(function($query) use ($mainUser) {
+                    $query->select(DB::raw(1))
+                        ->from('conference_user_permission as cup2')
+                        ->whereColumn('cup2.conference_id', 'conference_user_permission.conference_id')
+                        ->whereColumn('cup2.permission_id', 'conference_user_permission.permission_id')
+                        ->where('cup2.user_id', $mainUser->id);
+                })
+                ->update(['user_id' => $mainUser->id]);
+            
+            DB::table('conference_user_permission')->where('user_id', $secondUser->id)->delete();
+
+            // 11. Merge Conference User Roles (avoid duplicates)
+            DB::table('conference_user_roles')
+                ->where('user_id', $secondUser->id)
+                ->whereNotExists(function($query) use ($mainUser) {
+                    $query->select(DB::raw(1))
+                        ->from('conference_user_roles as cur2')
+                        ->whereColumn('cur2.conference_id', 'conference_user_roles.conference_id')
+                        ->whereColumn('cur2.role_id', 'conference_user_roles.role_id')
+                        ->where('cur2.user_id', $mainUser->id);
+                })
+                ->update(['user_id' => $mainUser->id]);
+            
+            DB::table('conference_user_roles')->where('user_id', $secondUser->id)->delete();
+
+            // 12. Merge User Societies (avoid duplicates)
+            DB::table('user_societies')
+                ->where('user_id', $secondUser->id)
+                ->whereNotIn('society_id', function($query) use ($mainUser) {
+                    $query->select('society_id')
+                        ->from('user_societies')
+                        ->where('user_id', $mainUser->id);
+                })
+                ->update(['user_id' => $mainUser->id]);
+            
+            DB::table('user_societies')->where('user_id', $secondUser->id)->delete();
+
+            // 13. Merge Committee Members
+            DB::table('committee_members')
+                ->where('user_id', $secondUser->id)
+                ->update(['user_id' => $mainUser->id]);
+
+            // 14. Delete User Details of second user
+            DB::table('user_details')->where('user_id', $secondUser->id)->delete();
+
+            // 15. Delete User Institutions
+            DB::table('user_institutions')->where('user_id', $secondUser->id)->delete();
+
+            // 16. Delete User Designations
+            DB::table('user_designations')->where('user_id', $secondUser->id)->delete();
+
+            // 17. Delete User Departments
+            DB::table('user_departments')->where('user_id', $secondUser->id)->delete();
+
+            // 18. Finally, delete the second user
+            $secondUser->delete();
+
+            DB::commit();
+
+            // Log the merge activity
+            logActivity(
+                $conference->id,
+                'User Merged',
+                'User ' . $secondUser->email . ' (ID: ' . $secondUser->id . ') merged into ' . $mainUser->email . ' (ID: ' . $mainUser->id . ')'
+            );
+
+            $message = 'User merged successfully. All data has been transferred and the duplicate user has been deleted.';
             $type = 'success';
         } catch (\Exception $e) {
+            DB::rollBack();
             $type = 'error';
             $message = $e->getMessage();
         }

@@ -16,27 +16,27 @@
                     <select name="second_user_id" class="form-control select2" id="second_user_id" required>
                         <option value="" hidden>-- Select User --</option>
                         @foreach ($users->where('id', '!=', $user->id) as $otherUser)
-<option value="{{ $otherUser->id }}">
-                                {{ $otherUser->fullName($otherUser) }}
+                            <option value="{{ $otherUser->id }}">
+                                {{ $otherUser->fullName($otherUser)." (" . $otherUser->email . ")" }}
                             </option>
-@endforeach
+                        @endforeach
                     </select>
                     @error('second_user_id')
-<p class="text-danger">{{ $message }}</p>
-@enderror
-            </div>
+                        <p class="text-danger">{{ $message }}</p>
+                    @enderror
+                </div>
 
-            <div class="col-md-12 text-end">
-                <button type="submit" id="mergeUser" class="btn btn-primary">Submit</button>
-            </div>
+        <div class="col-md-12 text-end">
+            <button type="submit" id="mergeUser" class="btn btn-primary">Submit</button>
         </div>
-    </form>
-</div>
+    </div>
+</form>
+    </div>
 </div>
 
 {{-- JS --}}
 <script>
-   $('#second_user_id').select2({
+    $('#second_user_id').select2({
         dropdownParent: $('#pricingModal')
     });
 

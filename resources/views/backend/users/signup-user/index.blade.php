@@ -5,7 +5,7 @@
 @endsection
 @section('content')
     <div class="card">
-        <div class="card-datatable table-responsive pt-0">
+        <div class="card-datatable table-responsive pt-0"> 
             <div class="row card-header flex-column flex-md-row border-bottom mx-0 px-3">
                 <div class="d-md-flex justify-content-between align-items-center dt-layout-start col-md-auto me-auto mt-0">
                     <h5 class="card-title mb-0 text-md-start text-center pb-md-0 pb-6"> Signed Up Users</h5>
