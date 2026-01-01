@@ -48,7 +48,7 @@
                                    method="POST" id="registrationForm" enctype="multipart/form-data">
                                    @csrf
                                    @isset($conference_registration)
-                                       @method('patch')
+                                       @method('patch') 
                                    @endisset
                                    <input type="hidden" name="registrant_type" {{-- value="{{ $onlinePayment['registrant_type'] }}" --}} value="1">
                                    <input type="hidden" name="accompany_person"

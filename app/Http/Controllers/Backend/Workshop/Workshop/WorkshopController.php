@@ -38,7 +38,7 @@ class WorkshopController extends Controller
      */
     public function create($society, $conference)
     {
-
+ 
 
         $society = Society::with(['users' => function ($query) {
             $query->where('type', 3)->orderByDesc('id');
@@ -119,6 +119,7 @@ class WorkshopController extends Controller
                 return redirect()->route('workshop.index', [$society, $conference])->with('status', 'Workshop application submitted successfully! It will be reviewed by the admin.');
             }
         } catch (\Throwable $th) {
+            dd($th->getMessage());
             DB::rollBack();
             return redirect()->back()->withInput()->with('delete', 'Internal Server Error: ' . $th->getMessage());
         }
