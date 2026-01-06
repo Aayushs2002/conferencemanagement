@@ -76,6 +76,9 @@
                         <option {{ request()->payment_type == 6 ? 'selected' : '' }} value="6">
                             Voucher Payment
                         </option>
+                        <option {{ request()->payment_type == 7 ? 'selected' : '' }} value="7">
+                            ConnectIPS
+                        </option>
                     </select>
                 </div>
                 <div class="col-md-2 form-group mb-3">
@@ -236,6 +239,14 @@
                                             target="_blank"><img
                                                 src="{{ asset('storage/conference/payment-voucher/' . $registrant->payment_voucher) }}"
                                                 alt="voucher" height="50" width="40"></a>
+                                    @endif
+                                @elseif($registrant->payment_type == 7)
+                                    ConnectIPS
+                                   @if (!empty($registrant->payment_voucher))
+                                        <br><a href="{{ asset('storage/conference/payment-voucher/' . $registrant->payment_voucher) }}"
+                                            target="_blank" class="btn btn-sm btn-primary mt-1">
+                                            <i class="icon-base ti tabler-eye icon-xs"></i> View
+                                        </a>
                                     @endif
                                 @else
                                     Payment Voucher

@@ -12,7 +12,7 @@
         .registration-card:hover {
             transform: translateY(-2px);
             box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
-        }
+        } 
 
         .step-indicator {
             display: flex;
@@ -721,6 +721,34 @@
                                         </div>
                                     </div>
                                 @endif
+
+                                @if ($national_payemnt_setting?->connectips_merchant_id)
+                                    <div class="col-md-3 mb-3">
+                                        <label class="card payment-method-card w-100" for="connectipsRadio"
+                                            style="cursor:pointer;">
+                                            <div class="card-body text-center">
+                                                <h5 class="text-primary">🔐 ConnectIPS</h5>
+                                                <img src="{{ asset('default-image/connectips-logo.png') }}"
+                                                    class="img-fluid mb-2" style="max-height: 60px;"
+                                                    onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+                                                <div style="display:none; font-size: 24px; margin: 10px 0;">💳</div>
+                                                <div class="form-check mt-3 d-flex justify-content-center">
+                                                    <input class="form-check-input" type="radio" name="paymentMode"
+                                                        value="connectips" id="connectipsRadio">
+                                                    <label class="form-check-label fw-bold ms-2" for="connectipsRadio">
+                                                        Select
+                                                    </label>
+                                                </div>
+                                                <small class="text-muted d-block mt-2">
+                                                    <a href="#" data-bs-toggle="modal" data-bs-target="#connectipsUrlModal" 
+                                                        class="text-info" onclick="event.stopPropagation();">
+                                                        <i class="fas fa-info-circle"></i> View Setup URLs
+                                                    </a>
+                                                </small>
+                                            </div>
+                                        </label>
+                                    </div>
+                                @endif
                             @endif
                         </div>
 
@@ -893,6 +921,36 @@
                                                 </div>
                                             @endif
 
+                                            <!-- ConnectIPS Form -->
+                                            @if (current_user()->userDetail->country_id == 125)
+                                                <div class="connectipsProcessingDiv" style="display: none;">
+                                                    <form
+                                                        action="{{ route('my-society.conference.connectips', [$society, $conference]) }}"
+                                                        method="POST" id="connectipsForm">
+                                                        @csrf
+                                                        <input type="hidden" name="registrant_type"
+                                                            id="registrant_type_connectips">
+                                                        <input type="hidden" name="accompany_person"
+                                                            id="accompany_person_connectips">
+                                                        <input type="hidden" name="selected_workshops"
+                                                            id="selected_workshops_connectips">
+                                                        <input type="hidden" name="workshop_amount"
+                                                            id="workshop_amount_connectips">
+                                                        <input type="hidden" name="payment_type" value="7">
+                                                        <input type="hidden" name="amount" class="amount"
+                                                            id="connectipsAmount">
+                                                        <input type="hidden" name="selected_addons"
+                                                            id="selected_addons_connectips">
+                                                        <div class="d-grid d-flex justify-content-center">
+                                                            <button type="submit" id="submitConnectIPS"
+                                                                class="btn btn-primary btn-lg" disabled>
+                                                                <i class="fas fa-lock"></i> Pay with ConnectIPS
+                                                            </button>
+                                                        </div>
+                                                    </form>
+                                                </div>
+                                            @endif
+
                                             <!-- International Payment Form -->
                                             @if (current_user()->userDetail->country_id != 125)
                                                 <div class="dollarCardProcessingDiv" style="display: none;">
@@ -912,6 +970,7 @@
                                                             id="internationalAmount">
                                                         <input type="hidden" name="selected_addons"
                                                             id="selected_addons_international">
+                                                            
 
                                                         <div class="d-grid d-flex justify-content-center">
                                                             <button type="submit" id="submitButtonInternationalPayment"
@@ -1032,10 +1091,80 @@
             </div>
         </div>
     </div>
+
+    <!-- ConnectIPS URL Information Modal -->
+    <div class="modal fade" id="connectipsUrlModal" tabindex="-1" aria-labelledby="connectipsUrlModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content registration-card">
+                <div class="modal-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+                    <h5 class="modal-title" id="connectipsUrlModalLabel">
+                        <i class="fas fa-link"></i> ConnectIPS Integration URLs
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i> 
+                        <strong>Important:</strong> Please provide these URLs to ConnectIPS technical team for integration setup.
+                    </div>
+
+                    <div class="card mb-3">
+                        <div class="card-header bg-success text-white">
+                            <i class="fas fa-check-circle"></i> Success URL (Return URL)
+                        </div>
+                        <div class="card-body">
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="connectipsSuccessUrl" 
+                                    value="{{ route('my-society.conference.connectipsSuccess', [$society, $conference]) }}" 
+                                    readonly>
+                                <button class="btn btn-outline-primary" type="button" onclick="copyToClipboard('connectipsSuccessUrl')">
+                                    <i class="fas fa-copy"></i> Copy
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card mb-3">
+                        <div class="card-header bg-danger text-white">
+                            <i class="fas fa-times-circle"></i> Failure URL
+                        </div>
+                        <div class="card-body">
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="connectipsFailureUrl" 
+                                    value="{{ route('my-society.conference.connectipsFailure', [$society, $conference]) }}" 
+                                    readonly>
+                                <button class="btn btn-outline-primary" type="button" onclick="copyToClipboard('connectipsFailureUrl')">
+                                    <i class="fas fa-copy"></i> Copy
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="alert alert-warning mt-3">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <strong>Note:</strong> ConnectIPS must whitelist these URLs before payment processing will work.
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
 @endsection
 
 @section('scripts')
     <script>
+        // Copy to clipboard function
+        function copyToClipboard(elementId) {
+            const input = document.getElementById(elementId);
+            input.select();
+            input.setSelectionRange(0, 99999);
+            document.execCommand('copy');
+            
+            notyf.success('URL copied to clipboard!');
+        }
+
         $(document).ready(function() {
             // Global variables
             let totalPrice = 0;
@@ -1060,6 +1189,7 @@
                 $("#submitEsewa").prop('disabled', false).html('<i class="fas fa-wallet"></i> Pay with eSewa');
                 $("#submitKhalti").prop('disabled', false).html('<i class="fas fa-wallet"></i> Pay with Khalti');
                 $("#submitMoco").prop('disabled', false).html('<i class="fas fa-qrcode"></i> Pay with MoCo');
+                $("#submitConnectIPS").prop('disabled', false).html('<i class="fas fa-lock"></i> Pay with ConnectIPS');
                 $("#submitButtonInternationalPayment").prop('disabled', false).html(
                     '<i class="fas fa-credit-card"></i> Proceed to Payment');
                 $("#submitButtonBankTransfer").prop('disabled', false).html(
@@ -1659,7 +1789,7 @@
                 $("#processingDiv").fadeIn();
 
                 // Hide all processing divs
-                $(".fonePayProcessingDiv, .dollarCardProcessingDiv, .mocoProcessingDiv, .esewaProcessingDiv, .khaltiProcessingDiv, .bankTransferProcessingDiv")
+                $(".fonePayProcessingDiv, .dollarCardProcessingDiv, .mocoProcessingDiv, .esewaProcessingDiv, .khaltiProcessingDiv, .connectipsProcessingDiv, .bankTransferProcessingDiv")
                     .hide();
 
                 // Update all hidden fields with current values
@@ -1675,7 +1805,7 @@
             // Function to enable payment buttons based on method
             function enablePaymentButton(selectedValue, delegate, checkCountry) {
                 // Disable all payment buttons first
-                $("#submitFonePay, #submitEsewa, #submitKhalti, #submitMoco, #submitButtonInternationalPayment, #submitButtonBankTransfer")
+                $("#submitFonePay, #submitEsewa, #submitKhalti, #submitMoco, #submitConnectIPS, #submitButtonInternationalPayment, #submitButtonBankTransfer")
                     .attr('disabled', true);
 
                 if (selectedValue == "fonePay") {
@@ -1693,6 +1823,8 @@
                     $("#submitEsewa").attr('disabled', false);
                 } else if (selectedValue == "khalti") {
                     $("#submitKhalti").attr('disabled', false);
+                } else if (selectedValue == "connectips") {
+                    $("#submitConnectIPS").attr('disabled', false);
                 } else if (selectedValue == "bankTransfer") {
                     $("#submitButtonBankTransfer").attr('disabled', false);
                 }
@@ -1813,7 +1945,7 @@
                 $("#bankTranferForm").submit();
             });
 
-            $("#submitFonePay, #submitEsewa, #submitKhalti").click(function(e) {
+            $("#submitFonePay, #submitEsewa, #submitKhalti, #submitConnectIPS").click(function(e) {
                 if (!isPriceCalculated) {
                     e.preventDefault();
                     notyf.error('Please calculate the price first.');

@@ -21,3 +21,6 @@ yarn-error.log
 /.nova
 /.vscode
 /.zed
+/storage/certificates/*.pfx
+/storage/certificates/*.pem
+/storage/certificates/CREDITOR.*

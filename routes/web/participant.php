@@ -53,6 +53,11 @@ Route::middleware('auth')->group(function () {
         Route::post('/khalti', 'khalti')->name('khalti');
         Route::get('/khalti/success', 'khaltiSuccess')->name('khaltiSuccess');
 
+        //ConnectIPS Route
+        Route::post('/connectips', 'connectips')->name('connectips');
+        Route::match(['get', 'post'], '/connectips/success', 'connectipsSuccess')->name('connectipsSuccess');
+        Route::match(['get', 'post'], '/connectips/failure', 'connectipsFailure')->name('connectipsFailure');
+
         //Himalayan Bank Payment
         Route::post('/international-payment', 'internationalPayment')->name('internationalPayment');
         Route::get('/international-payment-result/success-process', 'internationalPaymentResultSuccessProcess')->name('internationalPaymentResultSuccessProcess');

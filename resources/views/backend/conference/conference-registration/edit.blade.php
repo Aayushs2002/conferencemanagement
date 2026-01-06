@@ -256,6 +256,7 @@
                                 <option value="4" @selected(old('payment_type', $registrant->payment_type) == 4)>Khalti</option>
                                 <option value="5" @selected(old('payment_type', $registrant->payment_type) == 5)>Card Payment</option>
                                 <option value="6" @selected(old('payment_type', $registrant->payment_type) == 6)>Voucher Payment</option>
+                                <option value="7" @selected(old('payment_type', $registrant->payment_type) == 7)>ConnectIPS</option>
                             </select>
                             @error('payment_type')
                                 <p class="text-danger">{{ $message }}</p>
