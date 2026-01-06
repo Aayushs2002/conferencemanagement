@@ -17,7 +17,12 @@ class NationalPayment extends Model
         'esewa_secret_key',
         'esewa_product_code',
         'khalti_live_secret_key',
+        'connectips_merchant_id',
+        'connectips_app_id',
+        'connectips_app_name',
+        'connectips_password',
         'account_detail',
+        'payment_type',
         'status'
     ];
 }

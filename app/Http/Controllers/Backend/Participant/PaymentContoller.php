@@ -9,11 +9,13 @@ use App\Models\Payment\InternationalPayment;
 use App\Models\Payment\NationalPayment;
 use App\Models\Workshop\Workshop;
 use App\Services\HBL\Api\Payment;
+use App\Services\ConnectIPSService;
 use Exception;
 use GuzzleHttp\Exception\GuzzleException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Svg\Tag\Rect;
 
 class PaymentContoller extends Controller
@@ -344,6 +346,271 @@ class PaymentContoller extends Controller
         return view('backend.participant.conference-registration.payment-success', compact('transactionId', 'amount', 'society', 'conference'));
     }
 
+
+    public function connectips(Request $request, $society, $conference)
+    {
+        if (is_past($conference->regular_registration_deadline)) {
+            return redirect()->back()->with('delete', 'Conference Registration date has ended.');
+        }
+
+        try {
+            // Store payment data in session
+            session(['onlinePayment' => $request->all()]);
+            // dd($request->all());
+            // Initialize ConnectIPS Service
+            $connectIPSService = new ConnectIPSService($society);
+
+            // Generate unique transaction ID and reference ID
+            $txnId = 'CONF-' . $conference->id . '-' . time();
+            $referenceId = 'REF-' . time() . '-' . rand(1000, 9999);
+            $txnDate = date('d-m-Y');
+            $amount = $request->amount;
+
+            // Prepare payment data
+            $paymentData = [
+                'txnId' => $txnId,
+                'txnDate' => $txnDate,
+                'txnAmt' => $amount,
+                'referenceId' => $referenceId,
+                'remarks' => 'Conference Registration: ' . substr($conference->conference_name, 0, 50),
+                'particulars' => 'Registration for ' . current_user()->fullName(current_user()),
+            ];
+
+            // Get prepared form data with token
+            $formData = $connectIPSService->preparePaymentData($paymentData);
+
+            // Store transaction details in session for validation
+            session([
+                'connectips_reference_id' => $referenceId,
+                'connectips_txn_id' => $txnId,
+                'connectips_amount' => $amount,
+            ]);
+
+            Log::info('ConnectIPS Conference Payment Initiated', [
+                'conference_id' => $conference->id,
+                'user_id' => current_user()->id,
+                'txn_id' => $txnId,
+                'reference_id' => $referenceId,
+                'amount' => $amount,
+            ]);
+
+            // Return view with auto-submit form
+            return view('backend.participant.conference-registration.connectips-redirect', [
+                'formData' => $formData,
+                'conference' => $conference,
+            ]);
+
+        } catch (Exception $e) {
+            Log::error('ConnectIPS Conference Payment Failed: ' . $e->getMessage(), [
+                'conference_id' => $conference->id,
+                'user_id' => current_user()->id,
+                'error' => $e->getMessage(),
+            ]);
+            
+            return redirect()->back()->with('delete', 'Failed to initiate ConnectIPS payment: ' . $e->getMessage());
+        }
+    }
+
+    public function connectipsSuccess(Request $request, $society, $conference)
+    {
+        try {
+            // Get transaction data from callback
+            $txnId = $request->input('TXNID');
+            $status = $request->input('STATUS');
+            $message = $request->input('MESSAGE');
+            
+            Log::info('ConnectIPS Success Callback', [
+                'txn_id' => $txnId,
+                'status' => $status,
+                'message' => $message,
+                'all_params' => $request->all(),
+            ]);
+
+            // Get stored data from session
+            $storedTxnId = session('connectips_txn_id');
+            $referenceId = session('connectips_reference_id');
+            $amount = session('connectips_amount');
+            
+            Log::info('ConnectIPS Session Data', [
+                'stored_txn_id' => $storedTxnId,
+                'reference_id' => $referenceId,
+                'amount' => $amount,
+            ]);
+
+            // If callback TXNID exists, use it for validation
+            $validationTxnId = !empty($txnId) ? $txnId : $storedTxnId;
+            
+            if (!$validationTxnId) {
+                throw new Exception('Transaction ID not found in callback or session');
+            }
+
+            if (!$referenceId || !$amount) {
+                throw new Exception('Transaction data not found in session. Please try again.');
+            }
+
+            // If status is already provided and successful, proceed without validation
+            if (!empty($status) && (strtoupper($status) === 'SUCCESS' || strtoupper($status) === 'COMPLETED')) {
+                Log::info('ConnectIPS Payment Successful from Callback Status', [
+                    'txn_id' => $validationTxnId,
+                    'reference_id' => $referenceId,
+                    'amount' => $amount,
+                    'status' => $status,
+                ]);
+
+                // Clear session data
+                session()->forget(['connectips_txn_id', 'connectips_reference_id', 'connectips_amount']);
+
+                // Get payment settings for success page
+                $national_payemnt_setting = NationalPayment::where('society_id', $conference->society_id)->first();
+                $international_payemnt_setting = InternationalPayment::where('society_id', $conference->society_id)->first();
+
+                // Use ConnectIPS transaction ID
+                $transactionId = $validationTxnId;
+
+                return view('backend.participant.conference-registration.payment-success', 
+                    compact('transactionId', 'amount', 'society', 'conference', 'national_payemnt_setting', 'international_payemnt_setting'));
+            }
+
+            // Initialize ConnectIPS Service for validation
+            $connectIPSService = new ConnectIPSService($society);
+
+            // Add a small delay to allow ConnectIPS to process the transaction
+            sleep(2);
+
+            // Try validation with retry mechanism
+            $maxRetries = 3;
+            $retryDelay = 2; // seconds
+            $validationResponse = null;
+            $validationSuccess = false;
+
+            for ($i = 0; $i < $maxRetries; $i++) {
+                try {
+                    Log::info("ConnectIPS Validation Attempt " . ($i + 1), [
+                        'txn_id' => $validationTxnId,
+                        'reference_id' => $referenceId,
+                        'amount' => $amount,
+                    ]);
+                    // Validate the transaction with ConnectIPS using transaction ID
+                    $validationResponse = $connectIPSService->validateTransaction($validationTxnId, $amount);
+
+                    Log::info('ConnectIPS Validation Response', [
+                        'attempt' => ($i + 1),
+                        'txn_id' => $validationTxnId,
+                        'response' => $validationResponse,
+                    ]);
+
+                    // Check if transaction was successful
+                    if ($connectIPSService->isTransactionSuccessful($validationResponse)) {
+                        $validationSuccess = true;
+                        break;
+                    }
+
+                    // If transaction not found, wait and retry
+                    if (isset($validationResponse['statusDesc']) && 
+                        (stripos($validationResponse['statusDesc'], 'not found') !== false || 
+                         stripos($validationResponse['statusDesc'], 'pending') !== false)) {
+                        
+                        if ($i < $maxRetries - 1) {
+                            Log::info("Transaction not found or pending, retrying in {$retryDelay} seconds...");
+                            sleep($retryDelay);
+                            continue;
+                        }
+                    }
+
+                    break;
+
+                } catch (Exception $e) {
+                    Log::warning("ConnectIPS Validation Attempt " . ($i + 1) . " Failed", [
+                        'error' => $e->getMessage(),
+                    ]);
+                    
+                    if ($i < $maxRetries - 1) {
+                        sleep($retryDelay);
+                        continue;
+                    }
+                    throw $e;
+                }
+            }
+
+            if ($validationSuccess) {
+                // Get detailed transaction information
+                try {
+                    $transactionDetails = $connectIPSService->getTransactionDetails($validationTxnId, $amount);
+                    
+                    Log::info('ConnectIPS Payment Successful', [
+                        'txn_id' => $validationTxnId,
+                        'reference_id' => $referenceId,
+                        'amount' => $amount,
+                        'details' => $transactionDetails,
+                    ]);
+                } catch (Exception $e) {
+                    Log::warning('Failed to get transaction details, but payment validated', [
+                        'error' => $e->getMessage(),
+                    ]);
+                }
+
+                // Clear session data
+                session()->forget(['connectips_txn_id', 'connectips_reference_id', 'connectips_amount']);
+
+                // Get payment settings for success page
+                $national_payemnt_setting = NationalPayment::where('society_id', $conference->society_id)->first();
+                $international_payemnt_setting = InternationalPayment::where('society_id', $conference->society_id)->first();
+
+                // Use ConnectIPS transaction ID
+                $transactionId = $validationTxnId;
+
+                return view('backend.participant.conference-registration.payment-success', 
+                    compact('transactionId', 'amount', 'society', 'conference', 'national_payemnt_setting', 'international_payemnt_setting'));
+            } else {
+                Log::warning('ConnectIPS Payment Validation Failed After Retries', [
+                    'txn_id' => $validationTxnId,
+                    'validation_response' => $validationResponse,
+                ]);
+                
+                $errorMessage = 'Payment verification failed. ';
+                if (isset($validationResponse['statusDesc'])) {
+                    $errorMessage .= $validationResponse['statusDesc'];
+                } else {
+                    $errorMessage .= 'Transaction could not be verified. Please contact support with transaction ID: ' . $validationTxnId;
+                }
+                
+                return redirect()->route('my-society.conference.create', [$society, $conference])
+                    ->with('delete', $errorMessage);
+            }
+
+        } catch (Exception $e) {
+            Log::error('ConnectIPS Success Callback Failed: ' . $e->getMessage(), [
+                'conference_id' => $conference->id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'request_data' => $request->all(),
+            ]);
+            
+            $errorMessage = 'Payment verification error: ' . $e->getMessage();
+            if (!empty($txnId)) {
+                $errorMessage .= ' (Transaction ID: ' . $txnId . ')';
+            }
+            
+            return redirect()->route('my-society.conference.create', [$society, $conference])
+                ->with('delete', $errorMessage);
+        }
+    }
+
+    public function connectipsFailure(Request $request, $society, $conference)
+    {
+        $txnId = $request->input('TXNID');
+        
+        Log::info('ConnectIPS Failure Callback', [
+            'txn_id' => $txnId,
+            'all_params' => $request->all(),
+        ]);
+
+        // Clear session data
+        session()->forget(['connectips_txn_id', 'connectips_reference_id', 'connectips_amount']);
+
+        return redirect()->route('my-society.conference.create', [$society, $conference])
+            ->with('delete', 'ConnectIPS payment has been cancelled or failed. Please try again.');
+    }
 
 
     // public function internationalPayment(Request $request, $society, $conference)

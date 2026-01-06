@@ -40,6 +40,7 @@
                        <div class="card mb-4">
                            @php
                                $onlinePayment = session()->get('onlinePayment');
+                               
                            @endphp
                            {{-- @dd($onlinePayment['registrant_type']); --}}
                            {{-- @dd($transactionId) --}}

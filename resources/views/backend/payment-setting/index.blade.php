@@ -11,7 +11,7 @@
         <div class="col-md-12 my-4">
             <div>
                 <div class="row"> 
-                    <div class="col-md-4">
+                    <div class="col-md-4"> 
                         <div class="card mb-4 position-relative p-3" style="background-color: #D9D8D4">
                             <label for="national">
                                 <h5 class="text-dark mt-2">Payment Setting For National</h5>
@@ -58,6 +58,9 @@
                                 <li class="nav-item"><a class="nav-link" id="home-icon-pill" data-bs-toggle="pill"
                                         href="#khaltiPIll" role="tab" aria-controls="khaltiPIll" aria-selected="true"><i
                                             class="nav-icon i-Home1 mr-1"></i>Khalti</a></li>
+                                <li class="nav-item"><a class="nav-link" id="home-icon-pill" data-bs-toggle="pill"
+                                        href="#connectipsPIll" role="tab" aria-controls="connectipsPIll" aria-selected="true"><i
+                                            class="nav-icon i-Home1 mr-1"></i>ConnectIPS</a></li>
                                 <li class="nav-item"><a class="nav-link" id="profile-icon-pill" data-bs-toggle="pill"
                                         href="#bankPIll" role="tab" aria-controls="bankPIll" aria-selected="false"><i
                                             class="nav-icon i-Home1 mr-1"></i>QR + Account Details</a></li>
@@ -229,6 +232,104 @@
                                         <div class="col-md-12" style="display: flex; justify-content: end;">
                                             <button type="submit" class="btn btn-primary submitData"
                                                 id="submitData">{{ $nationalPayment ? 'Update' : 'Save' }}</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="tab-pane fade" id="connectipsPIll" role="tabpanel"
+                                    aria-labelledby="home-icon-pill">
+                                    <div class="row">
+                                        <input type="hidden" name="id" id="id"
+                                            value="{{ $nationalPayment ? $nationalPayment->id : '' }}">
+
+                                        <div class="col-md-12 mb-3">
+                                            <div class="alert alert-info">
+                                                <i class="fas fa-info-circle"></i>
+                                                <strong>ConnectIPS Integration Requirements:</strong>
+                                                <ul class="mb-0 mt-2">
+                                                    <li>Obtain credentials from ConnectIPS (Merchant ID, App ID, App Name, Password)</li>
+                                                    <li>Digital certificate (PFX file) required for token signing - contact ConnectIPS</li>
+                                                    <li>Configure callback URLs in conference registration payment section</li>
+                                                    <li>Certificate should be placed in: <code>storage/certificates/connectips/{{ $society->id }}/</code></li>
+                                                    <li><strong>UAT Server:</strong> https://uat.connectips.com:7443</li>
+                                                    <li><strong>Production Server:</strong> https://connectips.com:7443 (when live)</li>
+                                                </ul>
+                                            </div>
+                                            <div class="alert alert-warning">
+                                                <i class="fas fa-exclamation-triangle"></i>
+                                                <strong>Network Requirements:</strong>
+                                                <ul class="mb-0 mt-2">
+                                                    <li>Your server IP must be whitelisted by ConnectIPS</li>
+                                                    <li>Port 7443 must be open in your firewall</li>
+                                                    <li>If UAT server is unavailable, contact ConnectIPS technical support</li>
+                                                    <li>Test certificate path: <code>storage/certificates/connectips/{{ $society->id }}/private_key.pem</code></li>
+                                                </ul>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-6 form-group mb-3">
+                                            <label class="form-label" for="connectips_merchant_id">Merchant Id
+                                                <code>*</code></label>
+                                            <input type="text"
+                                                class="form-control"
+                                                name="connectips_merchant_id"
+                                                id="connectips_merchant_id"
+                                                placeholder="e.g., 3185"
+                                                value="{{ $nationalPayment ? $nationalPayment->connectips_merchant_id : '' }}" />
+                                            <div class="text-danger" id="connectipsMerchantIdError"></div>
+                                            @error('connectips_merchant_id')
+                                                <p class="text-danger">{{ $message }}</p>
+                                            @enderror
+                                        </div>
+
+                                        <div class="col-md-6 form-group mb-3">
+                                            <label class="form-label" for="connectips_app_id">App Id
+                                                <code>*</code></label>
+                                            <input type="text"
+                                                class="form-control"
+                                                name="connectips_app_id"
+                                                id="connectips_app_id"
+                                                placeholder="e.g., MER-3185-APP-1"
+                                                value="{{ $nationalPayment ? $nationalPayment->connectips_app_id : '' }}" />
+                                            <div class="text-danger" id="connectipsAppIdError"></div>
+                                            @error('connectips_app_id')
+                                                <p class="text-danger">{{ $message }}</p>
+                                            @enderror
+                                        </div>
+
+                                        <div class="col-md-6 form-group mb-3">
+                                            <label class="form-label" for="connectips_app_name">App Name
+                                                <code>*</code></label>
+                                            <input type="text"
+                                                class="form-control"
+                                                name="connectips_app_name"
+                                                id="connectips_app_name"
+                                                placeholder="e.g., Your Society Name"
+                                                value="{{ $nationalPayment ? $nationalPayment->connectips_app_name : '' }}" />
+                                            <div class="text-danger" id="connectipsAppNameError"></div>
+                                            @error('connectips_app_name')
+                                                <p class="text-danger">{{ $message }}</p>
+                                            @enderror
+                                        </div>
+
+                                        <div class="col-md-6 form-group mb-3">
+                                            <label class="form-label" for="connectips_password">Password (Basic Auth)
+                                                <code>*</code></label>
+                                            <input type="password"
+                                                class="form-control"
+                                                name="connectips_password"
+                                                id="connectips_password"
+                                                placeholder="Enter ConnectIPS password"
+                                                value="{{ $nationalPayment ? $nationalPayment->connectips_password : '' }}" />
+                                            <div class="text-danger" id="connectipsPasswordError"></div>
+                                            @error('connectips_password')
+                                                <p class="text-danger">{{ $message }}</p>
+                                            @enderror
+                                        </div>
+
+                                        <div class="col-md-12" style="display: flex; justify-content: end;">
+                                            <button type="submit" class="btn btn-primary submitData" id="submitData">
+                                                <i class="fas fa-save"></i> {{ $nationalPayment ? 'Update' : 'Save' }}
+                                            </button>
                                         </div>
                                     </div>
                                 </div>
@@ -416,6 +517,8 @@
                     $('#currentNationalTab').val('esewa');
                 } else if (target === '#khaltiPIll') {
                     $('#currentNationalTab').val('khalti');
+                } else if (target === '#connectipsPIll') {
+                    $('#currentNationalTab').val('connectips');
                 } else if (target === '#bankPIll') {
                     $('#currentNationalTab').val('account_details');
                 }
@@ -542,6 +645,28 @@
                             isValid = false;
                             $('#nationalBankDetailError').text('Bank Detail is required.');
                         }
+                    } else if (activeTab === 'connectips') {
+                        let connectipsMerchantId = $('#connectips_merchant_id').val().trim();
+                        let connectipsAppId = $('#connectips_app_id').val().trim();
+                        let connectipsAppName = $('#connectips_app_name').val().trim();
+                        let connectipsPassword = $('#connectips_password').val().trim();
+
+                        if (!connectipsMerchantId) {
+                            isValid = false;
+                            $('#connectipsMerchantIdError').text('Merchant Id is required.');
+                        }
+                        if (!connectipsAppId) {
+                            isValid = false;
+                            $('#connectipsAppIdError').text('App Id is required.');
+                        }
+                        if (!connectipsAppName) {
+                            isValid = false;
+                            $('#connectipsAppNameError').text('App Name is required.');
+                        }
+                        if (!connectipsPassword) {
+                            isValid = false;
+                            $('#connectipsPasswordError').text('Password is required.');
+                        }
                     }
                 }
 
@@ -622,6 +747,11 @@
                         esewa_secret_key: $('#esewa_secret_key').val(),
                         //Khalti Field
                         khalti_live_secret_key: $('#khalti_live_secret_key').val(),
+                        //ConnectIPS Fields
+                        connectips_merchant_id: $('#connectips_merchant_id').val(),
+                        connectips_app_id: $('#connectips_app_id').val(),
+                        connectips_app_name: $('#connectips_app_name').val(),
+                        connectips_password: $('#connectips_password').val(),
                         //National Bank Detail
                         national_bank_detail: $('#national_bank_detail').val(),
                         // Himalayan Bank fields 

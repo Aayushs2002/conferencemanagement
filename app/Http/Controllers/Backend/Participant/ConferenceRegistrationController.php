@@ -442,7 +442,8 @@ class ConferenceRegistrationController extends Controller
                 2 => 'Moco',
                 3 => 'Esewa',
                 4 => 'Khalti',
-                5 => 'Card Payment'
+                5 => 'Card Payment',
+                7 => 'ConnectIPS'
             ];
             $paymentType = $paymentTypes[$request->payment_type] ?? 'Unknown';
 

@@ -88,6 +88,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/society/{society}/setting/security', [SecurityController::class, 'index'])->name('security.index.society');
     Route::get('/society/{society}/conference/{conference}/setting/security', [SecurityController::class, 'index'])->name('security.index.full');
     Route::post('password-change', [SecurityController::class, 'passwordChange'])->name('security.password-change');
+    Route::post('/society/{society}/verify-member-type', [SecurityController::class, 'verifyMemberType'])->name('security.verify-member-type');
+    Route::post('/society/{society}/update-member-type', [SecurityController::class, 'updateMemberType'])->name('security.update-member-type');
 
 
     Route::resource('/cms/blog', CmsBlogController::class)->middleware('check.superadmin')->except('show');

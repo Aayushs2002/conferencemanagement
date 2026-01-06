@@ -7,7 +7,7 @@ use App\Models\Payment\InternationalPayment;
 use App\Models\Payment\NationalPayment;
 use Exception;
 use Illuminate\Http\Request;
-
+ 
 class PaymentSettingController extends Controller
 {
     public function index($society)
@@ -94,6 +94,25 @@ class PaymentSettingController extends Controller
                 }
 
                 $message = empty($validated['id']) ? 'Successfully inserted Khalti payment.' : 'Successfully updated Khalti payment';
+            } elseif ($activeTab === 'connectips') {
+                $validated = $request->validate([
+                    'connectips_merchant_id' => 'required|string|max:255',
+                    'connectips_app_id' => 'required|string|max:255',
+                    'connectips_app_name' => 'required|string|max:255',
+                    'connectips_password' => 'required|string|max:255',
+                    'id' => 'nullable',
+                ]);
+
+                if (empty($validated['id'])) {
+                    $validated['society_id'] = $society->id;
+                    $validated['payment_type'] = 'connectips';
+                    $submitData = NationalPayment::create($validated);
+                } else {
+                    $nationalPayment = NationalPayment::whereId($validated['id'])->first();
+                    $submitData = $nationalPayment->update($validated);
+                }
+
+                $message = empty($validated['id']) ? 'Successfully inserted ConnectIPS payment.' : 'Successfully updated ConnectIPS payment';
             } elseif ($activeTab === 'account_details') {
                 $validated = $request->validate([
                     'national_bank_detail' => 'required',
