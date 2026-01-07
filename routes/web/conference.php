@@ -259,6 +259,7 @@ Route::middleware('auth')->group(function () {
 
     Route::prefix('/society/{society}/conference/{conference}')->middleware('auto.conf.permission')->group(function () {
         Route::post('/workshop/update-order', [WorkshopController::class, 'updateOrder'])->name('workshop.update-order');
+        Route::post('/workshop/{workshop}/toggle-publish', [WorkshopController::class, 'togglePublish'])->name('workshop.toggle-publish');
         Route::resource('/workshop', WorkshopController::class)->except('show');
         Route::controller(WorkshopController::class)->name('workshop.')->prefix('/workshop')->group(function () {
             Route::post('/view-data', 'view')->name('view');

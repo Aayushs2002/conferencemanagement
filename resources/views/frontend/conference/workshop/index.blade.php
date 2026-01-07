@@ -7,7 +7,7 @@
         <div class="mb-2">
             <a href="{{ route('our-client.detail', $conference->society->slug) }}" class="back-btn mb-4">
                 <i class="fa-solid fa-arrow-left me-2"></i> Back to {{ $conference->society->abbreviation }}
-            </a>    
+            </a>
         </div>
     </div>
     <div class="search-panel position-relative mb-5">
@@ -19,13 +19,13 @@
         <h2 class="section-title">Specialized Workshops</h2>
         <p class="section-subtitle">Hands-on training sessions with leading experts in Anesthesia specialties</p>
         <div class="row g-4 justify-content-center mb-5 mt-4">
-            @foreach ($workshops as $workshop) 
+            @foreach ($workshops as $workshop)
                 <div class="col-md-4">
                     <div class="workshop-card">
                         <div class="img-container position-relative overflow-hidden">
                             <img src="{{ $workshop->image
                                 ? Storage::url('workshop/workshop/image/' . $workshop->image)
-                                : asset('frontend/assets/img/fetal.jpg') }}"
+                                : Storage::url('society/logo/' . $conference->society->logo) }}"
                                 class="img-fluid" alt="{{ $workshop->workshop_title }}">
                             <div
                                 class="overlay d-flex flex-column justify-content-center align-items-center text-center p-3">

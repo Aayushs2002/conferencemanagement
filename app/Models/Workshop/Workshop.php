@@ -37,7 +37,8 @@ class Workshop extends Model
         'overview_of_organiztion',
         'training_method_expected_outcome',
         'resource_requirement',
-        'display_order'
+        'display_order',
+        'is_published'
     ];
 
     protected $casts = [

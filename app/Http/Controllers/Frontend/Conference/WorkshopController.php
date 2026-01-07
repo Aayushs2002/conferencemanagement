@@ -22,12 +22,13 @@ class WorkshopController extends BaseConferenceController
             'registrations' => function ($query) {
                 $query->where('registrant_type', 2);
             }
-        ])->where('slug', $workshop)->first();
+        ])->where('is_published', true)->where('slug', $workshop)->first();
 
         // dd($workshop);
         $relevantWorkshops = Workshop::where('id', '!=', $workshop->id)
             ->where('conference_id', $this->conference->id)
             ->where('approval_status', 'approved')
+            ->where('is_published', true)
             ->where('status', 1)
             ->orderBy('display_order', 'ASC')
             ->latest()
