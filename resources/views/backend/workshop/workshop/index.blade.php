@@ -55,6 +55,7 @@
                         <th>Deadline</th>
                         <th>Status</th>
                         <th>No. Of Attendees</th>
+                        <th>Published</th>
                         <th>Action</th>
                     </tr>
                 </thead>
@@ -88,6 +89,20 @@
                                     href="{{ route('workshop.workshop-registration.index', [$society, $conference, $workshop]) }}">
                                     {{ $workshop->registrations->where('verified_status', 1)->where('status', 1)->where('registrant_type', 1)->count() }}
                                 </a>
+                            </td>
+                            <td>
+                                @if (auth()->user()->hasConferencePermissionBlade(getConference(request()->segment(4)), 'Edit Workshop'))
+                                    <button class="btn btn-sm publish-toggle-btn {{ $workshop->is_published ? 'btn-success' : 'btn-secondary' }}" 
+                                        data-workshop-id="{{ $workshop->getRouteKey() }}"
+                                        data-is-published="{{ $workshop->is_published ? '1' : '0' }}">
+                                        <i class="ti {{ $workshop->is_published ? 'tabler-eye' : 'tabler-eye-off' }} me-1"></i>
+                                        {{ $workshop->is_published ? 'Published' : 'Unpublished' }}
+                                    </button>
+                                @else
+                                    <span class="badge {{ $workshop->is_published ? 'bg-success' : 'bg-secondary' }}">
+                                        {{ $workshop->is_published ? 'Published' : 'Unpublished' }}
+                                    </span>
+                                @endif
                             </td>
                             <td>
                                 <div class="dropdown">
@@ -153,7 +168,7 @@
                                         <hr>
                                         @if (auth()->user()->hasConferencePermissionBlade(getConference(request()->segment(4)), 'Delete Workshop'))
                                             <form
-                                                action="{{ route('workshop.destroy', [$society, $conference, $workshop->id]) }}"
+                                                action="{{ route('workshop.destroy', [$society, $conference, $workshop]) }}"
                                                 method="POST">
                                                 @method('delete')
                                                 @csrf
@@ -333,6 +348,52 @@
                 $('#correctionModal').modal('show');
             });
 
+            // Toggle Publish/Unpublish with Button
+            $(document).on("click", ".publish-toggle-btn", function(e) {
+                e.preventDefault();
+                var btn = $(this);
+                var workshopId = btn.data('workshop-id');
+                var isPublished = btn.data('is-published') == '1';
+                var newStatus = !isPublished;
+                
+                $.ajax({
+                    url: '{{ route('workshop.toggle-publish', [$society, $conference, ':workshop']) }}'.replace(':workshop', workshopId),
+                    type: 'POST',
+                    data: {
+                        _token: '{{ csrf_token() }}',
+                        is_published: newStatus ? 1 : 0
+                    },
+                    beforeSend: function() {
+                        btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span>Loading...');
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            // Update button appearance and data
+                            btn.data('is-published', newStatus ? '1' : '0');
+                            
+                            if (newStatus) {
+                                btn.removeClass('btn-secondary').addClass('btn-success')
+                                   .html('<i class="ti tabler-eye me-1"></i>Published');
+                            } else {
+                                btn.removeClass('btn-success').addClass('btn-secondary')
+                                   .html('<i class="ti tabler-eye-off me-1"></i>Unpublished');
+                            }
+                            
+                            notyf.success(response.message || 'Status updated successfully');
+                        } else {
+                            notyf.error(response.message || 'Failed to update status');
+                        }
+                    },
+                    error: function(xhr) {
+                        notyf.error('Failed to update publish status');
+                        console.error(xhr);
+                    },
+                    complete: function() {
+                        btn.prop('disabled', false);
+                    }
+                });
+            });
+
             // Approve Workshop with SweetAlert
             $(document).on("click", ".approve-btn", function(e) {
                 e.preventDefault();
@@ -448,6 +509,15 @@
         
         .drag-handle:active {
             cursor: grabbing;
+        }
+        
+        .publish-toggle-btn {
+            min-width: 110px;
+            font-size: 0.875rem;
+        }
+        
+        .publish-toggle-btn:disabled {
+            opacity: 0.7;
         }
     </style>
 @endsection

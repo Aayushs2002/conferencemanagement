@@ -95,6 +95,7 @@ class WorkshopController extends Controller
                 'image' => $validated['image'] ?? null,
                 'schedule_plan_attachment' => $validated['schedule_plan_attachment'] ?? null,
                 'created_by' => auth()->id(),
+                'is_published'=>true,
                 // Type 1 & 2 (admins) auto-approve, Type 3 (normal users) need approval
                 'approval_status' => (current_user()->type == 1 || current_user()->type == 2) ? 'approved' : 'pending',
             ];
@@ -119,7 +120,6 @@ class WorkshopController extends Controller
                 return redirect()->route('workshop.index', [$society, $conference])->with('status', 'Workshop application submitted successfully! It will be reviewed by the admin.');
             }
         } catch (\Throwable $th) {
-            dd($th->getMessage());
             DB::rollBack();
             return redirect()->back()->withInput()->with('delete', 'Internal Server Error: ' . $th->getMessage());
         }
@@ -432,6 +432,35 @@ class WorkshopController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to update order: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Toggle publish/unpublish status of workshop.
+     */
+    public function togglePublish(Request $request, $society, $conference, Workshop $workshop)
+    {
+        try {
+            $isPublished = $request->is_published ? true : false;
+            
+            $workshop->update([
+                'is_published' => $isPublished
+            ]);
+
+            $message = $isPublished 
+                ? 'Workshop published successfully!' 
+                : 'Workshop unpublished successfully!';
+
+            return response()->json([
+                'success' => true,
+                'message' => $message,
+                'is_published' => $isPublished
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to update publish status: ' . $e->getMessage()
             ], 500);
         }
     }
