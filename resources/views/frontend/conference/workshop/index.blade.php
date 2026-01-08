@@ -272,8 +272,18 @@
         // Add CSS for smooth animations
         const style = document.createElement('style');
         style.textContent = `
-    .logo-fallback {
+    .img-container {
+        height: 300px;
         background-color: #f8f9fa;
+    }
+
+    .img-container img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .logo-fallback {
         display: flex;
         align-items: center;
         justify-content: center;
@@ -282,7 +292,7 @@
 
     .logo-img {
         object-fit: contain !important;
-        max-height: 200px;
+        max-height: 100%;
         width: auto !important;
         height: auto !important;
     }
