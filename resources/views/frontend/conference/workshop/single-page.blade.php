@@ -169,12 +169,12 @@
             <div class="col-lg-3">
                 <div class="sticky-top" style="top: 100px;">
                     @foreach ($relevantWorkshops as $workshop)
-                        <div class="other-workshop mb-4"
+                        <div class="other-workshop mb-4 {{ !$workshop->image ? 'logo-fallback-sidebar' : '' }}"
                             style="background-color: #fff; border-radius: 15px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
                             <img src="{{ $workshop->image
                                 ? Storage::url('workshop/workshop/image/' . $workshop->image)
                                 : Storage::url('society/logo/' . $conference->society->logo) }}"
-                                class="img-fluid" alt="{{ $workshop->title }}">
+                                class="img-fluid {{ !$workshop->image ? 'logo-img-sidebar' : '' }}" alt="{{ $workshop->title }}">
                             <div class="p-2">
                                 <div class="d-flex align-items-center mb-1">
                                     <i class="fa-regular fa-calendar me-1"></i>
@@ -207,4 +207,21 @@
     </div>
 
     <div class="td_height_80 td_height_lg_80"></div>
+
+    <style>
+        .logo-fallback-sidebar {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #f8f9fa !important;
+            padding: 15px;
+        }
+
+        .logo-img-sidebar {
+            object-fit: contain !important;
+            max-height: 150px;
+            width: auto !important;
+            height: auto !important;
+        }
+    </style>
 @endsection
