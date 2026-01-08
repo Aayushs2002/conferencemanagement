@@ -22,11 +22,11 @@
             @foreach ($workshops as $workshop)
                 <div class="col-md-4">
                     <div class="workshop-card">
-                        <div class="img-container position-relative overflow-hidden">
+                        <div class="img-container position-relative overflow-hidden {{ !$workshop->image ? 'logo-fallback' : '' }}">
                             <img src="{{ $workshop->image
                                 ? Storage::url('workshop/workshop/image/' . $workshop->image)
                                 : Storage::url('society/logo/' . $conference->society->logo) }}"
-                                class="img-fluid" alt="{{ $workshop->workshop_title }}">
+                                class="img-fluid {{ !$workshop->image ? 'logo-img' : '' }}" alt="{{ $workshop->workshop_title }}">
                             <div
                                 class="overlay d-flex flex-column justify-content-center align-items-center text-center p-3">
                                 <h5 class="workshop-title">{{ $workshop->workshop_title }}</h5>
@@ -272,6 +272,21 @@
         // Add CSS for smooth animations
         const style = document.createElement('style');
         style.textContent = `
+    .logo-fallback {
+        background-color: #f8f9fa;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+    }
+
+    .logo-img {
+        object-fit: contain !important;
+        max-height: 200px;
+        width: auto !important;
+        height: auto !important;
+    }
+
     @keyframes fadeIn {
         from {
             opacity: 0;
