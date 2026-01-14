@@ -66,11 +66,19 @@
         <div class="overlay"></div>
         <div class="container position-relative">
 
+            <div class="d-flex align-items-center justify-content-center gap-4 hero-logos mb-4">
+                <img src="{{ Storage::url('society/logo/' . $conference->society->logo) }}" alt="NESOG Logo"
+                    class="hero-logo">
+                    @if (is_array($conference->partner_logos) && count($conference->partner_logos) > 0)
+                        <div class="d-flex align-items-center gap-3">
+                            @foreach ($conference->partner_logos as $logo)
+                                <img src="{{ Storage::url('conference/partner-logos/' . $logo) }}" alt="Partner Logo"
+                                    class="hero-logo">
+                            @endforeach
+                        </div>
+                    @endif
+            </div>
             <div class="row align-items-center justify-content-center hero-header mb-3">
-                <div class="col-auto">
-                    <img src="{{ Storage::url('society/logo/' . $conference->society->logo) }}" alt="NESOG Logo"
-                        class="hero-logo">
-                </div>
 
                 <div class="col-auto text-center">
                     <h1 class="hero-title mb-1">
@@ -83,17 +91,8 @@
                     </p>
                 </div>
 
-                <div class="col-auto">
-                    @if (is_array($conference->partner_logos) && count($conference->partner_logos) > 0)
-                        <div class="d-flex align-items-center gap-3">
-                            @foreach ($conference->partner_logos as $logo)
-                                <img src="{{ Storage::url('conference/partner-logos/' . $logo) }}" alt="Partner Logo"
-                                    class="hero-logo">
-                            @endforeach
-                        </div>
-                    @endif
-                </div>
-                
+
+
             </div>
 
             <div class="row align-items-center hero-info position-relative">
