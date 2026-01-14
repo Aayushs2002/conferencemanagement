@@ -366,7 +366,7 @@
                 if (result.isConfirmed) {
                     $(this).parent('form').submit();
                 }
-            })
+            }) 
         });
     </script>
     <script>
