@@ -179,7 +179,7 @@
                         </p>
                     </div>
                     <i class="fa-solid fa-arrow-right-long dash-arrow d-none d-md-block"></i>
-                </div>
+                </div> 
 
                 <div class="col-md-3 col-6 position-relative">
                     <div class="dash-card p-4 rounded-4 shadow-sm">
@@ -233,7 +233,7 @@
                                 $workshop = $conference->workshops?->where('conference_id', $conference->id)->first();
                             @endphp --}}
 
-                                {{ $workshop?->created_at ? $workshop->created_at->format('F j, Y') : 'N/A' }}
+                                {{ $conference->conferenceSetting?->workshop_registration_open_date ? \Carbon\Carbon::parse($conference->conferenceSetting->workshop_registration_open_date)->format('F j, Y') : ($workshop?->created_at ? $workshop->created_at->format('F j, Y') : 'N/A') }}
 
 
                             </p>

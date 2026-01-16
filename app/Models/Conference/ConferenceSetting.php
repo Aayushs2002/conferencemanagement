@@ -20,6 +20,7 @@ class ConferenceSetting extends Model
         'privacy_policy',
         'speaker_registration_required',
         'registration_open_date',
+        'workshop_registration_open_date',
         'show_stats_dashboard',
     ];
 }
