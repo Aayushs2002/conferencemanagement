@@ -28,6 +28,8 @@ use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
+use App\Exports\SubmissionExport;
+use Maatwebsite\Excel\Facades\Excel;
 
 class SubmissionController extends Controller
 {
@@ -622,6 +624,42 @@ class SubmissionController extends Controller
             })->values();
 
         return response()->json($users);
+    }
+
+    public function exportExcel(Request $request, $society, $conference)
+    {
+        $query = Submission::with(['authors', 'presenter.userDetail', 'submissionCategoryMajorTrack', 'articleType'])
+            ->where(['conference_id' => $conference->id, 'status' => 1]);
+        
+        if ($request->filled('article_type_id')) {
+            $query->where('article_type_id', $request->article_type_id);
+        }
+
+        if ($request->filled('presentation_type')) {
+            $query->where('presentation_type', $request->presentation_type);
+        }
+
+        if ($request->filled('request_status')) {
+            $query->where('request_status', $request->request_status);
+        }
+        
+        if ($request->filled('submission_category_major_track_id')) {
+            $query->where('submission_category_major_track_id', $request->submission_category_major_track_id);
+        }
+
+        if ($request->filled('from')) {
+            $query->whereDate('created_at', '>=', $request->from);
+        }
+
+        if ($request->filled('to')) {
+            $query->whereDate('created_at', '<=', $request->to);
+        }
+
+        $submissions = $query->latest()->get();
+
+        $filename = 'Submissions_Export_' . now()->format('Ymd_His') . '.xlsx';
+
+        return Excel::download(new SubmissionExport($submissions), $filename);
     }
 
     public function exportWord(Request $request, $society, $conference)

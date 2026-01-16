@@ -79,6 +79,7 @@
                 <div class="row my-4">
                     <div class="col-12 text-end">
                         <a href="{{ route('submission.index', [$society, $conference]) }}" class="btn btn-danger">Reset</a>
+                        <button type="submit" id="ExportExcelBtn" class="btn btn-warning">Export Excel</button>
                         <button type="submit" id="ExportBtn" class="btn btn-success">Export Word</button>
 
                         <button type="submit" id="filterBtn" class="btn btn-primary">Filter</button>
@@ -126,8 +127,8 @@
                     <tr>
                         <th>#</th>
                         <th scope="col">Speaker Name</th>
-                        <th>Presentation Category</th>
-                        <th>Theme/Sub-theme</th>
+                        {{-- <th>Presentation Category</th> --}}
+                        {{-- <th>Theme/Sub-theme</th> --}}
                         <th>Topic</th>
                         <th>Presentation Type</th>
                         <th>Request Status</th>
@@ -146,12 +147,12 @@
                         <tr class="{{ $submission->row_color ?? '' }}">
                             <th scope="row">{{ $loop->iteration }}</th>
                             <td>{{ $submission->presenter?->fullName($submission->presenter) }}</td>
-
+{{-- 
                             <td> {{ $submission->articleType?->name ?? 'N/A' }}
                             </td>
                             <td >
                                 {{ $submission->submissionCategoryMajorTrack->title }}
-                            </td>
+                            </td> --}}
                             <td class="viewData " data-id="{{ $submission->id }}" data-bs-toggle="modal" data-bs-target="#pricingModal" style="cursor: pointer;">
                                 {{ \Illuminate\Support\Str::words($submission->title, 5, '...') }}
                             </td>
@@ -321,7 +322,7 @@
                         </tr>
                     @endforeach
                 </tbody>
-
+ 
             </table>
         </div>
         <div class="modal fade" id="pricingModal" tabindex="-1" aria-hidden="true">
@@ -500,6 +501,14 @@
 
 
             var form = $('#filterForm');
+
+            $('#ExportExcelBtn').on('click', function(e) {
+                e.preventDefault();
+                form.attr('action',
+                    '{{ route('submission.export.excel', [$society, $conference]) }}'
+                );
+                form.submit();
+            });
 
             $('#ExportBtn').on('click', function(e) {
                 e.preventDefault();

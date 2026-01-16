@@ -195,6 +195,7 @@ Route::middleware('auth')->group(function () {
         Route::post('send-mail-submit', 'sendMailSubmit')->name('sendMailSubmit');
         Route::get('/get-users', 'getUsersByTypeAndPresentation')->name('get.users');
         Route::get('/export-word', 'exportWord')->name('export.word');
+        Route::get('/export-excel', 'exportExcel')->name('export.excel');
         Route::get('/get-author/{id}', 'getAuthors')->name('getAuthors');
         Route::delete('/submission/destroy/{submission}', 'destroy')->name('submission.destroy');
     });
