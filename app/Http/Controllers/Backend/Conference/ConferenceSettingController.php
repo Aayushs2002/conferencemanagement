@@ -39,6 +39,7 @@ class ConferenceSettingController extends Controller
                 'privacy_policy' => 'nullable|string',
                 'speaker_registration_required' => 'required|in:0,1',
                 'registration_open_date' => 'nullable|date',
+                'workshop_registration_open_date' => 'nullable|date',
                 'show_stats_dashboard' => 'required|in:0,1',
                 
             ]);
@@ -88,6 +89,7 @@ class ConferenceSettingController extends Controller
                 'privacy_policy' => $request->privacy_policy,
                 'speaker_registration_required' => $request->speaker_registration_required,
                 'registration_open_date' => $request->registration_open_date,
+                'workshop_registration_open_date' => $request->workshop_registration_open_date,
                 'show_stats_dashboard' => $request->show_stats_dashboard,
             ];
 

@@ -52,6 +52,11 @@
                 <input type="date" class="form-control" name="registration_open_date" value="{{ $conferenceSetting?->registration_open_date }}">
             </div>
 
+            <div class="col-md-4 mb-4">
+                <label>Workshop Registration Open Date</label>
+                <input type="date" class="form-control" name="workshop_registration_open_date" value="{{ $conferenceSetting?->workshop_registration_open_date }}">
+            </div>
+
             <div class="col-12 mt-3">
                 <h6>3. Conference Registration Guideline</h6>
                 <hr class="mt-0" style="height:1px;border:none;color:#333;background-color:#333;" />
@@ -222,7 +227,7 @@
             CKEDITOR.instances['terms_conditions'].destroy(true);
         }
         if (CKEDITOR.instances['privacy_policy']) {
-            CKEDITOR.instances['privacy_policy'].destroy(true);
+            CKEDITOR.instances['privacy_policy'].destroy(true); 
         }
 
         // Initialize CKEditor for all textareas
