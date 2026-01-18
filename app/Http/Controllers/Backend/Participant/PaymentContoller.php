@@ -696,7 +696,7 @@ class PaymentContoller extends Controller
             $joseResponse = $payment->ExecuteFormJose(
                 $paymentSetting->merchant_key, // merchant_id
                 $paymentSetting->api_key, // api_key
-                'USD', // input_currency
+                'USD', // input_currency 
                 $request->amount,   // input_amount
                 'Y',   // input_3d 
                 route('my-society.conference.internationalPaymentResultSuccessProcess', [$society, $conference]), // success_url

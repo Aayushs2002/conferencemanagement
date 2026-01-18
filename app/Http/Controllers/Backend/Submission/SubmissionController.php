@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Backend\Submission;
 
+use App\Exports\SubmissionExport;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Participant\SubmissionRequest;
 use App\Jobs\SendSubmissionBulkMailJob;
@@ -10,8 +11,8 @@ use App\Mail\Submission\ExpertForwardMail;
 use App\Mail\Submission\SubmissionAcceptMail;
 use App\Mail\Submission\SubmissionCorrectionMail;
 use App\Mail\Submission\SubmissionRejectMail;
-use App\Models\Conference\Author;
 use App\Models\Conference\ArticleType;
+use App\Models\Conference\Author;
 use App\Models\Conference\ConferenceRegistration;
 use App\Models\Conference\ConferenceSetting;
 use App\Models\Conference\Expert;
@@ -22,13 +23,13 @@ use App\Models\Conference\SubmissionRating;
 use App\Models\SubmissionSetting;
 use App\Models\Template\EmailTemplate;
 use App\Models\User;
+use App\Models\User\Designation;
 use App\Services\File\FileService;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
-use App\Exports\SubmissionExport;
 use Maatwebsite\Excel\Facades\Excel;
 
 class SubmissionController extends Controller
@@ -40,11 +41,21 @@ class SubmissionController extends Controller
         // $conferenceDetail = conference_detail();
 
         // if (empty($conferenceDetail)) {
-        //     return redirect()->route('dashboard'); 
+        //     return redirect()->route('dashboard');
         // }
+        $loadData = function ($relation, $model) use ($society) {
+            if ($society && $society->$relation()->exists()) {
+                return $society->$relation()->where('status', 1)->get();
+            }
+
+            return $model::where('status', 1)->get();
+        };
         $submissionTracks = SubmissionCategoryMajorTrack::where(['conference_id' => $conference->id, 'status' => 1])->get();
         $articleTypes = ArticleType::where(['conference_id' => $conference->id, 'status' => 1])->get();
         $submission_setting = SubmissionSetting::where('conference_id', $conference->id)->select('scoring_allowed')->first();
+        // $designations = \App\Models\User\Designation::where('status', 1)->orderBy('designation', 'asc')->get();
+        $designations = $loadData('designations', Designation::class);
+
         // dd($submission_setting);
         $query = Submission::with('discussions')->where(['conference_id' => $conference->id, 'status' => 1]);
         if ($request->filled('article_type_id')) {
@@ -70,20 +81,27 @@ class SubmissionController extends Controller
             $query->whereDate('created_at', '<=', $request->to);
         }
 
+        // Filter by designation
+        if ($request->filled('designation')) {
+            $query->whereHas('presenter.userDetail.designation', function ($q) use ($request) {
+                $q->where('designation', $request->designation);
+            });
+        }
+
         $submissions = $query->latest()->get();
 
         // Track duplicate submissions by user
         $userSubmissions = [];
         foreach ($submissions as $submission) {
             $userId = $submission->user_id;
-            if (!isset($userSubmissions[$userId])) {
+            if (! isset($userSubmissions[$userId])) {
                 $userSubmissions[$userId] = [
                     'count' => 0,
-                    'presentation_types' => []
+                    'presentation_types' => [],
                 ];
             }
             $userSubmissions[$userId]['count']++;
-            if (!in_array($submission->presentation_type, $userSubmissions[$userId]['presentation_types'])) {
+            if (! in_array($submission->presentation_type, $userSubmissions[$userId]['presentation_types'])) {
                 $userSubmissions[$userId]['presentation_types'][] = $submission->presentation_type;
             }
         }
@@ -114,13 +132,33 @@ class SubmissionController extends Controller
             }
         }
 
-        return view('backend.submission.submission.index', compact('submissions', 'submissionTracks', 'conference', 'society', 'submission_setting', 'articleTypes'));
+        // Filter by color if requested
+        if ($request->filled('color_filter')) {
+            $colorFilter = $request->color_filter;
+            $submissions = $submissions->filter(function ($submission) use ($colorFilter) {
+                if ($colorFilter == 'green') {
+                    return $submission->row_color == 'table-success';
+                } elseif ($colorFilter == 'yellow') {
+                    return $submission->row_color == 'table-warning';
+                } elseif ($colorFilter == 'red') {
+                    return $submission->row_color == 'table-danger';
+                }
+
+                return false;
+            });
+        }
+
+        // Sort by speaker name alphabetically
+        $submissions = $submissions->sortBy(function ($submission) {
+            return $submission->presenter ? $submission->presenter->fullName($submission->presenter) : '';
+        });
+
+        return view('backend.submission.submission.index', compact('submissions', 'submissionTracks', 'conference', 'society', 'submission_setting', 'articleTypes', 'designations'));
     }
 
     public function show(Request $request)
     {
         $submission = Submission::whereId($request->id)->first();
-
 
         return view('backend.submission.submission.view', compact('submission'));
     }
@@ -130,7 +168,7 @@ class SubmissionController extends Controller
         $setting = SubmissionSetting::where('conference_id', $conference->id)
             ->select('abstract_word_limit', 'key_word_limit', 'deadline', 'attachment_name')
             ->first();
-        if (!$setting) {
+        if (! $setting) {
             return redirect()->back()->with('delete', 'Submission settings not found.');
         }
         if (is_past($setting->deadline)) {
@@ -149,24 +187,24 @@ class SubmissionController extends Controller
             // dd($validated);
             $setting = SubmissionSetting::where('conference_id', $conference->id)->select('abstract_word_limit', 'key_word_limit')->first();
             // dd('ad');
-            if (!empty($validated['keywords']) && !empty($setting->key_word_limit)) {
+            if (! empty($validated['keywords']) && ! empty($setting->key_word_limit)) {
                 $keywordsCount = count(explode(',', $request->keywords));
                 // dd($validated['keywords']);
                 if ($keywordsCount > $setting->key_word_limit) {
                     return redirect()->back()->withInput()->with('delete', 'Keywords word limit exceeded.');
                 }
                 $keywordArray = json_decode($request->keywords, true);
-                $validated['keywords']  = is_array($keywordArray)
+                $validated['keywords'] = is_array($keywordArray)
                     ? implode(',', array_column($keywordArray, 'value'))
                     : '';
             }
 
             $abstractWordCount = str_word_count(strip_tags($request->abstract_content));
-            if (!empty($setting->abstract_word_limit) && $abstractWordCount > $setting->abstract_word_limit) {
+            if (! empty($setting->abstract_word_limit) && $abstractWordCount > $setting->abstract_word_limit) {
                 return redirect()->back()->withInput()->with('delete', 'Abstract word limit exceeded.');
             }
 
-            if (!empty($validated['image'])) {
+            if (! empty($validated['image'])) {
                 $this->file_service->deleteFile($submission->image, 'participant/submission/image');
                 $validated['image'] = $this->file_service->fileUpload($validated['image'], 'diagram', 'participant/submission/image');
             }
@@ -180,9 +218,11 @@ class SubmissionController extends Controller
             $submission->update($validated);
 
             DB::commit();
-            return redirect()->route('submission.index',  [$society, $conference])->with('status', 'Submission Added Successfully');
+
+            return redirect()->route('submission.index', [$society, $conference])->with('status', 'Submission Added Successfully');
         } catch (\Exception $th) {
             DB::rollBack();
+
             return redirect()->back()->withInput()->with('delete', 'Internal Server Error');
             // dd($th);
         }
@@ -234,12 +274,12 @@ class SubmissionController extends Controller
                 $rules['abstract_content'] = 'required';
             }
 
-            $validated = $request->validate($rules); 
+            $validated = $request->validate($rules);
 
             if ($validated) {
                 // Check if expert is the main submitter
                 if ($validated['expert_id'] == $submission->user_id) {
-                    throw new Exception("Presenter and Expert should not be same.", 1);
+                    throw new Exception('Presenter and Expert should not be same.', 1);
                 }
 
                 // Check if expert is one of the authors (including co-authors)
@@ -250,7 +290,7 @@ class SubmissionController extends Controller
                         ->exists();
 
                     if ($isAuthor) {
-                        throw new Exception("Expert cannot be assigned to review their own submission. This expert is listed as an author.", 1);
+                        throw new Exception('Expert cannot be assigned to review their own submission. This expert is listed as an author.', 1);
                     }
                 }
 
@@ -271,7 +311,7 @@ class SubmissionController extends Controller
                     'name' => $expert->fullName($expert),
                     'namePrefix' => $expert->userDetail->prefix,
                     'topic' => $submission->title,
-                    'conference_name' => $submission->conference->conference_name
+                    'conference_name' => $submission->conference->conference_name,
                 ];
                 $data = [
                     'submission_topic' => $submission->title,
@@ -282,7 +322,7 @@ class SubmissionController extends Controller
                 Mail::to($expert->email)->send(new ExpertForwardMail($mailData, $subject, $body, $submission->conference->conference_name));
                 $validated['review_status'] = 0;
                 $submission->update($validated);
-                logActivity($submission->conference_id, 'Assign Expert', $expert->fullName($expert) . 'is assign as a expert to ' . $submission->title);
+                logActivity($submission->conference_id, 'Assign Expert', $expert->fullName($expert).'is assign as a expert to '.$submission->title);
                 DB::commit();
             }
         } catch (Exception $e) {
@@ -290,9 +330,9 @@ class SubmissionController extends Controller
             $message = $e->getMessage();
             DB::rollBack();
         }
+
         return response()->json(['type' => $type, 'message' => $message]);
     }
-
 
     public function sentToAuthorForm(Request $request, $society, $conference)
     {
@@ -323,7 +363,7 @@ class SubmissionController extends Controller
         try {
             $submission = Submission::whereId($request->id)->first();
 
-            if (!$submission) {
+            if (! $submission) {
                 return response()->json(['message' => 'Submission not found'], 404);
             }
 
@@ -377,7 +417,7 @@ class SubmissionController extends Controller
             logActivity(
                 $submission->conference_id,
                 'Change Request Status',
-                $submission->title . ' status change to ' . (
+                $submission->title.' status change to '.(
                     $request->request_status == 1 ? 'Accepted' : ($request->request_status == 2 ? 'Correction' : ($request->request_status == 3 ? 'Rejected' : 'Unknown'))
                 )
             );
@@ -389,19 +429,19 @@ class SubmissionController extends Controller
             DB::rollBack();
 
             // Log the error for debugging
-            \Log::error('Submission sentToAuthor error: ' . $e->getMessage());
+            \Log::error('Submission sentToAuthor error: '.$e->getMessage());
 
             return response()->json([
                 'message' => 'An error occurred while processing your request.',
-                'error' => $e->getMessage() // Remove this in production
+                'error' => $e->getMessage(), // Remove this in production
             ], 500);
         }
     }
 
     /**
      * Handle automatic speaker registration when submission is accepted
-     * 
-     * @param Submission $submission
+     *
+     * @param  Submission  $submission
      * @return void
      */
     private function handleSpeakerRegistration($submission)
@@ -413,7 +453,7 @@ class SubmissionController extends Controller
         $existingRegistration = ConferenceRegistration::where([
             'user_id' => $submission->user_id,
             'conference_id' => $submission->conference_id,
-            'status' => 1
+            'status' => 1,
         ])->first();
 
         if ($existingRegistration) {
@@ -421,13 +461,13 @@ class SubmissionController extends Controller
             // Only update if current type is not already Speaker
             if ($existingRegistration->registrant_type != ConferenceRegistration::REGISTRANT_SPEAKER) {
                 $existingRegistration->update([
-                    'registrant_type' => ConferenceRegistration::REGISTRANT_SPEAKER
+                    'registrant_type' => ConferenceRegistration::REGISTRANT_SPEAKER,
                 ]);
 
                 logActivity(
                     $submission->conference_id,
                     'Conference Registration Updated',
-                    'Updated ' . $submission->presenter->fullName($submission->presenter) . ' registration type to Speaker due to submission acceptance'
+                    'Updated '.$submission->presenter->fullName($submission->presenter).' registration type to Speaker due to submission acceptance'
                 );
             }
         } else {
@@ -452,7 +492,7 @@ class SubmissionController extends Controller
                 logActivity(
                     $submission->conference_id,
                     'Conference Registration Auto-Created',
-                    'Automatically registered ' . $submission->presenter->fullName($submission->presenter) . ' as Speaker due to submission acceptance (speaker registration not required)'
+                    'Automatically registered '.$submission->presenter->fullName($submission->presenter).' as Speaker due to submission acceptance (speaker registration not required)'
                 );
 
                 // Optional: Send registration confirmation email
@@ -464,6 +504,7 @@ class SubmissionController extends Controller
     public function viewDiscussion($society, $conference, $submission)
     {
         $discussions = SubmissionDiscussion::where(['submission_id' => $submission->id, 'status' => 1])->get();
+
         return view('backend.submission.discussion.index', compact('discussions', 'submission'));
     }
 
@@ -471,9 +512,8 @@ class SubmissionController extends Controller
     {
         // dd($id);
         try {
-            //code...
+            // code...
             $submission = Submission::whereId($id)->first();
-
 
             $mailData['presenter_name'] = $submission->presenter->fullName($submission->presenter);
             $mailData['topic'] = $submission->title;
@@ -489,18 +529,18 @@ class SubmissionController extends Controller
             logActivity(
                 $submission->conference_id,
                 'Convert Presentation Type',
-                $submission->title . ' presentation type convert request is sent from ' .
+                $submission->title.' presentation type convert request is sent from '.
                     ($submission->presentation_type == 1 ? 'Poster' : 'Oral')
             );
             DB::commit();
-
 
             // $submission->update(['presentation_type' => $newValue]);
             return redirect()->back()->with('status', 'Presentation type changed successfully.');
         } catch (Exception $e) {
             DB::rollBack();
+
             return redirect()->back()->with('delete', 'Something went wrong.');
-            //throw $th;
+            // throw $th;
         }
     }
 
@@ -516,6 +556,7 @@ class SubmissionController extends Controller
 
         return view('backend.submission.submission.view-score', compact('submission', 'articleTypeSections'));
     }
+
     public function destroy($society, $conference, Submission $submission)
     {
 
@@ -538,6 +579,7 @@ class SubmissionController extends Controller
             return redirect()->back()->with('status', 'Submission Successfully Deleted.');
         } catch (\Exception $e) {
             DB::rollBack();
+
             return redirect()->back()->with('delete', 'Internal Server Error.');
         }
     }
@@ -546,7 +588,7 @@ class SubmissionController extends Controller
     {
         $submission = Submission::with('authors')->find($id);
 
-        if (!$submission) {
+        if (! $submission) {
             return response()->json([]);
         }
 
@@ -581,6 +623,7 @@ class SubmissionController extends Controller
             $type = 'error';
             $message = $e->getMessage();
         }
+
         return response()->json(['type' => $type, 'message' => $message]);
     }
 
@@ -589,7 +632,7 @@ class SubmissionController extends Controller
         $userType = $request->input('user_type');
         $presentationType = $request->input('presentation_type');
 
-        if (!$userType || !$presentationType) {
+        if (! $userType || ! $presentationType) {
             return response()->json([]);
         }
 
@@ -619,7 +662,7 @@ class SubmissionController extends Controller
                     'value' => $user->id,
                     'name' => trim("{$user->f_name} {$user->m_name} {$user->l_name}"),
                     'email' => $user->email,
-                    'avatar' => 'https://i.pravatar.cc/80?u=' . urlencode($user->email),
+                    'avatar' => 'https://i.pravatar.cc/80?u='.urlencode($user->email),
                 ];
             })->values();
 
@@ -630,7 +673,7 @@ class SubmissionController extends Controller
     {
         $query = Submission::with(['authors', 'presenter.userDetail', 'submissionCategoryMajorTrack', 'articleType'])
             ->where(['conference_id' => $conference->id, 'status' => 1]);
-        
+
         if ($request->filled('article_type_id')) {
             $query->where('article_type_id', $request->article_type_id);
         }
@@ -642,7 +685,7 @@ class SubmissionController extends Controller
         if ($request->filled('request_status')) {
             $query->where('request_status', $request->request_status);
         }
-        
+
         if ($request->filled('submission_category_major_track_id')) {
             $query->where('submission_category_major_track_id', $request->submission_category_major_track_id);
         }
@@ -655,9 +698,73 @@ class SubmissionController extends Controller
             $query->whereDate('created_at', '<=', $request->to);
         }
 
+        // Filter by designation
+        if ($request->filled('designation')) {
+            $query->whereHas('presenter.userDetail.designation', function ($q) use ($request) {
+                $q->where('designation', $request->designation);
+            });
+        }
+
         $submissions = $query->latest()->get();
 
-        $filename = 'Submissions_Export_' . now()->format('Ymd_His') . '.xlsx';
+        // Track duplicate submissions by user for color filtering
+        $userSubmissions = [];
+        foreach ($submissions as $submission) {
+            $userId = $submission->user_id;
+            if (! isset($userSubmissions[$userId])) {
+                $userSubmissions[$userId] = [
+                    'count' => 0,
+                    'presentation_types' => [],
+                ];
+            }
+            $userSubmissions[$userId]['count']++;
+            if (! in_array($submission->presentation_type, $userSubmissions[$userId]['presentation_types'])) {
+                $userSubmissions[$userId]['presentation_types'][] = $submission->presentation_type;
+            }
+        }
+
+        // Add row color class to each submission
+        foreach ($submissions as $submission) {
+            $userId = $submission->user_id;
+            $userInfo = $userSubmissions[$userId];
+
+            if ($userInfo['count'] > 1) {
+                if (count($userInfo['presentation_types']) > 1) {
+                    $submission->row_color = 'table-danger';
+                } else {
+                    if ($submission->presentation_type == 1) {
+                        $submission->row_color = 'table-success';
+                    } else {
+                        $submission->row_color = 'table-warning';
+                    }
+                }
+            } else {
+                $submission->row_color = '';
+            }
+        }
+
+        // Filter by color if requested
+        if ($request->filled('color_filter')) {
+            $colorFilter = $request->color_filter;
+            $submissions = $submissions->filter(function ($submission) use ($colorFilter) {
+                if ($colorFilter == 'green') {
+                    return $submission->row_color == 'table-success';
+                } elseif ($colorFilter == 'yellow') {
+                    return $submission->row_color == 'table-warning';
+                } elseif ($colorFilter == 'red') {
+                    return $submission->row_color == 'table-danger';
+                }
+
+                return false;
+            });
+        }
+
+        // Sort by speaker name alphabetically
+        $submissions = $submissions->sortBy(function ($submission) {
+            return $submission->presenter ? $submission->presenter->fullName($submission->presenter) : '';
+        });
+
+        $filename = 'Submissions_Export_'.now()->format('Ymd_His').'.xlsx';
 
         return Excel::download(new SubmissionExport($submissions), $filename);
     }
@@ -689,9 +796,73 @@ class SubmissionController extends Controller
             $query->whereDate('created_at', '<=', $request->to);
         }
 
+        // Filter by designation
+        if ($request->filled('designation')) {
+            $query->whereHas('presenter.userDetail.designation', function ($q) use ($request) {
+                $q->where('designation', $request->designation);
+            });
+        }
+
         $submissions = $query->latest()->get();
 
-        $phpWord = new \PhpOffice\PhpWord\PhpWord();
+        // Track duplicate submissions by user for color filtering
+        $userSubmissions = [];
+        foreach ($submissions as $submission) {
+            $userId = $submission->user_id;
+            if (! isset($userSubmissions[$userId])) {
+                $userSubmissions[$userId] = [
+                    'count' => 0,
+                    'presentation_types' => [],
+                ];
+            }
+            $userSubmissions[$userId]['count']++;
+            if (! in_array($submission->presentation_type, $userSubmissions[$userId]['presentation_types'])) {
+                $userSubmissions[$userId]['presentation_types'][] = $submission->presentation_type;
+            }
+        }
+
+        // Add row color class to each submission
+        foreach ($submissions as $submission) {
+            $userId = $submission->user_id;
+            $userInfo = $userSubmissions[$userId];
+
+            if ($userInfo['count'] > 1) {
+                if (count($userInfo['presentation_types']) > 1) {
+                    $submission->row_color = 'table-danger';
+                } else {
+                    if ($submission->presentation_type == 1) {
+                        $submission->row_color = 'table-success';
+                    } else {
+                        $submission->row_color = 'table-warning';
+                    }
+                }
+            } else {
+                $submission->row_color = '';
+            }
+        }
+
+        // Filter by color if requested
+        if ($request->filled('color_filter')) {
+            $colorFilter = $request->color_filter;
+            $submissions = $submissions->filter(function ($submission) use ($colorFilter) {
+                if ($colorFilter == 'green') {
+                    return $submission->row_color == 'table-success';
+                } elseif ($colorFilter == 'yellow') {
+                    return $submission->row_color == 'table-warning';
+                } elseif ($colorFilter == 'red') {
+                    return $submission->row_color == 'table-danger';
+                }
+
+                return false;
+            });
+        }
+
+        // Sort by speaker name alphabetically
+        $submissions = $submissions->sortBy(function ($submission) {
+            return $submission->presenter ? $submission->presenter->fullName($submission->presenter) : '';
+        });
+
+        $phpWord = new \PhpOffice\PhpWord\PhpWord;
 
         foreach ($submissions as $submission) {
             $authors = $submission->authors;
@@ -730,16 +901,16 @@ class SubmissionController extends Controller
 
                 $uniqueValues = [];
                 foreach ($duplicatedData as $key => $value) {
-                    $names .= $key . ' ' . $value[0]['countValue'] . ', ';
-                    if (!in_array($value[0]['countValue'], $uniqueValues)) {
-                        $affiliation[] = $value[0]['countValue'] . $value[0]['designation'] . ', ' . $value[0]['institution'] . ', ' . $value[0]['institution_address'];
+                    $names .= $key.' '.$value[0]['countValue'].', ';
+                    if (! in_array($value[0]['countValue'], $uniqueValues)) {
+                        $affiliation[] = $value[0]['countValue'].$value[0]['designation'].', '.$value[0]['institution'].', '.$value[0]['institution_address'];
                         $uniqueValues[] = $value[0]['countValue'];
                     }
                 }
 
                 foreach ($nonDuplicatedData as $key => $value) {
-                    $names .= $key . ' ' . $value['countValue'] . ', ';
-                    $affiliation[] = $value['countValue'] . $value['designation'] . ', ' . $value['institution'] . ', ' . $value['institution_address'];
+                    $names .= $key.' '.$value['countValue'].', ';
+                    $affiliation[] = $value['countValue'].$value['designation'].', '.$value['institution'].', '.$value['institution_address'];
                 }
 
                 $names = rtrim($names, ', ');
@@ -766,11 +937,11 @@ class SubmissionController extends Controller
                     $number = array_pop($parts);
                     $person = implode(' ', $parts);
 
-                    $textRun->addText($person . ' ', ['name' => 'Times New Roman', 'size' => 14, 'bold' => true]);
+                    $textRun->addText($person.' ', ['name' => 'Times New Roman', 'size' => 14, 'bold' => true]);
                     $textRun->addText($number, ['superscript' => true, 'name' => 'Times New Roman', 'size' => 10, 'bold' => true]);
 
                     if ($key !== $totalNames - 1) {
-                        $textRun->addText(", ", ['name' => 'Times New Roman', 'size' => 14]);
+                        $textRun->addText(', ', ['name' => 'Times New Roman', 'size' => 14]);
                     }
                 }
                 $textRun->getParagraphStyle()->setLineHeight(0.8);
@@ -793,14 +964,14 @@ class SubmissionController extends Controller
                 $institution = htmlspecialchars($mainAuthor->institution, ENT_QUOTES, 'UTF-8');
                 $section->addText($institution, ['name' => 'Times New Roman', 'size' => 12]);
                 $section->addText($mainAuthor->institution_address, ['name' => 'Times New Roman', 'size' => 12]);
-                $section->addText('Email: ' . $mainAuthor->email, ['name' => 'Times New Roman', 'size' => 12]);
-                $section->addText('Phone: ' . $mainAuthor->phone, ['name' => 'Times New Roman', 'size' => 12]);
+                $section->addText('Email: '.$mainAuthor->email, ['name' => 'Times New Roman', 'size' => 12]);
+                $section->addText('Phone: '.$mainAuthor->phone, ['name' => 'Times New Roman', 'size' => 12]);
                 $section->addTextBreak(1);
             }
 
-            $section->addText('Received Date: ' . Carbon::parse($submission->submitted_date)->format('d M, Y'), ['name' => 'Times New Roman', 'size' => 12]);
-            if (!empty($submission->expert)) {
-                $section->addText('Reviewer: ' . $submission->expert->fullName($submission, 'expert'), ['name' => 'Times New Roman', 'size' => 12]);
+            $section->addText('Received Date: '.Carbon::parse($submission->submitted_date)->format('d M, Y'), ['name' => 'Times New Roman', 'size' => 12]);
+            if (! empty($submission->expert)) {
+                $section->addText('Reviewer: '.$submission->expert->fullName($submission, 'expert'), ['name' => 'Times New Roman', 'size' => 12]);
             }
             $section->addTextBreak(1);
 
@@ -819,10 +990,10 @@ class SubmissionController extends Controller
         }
 
         // Save the file
-        $filename = 'Bulk_Submissions_' . now()->format('Ymd_His') . '.docx';
-        $filePath = public_path('downloads/' . $filename);
+        $filename = 'Bulk_Submissions_'.now()->format('Ymd_His').'.docx';
+        $filePath = public_path('downloads/'.$filename);
 
-        if (!file_exists(public_path('downloads'))) {
+        if (! file_exists(public_path('downloads'))) {
             mkdir(public_path('downloads'), 0777, true);
         }
 
@@ -836,10 +1007,20 @@ class SubmissionController extends Controller
     {
         $submissionTracks = SubmissionCategoryMajorTrack::where(['conference_id' => $conference->id, 'status' => 1])->get();
         $articleTypes = ArticleType::where(['conference_id' => $conference->id, 'status' => 1])->get();
-        
+        $loadData = function ($relation, $model) use ($society) {
+            if ($society && $society->$relation()->exists()) {
+                return $society->$relation()->where('status', 1)->get();
+            }
+
+            return $model::where('status', 1)->get();
+        };
+        $designations = $loadData('designations', Designation::class);
+
+        // $designations = \App\Models\User\Designation::where('status', 1)->orderBy('designation', 'asc')->get();
+
         $query = Submission::with(['authors', 'submissionCategoryMajorTrack', 'articleType.setting', 'expert'])
             ->where(['conference_id' => $conference->id, 'status' => 1]);
-        
+
         if ($request->filled('article_type_id')) {
             $query->where('article_type_id', $request->article_type_id);
         }
@@ -851,7 +1032,7 @@ class SubmissionController extends Controller
         if ($request->filled('request_status')) {
             $query->where('request_status', $request->request_status);
         }
-        
+
         if ($request->filled('submission_category_major_track_id')) {
             $query->where('submission_category_major_track_id', $request->submission_category_major_track_id);
         }
@@ -864,8 +1045,15 @@ class SubmissionController extends Controller
             $query->whereDate('created_at', '<=', $request->to);
         }
 
+        // Filter by designation
+        if ($request->filled('designation')) {
+            $query->whereHas('presenter.userDetail.designation', function ($q) use ($request) {
+                $q->where('designation', $request->designation);
+            });
+        }
+
         $submissions = $query->latest()->get();
 
-        return view('backend.submission.submission.view-submissions', compact('submissions', 'submissionTracks', 'conference', 'society', 'articleTypes'));
+        return view('backend.submission.submission.view-submissions', compact('submissions', 'submissionTracks', 'conference', 'society', 'articleTypes', 'designations'));
     }
 }
