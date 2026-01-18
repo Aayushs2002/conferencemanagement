@@ -75,6 +75,20 @@
                     <input type="date" value="{{ request('to') }}"
                         class="form-control @error('to') is-invalid @enderror" id="to" name="to" />
                 </div>
+                <div class="col-md-3 form-group mb-3">
+                    <label for="designation" class="mb-2">Designation</label>
+                    <select name="designation" id="designation" class="form-control @error('designation') is-invalid @enderror">
+                        <option value="">-- Select Designation --</option>
+                        @foreach ($designations as $designation)
+                            <option value="{{ $designation->designation }}"
+                                {{ request()->designation == $designation->designation ? 'selected' : '' }}>
+                                {{ $designation->designation }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <input type="hidden" name="color_filter" id="color_filter" value="{{ request()->color_filter }}">
 
                 <div class="row my-4">
                     <div class="col-12 text-end">
@@ -115,11 +129,16 @@
             </div>
             <div class="px-3 py-2">
                 <small class="text-muted">
-                    <strong>Color Legend:</strong>
-                    <span class="badge bg-success">Green</span> = Multiple Poster submissions by same user |
-                    <span class="badge bg-warning">Yellow</span> = Multiple Oral submissions by same user |
-                    <span class="badge bg-danger">Red</span> = Multiple submissions with different presentation types by
-                    same user
+                    <strong>Color Legend (Click to filter):</strong>
+                    <span class="badge bg-success color-filter-badge" data-color="green" style="cursor: pointer;">Green</span> = Multiple Poster submissions by same user |
+                    <span class="badge bg-warning color-filter-badge" data-color="yellow" style="cursor: pointer;">Yellow</span> = Multiple Oral submissions by same user |
+                    <span class="badge bg-danger color-filter-badge" data-color="red" style="cursor: pointer;">Red</span> = Multiple submissions with different presentation types by same user
+                    @if(request()->color_filter)
+                        <span class="ms-2">|</span>
+                        <a href="{{ route('submission.index', [$society, $conference]) }}" class="badge bg-light text-dark border ms-2 mt-2" style="text-decoration: none; cursor: pointer;">
+                            <i class="ti tabler-x" style="font-size: 10px;"></i> Clear Filter
+                        </a>
+                    @endif
                 </small>
             </div>
             <table class="datatables-basic table">
@@ -499,6 +518,14 @@
                 toggleFilterButton();
             });
 
+            // Handle color legend badge clicks
+            $('.color-filter-badge').on('click', function() {
+                var color = $(this).data('color');
+                $('#color_filter').val(color);
+                form.attr('action', '{{ route('submission.index', [$society, $conference]) }}');
+                form.submit();
+            });
+
 
             var form = $('#filterForm');
 
@@ -521,7 +548,7 @@
             $('#filterBtn').on('click', function(e) {
                 e.preventDefault();
                 form.attr('action',
-                    '{{ route('submission.viewSubmissions', [$society, $conference]) }}');
+                    '{{ route('submission.index', [$society, $conference]) }}');
                 form.submit();
             });
         });

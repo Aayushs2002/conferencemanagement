@@ -74,7 +74,7 @@
                             <option value="{{ $submissionTrack->id }}"
                                 {{ request()->submission_category_major_track_id == $submissionTrack->id ? 'selected' : '' }}>
                                 {{ $submissionTrack->title }}</option>
-                        @endforeach
+                        @endforeach 
                     </select>
                 </div>
                 <div class="col-md-3 form-group mb-3">
@@ -86,6 +86,18 @@
                     <label for="to" class="mb-2">To</label>
                     <input type="date" value="{{ request('to') }}"
                         class="form-control @error('to') is-invalid @enderror" id="to" name="to" />
+                </div>
+                <div class="col-md-3 form-group mb-3">
+                    <label for="designation" class="mb-2">Designation</label>
+                    <select name="designation" id="designation" class="form-control @error('designation') is-invalid @enderror">
+                        <option value="">-- Select Designation --</option>
+                        @foreach ($designations as $designation)
+                            <option value="{{ $designation->designation }}"
+                                {{ request()->designation == $designation->designation ? 'selected' : '' }}>
+                                {{ $designation->designation }}
+                            </option>
+                        @endforeach
+                    </select>
                 </div>
 
                 <div class="row my-4">

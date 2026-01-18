@@ -216,7 +216,7 @@ class Payment extends ActionRequest
         // dd($paco_encryption_public_key);
         $now = Carbon::now();
         $orderNo = $now->getPreciseTimestamp(3);
-
+ 
         $request = [
             "apiRequest" => [
                 "requestMessageID" => $this->Guid(),
