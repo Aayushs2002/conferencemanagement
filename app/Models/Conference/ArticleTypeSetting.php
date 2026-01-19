@@ -10,6 +10,7 @@ class ArticleTypeSetting extends Model
         'article_type_id',
         'number_of_sections',
         'sections',
+        'total_marks',
         'attachment_name',
         'is_attachment_required',
         'author_limit',

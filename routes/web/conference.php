@@ -50,6 +50,8 @@ Route::middleware('auth')->group(function () {
 
     Route::prefix('/society/{society}')->group(function () {
         Route::resource('/conference', ConferenceController::class)->except('show', 'destroy');
+        Route::post('/conference/{conference}/archive', [ConferenceController::class, 'archive'])->name('conference.archive');
+        Route::post('/conference/{conference}/unarchive', [ConferenceController::class, 'unarchive'])->name('conference.unarchive');
     });
     Route::post('/conference/show', [ConferenceController::class, 'view'])->name('conference.show');
 

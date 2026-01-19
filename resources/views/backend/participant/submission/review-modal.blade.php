@@ -69,27 +69,74 @@
                         {{-- Section-based ratings if article type has sections --}}
                         @if (!empty($articleTypeSections) && is_array($articleTypeSections))
                             <div class="row pl-3 decisionForm" style="display: none;">
-                                <div class="col-md-12 mb-3">
-                                    <label class="text-danger">Score Based On Sections <code>*</code></label>
-                                    <p class="text-muted small">Rate each section from 0-2 based on quality and content
-                                    </p>
+                                <div class="col-md-12 mb-4">
+                                    <div class="alert border-0 mb-0" style="background: linear-gradient(135deg, #fff3cd 0%, #ffe69c 100%);">
+                                        <div class="d-flex align-items-center">
+                                            <div class="bg-warning bg-opacity-25 rounded-circle p-2 me-3">
+                                                <i class="ti tabler-award text-warning fs-4"></i>
+                                            </div>
+                                            <div>
+                                                <h6 class="fw-bold mb-1 text-dark">Score Based On Sections</h6>
+                                                <small class="text-muted">Rate each section based on quality and content. Maximum marks are shown for each section.</small>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                                 @foreach ($articleTypeSections as $index => $section)
+                                    @php
+                                        $maxMarks = $section['max_marks'] ?? 2;
+                                        // Generate score options based on max_marks
+                                        $scoreOptions = [];
+                                        if ($maxMarks >= 1) {
+                                            $step = ($maxMarks <= 2) ? 1 : 0.5;
+                                            for ($i = 0; $i <= $maxMarks; $i += $step) {
+                                                $scoreOptions[] = $i;
+                                            }
+                                        } else {
+                                            $scoreOptions = [0];
+                                        }
+                                    @endphp
                                     <div class="col-md-6 form-group mb-3 sectionRatingField">
-                                        <label
-                                            for="section_rating_{{ $index }}">{{ $section['name'] ?? 'Section ' . ($index + 1) }}
-                                            <code>*</code></label>
-                                        <select name="section_ratings[{{ $index }}][rating]"
-                                            id="section_rating_{{ $index }}"
-                                            class="form-control section-rating-select">
-                                            <option value="" hidden>-- Select Score --</option>
-                                            <option value="0">0</option>
-                                            <option value="1">1</option>
-                                            <option value="2">2</option>
-                                        </select>
-                                        <input type="hidden" name="section_ratings[{{ $index }}][name]"
-                                            value="{{ $section['name'] ?? 'Section ' . ($index + 1) }}">
-                                        <p class="text-danger section-rating-error-{{ $index }}"></p>
+                                        <div class="card border-0 shadow-sm h-100" style="background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);">
+                                            <div class="card-body p-3">
+                                                <label for="section_rating_{{ $index }}" class="form-label fw-semibold mb-2">
+                                                    <i class="ti tabler-file-text text-primary me-1"></i>
+                                                    {{ $section['name'] ?? 'Section ' . ($index + 1) }}
+                                                </label>
+                                                
+                                                @if(!empty($section['reviewer_instruction']))
+                                                    <div class="alert border-0 py-2 px-3 mb-3" style="background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);">
+                                                        <div class="d-flex align-items-start">
+                                                            <i class="ti tabler-checklist text-success me-2 mt-1 flex-shrink-0"></i>
+                                                            <small class="text-dark mb-0" style="line-height: 1.5;">
+                                                                <strong>Review Criteria:</strong> {{ $section['reviewer_instruction'] }}
+                                                            </small>
+                                                        </div>
+                                                    </div>
+                                                @endif
+                                                
+                                                <div class="d-flex align-items-center gap-2 mb-2">
+                                                    <span class="badge rounded-pill px-3 py-2" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                                                        <i class="ti tabler-star me-1"></i>Max: {{ $maxMarks }}
+                                                    </span>
+                                                    <code class="bg-danger bg-opacity-10 text-danger px-2 py-1 rounded">*</code>
+                                                </div>
+                                                <select name="section_ratings[{{ $index }}][rating]"
+                                                    id="section_rating_{{ $index }}"
+                                                    class="form-control form-select section-rating-select" 
+                                                    data-max-marks="{{ $maxMarks }}">
+                                                    <option value="" hidden>-- Select Score --</option>
+                                                    @foreach($scoreOptions as $score)
+                                                        <option value="{{ $score }}">{{ $score }} {{ $score == $maxMarks ? '(Max)' : '' }}</option>
+                                                    @endforeach
+                                                </select>
+                                                <input type="hidden" name="section_ratings[{{ $index }}][name]"
+                                                    value="{{ $section['name'] ?? 'Section ' . ($index + 1) }}">
+                                                <input type="hidden" name="section_ratings[{{ $index }}][max_marks]"
+                                                    value="{{ $maxMarks }}">
+                                                <p class="text-danger section-rating-error-{{ $index }} mb-0 mt-2 small"></p>
+                                            </div>
+                                        </div>
                                     </div>
                                 @endforeach
 
@@ -115,14 +162,20 @@
                                         <span id="remainingScoreText"></span>
                                     </div>
                                 </div> --}}
-                            <div class="col-md-6 form-group mb-3 decisionForm" id="sectionOverallRatingDiv"
+                            <div class="col-md-12 form-group mb-3 decisionForm" id="sectionOverallRatingDiv"
                                 style="display: none;">
-                                <label for="section_overall_rating">Overall Rating (Consistency, Grammar, language,
-                                    correct parameter, etc)<code>*</code></label>
-                                <select name="overall_rating" id="section_overall_rating" class="form-control">
-                                    <option value="" hidden>-- Select Additional Score --</option>
-                                </select>
-                                <p class="text-danger overall_rating"></p>
+                                <div class="card border-0 shadow-sm" style="background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);">
+                                    <div class="card-body p-3">
+                                        <label for="section_overall_rating" class="form-label fw-semibold mb-2">
+                                            <i class="ti tabler-certificate text-success me-1"></i>
+                                            Overall Rating (Consistency, Grammar, Language, etc.)
+                                        </label>
+                                        <select name="overall_rating" id="section_overall_rating" class="form-control form-select">
+                                            <option value="" hidden>-- Select Additional Score --</option>
+                                        </select>
+                                        <p class="text-danger overall_rating mb-0 mt-2 small"></p>
+                                    </div>
+                                </div>
                             </div>
                             {{-- </div> --}}
                         @else
@@ -399,28 +452,46 @@
             return;
         }
 
-        // Count total number of section rating fields (excluding grammar)
-        const sectionCount = $('.section-rating-select').not('#grammar').length;
+        // Get total marks from article type setting (default 10 if not set)
+        @php
+            $totalMarks = 10; // Default
+            if (!empty($articleTypeSections) && isset($submission->articleType->setting->total_marks)) {
+                $totalMarks = $submission->articleType->setting->total_marks;
+            }
+        @endphp
+        const totalMarks = {{ $totalMarks }};
 
-        // Calculate maximum possible score (each field can have max 2 points)
-        const maxPossibleScore = (sectionCount * 2);
+        // Calculate maximum possible score based on each section's max_marks
+        let maxPossibleScore = 0;
+        $('.section-rating-select').each(function() {
+            const sectionMaxMarks = parseFloat($(this).data('max-marks')) || 2;
+            maxPossibleScore += sectionMaxMarks;
+        });
 
-        if (maxPossibleScore < 10) {
-            // Show overall rating field if maximum possible score is less than 10
-            const remaining = 10 - maxPossibleScore;
+        if (maxPossibleScore < totalMarks) {
+            // Show overall rating field if maximum possible score is less than total marks
+            const remaining = totalMarks - maxPossibleScore;
 
-            // Populate options from 1 to remaining
+            // Populate options based on remaining marks (support decimals)
             const $select = $('#section_overall_rating');
             $select.empty();
             $select.append('<option value="" hidden>-- Select Additional Score --</option>');
-            for (let i = 1; i <= remaining; i++) {
-                $select.append(`<option value="${i}">${i}</option>`);
+            
+            // Generate options with 0.5 step if remaining > 2, otherwise 1 step
+            const step = remaining > 2 ? 0.5 : 1;
+            for (let i = step; i <= remaining; i += step) {
+                $select.append(`<option value="${i}">${i}${i === remaining ? ' (Max)' : ''}</option>`);
             }
 
             $('#sectionOverallRatingDiv').show();
             $('#section_overall_rating').attr('required', true);
+            
+            // Update label with badge showing remaining marks
+            $('#sectionOverallRatingDiv .form-label').html(
+                `<i class="ti tabler-certificate text-success me-1"></i>Overall Rating (Consistency, Grammar, Language, etc.) <span class="badge rounded-pill ms-2" style="background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);"><i class="ti tabler-star me-1"></i>Remaining: ${remaining}</span><code class="ms-1">*</code>`
+            );
         } else {
-            // Hide overall rating field if max possible score is already 10 or more
+            // Hide overall rating field if max possible score is already at or above total marks
             $('#sectionOverallRatingDiv').hide();
             $('#section_overall_rating').attr('required', false);
             $('#section_overall_rating').val('');

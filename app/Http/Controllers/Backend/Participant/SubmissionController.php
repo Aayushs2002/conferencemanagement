@@ -520,8 +520,8 @@ class SubmissionController extends Controller
             $submission = Submission::with('articleType.setting')->findOrFail($request->id);
             $setting = SubmissionSetting::where(['conference_id' => $submission->conference_id, 'status' => 1])->first();
 
-            // Determine if scoring is required or nullable
-            $scoreRule = $setting->scoring_allowed == 1 ? 'required|integer' : 'nullable|integer';
+            // Determine if scoring is required or nullable (changed to numeric to support decimal values)
+            $scoreRule = $setting->scoring_allowed == 1 ? 'required|numeric' : 'nullable|numeric';
 
             // Check if article type has sections for section-based rating
             $hasSectionRatings = $submission->articleType &&
@@ -545,22 +545,30 @@ class SubmissionController extends Controller
 
                 // Validate ratings based on section-based or default structure
                 if ($hasSectionRatings) {
-                    // Section-based ratings validation
+                    // Section-based ratings validation with dynamic max marks
                     if ($request->has('section_ratings') && is_array($request->section_ratings)) {
+                        $sections = $submission->articleType->setting->sections ?? [];
                         foreach ($request->section_ratings as $index => $rating) {
-                            $rules["section_ratings.{$index}.rating"] = $scoreRule;
+                            // Get max marks for this specific section
+                            $sectionMaxMarks = $sections[$index]['max_marks'] ?? 2;
+                            $rules["section_ratings.{$index}.rating"] = $scoreRule . "|min:0|max:{$sectionMaxMarks}";
                         }
                     }
-                    // $rules['grammar'] = $scoreRule; // Grammar is always required for section-based
 
-                    // Calculate maximum possible score based on number of sections
-                    $sectionCount = count($submission->articleType->setting->sections ?? []);
-                    $maxPossibleScore = ($sectionCount * 2) + 2; // Each section max 2 + grammar max 2
+                    // Get total marks from article type setting (default 10)
+                    $totalMarks = $submission->articleType->setting->total_marks ?? 10;
+                    
+                    // Calculate maximum possible score based on sum of section max_marks
+                    $maxPossibleScore = 0;
+                    $sections = $submission->articleType->setting->sections ?? [];
+                    foreach ($sections as $section) {
+                        $maxPossibleScore += $section['max_marks'] ?? 2;
+                    }
 
-                    // Overall rating is required only if maximum possible score < 10
-                    if ($maxPossibleScore < 10) {
-                        $remaining = 10 - $maxPossibleScore;
-                        $rules['overall_rating'] = "required|integer|min:1|max:{$remaining}";
+                    // Overall rating is required only if maximum possible score < total marks
+                    if ($maxPossibleScore < $totalMarks) {
+                        $remaining = $totalMarks - $maxPossibleScore;
+                        $rules['overall_rating'] = "required|numeric|min:0|max:{$remaining}";
                     }
                 } else {
                     // Default rating structure

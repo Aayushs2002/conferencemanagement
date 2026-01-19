@@ -208,7 +208,7 @@
                                     class="menu-link">
                                     <div data-i18n="Theme/Sub-theme">Theme/Sub-theme</div>
                                 </a>
-                            </li>
+                            </li> 
                         @endif
                         @if (auth()->user()->hasConferencePermissionBlade($conference, 'View Article Type'))
                             <li class="menu-item {{ request()->segment(6) == 'article-type' ? 'active' : '' }}">

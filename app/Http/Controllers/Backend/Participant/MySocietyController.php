@@ -25,8 +25,19 @@ class MySocietyController extends Controller
 
     public function conference($society)
     {
-        $conferences = Conference::where(['society_id' => $society->id, 'status' => 1])->get();
-        return view('backend.participant.conference.index', compact('conferences', 'society'));
+        $activeConferences = Conference::where([
+            'society_id' => $society->id, 
+            'status' => 1,
+            'is_archived' => 0
+        ])->orderBy('start_date', 'desc')->get();
+
+        $archivedConferences = Conference::where([
+            'society_id' => $society->id, 
+            'status' => 1,
+            'is_archived' => 1
+        ])->orderBy('archived_at', 'desc')->get();
+
+        return view('backend.participant.conference.index', compact('activeConferences', 'archivedConferences', 'society'));
     }
 
 

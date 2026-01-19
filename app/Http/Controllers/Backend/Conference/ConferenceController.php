@@ -31,14 +31,19 @@ class ConferenceController extends Controller
 
     public function index($society)
     {
-        $conferences = Conference::where([
+        $activeConferences = Conference::where([
             'society_id' => $society->id,
-            'status' => 1
+            'status' => 1,
+            'is_archived' => 0
         ])->orderBy('start_date', 'desc')->get();
 
-        return view('backend.conference.index', compact('conferences', 'society'));
+        $archivedConferences = Conference::where([
+            'society_id' => $society->id,
+            'status' => 1,
+            'is_archived' => 1
+        ])->orderBy('archived_at', 'desc')->get();
 
-        // return view('backend.conference.index');
+        return view('backend.conference.index', compact('activeConferences', 'archivedConferences', 'society'));
     }
 
     /**
@@ -405,5 +410,43 @@ class ConferenceController extends Controller
             'lunch_count' => $data->lunch_count ?? 0,
             'dinner_count' => $data->dinner_count ?? 0,
         ]);
+    }
+
+    /**
+     * Archive the specified conference.
+     */
+    public function archive($society, Conference $conference)
+    {
+        try {
+            $conference->update([
+                'is_archived' => 1,
+                'archived_at' => now()
+            ]);
+
+            return redirect()->route('conference.index', $society)
+                ->with('status', 'Conference archived successfully');
+        } catch (\Exception $e) {
+            return redirect()->back()
+                ->with('delete', 'Failed to archive conference');
+        }
+    }
+
+    /**
+     * Unarchive the specified conference.
+     */
+    public function unarchive($society, Conference $conference)
+    {
+        try {
+            $conference->update([
+                'is_archived' => 0,
+                'archived_at' => null
+            ]);
+
+            return redirect()->route('conference.index', $society)
+                ->with('status', 'Conference unarchived successfully');
+        } catch (\Exception $e) {
+            return redirect()->back()
+                ->with('delete', 'Failed to unarchive conference');
+        }
     }
 }

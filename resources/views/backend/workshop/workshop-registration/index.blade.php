@@ -81,8 +81,8 @@
                                 @elseif ($registration->meal_type == 2)
                                     Non-Veg
                                 @else
-                                    N/A
-                                @endif
+                                    N/A                                             
+                                @endif                                                                                                                                            
                             </td>
                             <td>
                                 @if ($registration->verified_status == 1)
