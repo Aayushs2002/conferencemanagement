@@ -8,47 +8,136 @@
 
     <div class="modal-body">
         <div class="row">
+            <!-- Scoring Configuration -->
+            <div class="col-12 mb-4">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header border-0" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                        <div class="d-flex align-items-center">
+                            <div class="bg-white bg-opacity-25 rounded-circle p-2 me-2">
+                                <i class="ti tabler-stars  fs-5"></i>
+                            </div>
+                            <h6 class="mb-0 text-white fw-semibold">Scoring Configuration</h6>
+                        </div>
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="row align-items-center">
+                            <div class="col-md-6 mb-3">
+                                <label for="total_marks" class="form-label fw-semibold mb-2">
+                                    Total Marks <span class="text-danger">*</span>
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light border-end-0">
+                                        <i class="ti tabler-award text-primary"></i>
+                                    </span>
+                                    <input type="number" class="form-control border-start-0" id="total_marks" 
+                                           name="total_marks" 
+                                           value="{{ old('total_marks', $setting->total_marks ?? 10) }}"
+                                           placeholder="e.g., 10" min="1" max="100" required>
+                                </div>
+                                <small class="text-muted d-block mt-1">
+                                    <i class="ti tabler-info-circle me-1"></i>Maximum marks for this article type
+                                </small>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="alert alert-info border-0 mb-0" style="background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);">
+                                    <div class="d-flex align-items-start">
+                                        <i class="ti tabler-bulb text-primary fs-4 me-2 mt-1"></i>
+                                        <div>
+                                            <strong class="d-block mb-1">Tip:</strong>
+                                            <small>If sections don't cover total marks, reviewers will see an "Overall Rating" field for the remaining marks.</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Number of Sections -->
             <div class="col-12 mb-4">
-                <div class="card">
-                    <div class="card-header bg-primary ">
-                        <h6 class="mb-0 text-white">Article Sections</h6>
-                    </div>
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-center mb-3 mt-3">
-                            <label class="form-label fw-bold mb-0">Sections</label>
-                            <button type="button" class="btn btn-sm btn-success" id="addSectionBtn">
-                                <i class="ti tabler-plus"></i> Add Section
+                <div class="card border-0 shadow-sm"> 
+                    <div class="card-header bg-primary border-0">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div class="d-flex align-items-center">
+                                <div class="bg-white bg-opacity-25 rounded-circle p-2 me-2">
+                                    <i class="ti tabler-list fs-5"></i>
+                                </div>
+                                <h6 class="mb-0 text-white fw-semibold">Article Sections</h6>
+                            </div>
+                            <button type="button" class="btn btn-light btn-sm rounded-pill px-3" id="addSectionBtn">
+                                <i class="ti tabler-plus me-1"></i>Add Section
                             </button>
                         </div>
+                    </div>
+                    <div class="card-body p-4">
                         <input type="hidden" id="number_of_sections" name="number_of_sections" value="{{ old('number_of_sections', $setting->number_of_sections ?? 0) }}">
 
                         <!-- Dynamic Sections Container -->
                         <div id="sectionsContainer" class="mt-3">
                             @if(isset($setting->sections) && is_array($setting->sections))
                                 @foreach($setting->sections as $index => $section)
-                                    <div class="section-group mb-3 p-3 border rounded bg-light position-relative">
-                                        <button type="button" class="btn btn-sm btn-danger position-absolute top-0 end-0 m-2 remove-section-btn">
+                                    <div class="section-group mb-3 p-4 border rounded-3 position-relative" style="background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); border: 2px solid #dee2e6 !important;">
+                                        <button type="button" class="btn btn-sm btn-danger position-absolute rounded-circle remove-section-btn" style="top: 12px; right: 12px; width: 32px; height: 32px; padding: 0;" title="Remove Section">
                                             <i class="ti tabler-x"></i>
                                         </button>
-                                        <h6 class="text-primary mb-3">Section {{ $index + 1 }}</h6>
+                                        <div class="d-flex align-items-center mb-3">
+                                            <div class="bg-primary bg-opacity-10 rounded-circle p-2 me-2">
+                                                <i class="ti tabler-file-text text-primary"></i>
+                                            </div>
+                                            <h6 class="text-primary fw-semibold mb-0">Section {{ $index + 1 }}</h6>
+                                        </div>
                                         <div class="row">
                                             <div class="col-md-12 mb-3">
-                                                <label class="form-label">Section Name <span class="text-danger">*</span></label>
+                                                <label class="form-label fw-semibold mb-2">Section Name <span class="text-danger">*</span></label>
                                                 <input type="text" class="form-control" name="section_name[]" 
                                                        value="{{ $section['name'] ?? '' }}" 
                                                        placeholder="e.g., Introduction, Methods, Results" required>
                                             </div>
                                             <div class="col-md-6 mb-3">
-                                                <label class="form-label">Word Limit <span class="text-danger">*</span></label>
-                                                <input type="number" class="form-control" name="section_word_limit[]" 
-                                                       value="{{ $section['word_limit'] ?? '' }}" 
-                                                       placeholder="e.g., 500" min="1" required>
+                                                <label class="form-label fw-semibold mb-2">Word Limit <span class="text-danger">*</span></label>
+                                                <div class="input-group">
+                                                    <span class="input-group-text bg-light">
+                                                        <i class="ti tabler-file-text text-muted"></i>
+                                                    </span>
+                                                    <input type="number" class="form-control" name="section_word_limit[]" 
+                                                           value="{{ $section['word_limit'] ?? '' }}" 
+                                                           placeholder="e.g., 500" min="1" required>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6 mb-3">
+                                                <label class="form-label fw-semibold mb-2">Maximum Marks <span class="text-danger">*</span></label>
+                                                <div class="input-group">
+                                                    <span class="input-group-text bg-light">
+                                                        <i class="ti tabler-star text-warning"></i>
+                                                    </span>
+                                                    <input type="number" class="form-control section-max-marks" name="section_max_marks[]" 
+                                                           value="{{ $section['max_marks'] ?? 2 }}" 
+                                                           placeholder="2" min="0" step="0.5" required>
+                                                </div>
+                                                <small class="text-muted d-block mt-1">
+                                                    <i class="ti tabler-info-circle me-1"></i>Max score reviewers can award
+                                                </small>
+                                            </div>
+                                            <div class="col-md-12 mb-3">
+                                                <label class="form-label fw-semibold mb-2">
+                                                    <i class="ti tabler-user-edit text-info me-1"></i>Author Instructions
+                                                </label>
+                                                <textarea class="form-control" name="section_instruction[]" rows="2" 
+                                                          placeholder="Instructions for authors when writing this section">{{ $section['instruction'] ?? '' }}</textarea>
+                                                <small class="text-muted d-block mt-1">
+                                                    <i class="ti tabler-info-circle me-1"></i>Shown to authors during submission
+                                                </small>
                                             </div>
                                             <div class="col-md-12 mb-0">
-                                                <label class="form-label">Instructions</label>
-                                                <textarea class="form-control" name="section_instruction[]" rows="2" 
-                                                          placeholder="Enter instructions for this section">{{ $section['instruction'] ?? '' }}</textarea>
+                                                <label class="form-label fw-semibold mb-2">
+                                                    <i class="ti tabler-checklist text-success me-1"></i>Reviewer Instructions
+                                                </label>
+                                                <textarea class="form-control" name="section_reviewer_instruction[]" rows="2" 
+                                                          placeholder="Criteria for reviewers when rating this section">{{ $section['reviewer_instruction'] ?? '' }}</textarea>
+                                                <small class="text-muted d-block mt-1">
+                                                    <i class="ti tabler-info-circle me-1"></i>Shown to reviewers during evaluation
+                                                </small>
                                             </div>
                                         </div>
                                     </div>
@@ -56,7 +145,10 @@
                             @endif
                         </div>
                         
-                        <small class="text-muted">Click "Add Section" to create new sections. You can remove sections using the × button.</small>
+                        <div class="alert alert-light border mb-0 mt-2" style="background-color: #f8f9fa;">
+                            <i class="ti tabler-info-circle text-primary me-2"></i>
+                            <small class="text-muted">Click <strong>"Add Section"</strong> to create new sections. Remove sections using the <i class="ti tabler-x"></i> button.</small>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -158,26 +250,64 @@
             var newSectionIndex = currentCount + 1;
             
             var sectionHtml = `
-                <div class="section-group mb-3 p-3 border rounded bg-light position-relative">
-                    <button type="button" class="btn btn-sm btn-danger position-absolute top-0 end-0 m-2 remove-section-btn">
+                <div class="section-group mb-3 p-4 border rounded-3 position-relative" style="background: linear-gradient(135deg, #e8f4f8 0%, #d4e9f2 100%); border: 2px solid #90caf9 !important;">
+                    <button type="button" class="btn btn-sm btn-danger position-absolute rounded-circle remove-section-btn" style="top: 12px; right: 12px; width: 32px; height: 32px; padding: 0;" title="Remove Section">
                         <i class="ti tabler-x"></i>
                     </button>
-                    <h6 class="text-primary mb-3">Section ${newSectionIndex}</h6>
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="bg-primary bg-opacity-10 rounded-circle p-2 me-2">
+                            <i class="ti tabler-file-text text-primary"></i>
+                        </div>
+                        <h6 class="text-primary fw-semibold mb-0">Section ${newSectionIndex}</h6>
+                    </div>
                     <div class="row">
                         <div class="col-md-12 mb-3">
-                            <label class="form-label">Section Name <span class="text-danger">*</span></label>
+                            <label class="form-label fw-semibold mb-2">Section Name <span class="text-danger">*</span></label>
                             <input type="text" class="form-control" name="section_name[]" 
                                    placeholder="e.g., Introduction, Methods, Results" required>
                         </div>
                         <div class="col-md-6 mb-3">
-                            <label class="form-label">Word Limit <span class="text-danger">*</span></label>
-                            <input type="number" class="form-control" name="section_word_limit[]" 
-                                   placeholder="e.g., 500" min="1" required>
+                            <label class="form-label fw-semibold mb-2">Word Limit <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light">
+                                    <i class="ti tabler-file-text text-muted"></i>
+                                </span>
+                                <input type="number" class="form-control" name="section_word_limit[]" 
+                                       placeholder="e.g., 500" min="1" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-semibold mb-2">Maximum Marks <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light">
+                                    <i class="ti tabler-star text-warning"></i>
+                                </span>
+                                <input type="number" class="form-control section-max-marks" name="section_max_marks[]" 
+                                       placeholder="2" min="0" step="0.5" value="2" required>
+                            </div>
+                            <small class="text-muted d-block mt-1">
+                                <i class="ti tabler-info-circle me-1"></i>Max score reviewers can award
+                            </small>
+                        </div>
+                        <div class="col-md-12 mb-3">
+                            <label class="form-label fw-semibold mb-2">
+                                <i class="ti tabler-user-edit text-info me-1"></i>Author Instructions
+                            </label>
+                            <textarea class="form-control" name="section_instruction[]" rows="2" 
+                                      placeholder="Instructions for authors when writing this section"></textarea>
+                            <small class="text-muted d-block mt-1">
+                                <i class="ti tabler-info-circle me-1"></i>Shown to authors during submission
+                            </small>
                         </div>
                         <div class="col-md-12 mb-0">
-                            <label class="form-label">Instructions</label>
-                            <textarea class="form-control" name="section_instruction[]" rows="2" 
-                                      placeholder="Enter instructions for this section"></textarea>
+                            <label class="form-label fw-semibold mb-2">
+                                <i class="ti tabler-checklist text-success me-1"></i>Reviewer Instructions
+                            </label>
+                            <textarea class="form-control" name="section_reviewer_instruction[]" rows="2" 
+                                      placeholder="Criteria for reviewers when rating this section"></textarea>
+                            <small class="text-muted d-block mt-1">
+                                <i class="ti tabler-info-circle me-1"></i>Shown to reviewers during evaluation
+                            </small>
                         </div>
                     </div>
                 </div>
@@ -211,9 +341,34 @@
             $(this).next('.invalid-feedback').remove();
         });
 
+        // Validate section marks don't exceed total marks
+        function validateSectionMarks() {
+            var totalMarks = parseFloat($('#total_marks').val()) || 10;
+            var sectionMarksSum = 0;
+            
+            $('.section-max-marks').each(function() {
+                sectionMarksSum += parseFloat($(this).val()) || 0;
+            });
+            
+            if (sectionMarksSum > totalMarks) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Invalid Configuration',
+                    text: `Sum of section marks (${sectionMarksSum}) exceeds total marks (${totalMarks}). Please adjust the values.`,
+                });
+                return false;
+            }
+            return true;
+        }
+
         // Handle form submission
         $('#settingForm').on('submit', function(e) {
             e.preventDefault();
+
+            // Validate section marks
+            if (!validateSectionMarks()) {
+                return false;
+            }
 
             // Clear previous errors
             $('.is-invalid').removeClass('is-invalid');

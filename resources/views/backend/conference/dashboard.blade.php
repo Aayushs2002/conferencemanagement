@@ -15,7 +15,7 @@
                             </div> 
                             <a href="{{ route('conference.conference-registration.index', [$society, $conference]) }}">
                                 <h3 class="fw-bold text-dark mb-2">{{ $conferenceRegistrationCount }}</h3>
-                            </a>
+                            </a> 
                             <p class="text-muted mb-0 fw-medium">Total Registrations</p>
                             <div class="progress mt-3" style="height: 4px;">
                                 <div class="progress-bar bg-primary" style="width: 85%"></div>
@@ -429,108 +429,447 @@
             </div>
         </div>
     @else
-        <div class="row">
-            <div class="col-lg-3 col-sm-6">
-                <div class="card ">
-                    <div class="card-body">
-                        <p class="mb-1">Conference Registered Status</p>
-                        <div class="my-4">
+        <div class="container-xxl flex-grow-1 container-p-y">
+            <!-- Page Header -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="card border-0 shadow-sm" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                        <div class="card-body p-4">
+                            <div class="d-flex align-items-center justify-content-between text-white">
+                                <div>
+                                    <h4 class="text-white fw-bold mb-2">
+                                        <i class="icon-base ti tabler-building me-2"></i>{{ $conference->conference_name }}
+                                    </h4>
+                                    <p class="mb-0 opacity-90">
+                                        <i class="icon-base ti tabler-calendar-event me-2"></i>
+                                        {{ \Carbon\Carbon::parse($conference->start_date)->format('M d, Y') }} - 
+                                        {{ \Carbon\Carbon::parse($conference->end_date)->format('M d, Y') }}
+                                    </p>
+                                </div>
+                                <div class="text-end">
+                                    @if (checkRegistrations($conference))
+                                        <span class="badge bg-success bg-opacity-10 text-white px-4 py-2 fs-6">
+                                            <i class="icon-base ti tabler-check me-2"></i>Registered
+                                        </span>
+                                    @else
+                                        <a href="{{ route('my-society.conference.create', [$society, $conference]) }}" 
+                                           class="btn btn-light btn-lg rounded-pill px-4 shadow-sm">
+                                            <i class="icon-base ti tabler-user-plus me-2"></i>Register Now
+                                        </a>
+                                    @endif
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Statistics Cards -->
+            <div class="row g-4 mb-4">
+                <!-- Registration Status Card -->
+                <div class="col-lg-4 col-md-6">
+                    <div class="card border-0 shadow-sm h-100 hover-shadow transition-all" style="transition: all 0.3s ease;">
+                        <div class="card-body p-4">
+                            <div class="d-flex align-items-center justify-content-between mb-3">
+                                <div class="bg-primary bg-opacity-10 rounded-circle p-3">
+                                    <i class="icon-base ti tabler-user-check text-primary fs-4"></i>
+                                </div>
+                                @if (checkRegistrations($conference))
+                                    <span class="badge bg-success rounded-pill px-3 py-2">Active</span>
+                                @else
+                                    <span class="badge bg-warning rounded-pill px-3 py-2">Pending</span>
+                                @endif
+                            </div>
+                            <h6 class="fw-semibold text-muted mb-2">Registration Status</h6>
                             @if (checkRegistrations($conference))
-                                <span class="badge bg-success">Registered</span>
+                                <h5 class="fw-bold text-success mb-0">
+                                    <i class="icon-base ti tabler-circle-check me-1"></i>Confirmed
+                                </h5>
                             @else
-                                <a href="{{ route('my-society.conference.create', [$society, $conference]) }}">
-                                    <span class="badge bg-danger">Register Now</span>
+                                <h5 class="fw-bold text-warning mb-0">Not Registered</h5>
+                                <a href="{{ route('my-society.conference.create', [$society, $conference]) }}" 
+                                   class="btn btn-sm btn-primary rounded-pill mt-3 px-3">
+                                    <i class="icon-base ti tabler-plus me-1"></i>Register Now
                                 </a>
                             @endif
                         </div>
                     </div>
                 </div>
-            </div>
-            <div class="col-lg-3 col-sm-6">
-                <div class="card ">
-                    <div class="card-body">
-                        <div class="d-flex align-items-center mb-1">
-                            <div class="avatar me-4">
-                                <span class="avatar-initial rounded bg-label-warning"><i
-                                        class="icon-base ti tabler-alert-triangle icon-28px"></i></span>
-                            </div>
-                            <h4 class="mb-0">{{ $submissionCount }}</h4>
-                        </div>
-                        <p class="mb-1">Abstract Submission</p>
-                        <a href="{{ route('my-society.conference.submission.create', [$society, $conference]) }}">
-                            <span class="badge bg-danger">Submit Now</span>
-                        </a>
-                        {{-- Show modal message if registration for speaker is not required --}}
-                        @php
-                            $confSetting = $conference->conferenceSetting ?? null;
-                        @endphp
-                        @if (
-                            $confSetting &&
-                                isset($confSetting->speaker_registration_required) &&
-                                $confSetting->speaker_registration_required == false)
-                            <!-- Modal Trigger Button (hidden, auto-triggered) -->
-                            <button type="button" id="autoSpeakerRegModalBtn" class="d-none" data-bs-toggle="modal"
-                                data-bs-target="#autoSpeakerRegModal"></button>
 
-                            <!-- Modal -->
-                            <div class="modal fade" id="autoSpeakerRegModal" tabindex="-1"
-                                aria-labelledby="autoSpeakerRegModalLabel" aria-hidden="true">
-                                <div class="modal-dialog modal-dialog-centered">
-                                    <div class="modal-content">
-                                        <div class="modal-header">
-                                            <h5 class="modal-title" id="autoSpeakerRegModalLabel">Speaker Registration
-                                                Notice</h5>
-                                            <button type="button" class="btn-close" data-bs-dismiss="modal"
-                                                aria-label="Close"></button>
+                <!-- Submissions Card -->
+                <div class="col-lg-4 col-md-6">
+                    <div class="card border-0 shadow-sm h-100 hover-shadow transition-all" style="transition: all 0.3s ease;">
+                        <div class="card-body p-4">
+                            <div class="d-flex align-items-center justify-content-between mb-3">
+                                <div class="bg-warning bg-opacity-10 rounded-circle p-3">
+                                    <i class="icon-base ti tabler-file-text text-warning fs-4"></i>
+                                </div>
+                                <span class="badge bg-warning bg-opacity-10 text-warning rounded-pill px-3 py-2">
+                                    {{ $submissionCount }} Total
+                                </span>
+                            </div>
+                            <h6 class="fw-semibold text-muted mb-2">Abstract Submissions</h6>
+                            <h3 class="fw-bold text-dark mb-3">{{ $submissionCount }}</h3>
+                            <a href="{{ route('my-society.conference.submission.create', [$society, $conference]) }}" 
+                               class="btn btn-sm btn-warning rounded-pill px-3">
+                                <i class="icon-base ti tabler-plus me-1"></i>Submit Abstract
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Workshop Registration Card -->
+                @if (feature_enabled('workshop-management', getSociety(request()->segment(2))))
+                    <div class="col-lg-4 col-md-6">
+                        <div class="card border-0 shadow-sm h-100 hover-shadow transition-all" style="transition: all 0.3s ease;">
+                            <div class="card-body p-4">
+                                <div class="d-flex align-items-center justify-content-between mb-3">
+                                    <div class="bg-info bg-opacity-10 rounded-circle p-3">
+                                        <i class="icon-base ti tabler-git-fork text-info fs-4"></i>
+                                    </div>
+                                    <span class="badge bg-info bg-opacity-10 text-info rounded-pill px-3 py-2">
+                                        {{ $workshopRegistrationCount }} Total
+                                    </span>
+                                </div>
+                                <h6 class="fw-semibold text-muted mb-2">Workshop Registrations</h6>
+                                <h3 class="fw-bold text-dark mb-3">{{ $workshopRegistrationCount }}</h3>
+                                <p class="text-muted small mb-0">
+                                    <i class="icon-base ti tabler-info-circle me-1"></i>Active workshop enrollments
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                @endif
+            </div>
+
+            <!-- Activity Overview Chart -->
+            <div class="row g-4 mb-4">
+                <div class="col-lg-8">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-header bg-transparent border-0 pt-4 px-4 pb-0">
+                            <div class="d-flex align-items-center justify-content-between mb-2">
+                                <div>
+                                    <div class="d-flex align-items-center mb-1">
+                                        <div class="bg-gradient rounded-circle p-2 me-3" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                                            <i class="icon-base ti tabler-chart-pie text-white fs-5"></i>
                                         </div>
-                                        <div class="modal-body">
-                                            <div class="alert alert-info mb-0">
-                                                <strong>Note:</strong> Speakers do <u>not</u> need to register for the
-                                                conference separately.<br>
-                                                If your submission is <b>accepted</b>, you will be <b>automatically
-                                                    registered</b> for the conference.<br>
-                                                <b>
-                                                    Incase of rejection of Abstract, you have to go through registration
-                                                    process
-                                                    to attend the conference.
-                                                </b>
+                                        <h5 class="fw-bold text-dark mb-0">My Activity Overview</h5>
+                                    </div>
+                                    <p class="text-muted small mb-0 ms-5 ps-3">Your participation summary</p>
+                                </div>
+                                @php
+                                    $totalActivities = (checkRegistrations($conference) ? 1 : 0) + $submissionCount + (feature_enabled('workshop-management', getSociety(request()->segment(2))) ? $workshopRegistrationCount : 0);
+                                @endphp
+                                <div class="text-center">
+                                    <h3 class="fw-bold text-primary mb-0">{{ $totalActivities }}</h3>
+                                    <p class="text-muted small mb-0">Total Activities</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-body p-4">
+                            <div class="row align-items-center">
+                                <div class="col-md-5">
+                                    <div class="position-relative d-flex justify-content-center" style="height: 280px;">
+                                        <canvas id="participantActivityChart" style="max-width: 280px; max-height: 280px;"></canvas>
+                                        <div class="position-absolute top-50 start-50 translate-middle text-center" style="pointer-events: none;">
+                                            <h2 class="fw-bold mb-0" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">{{ $totalActivities }}</h2>
+                                            <p class="text-muted small mb-0">Activities</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-7">
+                                    <div class="row g-3">
+                                        <div class="col-12">
+                                            <div class="d-flex align-items-center p-3 rounded-3 hover-shadow transition-all" style="background: linear-gradient(135deg, rgba(13, 110, 253, 0.1) 0%, rgba(13, 110, 253, 0.05) 100%); border-left: 4px solid #0d6efd;">
+                                                <div class="bg-primary rounded-circle p-3 me-3">
+                                                    <i class="icon-base ti tabler-user-check text-white fs-4"></i>
+                                                </div>
+                                                <div class="flex-grow-1">
+                                                    <p class="text-muted small mb-1">Conference Registration</p>
+                                                    <h5 class="fw-bold text-primary mb-0">{{ checkRegistrations($conference) ? 'Completed' : 'Pending' }}</h5>
+                                                </div>
+                                                <div class="text-end">
+                                                    <h3 class="fw-bold text-primary mb-0">{{ checkRegistrations($conference) ? '1' : '0' }}</h3>
+                                                </div>
                                             </div>
                                         </div>
-                                        <div class="modal-footer">
-                                            <button type="button" class="btn btn-primary"
-                                                data-bs-dismiss="modal">OK</button>
+                                        <div class="col-12">
+                                            <div class="d-flex align-items-center p-3 rounded-3 hover-shadow transition-all" style="background: linear-gradient(135deg, rgba(255, 193, 7, 0.1) 0%, rgba(255, 193, 7, 0.05) 100%); border-left: 4px solid #ffc107;">
+                                                <div class="bg-warning rounded-circle p-3 me-3">
+                                                    <i class="icon-base ti tabler-file-text text-white fs-4"></i>
+                                                </div>
+                                                <div class="flex-grow-1">
+                                                    <p class="text-muted small mb-1">Abstract Submissions</p>
+                                                    <h5 class="fw-bold text-warning mb-0">{{ $submissionCount > 0 ? 'Active' : 'None' }}</h5>
+                                                </div>
+                                                <div class="text-end">
+                                                    <h3 class="fw-bold text-warning mb-0">{{ $submissionCount }}</h3>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        @if (feature_enabled('workshop-management', getSociety(request()->segment(2))))
+                                        <div class="col-12">
+                                            <div class="d-flex align-items-center p-3 rounded-3 hover-shadow transition-all" style="background: linear-gradient(135deg, rgba(13, 202, 240, 0.1) 0%, rgba(13, 202, 240, 0.05) 100%); border-left: 4px solid #0dcaf0;">
+                                                <div class="bg-info rounded-circle p-3 me-3">
+                                                    <i class="icon-base ti tabler-git-fork text-white fs-4"></i>
+                                                </div>
+                                                <div class="flex-grow-1">
+                                                    <p class="text-muted small mb-1">Workshop Registrations</p>
+                                                    <h5 class="fw-bold text-info mb-0">{{ $workshopRegistrationCount > 0 ? 'Enrolled' : 'None' }}</h5>
+                                                </div>
+                                                <div class="text-end">
+                                                    <h3 class="fw-bold text-info mb-0">{{ $workshopRegistrationCount }}</h3>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        @endif
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-4">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-header bg-transparent border-0 pt-4 px-4 pb-0">
+                            <div class="d-flex align-items-center mb-2">
+                                <div class="bg-info bg-opacity-10 rounded-circle p-2 me-3">
+                                    <i class="icon-base ti tabler-calendar-stats text-info fs-5"></i>
+                                </div>
+                                <h5 class="fw-bold text-dark mb-0">Conference Details</h5>
+                            </div>
+                        </div>
+                        <div class="card-body p-4">
+                            <div class="mb-3">
+                                <div class="d-flex align-items-start">
+                                    <div class="bg-primary bg-opacity-10 rounded p-2 me-3">
+                                        <i class="icon-base ti tabler-calendar text-primary"></i>
+                                    </div>
+                                    <div>
+                                        <p class="text-muted small mb-1">Conference Dates</p>
+                                        <p class="fw-semibold mb-0 small">
+                                            {{ \Carbon\Carbon::parse($conference->start_date)->format('M d, Y') }} - 
+                                            {{ \Carbon\Carbon::parse($conference->end_date)->format('M d, Y') }}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <div class="d-flex align-items-start">
+                                    <div class="bg-success bg-opacity-10 rounded p-2 me-3">
+                                        <i class="icon-base ti tabler-mail text-success"></i>
+                                    </div>
+                                    <div>
+                                        <p class="text-muted small mb-1">Conference Email</p>
+                                        <p class="fw-semibold mb-0 small">{{ $conference->conference_email }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                            @if($conference->conference_theme)
+                            <div class="mb-3">
+                                <div class="d-flex align-items-start">
+                                    <div class="bg-warning bg-opacity-10 rounded p-2 me-3">
+                                        <i class="icon-base ti tabler-bulb text-warning"></i>
+                                    </div>
+                                    <div>
+                                        <p class="text-muted small mb-1">Theme</p>
+                                        <p class="fw-semibold mb-0 small">{{ $conference->conference_theme }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                            @endif
+                            <div>
+                                <div class="d-flex align-items-start">
+                                    <div class="bg-danger bg-opacity-10 rounded p-2 me-3">
+                                        <i class="icon-base ti tabler-clock text-danger"></i>
+                                    </div>
+                                    <div>
+                                        <p class="text-muted small mb-1">Days Remaining</p>
+                                        @php
+                                            $daysRemaining = (int) \Carbon\Carbon::now()->diffInDays(\Carbon\Carbon::parse($conference->start_date), false);
+                                        @endphp
+                                        @if($daysRemaining > 0)
+                                            <p class="fw-semibold mb-0 small text-danger">
+                                                <i class="icon-base ti tabler-hourglass me-1"></i>{{ $daysRemaining }} {{ Str::plural('day', $daysRemaining) }}
+                                            </p>
+                                        @elseif($daysRemaining == 0)
+                                            <p class="fw-semibold mb-0 small text-success">
+                                                <i class="icon-base ti tabler-calendar-check me-1"></i>Today!
+                                            </p>
+                                        @else
+                                            <p class="fw-semibold mb-0 small text-info">
+                                                <i class="icon-base ti tabler-calendar-event me-1"></i>In Progress
+                                            </p>
+                                        @endif
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Conference Information Section -->
+            <div class="row g-4 mb-4">
+                <div class="col-lg-8">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-header bg-transparent border-0 pt-4 px-4 pb-0">
+                            <div class="d-flex align-items-center mb-2">
+                                <div class="bg-success bg-opacity-10 rounded-circle p-2 me-3">
+                                    <i class="icon-base ti tabler-list-check text-success fs-5"></i>
+                                </div>
+                                <h5 class="fw-bold text-dark mb-0">My Submissions Status</h5>
+                            </div>
+                            <p class="text-muted small mb-0">Track your abstract submissions</p>
+                        </div>
+                        <div class="card-body p-4">
+                            @if($submissionCount > 0)
+                                <div class="alert alert-success border-0 bg-success bg-opacity-10 mb-3">
+                                    <div class="d-flex align-items-center">
+                                        <i class="icon-base ti tabler-circle-check text-success fs-4 me-3"></i>
+                                        <div>
+                                            <p class="fw-semibold mb-0">You have {{ $submissionCount }} active {{ Str::plural('submission', $submissionCount) }}</p>
+                                            <small class="text-muted">Keep track of your submission status through the dashboard</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="d-flex justify-content-center align-items-center" style="height: 150px;">
+                                    <div class="text-center">
+                                        <div class="bg-success bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" 
+                                             style="width: 80px; height: 80px;">
+                                            <i class="icon-base ti tabler-file-check text-success" style="font-size: 2.5rem;"></i>
+                                        </div>
+                                        <h2 class="fw-bold text-success mb-2">{{ $submissionCount }}</h2>
+                                        <p class="text-muted mb-0">Active {{ Str::plural('Submission', $submissionCount) }}</p>
+                                    </div>
+                                </div>
+                            @else
+                                <div class="text-center py-5">
+                                    <div class="bg-warning bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" 
+                                         style="width: 80px; height: 80px;">
+                                        <i class="icon-base ti tabler-file-plus text-warning" style="font-size: 2.5rem;"></i>
+                                    </div>
+                                    <h5 class="fw-semibold mb-2">No Submissions Yet</h5>
+                                    <p class="text-muted mb-3">Start by submitting your first abstract</p>
+                                    <a href="{{ route('my-society.conference.submission.create', [$society, $conference]) }}" 
+                                       class="btn btn-warning rounded-pill px-4">
+                                        <i class="icon-base ti tabler-plus me-2"></i>Submit Your First Abstract
+                                    </a>
+                                </div>
+                            @endif
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-4">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-header bg-transparent border-0 pt-4 px-4 pb-0">
+                            <div class="d-flex align-items-center mb-2">
+                                <div class="bg-success bg-opacity-10 rounded-circle p-2 me-3">
+                                    <i class="icon-base ti tabler-rocket text-success fs-5"></i>
+                                </div>
+                                <h5 class="fw-bold text-dark mb-0">Quick Actions</h5>
+                            </div>
+                        </div>
+                        <div class="card-body p-4">
+                            <div class="d-grid gap-2">
+                                @if (!checkRegistrations($conference))
+                                    <a href="{{ route('my-society.conference.create', [$society, $conference]) }}" 
+                                       class="btn btn-primary rounded-pill">
+                                        <i class="icon-base ti tabler-user-plus me-2"></i>Complete Registration
+                                    </a>
+                                @endif
+                                <a href="{{ route('my-society.conference.submission.create', [$society, $conference]) }}" 
+                                   class="btn btn-outline-warning rounded-pill">
+                                    <i class="icon-base ti tabler-file-plus me-2"></i>Submit New Abstract
+                                </a>
+                                <a href="{{ route('my-society.conference.index', [$society, $conference]) }}" 
+                                   class="btn btn-outline-info rounded-pill">
+                                    <i class="icon-base ti tabler-list me-2"></i>View My Activities
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Show modal message if registration for speaker is not required --}}
+            @php
+                $confSetting = $conference->conferenceSetting ?? null;
+            @endphp
+            @if (
+                $confSetting &&
+                    isset($confSetting->speaker_registration_required) &&
+                    $confSetting->speaker_registration_required == false)
+                <!-- Modal Trigger Button (hidden, auto-triggered) -->
+                <button type="button" id="autoSpeakerRegModalBtn" class="d-none" data-bs-toggle="modal"
+                    data-bs-target="#autoSpeakerRegModal"></button>
+
+                <!-- Modal -->
+                <div class="modal fade" id="autoSpeakerRegModal" tabindex="-1"
+                    aria-labelledby="autoSpeakerRegModalLabel" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content border-0 shadow-lg">
+                            <div class="modal-header border-0 pb-0">
+                                <h5 class="modal-title fw-bold" id="autoSpeakerRegModalLabel">
+                                    <i class="icon-base ti tabler-info-circle text-info me-2"></i>Speaker Registration Notice
+                                </h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                    aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body pt-2">
+                                <div class="alert alert-info border-0 bg-info bg-opacity-10 mb-0">
+                                    <div class="d-flex">
+                                        <div class="me-3">
+                                            <i class="icon-base ti tabler-alert-circle text-info fs-4"></i>
+                                        </div>
+                                        <div>
+                                            <p class="fw-semibold mb-2">Important Information:</p>
+                                            <ul class="mb-0 ps-3">
+                                                <li class="mb-2">Speakers do <strong>not</strong> need to register for the conference separately.</li>
+                                                <li class="mb-2">If your submission is <strong>accepted</strong>, you will be <strong>automatically registered</strong> for the conference.</li>
+                                                <li class="mb-0">
+                                                    <strong>Note:</strong> In case of abstract rejection, you must complete the regular registration process to attend the conference.
+                                                </li>
+                                            </ul>
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                            <script>
-                                document.addEventListener('DOMContentLoaded', function() {
-                                    // Auto-trigger modal for speakers if registration is not required
-                                    document.getElementById('autoSpeakerRegModalBtn').click();
-                                });
-                            </script>
-                        @endif
-                    </div>
-                </div>
-            </div>
-            @if (feature_enabled('workshop-management', getSociety(request()->segment(2))))
-                <div class="col-lg-3 col-sm-6">
-                    <div class="card">
-                        <div class="card-body">
-                            <div class="d-flex align-items-center mb-1">
-                                <div class="avatar me-4">
-                                    <span class="avatar-initial rounded bg-label-danger"><i
-                                            class="icon-base ti tabler-git-fork icon-28px"></i></span>
-                                </div>
-                                <h4 class="mb-0">{{ $workshopRegistrationCount }}</h4>
+                            <div class="modal-footer border-0">
+                                <button type="button" class="btn btn-primary rounded-pill px-4"
+                                    data-bs-dismiss="modal">
+                                    <i class="icon-base ti tabler-check me-2"></i>Got it
+                                </button>
                             </div>
-                            <p class="mb-1">WorkShop Registration</p>
                         </div>
                     </div>
                 </div>
+                <script>
+                    document.addEventListener('DOMContentLoaded', function() {
+                        // Auto-trigger modal for speakers if registration is not required
+                        document.getElementById('autoSpeakerRegModalBtn').click();
+                    });
+                </script>
             @endif
         </div>
     @endif
+@endsection
+
+@section('styles')
+    <style>
+        .hover-shadow {
+            transition: all 0.3s ease;
+        }
+        .hover-shadow:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.15) !important;
+        }
+        .transition-all {
+            transition: all 0.3s ease;
+        }
+    </style>
 @endsection
 
 @section('scripts')
@@ -844,5 +1183,94 @@
         document.getElementById('categoryFilter').addEventListener('change', function() {
             loadChart(this.value);
         });
+
+        // Participant Activity Chart (only for participants)
+        @if (!(current_user()->type == 1 || current_user()->type == 2))
+            const participantActivityChart = document.getElementById('participantActivityChart');
+            
+            if (participantActivityChart) {
+                const activityChart = new Chart(participantActivityChart, {
+                    type: 'doughnut',
+                    data: {
+                        labels: [
+                            'Registration', 
+                            'Submissions', 
+                            @if (feature_enabled('workshop-management', getSociety(request()->segment(2))))
+                            'Workshops'
+                            @endif
+                        ],
+                        datasets: [{
+                            data: [
+                                {{ checkRegistrations($conference) ? 1 : 0 }}, 
+                                {{ $submissionCount }}, 
+                                @if (feature_enabled('workshop-management', getSociety(request()->segment(2))))
+                                {{ $workshopRegistrationCount }}
+                                @endif
+                            ],
+                            backgroundColor: [
+                                'rgba(13, 110, 253, 0.9)',
+                                'rgba(255, 193, 7, 0.9)',
+                                @if (feature_enabled('workshop-management', getSociety(request()->segment(2))))
+                                'rgba(13, 202, 240, 0.9)'
+                                @endif
+                            ],
+                            borderColor: '#fff',
+                            borderWidth: 3,
+                            hoverOffset: 10,
+                            hoverBorderWidth: 4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        plugins: {
+                            legend: {
+                                display: false
+                            },
+                            tooltip: {
+                                backgroundColor: 'rgba(255, 255, 255, 0.98)',
+                                titleColor: '#000',
+                                bodyColor: '#333',
+                                borderWidth: 2,
+                                borderColor: 'rgba(0,0,0,0.1)',
+                                cornerRadius: 12,
+                                padding: 16,
+                                displayColors: true,
+                                boxWidth: 12,
+                                boxHeight: 12,
+                                boxPadding: 6,
+                                titleFont: {
+                                    size: 14,
+                                    weight: '600'
+                                },
+                                bodyFont: {
+                                    size: 13
+                                },
+                                callbacks: {
+                                    label: function(context) {
+                                        let label = context.label || '';
+                                        if (label) {
+                                            label += ': ';
+                                        }
+                                        label += context.parsed;
+                                        const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                        const percentage = total > 0 ? ((context.parsed / total) * 100).toFixed(1) : 0;
+                                        label += ' (' + percentage + '%)';
+                                        return label;
+                                    }
+                                }
+                            }
+                        },
+                        cutout: '75%',
+                        animation: {
+                            animateRotate: true,
+                            animateScale: true,
+                            duration: 1000,
+                            easing: 'easeInOutQuart'
+                        }
+                    }
+                });
+            }
+        @endif
     </script>
 @endsection

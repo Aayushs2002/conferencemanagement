@@ -135,6 +135,7 @@ class ArticleTypeController extends Controller
 
         // Dynamic validation rules based on whether sections exist
         $rules = [
+            'total_marks' => 'required|numeric|min:1|max:100',
             'number_of_sections' => 'required|integer|min:0|max:10',
             'attachment_name' => 'nullable|string|max:255',
             'author_limit' => 'nullable|integer|min:1',
@@ -146,18 +147,26 @@ class ArticleTypeController extends Controller
             for ($i = 0; $i < $sectionCount; $i++) {
                 $rules["section_name.{$i}"] = 'required|string|max:255';
                 $rules["section_word_limit.{$i}"] = 'required|integer|min:1';
+                $rules["section_max_marks.{$i}"] = 'required|numeric|min:0';
                 $rules["section_instruction.{$i}"] = 'nullable|string';
             }
         }
 
         // Custom validation messages
         $messages = [
+            'total_marks.required' => 'The total marks field is required.',
+            'total_marks.numeric' => 'The total marks must be a number.',
+            'total_marks.min' => 'The total marks must be at least 1.',
+            'total_marks.max' => 'The total marks may not be greater than 100.',
             'section_name.*.required' => 'The section name field is required.',
             'section_name.*.string' => 'The section name must be a string.',
             'section_name.*.max' => 'The section name may not be greater than 255 characters.',
             'section_word_limit.*.required' => 'The word limit field is required.',
             'section_word_limit.*.integer' => 'The word limit must be a number.',
             'section_word_limit.*.min' => 'The word limit must be at least 1.',
+            'section_max_marks.*.required' => 'The maximum marks field is required.',
+            'section_max_marks.*.numeric' => 'The maximum marks must be a number.',
+            'section_max_marks.*.min' => 'The maximum marks must be at least 0.',
         ];
 
         $validated = $request->validate($rules, $messages);
@@ -170,7 +179,9 @@ class ArticleTypeController extends Controller
                     $sections[] = [
                         'name' => $name,
                         'word_limit' => $request->section_word_limit[$i] ?? null,
+                        'max_marks' => $request->section_max_marks[$i] ?? 2,
                         'instruction' => $request->section_instruction[$i] ?? '',
+                        'reviewer_instruction' => $request->section_reviewer_instruction[$i] ?? '',
                     ];
                 }
             }
@@ -182,6 +193,7 @@ class ArticleTypeController extends Controller
                 'article_type_id' => $articleTypeId,
                 'number_of_sections' => $actualSectionCount,
                 'sections' => $sections,
+                'total_marks' => $request->total_marks ?? 10,
                 'attachment_name' => $request->attachment_name,
                 'is_attachment_required' => $request->has('is_attachment_required') ? 1 : 0,
                 'author_limit' => $request->author_limit,

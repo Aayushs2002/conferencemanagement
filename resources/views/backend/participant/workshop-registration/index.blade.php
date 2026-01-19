@@ -50,7 +50,7 @@
                                                            <img src="{{ asset('default-image/fonepay.png') }}"
                                                                style="width: 35%;" alt="fonepay logo">
                                                            @if (current_user()->userDetail->country->country_name == 'India')
-                                                               <p>Cross Border Support</p>
+                                                               <p>Cross Border Support</p> 
                                                            @endif
                                                        </div>
                                                        <div class="position-absolute" style="bottom: 40px; right: 20px;">

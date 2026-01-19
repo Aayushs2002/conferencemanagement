@@ -31,11 +31,14 @@ class Conference extends Model
         'secendary_color',
         'tags',
         'slug',
-        'status'
+        'status',
+        'is_archived',
+        'archived_at'
     ];
 
     protected $casts = [
         'partner_logos' => 'array',
+        'archived_at' => 'datetime',
     ];
 
 
