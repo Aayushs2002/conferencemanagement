@@ -40,6 +40,16 @@ class WorkshopController extends Controller
      */
     public function create($society, $conference)
     {
+        // Check if workshop application deadline has passed
+        $conferenceSetting = $conference->conferenceSetting;
+        if ($conferenceSetting && $conferenceSetting->workshop_application_deadline) {
+            $deadline = \Carbon\Carbon::parse($conferenceSetting->workshop_application_deadline);
+            if (now()->isAfter($deadline->endOfDay())) {
+                return redirect()->route('my-society.conference.my-workshop.index', [$society, $conference])
+                    ->with('delete', 'Workshop application deadline has passed. Applications closed on ' . $deadline->format('F d, Y'));
+            }
+        }
+
         $society = Society::with(['users' => function ($query) {
             $query->where('type', 3)->orderByDesc('id');
         }])->where([
@@ -57,6 +67,16 @@ class WorkshopController extends Controller
      */
     public function store(WorkshopRequest $request, $society, $conference)
     {
+        // Check if workshop application deadline has passed
+        $conferenceSetting = $conference->conferenceSetting;
+        if ($conferenceSetting && $conferenceSetting->workshop_application_deadline) {
+            $deadline = \Carbon\Carbon::parse($conferenceSetting->workshop_application_deadline);
+            if (now()->isAfter($deadline->endOfDay())) {
+                return redirect()->route('my-society.conference.my-workshop.index', [$society, $conference])
+                    ->with('delete', 'Workshop application deadline has passed. Applications closed on ' . $deadline->format('F d, Y'));
+            }
+        }
+
         try {
             $validated = $request->validated();
             DB::beginTransaction();
@@ -139,6 +159,16 @@ class WorkshopController extends Controller
                 ->with('delete', 'You can only edit workshops that are pending or need correction.');
         }
 
+        // Check if workshop application deadline has passed
+        $conferenceSetting = $conference->conferenceSetting;
+        if ($conferenceSetting && $conferenceSetting->workshop_application_deadline) {
+            $deadline = \Carbon\Carbon::parse($conferenceSetting->workshop_application_deadline);
+            if (now()->isAfter($deadline->endOfDay())) {
+                return redirect()->route('my-society.conference.my-workshop.index', [$society, $conference])
+                    ->with('delete', 'Workshop application deadline has passed. You cannot edit your application. Deadline was ' . $deadline->format('F d, Y'));
+            }
+        }
+
         $society = Society::with(['users' => function ($query) {
             $query->where('type', 3)->orderByDesc('id');
         }])->where([
@@ -156,6 +186,16 @@ class WorkshopController extends Controller
      */
     public function update(WorkshopRequest $request, $society, $conference, Workshop $workshop)
     {
+        // Check if workshop application deadline has passed
+        $conferenceSetting = $conference->conferenceSetting;
+        if ($conferenceSetting && $conferenceSetting->workshop_application_deadline) {
+            $deadline = \Carbon\Carbon::parse($conferenceSetting->workshop_application_deadline);
+            if (now()->isAfter($deadline->endOfDay())) {
+                return redirect()->route('my-society.conference.my-workshop.index', [$society, $conference])
+                    ->with('delete', 'Workshop application deadline has passed. You cannot update your application. Deadline was ' . $deadline->format('F d, Y'));
+            }
+        }
+
         try {
             // Ensure user can only update their own workshops
             if ($workshop->created_by !== current_user()->id) {

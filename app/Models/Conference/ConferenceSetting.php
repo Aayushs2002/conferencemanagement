@@ -21,6 +21,7 @@ class ConferenceSetting extends Model
         'speaker_registration_required',
         'registration_open_date',
         'workshop_registration_open_date',
+        'workshop_application_deadline',
         'show_stats_dashboard',
     ];
 }

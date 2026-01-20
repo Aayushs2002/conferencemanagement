@@ -19,7 +19,7 @@ class Faq extends Model
 
     public function category()
     {
-        return $this->belongsTo(faqCategory::class, 'faq_category_id', 'id');
+        return $this->belongsTo(FaqCategory::class, 'faq_category_id', 'id');
     }
 
     public function conference()

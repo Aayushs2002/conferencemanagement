@@ -87,6 +87,16 @@ class Conference extends Model
         return $this->hasMany(Workshop::class, 'conference_id', 'id');
     }
 
+    public function conferenceRegistrations()
+    {
+        return $this->hasMany(ConferenceRegistration::class, 'conference_id', 'id');
+    }
+
+    public function submissions()
+    {
+        return $this->hasMany(Submission::class, 'conference_id', 'id');
+    }
+
     public function downloads()
     {
         return $this->hasMany(Download::class, 'conference_id', 'id')->where('status', 1);

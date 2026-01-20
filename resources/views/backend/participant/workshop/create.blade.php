@@ -5,6 +5,16 @@
     Workshop
 @endsection
 @section('content')
+    @php
+        $conferenceSetting = $conference->conferenceSetting;
+        $applicationDeadline = $conferenceSetting?->workshop_application_deadline;
+        $deadlineDate = null;
+        
+        if ($applicationDeadline) {
+            $deadlineDate = \Carbon\Carbon::parse($applicationDeadline);
+        }
+    @endphp
+
     <div class="col-md">
         <div class="card">
             <h4 class="card-header">
@@ -14,6 +24,23 @@
                 {{ isset($workshop) ? 'Edit' : 'Apply for' }} Workshop
             </h4>
             <div class="card-body">
+                @if ($applicationDeadline && $deadlineDate)
+                    <div class="alert alert-info alert-dismissible" role="alert">
+                        <h6 class="alert-heading mb-2">
+                            <i class="ti tabler-clock-alert me-2"></i>Application Deadline
+                        </h6>
+                        <p class="mb-0">
+                            Submit your workshop application before <strong>{{ $deadlineDate->format('F d, Y') }}</strong>
+                            @if ($deadlineDate->isFuture())
+                                <span class="badge bg-success ms-2">
+                                    {{ $deadlineDate->diffForHumans() }}
+                                </span>
+                            @endif
+                        </p>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                @endif
+
                 @if (isset($workshop) && $workshop->admin_remarks)
                     <div class="alert alert-warning alert-dismissible" role="alert">
                         <h6 class="alert-heading mb-2">

@@ -57,6 +57,12 @@
                 <input type="date" class="form-control" name="workshop_registration_open_date" value="{{ $conferenceSetting?->workshop_registration_open_date }}">
             </div>
 
+            <div class="col-md-4 mb-4">
+                <label>Workshop Application Deadline</label>
+                <input type="date" class="form-control" name="workshop_application_deadline" value="{{ $conferenceSetting?->workshop_application_deadline }}">
+                <small class="text-muted">Users cannot apply for workshops after this date</small>
+            </div>
+
             <div class="col-12 mt-3">
                 <h6>3. Conference Registration Guideline</h6>
                 <hr class="mt-0" style="height:1px;border:none;color:#333;background-color:#333;" />
@@ -168,7 +174,7 @@
                     Enter CSS code with class selectors. Example: .navbar-brand, .hero-title, .countdown-box, etc.
                 </small>
             </div>
-
+ 
             <div class="col-12 mt-3">
                 <h6>9. Section Visibility Settings</h6>
                 <hr class="mt-0" style="height:1px;border:none;color:#333;background-color:#333;" />
