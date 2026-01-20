@@ -445,7 +445,7 @@
                                         {{ \Carbon\Carbon::parse($conference->start_date)->format('M d, Y') }} - 
                                         {{ \Carbon\Carbon::parse($conference->end_date)->format('M d, Y') }}
                                     </p>
-                                </div>
+                                </div> 
                                 <div class="text-end">
                                     @if (checkRegistrations($conference))
                                         <span class="badge bg-success bg-opacity-10 text-white px-4 py-2 fs-6">

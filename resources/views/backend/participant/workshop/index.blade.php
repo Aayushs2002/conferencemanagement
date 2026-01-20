@@ -5,19 +5,51 @@
 @endsection
 
 @section('content')
+    @php
+        $conferenceSetting = $conference->conferenceSetting;
+        $applicationDeadline = $conferenceSetting?->workshop_application_deadline;
+        $isDeadlinePassed = false;
+        $deadlineDate = null;
+        
+        if ($applicationDeadline) {
+            $deadlineDate = \Carbon\Carbon::parse($applicationDeadline);
+            $isDeadlinePassed = now()->isAfter($deadlineDate->endOfDay());
+        }
+    @endphp
+
     <div class="card">
         <div class="card-datatable table-responsive pt-0">
             <div class="row card-header flex-column flex-md-row border-bottom mx-0 px-3">
                 <div class="d-md-flex justify-content-between align-items-center dt-layout-start col-md-auto me-auto mt-0">
                     <h5 class="card-title mb-0 text-md-start text-center pb-md-0 pb-6">My Workshop Applications</h5>
+                    @if ($applicationDeadline)
+                        <div class="mt-2">
+                            @if ($isDeadlinePassed)
+                                <span class="badge bg-danger">
+                                    <i class="ti tabler-clock-x me-1"></i> Application Closed (Deadline: {{ $deadlineDate->format('M d, Y') }})
+                                </span>
+                            @else
+                                <span class="badge bg-warning">
+                                    <i class="ti tabler-clock-alert me-1"></i> Apply before {{ $deadlineDate->format('M d, Y') }}
+                                </span>
+                            @endif
+                        </div>
+                    @endif
                 </div>
                 <div class="d-md-flex justify-content-between align-items-center dt-layout-end col-md-auto ms-auto mt-0">
                     <div class="dt-buttons btn-group flex-wrap mb-0">
-                        <a href="{{ route('my-society.conference.my-workshop.create', [$society, $conference]) }}"
-                            class="btn btn-primary" tabindex="0">
-                            <i class="icon-base ti tabler-plus icon-xs me-sm-1"></i>
-                            <span class="d-none d-sm-inline-block">Apply for Workshop</span>
-                        </a>
+                        @if ($isDeadlinePassed)
+                            <button class="btn btn-secondary" disabled title="Application deadline has passed">
+                                <i class="icon-base ti tabler-lock icon-xs me-sm-1"></i>
+                                <span class="d-none d-sm-inline-block">Applications Closed</span>
+                            </button>
+                        @else
+                            <a href="{{ route('my-society.conference.my-workshop.create', [$society, $conference]) }}"
+                                class="btn btn-primary" tabindex="0">
+                                <i class="icon-base ti tabler-plus icon-xs me-sm-1"></i>
+                                <span class="d-none d-sm-inline-block">Apply for Workshop</span>
+                            </a>
+                        @endif
                     </div>
                 </div>
             </div>
@@ -26,12 +58,26 @@
                 <div class="card-body text-center py-5">
                     <i class="ti tabler-calendar-x text-muted" style="font-size: 64px;"></i>
                     <h5 class="mt-3">No Workshop Applications Yet</h5>
-                    <p class="text-muted">You haven't submitted any workshop applications. Click "Apply for Workshop" to get
-                        started.</p>
-                    <a href="{{ route('my-society.conference.my-workshop.create', [$society, $conference]) }}"
-                        class="btn btn-primary mt-2">
-                        <i class="ti tabler-plus me-1"></i> Apply for Workshop
-                    </a>
+                    @if ($isDeadlinePassed)
+                        <p class="text-muted">Workshop application deadline has passed. Applications closed on {{ $deadlineDate->format('F d, Y') }}.</p>
+                        <button class="btn btn-secondary mt-2" disabled>
+                            <i class="ti tabler-lock me-1"></i> Applications Closed
+                        </button>
+                    @else
+                        <p class="text-muted">You haven't submitted any workshop applications. Click "Apply for Workshop" to get
+                            started.</p>
+                        @if ($applicationDeadline)
+                            <div class="alert alert-warning d-inline-block mb-3">
+                                <i class="ti tabler-clock-alert me-1"></i> 
+                                <strong>Hurry up!</strong> Application deadline is {{ $deadlineDate->format('F d, Y') }}
+                            </div>
+                        @endif
+                        <br>
+                        <a href="{{ route('my-society.conference.my-workshop.create', [$society, $conference]) }}"
+                            class="btn btn-primary mt-2">
+                            <i class="ti tabler-plus me-1"></i> Apply for Workshop
+                        </a>
+                    @endif
                 </div>
             @else
                 <table class="datatables-basic table">

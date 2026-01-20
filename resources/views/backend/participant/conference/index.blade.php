@@ -253,8 +253,15 @@
                                         @else
                                             <div class="bg-secondary bg-opacity-10 rounded-circle mx-auto d-flex align-items-center justify-content-center shadow-sm"
                                                 style="width: 80px; height: 80px;">
-                                                <i class="ti tabler-mortarboard-fill text-secondary"
-                                                    style="font-size: 2rem;"></i>
+                                                  <svg xmlns="http://www.w3.org/2000/svg" class="text-secondary" style="font-size: 2rem;"
+                                                    fill="currentColor" class="bi bi-mortarboard-fill" viewBox="0 0 16 16">
+                                                    <path
+                                                        d="M8.211 2.047a.5.5 0 0 0-.422 0l-7.5 3.5a.5.5 0 0 0 .025.917l7.5 3a.5.5 0 0 0 .372 0L14 7.14V13a1 1 0 0 0-1 1v2h3v-2a1 1 0 0 0-1-1V6.739l.686-.275a.5.5 0 0 0 .025-.917z" />
+                                                    <path
+                                                        d="M4.176 9.032a.5.5 0 0 0-.656.327l-.5 1.7a.5.5 0 0 0 .294.605l4.5 1.8a.5.5 0 0 0 .372 0l4.5-1.8a.5.5 0 0 0 .294-.605l-.5-1.7a.5.5 0 0 0-.656-.327L8 10.466z" />
+                                                </svg>
+                                                {{-- <i class="ti tabler-mortarboard-fill text-secondary"
+                                                    style="font-size: 2rem;"></i> --}}
                                             </div>
                                         @endif
                                     </div>
@@ -266,7 +273,7 @@
                                                 {{ $conference->conference_name }}</h5>
                                             <p class="text-muted small mb-2">{{ $conference->conference_theme }}</p>
                                             <div class="d-flex align-items-center justify-content-center gap-1 text-muted">
-                                                <i class="ti tabler-clock-history small"></i>
+                                                <i class="ti tabler-clock small"></i>
                                                 <small>Archived on
                                                     {{ $conference->archived_at ? $conference->archived_at->format('M d, Y') : 'N/A' }}</small>
                                             </div>

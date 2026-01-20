@@ -23,6 +23,7 @@ Route::middleware('auth','check.subdomain')->group(function () {
     Route::post('society-setting-submit', [SocietySettingController::class, 'societySettingSubmit'])->name('society.setting.submit');
 
     Route::get('/society/{society}/dashboard', [SocietyController::class, 'dashboard'])->name('society.dashboard');
+    Route::post('/society/{society}/dashboard-data', [SocietyController::class, 'getDashboardData'])->name('society.dashboard.data');
     Route::post('/society/show', [SocietyController::class, 'view'])->middleware('check.superadmin')->name('society.show');
     Route::get('/view-society-detail/{slug}', [SocietyController::class, 'viewDetailByAdmin'])->middleware('check.societyadmin')->name('society.viewDetailByAdmin');
     //society controller end

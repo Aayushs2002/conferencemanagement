@@ -4,10 +4,9 @@ namespace App\Http\Controllers\Backend\Conference;
 
 use App\Http\Controllers\Controller;
 use App\Models\Conference\Conference;
-use App\Models\Conference\ConferenceSetting;
 use App\Models\Conference\ConferenceCustomCss;
+use App\Models\Conference\ConferenceSetting;
 use App\Services\File\FileService;
-use Exception;
 use Illuminate\Http\Request;
 
 class ConferenceSettingController extends Controller
@@ -18,6 +17,7 @@ class ConferenceSettingController extends Controller
     {
         $conference = Conference::where('id', $request->id)->first();
         $conferenceSetting = ConferenceSetting::where('conference_id', $conference->id)->first();
+
         return view('backend.conference.conference-setting', compact('conference', 'conferenceSetting'));
     }
 
@@ -40,8 +40,9 @@ class ConferenceSettingController extends Controller
                 'speaker_registration_required' => 'required|in:0,1',
                 'registration_open_date' => 'nullable|date',
                 'workshop_registration_open_date' => 'nullable|date',
+                'workshop_application_deadline' => 'nullable|date',
                 'show_stats_dashboard' => 'required|in:0,1',
-                
+
             ]);
 
             $type = 'success';
@@ -52,7 +53,7 @@ class ConferenceSettingController extends Controller
             $guidelinePath = $conferenceSetting->registration_guideline ?? null;
 
             if ($request->hasFile('signature')) {
-                if (!empty($signaturePath)) {
+                if (! empty($signaturePath)) {
                     $this->file_service->deleteFile($signaturePath, 'conference/voucher/signature/');
                 }
 
@@ -64,7 +65,7 @@ class ConferenceSettingController extends Controller
             }
 
             if ($request->hasFile('registration_guideline')) {
-                if (!empty($guidelinePath)) {
+                if (! empty($guidelinePath)) {
                     $this->file_service->deleteFile($guidelinePath, 'conference/registration-guideline/');
                 }
 
@@ -90,15 +91,16 @@ class ConferenceSettingController extends Controller
                 'speaker_registration_required' => $request->speaker_registration_required,
                 'registration_open_date' => $request->registration_open_date,
                 'workshop_registration_open_date' => $request->workshop_registration_open_date,
+                'workshop_application_deadline' => $request->workshop_application_deadline,
                 'show_stats_dashboard' => $request->show_stats_dashboard,
             ];
 
             if ($conferenceSetting) {
                 $conferenceSetting->update($data);
-                $message = "Conference Setting updated successfully";
+                $message = 'Conference Setting updated successfully';
             } else {
                 ConferenceSetting::create($data);
-                $message = "Conference Setting created successfully";
+                $message = 'Conference Setting created successfully';
             }
 
             // Handle Custom CSS
@@ -108,7 +110,7 @@ class ConferenceSettingController extends Controller
                     [
                         'section_name' => 'global',
                         'custom_css' => $request->custom_css,
-                        'status' => 1
+                        'status' => 1,
                     ]
                 );
             }
