@@ -12,18 +12,28 @@
             <div class="col-12 mb-4">
                 <div class="card border-0 shadow-sm">
                     <div class="card-header border-0" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
-                        <div class="d-flex align-items-center">
-                            <div class="bg-white bg-opacity-25 rounded-circle p-2 me-2">
-                                <i class="ti tabler-stars  fs-5"></i>
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div class="d-flex align-items-center">
+                                <div class="bg-white bg-opacity-25 rounded-circle p-2 me-2">
+                                    <i class="ti tabler-stars fs-5"></i>
+                                </div>
+                                <h6 class="mb-0 text-white fw-semibold">Scoring Configuration</h6>
                             </div>
-                            <h6 class="mb-0 text-white fw-semibold">Scoring Configuration</h6>
+                            <div class="form-check form-switch mb-0">
+                                <input class="form-check-input" type="checkbox" id="scoring_allowed" 
+                                       name="scoring_allowed" value="1" style="width: 3rem; height: 1.5rem;"
+                                       {{ old('scoring_allowed', $setting->scoring_allowed ?? 1) ? 'checked' : '' }}>
+                                <label class="form-check-label text-white fw-semibold ms-2" for="scoring_allowed">
+                                    Scoring Enabled
+                                </label>
+                            </div>
                         </div>
                     </div>
-                    <div class="card-body p-4">
+                    <div class="card-body p-4" id="scoringConfigBody">
                         <div class="row align-items-center">
                             <div class="col-md-6 mb-3">
                                 <label for="total_marks" class="form-label fw-semibold mb-2">
-                                    Total Marks <span class="text-danger">*</span>
+                                    Total Marks <span class="text-danger scoring-required">*</span>
                                 </label>
                                 <div class="input-group">
                                     <span class="input-group-text bg-light border-end-0">
@@ -105,11 +115,11 @@
                                                            placeholder="e.g., 500" min="1" required>
                                                 </div>
                                             </div>
-                                            <div class="col-md-6 mb-3">
-                                                <label class="form-label fw-semibold mb-2">Maximum Marks <span class="text-danger">*</span></label>
+                                            <div class="col-md-6 mb-3 section-scoring-field">
+                                                <label class="form-label fw-semibold mb-2">Maximum Marks <span class="text-danger scoring-required">*</span></label>
                                                 <div class="input-group">
                                                     <span class="input-group-text bg-light">
-                                                        <i class="ti tabler-star text-warning"></i>
+                                                        <i class="ti tabler-star text-warning"></i> 
                                                     </span>
                                                     <input type="number" class="form-control section-max-marks" name="section_max_marks[]" 
                                                            value="{{ $section['max_marks'] ?? 2 }}" 
@@ -118,6 +128,7 @@
                                                 <small class="text-muted d-block mt-1">
                                                     <i class="ti tabler-info-circle me-1"></i>Max score reviewers can award
                                                 </small>
+                                                <div class="section-marks-feedback mt-1" style="display: none;"></div>
                                             </div>
                                             <div class="col-md-12 mb-3">
                                                 <label class="form-label fw-semibold mb-2">
@@ -129,7 +140,7 @@
                                                     <i class="ti tabler-info-circle me-1"></i>Shown to authors during submission
                                                 </small>
                                             </div>
-                                            <div class="col-md-12 mb-0">
+                                            <div class="col-md-12 mb-0 section-scoring-field">
                                                 <label class="form-label fw-semibold mb-2">
                                                     <i class="ti tabler-checklist text-success me-1"></i>Reviewer Instructions
                                                 </label>
@@ -148,6 +159,31 @@
                         <div class="alert alert-light border mb-0 mt-2" style="background-color: #f8f9fa;">
                             <i class="ti tabler-info-circle text-primary me-2"></i>
                             <small class="text-muted">Click <strong>"Add Section"</strong> to create new sections. Remove sections using the <i class="ti tabler-x"></i> button.</small>
+                        </div>
+                        
+                        <!-- Overall Rating Instructions (appears when section marks < total marks) -->
+                        <div id="overallInstructionField" class="mt-3" style="display: none;">
+                            <div class="card border-0 shadow-sm" style="background: linear-gradient(135deg, #fff3cd 0%, #ffe69c 100%);">
+                                <div class="card-body p-3">
+                                    <div class="d-flex align-items-center mb-3">
+                                        <div class="bg-warning bg-opacity-25 rounded-circle p-2 me-2">
+                                            <i class="ti tabler-alert-triangle text-warning fs-5"></i>
+                                        </div>
+                                        <div>
+                                            <h6 class="mb-0 fw-semibold text-dark">Overall Rating Instructions Required</h6>
+                                            <small class="text-muted" id="remainingMarksText">Section marks don't add up to total marks.</small>
+                                        </div>
+                                    </div>
+                                    <label for="overall_instruction" class="form-label fw-semibold mb-2">
+                                        <i class="ti tabler-checklist text-warning me-1"></i>Instructions for Reviewers
+                                    </label>
+                                    <textarea class="form-control" id="overall_instruction" name="overall_instruction" rows="3"
+                                        placeholder="Instructions for reviewers when rating the overall score (e.g., Consider grammar, language quality, consistency, formatting, etc.)">{{ old('overall_instruction', $setting->overall_instruction ?? '') }}</textarea>
+                                    <small class="text-muted d-block mt-1">
+                                        <i class="ti tabler-info-circle me-1"></i>These instructions will be shown to reviewers along with the overall rating field
+                                    </small>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -233,6 +269,92 @@
 
 <script>
     $(document).ready(function() {
+        // Toggle scoring fields based on scoring_allowed checkbox
+        function toggleScoringFields() {
+            const scoringEnabled = $('#scoring_allowed').is(':checked');
+            
+            if (scoringEnabled) {
+                $('#scoringConfigBody').slideDown();
+                $('.section-scoring-field').slideDown();
+                $('.scoring-required').show();
+                $('#total_marks').prop('required', true);
+                $('.section-max-marks').prop('required', true);
+                checkOverallInstructionRequired();
+            } else {
+                $('#scoringConfigBody').slideUp();
+                $('.section-scoring-field').slideUp();
+                $('.scoring-required').hide();
+                $('#total_marks').prop('required', false);
+                $('.section-max-marks').prop('required', false);
+                $('#overallInstructionField').slideUp();
+            }
+        }
+
+        // Check if overall instruction is required
+        function checkOverallInstructionRequired() {
+            if (!$('#scoring_allowed').is(':checked')) {
+                $('#overallInstructionField').hide();
+                $('.section-marks-feedback').hide().html('');
+                return;
+            }
+
+            const totalMarks = parseFloat($('#total_marks').val()) || 10;
+            let sectionMarksSum = 0;
+            
+            // First, calculate the total sum of all section marks
+            $('.section-max-marks').each(function() {
+                const value = parseFloat($(this).val()) || 0;
+                sectionMarksSum += value;
+            });
+            
+            // Now show validation messages based on the total sum
+            $('.section-max-marks').each(function() {
+                const value = parseFloat($(this).val()) || 0;
+                const feedbackDiv = $(this).closest('.section-scoring-field').find('.section-marks-feedback');
+                
+                if (value < 0) {
+                    feedbackDiv.html(`<small class="text-danger"><i class="ti tabler-alert-circle me-1"></i>Marks cannot be negative</small>`).show();
+                } else if (sectionMarksSum > totalMarks) {
+                    const excess = sectionMarksSum - totalMarks;
+                    feedbackDiv.html(`<small class="text-danger"><i class="ti tabler-alert-circle me-1"></i>Total section marks (${sectionMarksSum}) exceed total marks (${totalMarks}) by ${excess}</small>`).show();
+                } else {
+                    feedbackDiv.hide().html('');
+                }
+            });
+            
+            // Show overall instruction field based on sum
+            if (sectionMarksSum < totalMarks && sectionMarksSum >= 0) {
+                const remaining = totalMarks - sectionMarksSum;
+                $('#remainingMarksText').text(
+                    `Remaining ${remaining} marks (${totalMarks} - ${sectionMarksSum}) will be for overall rating. Provide instructions for reviewers.`
+                );
+                $('#overallInstructionField').slideDown();
+            } else if (sectionMarksSum > totalMarks) {
+                const excess = sectionMarksSum - totalMarks;
+                $('#remainingMarksText').text(
+                    `Section marks (${sectionMarksSum}) exceed total marks (${totalMarks}) by ${excess}. Please adjust.`
+                );
+                $('#overallInstructionField').slideDown();
+            } else {
+                $('#overallInstructionField').slideUp();
+            }
+        }
+
+        // Initialize on page load
+        toggleScoringFields();
+
+        // Listen to scoring toggle
+        $('#scoring_allowed').on('change', function() {
+            toggleScoringFields();
+        });
+
+        // Listen to total marks and section marks changes
+        $(document).on('input', '#total_marks, .section-max-marks', function() {
+            if ($('#scoring_allowed').is(':checked')) {
+                checkOverallInstructionRequired();
+            }
+        });
+
         // Update section count and renumber sections
         function updateSectionCount() {
             var sectionCount = $('#sectionsContainer .section-group').length;
@@ -242,12 +364,18 @@
             $('#sectionsContainer .section-group').each(function(index) {
                 $(this).find('h6').text('Section ' + (index + 1));
             });
+
+            // Check overall instruction after section count changes
+            if ($('#scoring_allowed').is(':checked')) {
+                checkOverallInstructionRequired();
+            }
         }
 
         // Add new section
         $('#addSectionBtn').on('click', function() {
             var currentCount = $('#sectionsContainer .section-group').length;
             var newSectionIndex = currentCount + 1;
+            var scoringSectionClass = $('#scoring_allowed').is(':checked') ? '' : 'style="display:none;"';
             
             var sectionHtml = `
                 <div class="section-group mb-3 p-4 border rounded-3 position-relative" style="background: linear-gradient(135deg, #e8f4f8 0%, #d4e9f2 100%); border: 2px solid #90caf9 !important;">
@@ -276,8 +404,8 @@
                                        placeholder="e.g., 500" min="1" required>
                             </div>
                         </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label fw-semibold mb-2">Maximum Marks <span class="text-danger">*</span></label>
+                        <div class="col-md-6 mb-3 section-scoring-field" ${scoringSectionClass}>
+                            <label class="form-label fw-semibold mb-2">Maximum Marks <span class="text-danger scoring-required">*</span></label>
                             <div class="input-group">
                                 <span class="input-group-text bg-light">
                                     <i class="ti tabler-star text-warning"></i>
@@ -288,6 +416,7 @@
                             <small class="text-muted d-block mt-1">
                                 <i class="ti tabler-info-circle me-1"></i>Max score reviewers can award
                             </small>
+                            <div class="section-marks-feedback mt-1" style="display: none;"></div>
                         </div>
                         <div class="col-md-12 mb-3">
                             <label class="form-label fw-semibold mb-2">
@@ -299,7 +428,7 @@
                                 <i class="ti tabler-info-circle me-1"></i>Shown to authors during submission
                             </small>
                         </div>
-                        <div class="col-md-12 mb-0">
+                        <div class="col-md-12 mb-0 section-scoring-field" ${scoringSectionClass}>
                             <label class="form-label fw-semibold mb-2">
                                 <i class="ti tabler-checklist text-success me-1"></i>Reviewer Instructions
                             </label>
@@ -343,6 +472,10 @@
 
         // Validate section marks don't exceed total marks
         function validateSectionMarks() {
+            if (!$('#scoring_allowed').is(':checked')) {
+                return true; // Skip validation if scoring is disabled
+            }
+
             var totalMarks = parseFloat($('#total_marks').val()) || 10;
             var sectionMarksSum = 0;
             

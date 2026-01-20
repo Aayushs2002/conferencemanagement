@@ -65,7 +65,7 @@
                         <p class="text-danger remarks"></p>
                     </div>
                     {{-- @endif --}}
-                    @if ($setting->scoring_allowed == 1)
+                    @if (($submission->articleType->setting->scoring_allowed ?? 1) == 1)
                         {{-- Section-based ratings if article type has sections --}}
                         @if (!empty($articleTypeSections) && is_array($articleTypeSections))
                             <div class="row pl-3 decisionForm" style="display: none;">
@@ -170,7 +170,19 @@
                                             <i class="ti tabler-certificate text-success me-1"></i>
                                             Overall Rating (Consistency, Grammar, Language, etc.)
                                         </label>
-                                        <select name="overall_rating" id="section_overall_rating" class="form-control form-select">
+                                        
+                        @if(!empty($submission->articleType->setting->overall_instruction))
+                            <div class="alert border-0 py-2 px-3 mb-3" style="background: linear-gradient(135deg, #fff3cd 0%, #ffe69c 100%);">
+                                <div class="d-flex align-items-start">
+                                    <i class="ti tabler-info-circle text-warning me-2 mt-1 flex-shrink-0"></i>
+                                    <small class="text-dark mb-0" style="line-height: 1.5;">
+                                        <strong>Review Instructions:</strong> {{ $submission->articleType->setting->overall_instruction }}
+                                    </small>
+                                </div>
+                            </div>
+                        @endif
+                                        
+                        <select name="overall_rating" id="section_overall_rating" class="form-control form-select">
                                             <option value="" hidden>-- Select Additional Score --</option>
                                         </select>
                                         <p class="text-danger overall_rating mb-0 mt-2 small"></p>

@@ -137,17 +137,26 @@ class ArticleTypeController extends Controller
         $rules = [
             'total_marks' => 'required|numeric|min:1|max:100',
             'number_of_sections' => 'required|integer|min:0|max:10',
+            'scoring_allowed' => 'nullable|boolean',
+            'overall_instruction' => 'nullable|string',
             'attachment_name' => 'nullable|string|max:255',
             'author_limit' => 'nullable|integer|min:1',
         ];
 
-        // If sections exist in the request, validate them
+        // If scoring is enabled and sections exist in the request, validate them
         if ($request->has('section_name') && is_array($request->section_name)) {
             $sectionCount = count($request->section_name);
             for ($i = 0; $i < $sectionCount; $i++) {
                 $rules["section_name.{$i}"] = 'required|string|max:255';
                 $rules["section_word_limit.{$i}"] = 'required|integer|min:1';
-                $rules["section_max_marks.{$i}"] = 'required|numeric|min:0';
+                // Only require max_marks if scoring is allowed
+                if ($request->has('scoring_allowed') && $request->scoring_allowed) {
+                    $rules["section_max_marks.{$i}"] = 'required|numeric|min:0';
+                    $rules["section_reviewer_instruction.{$i}"] = 'nullable|string';
+                } else {
+                    $rules["section_max_marks.{$i}"] = 'nullable|numeric|min:0';
+                    $rules["section_reviewer_instruction.{$i}"] = 'nullable|string';
+                }
                 $rules["section_instruction.{$i}"] = 'nullable|string';
             }
         }
@@ -194,6 +203,8 @@ class ArticleTypeController extends Controller
                 'number_of_sections' => $actualSectionCount,
                 'sections' => $sections,
                 'total_marks' => $request->total_marks ?? 10,
+                'scoring_allowed' => $request->has('scoring_allowed') ? 1 : 0,
+                'overall_instruction' => $request->overall_instruction,
                 'attachment_name' => $request->attachment_name,
                 'is_attachment_required' => $request->has('is_attachment_required') ? 1 : 0,
                 'author_limit' => $request->author_limit,
