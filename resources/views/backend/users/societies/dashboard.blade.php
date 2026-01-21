@@ -24,6 +24,57 @@
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
         }
 
+        a.card-link {
+            display: block;
+            text-decoration: none;
+            color: inherit;
+            position: relative;
+            z-index: 1;
+        }
+
+        a.card-link:hover {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        a.card-link:focus {
+            outline: none;
+        }
+
+        a.card-link .stat-card {
+            cursor: pointer;
+            pointer-events: auto;
+        }
+
+        a.card-link * {
+            color: inherit !important;
+            pointer-events: none;
+        }
+
+        a.card-link .badge {
+            pointer-events: none;
+        }
+
+        /* Disabled card links */
+        a.card-link.disabled-card-link {
+            cursor: not-allowed !important;
+            opacity: 0.6;
+        }
+
+        a.card-link.disabled-card-link .stat-card {
+            cursor: not-allowed !important;
+        }
+
+        /* Ensure disabled cards don't interfere */
+        div[style*="cursor: not-allowed"] {
+            pointer-events: none;
+        }
+
+        div[style*="cursor: not-allowed"] .stat-card {
+            opacity: 0.6;
+            cursor: not-allowed !important;
+        }
+
         .stat-card::before {
             content: '';
             position: absolute;
@@ -317,13 +368,13 @@
                     </label>
                     <select id="conferenceFilter" class="form-select" style="min-width: 280px; max-width: 400px; border: 1px solid #e9ecef; border-radius: 8px; padding: 0.625rem 1rem;">
                         @if($selectedConference)
-                            <option value="{{ $selectedConference->id }}" selected>
+                            <option value="{{ $selectedConference->id }}" data-hashid="{{ $selectedConference->getRouteKey() }}" selected>
                                 {{ $selectedConference->abbreviation ?? $selectedConference->conference_name }}
                             </option>
                         @endif
                         @foreach($allConferences as $conf)
                             @if(!$selectedConference || $conf->id != $selectedConference->id)
-                                <option value="{{ $conf->id }}">
+                                <option value="{{ $conf->id }}" data-hashid="{{ $conf->getRouteKey() }}">
                                     {{ $conf->abbreviation ?? $conf->conference_name }}
                                 </option>
                             @endif
@@ -383,122 +434,142 @@
         <div class="row g-4 mb-4">
             <!-- Total Conferences -->
             <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">
-                <div class="card stat-card card-primary h-100">
-                    <div class="card-body p-4">
-                        <div class="d-flex align-items-start justify-content-between mb-3">
-                            <div class="stat-icon icon-primary">
-                                <i class="ti tabler-briefcase" style="font-size: 22px;"></i>
+                <a href="{{ route('conference.index', $society) }}" class="card-link">
+                    <div class="card stat-card card-primary h-100">
+                        <div class="card-body p-4">
+                            <div class="d-flex align-items-start justify-content-between mb-3">
+                                <div class="stat-icon icon-primary">
+                                    <i class="ti tabler-briefcase" style="font-size: 22px;"></i>
+                                </div>
+                            </div>
+                            <h6 class="stat-label mb-2">Total Conferences</h6>
+                            <h2 class="stat-value mb-2">{{ $conferenceCount }}</h2>
+                            <div class="mt-3">
+                                <span class="badge badge-success-soft">
+                                    {{ $activeConferenceCount }} Active
+                                </span>
                             </div>
                         </div>
-                        <h6 class="stat-label mb-2">Total Conferences</h6>
-                        <h2 class="stat-value mb-2">{{ $conferenceCount }}</h2>
-                        <div class="mt-3">
-                            <span class="badge badge-success-soft">
-                                {{ $activeConferenceCount }} Active
-                            </span>
-                        </div>
                     </div>
-                </div>
+                </a>
             </div>
 
             <!-- Ongoing Conferences -->
             <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">
-                <div class="card stat-card card-success h-100">
-                    <div class="card-body p-4">
-                        <div class="d-flex align-items-start justify-content-between mb-3">
-                            <div class="stat-icon icon-success">
-                                <i class="ti tabler-hourglass-high" style="font-size: 22px;"></i>
+                <a href="{{ route('conference.index', $society) }}" class="card-link">
+                    <div class="card stat-card card-success h-100">
+                        <div class="card-body p-4">
+                            <div class="d-flex align-items-start justify-content-between mb-3">
+                                <div class="stat-icon icon-success">
+                                    <i class="ti tabler-hourglass-high" style="font-size: 22px;"></i>
+                                </div>
+                            </div>
+                            <h6 class="stat-label mb-2">Ongoing</h6>
+                            <h2 class="stat-value mb-2">{{ $ongoingConferences }}</h2>
+                            <div class="mt-3">
+                                <span class="badge badge-primary-soft">
+                                    Live Events
+                                </span>
                             </div>
                         </div>
-                        <h6 class="stat-label mb-2">Ongoing</h6>
-                        <h2 class="stat-value mb-2">{{ $ongoingConferences }}</h2>
-                        <div class="mt-3">
-                            <span class="badge badge-primary-soft">
-                                Live Events
-                            </span>
-                        </div>
                     </div>
-                </div>
+                </a>
             </div>
 
             <!-- Upcoming Conferences -->
             <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">
-                <div class="card stat-card card-info h-100">
-                    <div class="card-body p-4">
-                        <div class="d-flex align-items-start justify-content-between mb-3">
-                            <div class="stat-icon icon-info">
-                                <i class="ti tabler-calendar-event" style="font-size: 22px;"></i>
+                <a href="{{ route('conference.index', $society) }}" class="card-link">
+                    <div class="card stat-card card-info h-100">
+                        <div class="card-body p-4">
+                            <div class="d-flex align-items-start justify-content-between mb-3">
+                                <div class="stat-icon icon-info">
+                                    <i class="ti tabler-calendar-event" style="font-size: 22px;"></i>
+                                </div>
+                            </div>
+                            <h6 class="stat-label mb-2">Upcoming</h6>
+                            <h2 class="stat-value mb-2">{{ $upcomingConferences }}</h2>
+                            <div class="mt-3">
+                                <span class="badge badge-soft">
+                                    Scheduled
+                                </span>
                             </div>
                         </div>
-                        <h6 class="stat-label mb-2">Upcoming</h6>
-                        <h2 class="stat-value mb-2">{{ $upcomingConferences }}</h2>
-                        <div class="mt-3">
-                            <span class="badge badge-soft">
-                                Scheduled
-                            </span>
-                        </div>
                     </div>
-                </div>
+                </a>
             </div>
 
             <!-- Completed Conferences -->
             <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">
-                <div class="card stat-card card-secondary h-100">
-                    <div class="card-body p-4">
-                        <div class="d-flex align-items-start justify-content-between mb-3">
-                            <div class="stat-icon icon-secondary">
-                                <i class="ti tabler-check" style="font-size: 22px;"></i>
+                <a href="{{ route('conference.index', $society) }}" class="card-link">
+                    <div class="card stat-card card-secondary h-100">
+                        <div class="card-body p-4">
+                            <div class="d-flex align-items-start justify-content-between mb-3">
+                                <div class="stat-icon icon-secondary">
+                                    <i class="ti tabler-check" style="font-size: 22px;"></i>
+                                </div>
+                            </div>
+                            <h6 class="stat-label mb-2">Completed</h6>
+                            <h2 class="stat-value mb-2">{{ $completedConferences }}</h2>
+                            <div class="mt-3">
+                                <span class="badge badge-soft">
+                                    Past Events
+                                </span>
                             </div>
                         </div>
-                        <h6 class="stat-label mb-2">Completed</h6>
-                        <h2 class="stat-value mb-2">{{ $completedConferences }}</h2>
-                        <div class="mt-3">
-                            <span class="badge badge-soft">
-                                Past Events
-                            </span>
-                        </div>
                     </div>
-                </div>
+                </a>
             </div>
 
             <!-- Total Registrations -->
             <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">
-                <div class="card stat-card card-success h-100">
-                    <div class="card-body p-4">
-                        <div class="d-flex align-items-start justify-content-between mb-3">
-                            <div class="stat-icon icon-success">
-                                <i class="ti tabler-users" style="font-size: 22px;"></i>
+                @if($selectedConference)
+                    <a href="{{ route('conference.conference-registration.index', [$society, $selectedConference]) }}" class="card-link" id="registrationsCardLink" data-society-hashid="{{ $society->getRouteKey() }}" data-route-name="conference.conference-registration.index">
+                @else
+                    <a href="#" class="card-link disabled-card-link" id="registrationsCardLink" data-society-hashid="{{ $society->getRouteKey() }}" data-route-name="conference.conference-registration.index" onclick="return false;" style="cursor: not-allowed;" title="Please select a conference">
+                @endif
+                    <div class="card stat-card card-success h-100">
+                        <div class="card-body p-4">
+                            <div class="d-flex align-items-start justify-content-between mb-3">
+                                <div class="stat-icon icon-success">
+                                    <i class="ti tabler-users" style="font-size: 22px;"></i>
+                                </div>
+                            </div>
+                            <h6 class="stat-label mb-2">Registrations</h6>
+                            <h2 class="stat-value mb-2" data-stat="totalRegistrations">{{ $totalRegistrations }}</h2>
+                            <div class="mt-3">
+                                <span class="badge badge-soft">
+                                    <span data-stat="pendingRegistrations">{{ $pendingRegistrations }}</span> Pending
+                                </span>
                             </div>
                         </div>
-                        <h6 class="stat-label mb-2">Registrations</h6>
-                        <h2 class="stat-value mb-2" data-stat="totalRegistrations">{{ $totalRegistrations }}</h2>
-                        <div class="mt-3">
-                            <span class="badge badge-soft">
-                                <span data-stat="pendingRegistrations">{{ $pendingRegistrations }}</span> Pending
-                            </span>
-                        </div>
                     </div>
-                </div>
+                </a>
             </div>
 
             <!-- Total Submissions -->
             <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">
-                <div class="card stat-card card-info h-100">
-                    <div class="card-body p-4">
-                        <div class="d-flex align-items-start justify-content-between mb-3">
-                            <div class="stat-icon icon-info">
-                                <i class="ti tabler-file-text" style="font-size: 22px;"></i>
+                @if($selectedConference)
+                    <a href="{{ route('submission.index', [$society, $selectedConference]) }}" class="card-link" id="submissionsCardLink" data-society-hashid="{{ $society->getRouteKey() }}" data-route-name="submission.index">
+                @else
+                    <a href="#" class="card-link disabled-card-link" id="submissionsCardLink" data-society-hashid="{{ $society->getRouteKey() }}" data-route-name="submission.index" onclick="return false;" style="cursor: not-allowed;" title="Please select a conference">
+                @endif
+                    <div class="card stat-card card-info h-100">
+                        <div class="card-body p-4">
+                            <div class="d-flex align-items-start justify-content-between mb-3">
+                                <div class="stat-icon icon-info">
+                                    <i class="ti tabler-file-text" style="font-size: 22px;"></i>
+                                </div>
+                            </div>
+                            <h6 class="stat-label mb-2">Submissions</h6>
+                            <h2 class="stat-value mb-2" data-stat="totalSubmissions">{{ $totalSubmissions }}</h2>
+                            <div class="mt-3">
+                                <span class="badge badge-success-soft">
+                                    <span data-stat="acceptedSubmissions">{{ $acceptedSubmissions }}</span> Accepted
+                                </span>
                             </div>
                         </div>
-                        <h6 class="stat-label mb-2">Submissions</h6>
-                        <h2 class="stat-value mb-2" data-stat="totalSubmissions">{{ $totalSubmissions }}</h2>
-                        <div class="mt-3">
-                            <span class="badge badge-success-soft">
-                                <span data-stat="acceptedSubmissions">{{ $acceptedSubmissions }}</span> Accepted
-                            </span>
-                        </div>
                     </div>
-                </div>
+                </a>
             </div>
         </div>
 
@@ -506,83 +577,103 @@
         <div class="row g-4 mb-4">
             <!-- Pending Submissions -->
             <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">
-                <div class="card stat-card card-warning h-100">
-                    <div class="card-body p-4">
-                        <div class="d-flex align-items-start justify-content-between mb-3">
-                            <div class="stat-icon icon-warning">
-                                <i class="ti tabler-clock" style="font-size: 22px;"></i>
+                @if($selectedConference)
+                    <a href="{{ route('submission.index', [$society, $selectedConference]) }}" class="card-link" id="pendingSubmissionsCardLink" data-society-hashid="{{ $society->getRouteKey() }}" data-route-name="submission.index">
+                @else
+                    <a href="#" class="card-link disabled-card-link" id="pendingSubmissionsCardLink" data-society-hashid="{{ $society->getRouteKey() }}" data-route-name="submission.index" onclick="return false;" style="cursor: not-allowed;" title="Please select a conference">
+                @endif
+                    <div class="card stat-card card-warning h-100">
+                        <div class="card-body p-4">
+                            <div class="d-flex align-items-start justify-content-between mb-3">
+                                <div class="stat-icon icon-warning">
+                                    <i class="ti tabler-clock" style="font-size: 22px;"></i>
+                                </div>
+                            </div>
+                            <h6 class="stat-label mb-2">Pending Review</h6>
+                            <h2 class="stat-value mb-2" data-stat="pendingSubmissions">{{ $pendingSubmissions }}</h2>
+                            <div class="mt-3">
+                                <span class="badge badge-soft">
+                                    Awaiting
+                                </span>
                             </div>
                         </div>
-                        <h6 class="stat-label mb-2">Pending Review</h6>
-                        <h2 class="stat-value mb-2" data-stat="pendingSubmissions">{{ $pendingSubmissions }}</h2>
-                        <div class="mt-3">
-                            <span class="badge badge-soft">
-                                Awaiting
-                            </span>
-                        </div>
                     </div>
-                </div>
+                </a>
             </div>
 
             <!-- Rejected Submissions -->
             <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">
-                <div class="card stat-card card-secondary h-100">
-                    <div class="card-body p-4">
-                        <div class="d-flex align-items-start justify-content-between mb-3">
-                            <div class="stat-icon icon-secondary">
-                                <i class="ti tabler-x" style="font-size: 22px;"></i>
+                @if($selectedConference)
+                    <a href="{{ route('submission.index', [$society, $selectedConference]) }}" class="card-link" id="rejectedSubmissionsCardLink" data-society-hashid="{{ $society->getRouteKey() }}" data-route-name="submission.index">
+                @else
+                    <a href="#" class="card-link disabled-card-link" id="rejectedSubmissionsCardLink" data-society-hashid="{{ $society->getRouteKey() }}" data-route-name="submission.index" onclick="return false;" style="cursor: not-allowed;" title="Please select a conference">
+                @endif
+                    <div class="card stat-card card-secondary h-100">
+                        <div class="card-body p-4">
+                            <div class="d-flex align-items-start justify-content-between mb-3">
+                                <div class="stat-icon icon-secondary">
+                                    <i class="ti tabler-x" style="font-size: 22px;"></i>
+                                </div>
+                            </div>
+                            <h6 class="stat-label mb-2">Rejected</h6>
+                            <h2 class="stat-value mb-2" data-stat="rejectedSubmissions">{{ $rejectedSubmissions }}</h2>
+                            <div class="mt-3">
+                                <span class="badge badge-soft">
+                                    Declined
+                                </span>
                             </div>
                         </div>
-                        <h6 class="stat-label mb-2">Rejected</h6>
-                        <h2 class="stat-value mb-2" data-stat="rejectedSubmissions">{{ $rejectedSubmissions }}</h2>
-                        <div class="mt-3">
-                            <span class="badge badge-soft">
-                                Declined
-                            </span>
-                        </div>
                     </div>
-                </div>
+                </a>
             </div>
 
             <!-- Workshops -->
             <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">
-                <div class="card stat-card card-primary h-100">
-                    <div class="card-body p-4">
-                        <div class="d-flex align-items-start justify-content-between mb-3">
-                            <div class="stat-icon icon-primary">
-                                <i class="ti tabler-presentation" style="font-size: 22px;"></i>
+                @if($selectedConference)
+                    <a href="{{ route('workshop.index', [$society, $selectedConference]) }}" class="card-link" id="workshopsCardLink" data-society-hashid="{{ $society->getRouteKey() }}" data-route-name="workshop.index">
+                @else
+                    <a href="#" class="card-link disabled-card-link" id="workshopsCardLink" data-society-hashid="{{ $society->getRouteKey() }}" data-route-name="workshop.index" onclick="return false;" style="cursor: not-allowed;" title="Please select a conference">
+                @endif
+                    <div class="card stat-card card-primary h-100">
+                        <div class="card-body p-4">
+                            <div class="d-flex align-items-start justify-content-between mb-3">
+                                <div class="stat-icon icon-primary">
+                                    <i class="ti tabler-presentation" style="font-size: 22px;"></i>
+                                </div>
+                            </div>
+                            <h6 class="stat-label mb-2">Workshops</h6>
+                            <h2 class="stat-value mb-2" data-stat="workshopCount">{{ $workshopCount }}</h2>
+                            <div class="mt-3">
+                                <span class="badge badge-soft">
+                                    <span data-stat="workshopRegistrations">{{ $workshopRegistrations }}</span> Participants
+                                </span>
                             </div>
                         </div>
-                        <h6 class="stat-label mb-2">Workshops</h6>
-                        <h2 class="stat-value mb-2" data-stat="workshopCount">{{ $workshopCount }}</h2>
-                        <div class="mt-3">
-                            <span class="badge badge-soft">
-                                <span data-stat="workshopRegistrations">{{ $workshopRegistrations }}</span> Participants
-                            </span>
-                        </div>
                     </div>
-                </div>
+                </a>
             </div>
 
             @if (current_user()->type != 3)
             <!-- Member Types -->
             <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">
-                <div class="card stat-card card-info h-100">
-                    <div class="card-body p-4">
-                        <div class="d-flex align-items-start justify-content-between mb-3">
-                            <div class="stat-icon icon-info">
-                                <i class="ti tabler-user-check" style="font-size: 22px;"></i>
+                <a href="{{ route('memberType.index', $society) }}" class="card-link">
+                    <div class="card stat-card card-info h-100">
+                        <div class="card-body p-4">
+                            <div class="d-flex align-items-start justify-content-between mb-3">
+                                <div class="stat-icon icon-info">
+                                    <i class="ti tabler-user-check" style="font-size: 22px;"></i>
+                                </div>
+                            </div>
+                            <h6 class="stat-label mb-2">Member Types</h6>
+                            <h2 class="stat-value mb-2">{{ $typeCount }}</h2>
+                            <div class="mt-3">
+                                <span class="badge badge-soft">
+                                    Active Types
+                                </span>
                             </div>
                         </div>
-                        <h6 class="stat-label mb-2">Member Types</h6>
-                        <h2 class="stat-value mb-2">{{ $typeCount }}</h2>
-                        <div class="mt-3">
-                            <span class="badge badge-soft">
-                                Active Types
-                            </span>
-                        </div>
                     </div>
-                </div>
+                </a>
             </div>
             @endif
         </div>
@@ -814,7 +905,18 @@
             // Conference filter change handler
             $('#conferenceFilter').on('change', function() {
                 var conferenceId = $(this).val();
-                if (conferenceId) {
+                var $selectedOption = $(this).find('option:selected');
+                var conferenceHashid = $selectedOption.data('hashid');
+                
+                console.log('Conference filter changed:', {
+                    id: conferenceId,
+                    hashid: conferenceHashid
+                });
+                
+                if (conferenceId && conferenceHashid) {
+                    // Immediately update card links with hashid from dropdown
+                    updateCardLinks(conferenceHashid);
+                    // Then load the statistics data
                     loadConferenceData(conferenceId);
                 }
             });
@@ -1044,6 +1146,33 @@
             });
         }
 
+        function updateCardLinks(conferenceId) {
+            console.log('Updating card links for conference ID:', conferenceId);
+            
+            // Update each card link with the new conference ID
+            const cardLinks = [
+                '#registrationsCardLink',
+                '#submissionsCardLink',
+                '#pendingSubmissionsCardLink',
+                '#rejectedSubmissionsCardLink',
+                '#workshopsCardLink'
+            ];
+            
+            cardLinks.forEach(function(linkId) {
+                const $link = $(linkId);
+                if ($link.length) {
+                    const routePattern = $link.data('route-pattern');
+                    if (routePattern) {
+                        const newHref = routePattern.replace('__CONF_ID__', conferenceId);
+                        $link.attr('href', newHref);
+                        $link.removeClass('disabled-card-link');
+                        $link.attr('onclick', '');
+                        $link.closest('.col-xl-2').find('div[style*="cursor: not-allowed"]').remove();
+                    }
+                }
+            });
+        }
+
         function showError(message) {
             const errorAlert = $('<div class="alert alert-danger alert-dismissible fade show position-fixed" role="alert" style="top: 20px; right: 20px; z-index: 9999; min-width: 300px;">' +
                 '<i class="ti tabler-alert-circle me-2"></i>' +
@@ -1059,8 +1188,65 @@
             }, 5000);
         }
 
+        function updateCardLinks(conferenceHashid) {
+            console.log('Updating card links for conference hashid:', conferenceHashid);
+            
+            if (!conferenceHashid) {
+                console.error('Conference hashid is missing!');
+                return;
+            }
+            
+            // Route mapping - base URLs
+            const routes = {
+                'conference.conference-registration.index': '/society/{society}/conference/{conference}/conference-registration/registrant',
+                'submission.index': '/society/{society}/conference/{conference}/submission',
+                'workshop.index': '/society/{society}/conference/{conference}/workshop'
+            };
+            
+            // Update each card link with the new conference hashid
+            const cardLinks = [
+                '#registrationsCardLink',
+                '#submissionsCardLink',
+                '#pendingSubmissionsCardLink',
+                '#rejectedSubmissionsCardLink',
+                '#workshopsCardLink'
+            ];
+            
+            cardLinks.forEach(function(linkId) {
+                const $link = $(linkId);
+                if ($link.length) {
+                    const societyHashid = $link.data('society-hashid');
+                    const routeName = $link.data('route-name');
+                    
+                    if (societyHashid && routeName && routes[routeName]) {
+                        // Build the URL with hashids
+                        const newHref = routes[routeName]
+                            .replace('{society}', societyHashid)
+                            .replace('{conference}', conferenceHashid);
+                        
+                        console.log('Updating', linkId, 'to:', newHref);
+                        $link.attr('href', newHref);
+                        $link.removeClass('disabled-card-link');
+                        $link.removeAttr('onclick');
+                        $link.css('cursor', 'pointer');
+                        $link.removeAttr('title');
+                        $link.css('opacity', '1');
+                    } else {
+                        console.warn('Missing data for', linkId, {societyHashid, routeName});
+                    }
+                } else {
+                    console.warn('Link not found:', linkId);
+                }
+            });
+            
+            console.log('All card links updated successfully');
+        }
+
         function updateDashboard(data) {
             console.log('Updating dashboard with data:', data);
+            
+            // Card links are already updated from dropdown hashid
+            // Just update the statistics and other data
             
             // Update conference name in banner
             if (data.conferenceTheme || data.conferenceName) {

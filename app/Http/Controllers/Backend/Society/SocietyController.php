@@ -397,6 +397,8 @@ class SocietyController extends Controller
         return response()->json([
             'success' => true,
             'data' => [
+                'conferenceId' => $selectedConference->id,
+                'conferenceHashid' => $selectedConference->getRouteKey(),
                 'totalRegistrations' => $totalRegistrations,
                 'pendingRegistrations' => $pendingRegistrations,
                 'totalSubmissions' => $totalSubmissions,
