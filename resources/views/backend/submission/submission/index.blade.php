@@ -29,7 +29,7 @@
                         <option {{ request()->presentation_type == 2 ? 'selected' : '' }} value="2">
                             Oral
                         </option>
-                        <option {{ request()->presentation_type === 1 ? 'selected' : '' }} value="1">
+                        <option {{ request()->presentation_type == 1 ? 'selected' : '' }} value="1">
                             Poster
                         </option>
                     </select>

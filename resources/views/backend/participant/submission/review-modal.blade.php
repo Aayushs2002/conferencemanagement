@@ -188,7 +188,7 @@
                                         <p class="text-danger overall_rating mb-0 mt-2 small"></p>
                                     </div>
                                 </div>
-                            </div>
+                            </div>  
                             {{-- </div> --}}
                         @else
                             {{-- Default ratings (Introduction, Method, Result, Conclusion, Grammar) --}}
