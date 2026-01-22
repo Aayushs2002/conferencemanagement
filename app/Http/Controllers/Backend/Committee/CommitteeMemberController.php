@@ -18,7 +18,7 @@ class CommitteeMemberController extends Controller
     {
 
         $committee = Committee::where(['slug' => $slug])->first();
-        $committee_members = CommitteeMember::where(['conference_id' => $conference->id, 'committee_id' => $committee->id, 'status' => 1])->get();
+        $committee_members = CommitteeMember::where(['conference_id' => $conference->id, 'committee_id' => $committee->id, 'status' => 1])->orderBy('order', 'asc')->get();
         // $activity_log = ActivityLog::where
         return view('backend.committee.committee-member.index', compact('committee_members', 'committee', 'society', 'conference'));
     }
@@ -155,5 +155,31 @@ class CommitteeMemberController extends Controller
         $committee_member = CommitteeMember::where('conference_id', $conference->id)->whereId($request->id)->first();
         $activity_logs = ActivityLog::where('conference_id', $conference->id)->where('user_id', $committee_member->user_id)->orderByDesc('id')->get();
         return view('backend.committee.committee-member.registered-users', compact('conference', 'activity_logs', 'committee_member'));
+    }
+
+    /**
+     * Update display order of committee members.
+     */
+    public function updateOrder(Request $request, $society, $conference)
+    {
+        try {
+            $orders = $request->orders;
+            
+            foreach ($orders as $order) {
+                CommitteeMember::where('id', $order['id'])->update([
+                    'order' => $order['position']
+                ]);
+            }
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Order updated successfully'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to update order: ' . $e->getMessage()
+            ], 500);
+        }
     }
 }

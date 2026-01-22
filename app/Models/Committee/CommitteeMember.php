@@ -16,6 +16,7 @@ class CommitteeMember extends Model
         'is_featured',
         'message',
         'slug',
+        'order',
         'status'
     ];
 
