@@ -314,6 +314,7 @@ Route::middleware('auth')->group(function () {
             Route::delete('/destroy/{committee_member}', 'destroy')->name('destroy');
             Route::get('/change-featured/{committee_member}', 'changeFeatured')->name('changeFeatured');
             Route::post('get-registered-users', 'getRegisteredUsers')->name('getRegisteredUsers');
+            Route::post('/update-order', 'updateOrder')->name('updateOrder');
         });
     });
 
@@ -343,6 +344,7 @@ Route::middleware('auth')->group(function () {
     Route::prefix('/society/{society}/conference/{conference}')->middleware('auto.conf.permission')->group(function () {
         Route::resource('faq', FaqController::class)->except('show');
         Route::resource('faq/faq-category', FaqCategoryController::class)->except('show');
+        Route::post('/faq/update-order', [FaqController::class, 'updateOrder'])->name('faq.update-order');
     });
     Route::get('faq/change-status/{faq}', [FaqCategoryController::class, 'changeStatus'])->middleware('auto.conf.permission')->name('faq.changeStatus');
 

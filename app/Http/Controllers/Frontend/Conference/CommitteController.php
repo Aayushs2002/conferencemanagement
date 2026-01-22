@@ -13,12 +13,13 @@ class CommitteController extends BaseConferenceController
         $committees = Committee::with([
             'committeeMembers' => function ($query) {
                 $query->where('status', 1)
-                    ->where('conference_id', $this->conference->id);
+                    ->where('conference_id', $this->conference->id)
+                    ->orderBy('order', 'asc');
             },
             'committeeMembers.user.userDetail',
             'committeeMembers.designation'
         ])
-            ->where('status', 1)
+            ->where('status', 1) 
             ->orderBy('display_order', 'asc')
             ->where('society_id', $this->conference->society_id)
             ->get();

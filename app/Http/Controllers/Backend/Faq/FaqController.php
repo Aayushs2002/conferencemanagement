@@ -18,7 +18,7 @@ class FaqController extends Controller
      */
     public function index($society, $conference)
     {
-        $faqs = Faq::where(['conference_id' => $conference->id, 'status' => 1])->get();
+        $faqs = Faq::where(['conference_id' => $conference->id, 'status' => 1])->orderBy('order', 'asc')->get();
         return view('backend.faq.faq.index', compact('faqs', 'society', 'conference'));
     }
 
@@ -120,5 +120,31 @@ class FaqController extends Controller
         $faq->update(['visible_status' => $status]);
 
         return redirect()->back()->with('status', 'Faq publish status changed successfully.');
+    }
+
+    /**
+     * Update display order of FAQs.
+     */
+    public function updateOrder(Request $request, $society, $conference)
+    {
+        try {
+            $orders = $request->orders;
+            
+            foreach ($orders as $order) {
+                Faq::where('id', $order['id'])->update([
+                    'order' => $order['position']
+                ]);
+            }
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Order updated successfully'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to update order: ' . $e->getMessage()
+            ], 500);
+        }
     }
 }

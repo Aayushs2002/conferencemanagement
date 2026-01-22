@@ -26,6 +26,7 @@ class Committee extends Model
     public function committeeMembers()
     {
         return $this->hasMany(CommitteeMember::class, 'committee_id', 'id')
-            ->with(['user', 'designation']);
+            ->with(['user', 'designation'])
+            ->orderBy('order', 'asc');
     }
 }

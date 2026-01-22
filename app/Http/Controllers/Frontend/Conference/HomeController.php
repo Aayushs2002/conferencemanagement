@@ -72,7 +72,7 @@ class HomeController extends BaseConferenceController
             ->get()
             ->groupBy('addon_name');
  
-        $faqs = Faq::where(['conference_id' => $this->conference->id, 'status' => 1])->get();
+        $faqs = Faq::where(['conference_id' => $this->conference->id, 'status' => 1])->orderBy('order', 'asc')->get();
 
         $society = $this->conference->society;
         $subdomain = $society->sub_domain_name;

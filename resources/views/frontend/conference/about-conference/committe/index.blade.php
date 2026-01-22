@@ -117,7 +117,7 @@
                             @foreach ($groupedMembers as $designationName => $members)
                                 {{-- <p class="span-text mt-5">{{ $designationName }}</p> --}}
                                 <div class="row mt-3 align-items-center">
-                                    @foreach ($members as $member)
+                                    @foreach ($members as $member) 
                                         <div class="col-md-4">
                                             <div class="prof-card p-3 rounded-3 h-100 d-flex flex-column">
                                                 <img src="{{ $member->user->userDetail && $member->user->userDetail->image
