@@ -42,6 +42,7 @@ class ConferenceSettingController extends Controller
                 'workshop_registration_open_date' => 'nullable|date',
                 'workshop_application_deadline' => 'nullable|date',
                 'show_stats_dashboard' => 'required|in:0,1',
+                'addon_availability' => 'required|in:both,participant_only,accompany_only',
 
             ]);
 
@@ -93,6 +94,7 @@ class ConferenceSettingController extends Controller
                 'workshop_registration_open_date' => $request->workshop_registration_open_date,
                 'workshop_application_deadline' => $request->workshop_application_deadline,
                 'show_stats_dashboard' => $request->show_stats_dashboard,
+                'addon_availability' => $request->addon_availability,
             ];
 
             if ($conferenceSetting) {

@@ -23,6 +23,7 @@ class ConferenceSetting extends Model
         'workshop_registration_open_date',
         'workshop_application_deadline',
         'show_stats_dashboard',
+        'addon_availability',
     ];
 }
  

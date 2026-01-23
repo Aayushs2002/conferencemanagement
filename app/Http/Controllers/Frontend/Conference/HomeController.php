@@ -72,6 +72,9 @@ class HomeController extends BaseConferenceController
             ->get()
             ->groupBy('addon_name');
  
+        // Get addon availability setting
+        $addonAvailability = $this->conference->conferenceSetting?->addon_availability ?? 'both';
+
         $faqs = Faq::where(['conference_id' => $this->conference->id, 'status' => 1])->orderBy('order', 'asc')->get();
 
         $society = $this->conference->society;
@@ -83,7 +86,7 @@ class HomeController extends BaseConferenceController
             $url = "http://{$subdomain}.{$mainDomain}" . request()->getRequestUri();
             return redirect()->to($url);
         }
-        return view('frontend.conference.home.index', compact('submissionSetting', 'hotels', 'sponsorCategories', 'downloads', 'memberTypes', 'faqs', 'stats', 'conferenceAddons'));
+        return view('frontend.conference.home.index', compact('submissionSetting', 'hotels', 'sponsorCategories', 'downloads', 'memberTypes', 'faqs', 'stats', 'conferenceAddons', 'addonAvailability'));
     }
 
     public function termsConditions()

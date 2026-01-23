@@ -60,15 +60,15 @@ class PaymentContoller extends Controller
 
     public function fonePaySuccess(Request $request, $society, $conference)
     {
-        if ($request->RC == 'failed' || $request->RC == 'cancel') {
-            return redirect()->route('my-society.conference.create', [$society, $conference])->with('delete', 'Payment process has been failed or cancelled, please try again.');
-        } else {
+        // if ($request->RC == 'failed' || $request->RC == 'cancel') {
+        //     return redirect()->route('my-society.conference.create', [$society, $conference])->with('delete', 'Payment process has been failed or cancelled, please try again.');
+        // } else {
             $transactionId = $request->UID;
             $amount = $request->P_AMT;
             $national_payemnt_setting = NationalPayment::where('society_id', $conference->society_id)->first();
             $international_payemnt_setting = InternationalPayment::where('society_id', $conference->society_id)->first();
             return view('backend.participant.conference-registration.payment-success', compact('transactionId', 'amount', 'society', 'conference', 'national_payemnt_setting', 'international_payemnt_setting'));
-        }
+        // }
     }
 
     public function esewa(Request $request, $society, $conference)
@@ -811,8 +811,12 @@ class PaymentContoller extends Controller
             });
         $conferenceAddons = ConferenceAddon::where(['conference_id' => $conference->id, 'status' => 1])->get();
 
+        // Get conference setting for addon availability
+        $conferenceSetting = $conference->conferenceSetting;
+        $addonAvailability = $conferenceSetting?->addon_availability ?? 'both';
+
         // dd($checkPayment);
-        return view('backend.participant.conference-registration.create', compact('workshops', 'conferenceAddons', 'conference', 'amount', 'memberTypePrice', 'society', 'checkPayment', 'international_payemnt_setting', 'national_payemnt_setting'));
+        return view('backend.participant.conference-registration.create', compact('workshops', 'conferenceAddons', 'conference', 'amount', 'memberTypePrice', 'society', 'checkPayment', 'international_payemnt_setting', 'national_payemnt_setting', 'addonAvailability'));
         // $transactionId = $request->orderNo;
         // return view('backend.conferences.registrations.international-payment-success', compact('transactionId'));
     }
@@ -872,7 +876,12 @@ class PaymentContoller extends Controller
                 return true;
             });
         $conferenceAddons = ConferenceAddon::where(['conference_id' => $conference->id, 'status' => 1])->get();
-        return view('backend.participant.conference-registration.create', compact('workshops', 'conferenceAddons', 'conference', 'amount', 'memberTypePrice', 'society', 'checkPayment', 'international_payemnt_setting', 'national_payemnt_setting'));
+        
+        // Get conference setting for addon availability
+        $conferenceSetting = $conference->conferenceSetting;
+        $addonAvailability = $conferenceSetting?->addon_availability ?? 'both';
+        
+        return view('backend.participant.conference-registration.create', compact('workshops', 'conferenceAddons', 'conference', 'amount', 'memberTypePrice', 'society', 'checkPayment', 'international_payemnt_setting', 'national_payemnt_setting', 'addonAvailability'));
     }
 
     public function internationalPaymentResultBackend($society, $conference)

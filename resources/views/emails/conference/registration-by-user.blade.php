@@ -56,20 +56,41 @@
         <ul>
             @foreach ($data['addons'] as $addon)
                 @php
-                    $totalAddonQty = 1; // Main attendee
-                    $totalAddonAmount = $addon['amount']; // Main amount
+                    $availabilityType = $addon['availability_type'] ?? 'both';
+                    $totalAddonQty = 0;
+                    $totalAddonAmount = 0;
                     
-                    if (!empty($data['accompany']) && $addon['include_guest']) {
-                        $totalAddonQty += $data['accompany']['accompany_person']; // Add guests if included
-                        $guestAddonPrice = isset($addon['guest_amount']) && $addon['guest_amount'] > 0 ? $addon['guest_amount'] : $addon['amount'];
-                        $totalAddonAmount += ($guestAddonPrice * $data['accompany']['accompany_person']); // Add guest costs
+                    // Calculate based on availability type
+                    if ($availabilityType === 'participant_only') {
+                        // Only participant
+                        $totalAddonQty = 1;
+                        $totalAddonAmount = $addon['amount'];
+                    } elseif ($availabilityType === 'accompany_only') {
+                        // Only guests
+                        if (!empty($data['accompany'])) {
+                            $totalAddonQty = $data['accompany']['accompany_person'];
+                            $guestAddonPrice = isset($addon['guest_amount']) && $addon['guest_amount'] > 0 ? $addon['guest_amount'] : $addon['amount'];
+                            $totalAddonAmount = $guestAddonPrice * $data['accompany']['accompany_person'];
+                        }
+                    } else {
+                        // Both - original logic
+                        $totalAddonQty = 1; // Main attendee
+                        $totalAddonAmount = $addon['amount']; // Main amount
+                        
+                        if (!empty($data['accompany']) && $addon['include_guest']) {
+                            $totalAddonQty += $data['accompany']['accompany_person']; // Add guests if included
+                            $guestAddonPrice = isset($addon['guest_amount']) && $addon['guest_amount'] > 0 ? $addon['guest_amount'] : $addon['amount'];
+                            $totalAddonAmount += ($guestAddonPrice * $data['accompany']['accompany_person']); // Add guest costs
+                        }
                     }
                 @endphp
-                <li>{{ $addon['name'] }} (x{{ $totalAddonQty }}) – {{ $totalAddonAmount }}
-                    @if ($totalAddonQty > 1)
-                        <em>(Includes accompanying persons)</em>
-                    @endif
-                </li>
+                @if ($totalAddonQty > 0)
+                    <li>{{ $addon['name'] }} (x{{ $totalAddonQty }}) – {{ $totalAddonAmount }}
+                        @if ($totalAddonQty > 1 || $availabilityType === 'accompany_only')
+                            <em>(Includes accompanying persons)</em>
+                        @endif
+                    </li>
+                @endif
             @endforeach
         </ul>
     @endif

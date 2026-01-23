@@ -102,7 +102,11 @@ class ConferenceRegistrationController extends Controller
             ->values();
         // dd($conferenceAddons);
 
-        return view('backend.participant.conference-registration.create', compact('conference', 'amount', 'memberTypePrice', 'society', 'national_payemnt_setting', 'international_payemnt_setting', 'checkPayment', 'workshops', 'conferenceAddons'));
+        // Get conference setting for addon availability
+        $conferenceSetting = $conference->conferenceSetting;
+        $addonAvailability = $conferenceSetting?->addon_availability ?? 'both';
+
+        return view('backend.participant.conference-registration.create', compact('conference', 'amount', 'memberTypePrice', 'society', 'national_payemnt_setting', 'international_payemnt_setting', 'checkPayment', 'workshops', 'conferenceAddons', 'addonAvailability'));
     }
 
     public function getWorkshopPricing(Request $request)
@@ -206,6 +210,10 @@ class ConferenceRegistrationController extends Controller
                         }
                     }
 
+                    // Get addon availability setting
+                    $addonAvailability = $conferenceSetting?->addon_availability ?? 'both';
+                    $accompanyPersonCount = $request->accompany_person ?? 0;
+
                     $addonsData = [];
                     if (!empty($request->selected_addons)) {
                         $addons = explode(',', $request->selected_addons);
@@ -213,16 +221,45 @@ class ConferenceRegistrationController extends Controller
                             $parts = explode(':', $addon);
                             $addonId = $parts[0];
                             $mainAmount = $parts[1];
-                            $guestAmount = isset($parts[2]) ? $parts[2] : $parts[1]; // Use main amount if guest not specified
-                            $includeGuest = isset($parts[3]) ? $parts[3] : '1'; // Default to include guest
+                            $guestAmount = isset($parts[2]) ? $parts[2] : $parts[1];
+                            $includeGuest = isset($parts[3]) ? $parts[3] : '1';
 
                             $addonDetail = ConferenceAddon::find($addonId);
-                            $addonsData[] = [
-                                'name'   => $addonDetail->addon_name ?? 'Addon ' . $addonId,
-                                'amount' => $mainAmount,
-                                'guest_amount' => $guestAmount,
-                                'include_guest' => $includeGuest == '1'
-                            ];
+                            $addonName = $addonDetail->addon_name ?? 'Addon ' . $addonId;
+                            
+                            // Prepare addon data based on availability setting
+                            if ($addonAvailability === 'participant_only') {
+                                // Only show participant pricing
+                                $addonsData[] = [
+                                    'name'   => $addonName . ' (Participant Only)',
+                                    'amount' => $mainAmount,
+                                    'guest_amount' => 0,
+                                    'include_guest' => false,
+                                    'availability_type' => 'participant_only'
+                                ];
+                            } elseif ($addonAvailability === 'accompany_only') {
+                                // Only show guest pricing
+                                if ($accompanyPersonCount > 0) {
+                                    $addonsData[] = [
+                                        'name'   => $addonName . ' (Guests Only)',
+                                        'amount' => 0,
+                                        'guest_amount' => $guestAmount,
+                                        'guest_count' => $accompanyPersonCount,
+                                        'include_guest' => true,
+                                        'availability_type' => 'accompany_only'
+                                    ];
+                                }
+                            } else {
+                                // Both - show based on include_guest flag
+                                $addonsData[] = [
+                                    'name'   => $addonName,
+                                    'amount' => $mainAmount,
+                                    'guest_amount' => $guestAmount,
+                                    'guest_count' => $accompanyPersonCount,
+                                    'include_guest' => $includeGuest == '1',
+                                    'availability_type' => 'both'
+                                ];
+                            }
                         }
                     }
 
@@ -456,6 +493,10 @@ class ConferenceRegistrationController extends Controller
                     $conferenceAmount = !empty($memberTypePrice->regular_amount) ? $memberTypePrice->regular_amount : '';
                 }
             }
+            // --- Get addon availability setting ---
+            $addonAvailability = $conferenceSetting?->addon_availability ?? 'both';
+            $accompanyPersonCount = $onlinePayment['accompany_person'] ?? 0;
+
             // --- Collect Addons Info for Mail ---
             $addonsData = [];
             if (!empty($onlinePayment['selected_addons'])) {
@@ -464,16 +505,45 @@ class ConferenceRegistrationController extends Controller
                     $parts = explode(':', $addon);
                     $addonId = $parts[0];
                     $mainAmount = $parts[1];
-                    $guestAmount = isset($parts[2]) ? $parts[2] : $parts[1]; // Use main amount if guest not specified
-                    $includeGuest = isset($parts[3]) ? $parts[3] : '1'; // Default to include guest
+                    $guestAmount = isset($parts[2]) ? $parts[2] : $parts[1];
+                    $includeGuest = isset($parts[3]) ? $parts[3] : '1';
 
-                    $addonDetail = ConferenceAddon::find($addonId); // Make sure model exists
-                    $addonsData[] = [
-                        'name'   => $addonDetail->addon_name ?? 'Addon ' . $addonId,
-                        'amount' => $mainAmount,
-                        'guest_amount' => $guestAmount,
-                        'include_guest' => $includeGuest == '1'
-                    ];
+                    $addonDetail = ConferenceAddon::find($addonId);
+                    $addonName = $addonDetail->addon_name ?? 'Addon ' . $addonId;
+                    
+                    // Prepare addon data based on availability setting
+                    if ($addonAvailability === 'participant_only') {
+                        // Only show participant pricing
+                        $addonsData[] = [
+                            'name'   => $addonName . ' (Participant Only)',
+                            'amount' => $mainAmount,
+                            'guest_amount' => 0,
+                            'include_guest' => false,
+                            'availability_type' => 'participant_only'
+                        ];
+                    } elseif ($addonAvailability === 'accompany_only') {
+                        // Only show guest pricing
+                        if ($accompanyPersonCount > 0) {
+                            $addonsData[] = [
+                                'name'   => $addonName . ' (Guests Only)',
+                                'amount' => 0,
+                                'guest_amount' => $guestAmount,
+                                'guest_count' => $accompanyPersonCount,
+                                'include_guest' => true,
+                                'availability_type' => 'accompany_only'
+                            ];
+                        }
+                    } else {
+                        // Both - show based on include_guest flag
+                        $addonsData[] = [
+                            'name'   => $addonName,
+                            'amount' => $mainAmount,
+                            'guest_amount' => $guestAmount,
+                            'guest_count' => $accompanyPersonCount,
+                            'include_guest' => $includeGuest == '1',
+                            'availability_type' => 'both'
+                        ];
+                    }
                 }
             }
 
@@ -544,7 +614,7 @@ class ConferenceRegistrationController extends Controller
                     $amount = $parts[1]; // Main attendee amount
                     $guestAmount = isset($parts[2]) ? $parts[2] : $parts[1]; // Guest amount
                     $includeGuest = isset($parts[3]) && $onlinePayment['accompany_person'] > 0  && $parts[3] == '1' ? 1 : 0;
-
+ 
                     $insertData[] = [
                         'conference_registration_id' => $conference_registration->id,
                         'conference_addon_id'        => $addonId,
