@@ -234,20 +234,45 @@
                 @endif
                 @if (!empty($data['addons']))
                     @foreach ($data['addons'] as $addon)
-                        {{-- Main Attendee Addon --}}
-                        <tr>
-                            <td>{{ $addon['name'] }} (Main Attendee)</td>
-                            <td>{{ $data['country'] == 125 ? 'Rs.' : '$' }}{{ $addon['amount'] }}</td>
-                        </tr>
-                        {{-- Accompanying Persons Addon (only if include_guest is true) --}}
-                        @if (!empty($data['accompany']) && $addon['include_guest'])
-                            @php
-                                $guestAddonPrice = isset($addon['guest_amount']) && $addon['guest_amount'] > 0 ? $addon['guest_amount'] : $addon['amount'];
-                            @endphp
+                        @php
+                            $availabilityType = $addon['availability_type'] ?? 'both';
+                        @endphp
+                        
+                        @if ($availabilityType === 'participant_only')
+                            {{-- Only show participant line --}}
                             <tr>
-                                <td>{{ $addon['name'] }} (Accompanying Persons) X {{ $data['accompany']['accompany_person'] }}</td>
-                                <td>{{ $data['country'] == 125 ? 'Rs.' : '$' }}{{ $guestAddonPrice * $data['accompany']['accompany_person'] }}</td>
+                                <td>{{ $addon['name'] }}</td>
+                                <td>{{ $data['country'] == 125 ? 'Rs.' : '$' }}{{ $addon['amount'] }}</td>
                             </tr>
+                        @elseif ($availabilityType === 'accompany_only')
+                            {{-- Only show guest line --}}
+                            @if (!empty($data['accompany']))
+                                @php
+                                    $guestAddonPrice = isset($addon['guest_amount']) && $addon['guest_amount'] > 0 ? $addon['guest_amount'] : $addon['amount'];
+                                @endphp
+                                <tr>
+                                    <td>{{ $addon['name'] }} X {{ $data['accompany']['accompany_person'] }}</td>
+                                    <td>{{ $data['country'] == 125 ? 'Rs.' : '$' }}{{ $guestAddonPrice * $data['accompany']['accompany_person'] }}</td>
+                                </tr>
+                            @endif
+                        @else
+                            {{-- Both - show participant line --}}
+                            @if ($addon['amount'] > 0)
+                                <tr>
+                                    <td>{{ $addon['name'] }} (Main Attendee)</td>
+                                    <td>{{ $data['country'] == 125 ? 'Rs.' : '$' }}{{ $addon['amount'] }}</td>
+                                </tr>
+                            @endif
+                            {{-- Show guest line if include_guest is true --}}
+                            @if (!empty($data['accompany']) && $addon['include_guest'])
+                                @php
+                                    $guestAddonPrice = isset($addon['guest_amount']) && $addon['guest_amount'] > 0 ? $addon['guest_amount'] : $addon['amount'];
+                                @endphp
+                                <tr>
+                                    <td>{{ $addon['name'] }} (Accompanying Persons) X {{ $data['accompany']['accompany_person'] }}</td>
+                                    <td>{{ $data['country'] == 125 ? 'Rs.' : '$' }}{{ $guestAddonPrice * $data['accompany']['accompany_person'] }}</td>
+                                </tr>
+                            @endif
                         @endif
                     @endforeach
                 @endif

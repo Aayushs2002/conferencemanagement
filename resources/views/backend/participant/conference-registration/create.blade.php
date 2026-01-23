@@ -440,38 +440,81 @@
                                                                     @endif
                                                                 </div>
                                                                 <span class="badge bg-primary ms-2">
-                                                                    {{ @$memberTypePrice->memberType->delegate == 1 ? 'Rs. ' : '$ ' }}{{ number_format($addonAmount, 2) }}
-                                                                    <small>/person</small>
-                                                                    @if ($addonGuestAmount > 0 && $addonGuestAmount != $addonAmount)
-                                                                        <br><small>Guest:
-                                                                            {{ @$memberTypePrice->memberType->delegate == 1 ? 'Rs. ' : '$ ' }}{{ number_format($addonGuestAmount, 2) }}</small>
+                                                                    @if(isset($addonAvailability) && $addonAvailability === 'accompany_only')
+                                                                        {{ @$memberTypePrice->memberType->delegate == 1 ? 'Rs. ' : '$ ' }}{{ number_format($addonGuestAmount > 0 ? $addonGuestAmount : $addonAmount, 2) }}
+                                                                        <small>/guest</small>
+                                                                    @elseif(isset($addonAvailability) && $addonAvailability === 'participant_only')
+                                                                        {{ @$memberTypePrice->memberType->delegate == 1 ? 'Rs. ' : '$ ' }}{{ number_format($addonAmount, 2) }}
+                                                                        <small>/participant</small>
+                                                                    @else
+                                                                        {{ @$memberTypePrice->memberType->delegate == 1 ? 'Rs. ' : '$ ' }}{{ number_format($addonAmount, 2) }}
+                                                                        <small>/person</small>
+                                                                        @if ($addonGuestAmount > 0 && $addonGuestAmount != $addonAmount)
+                                                                            <br><small>Guest:
+                                                                                {{ @$memberTypePrice->memberType->delegate == 1 ? 'Rs. ' : '$ ' }}{{ number_format($addonGuestAmount, 2) }}</small>
+                                                                        @endif
                                                                     @endif
                                                                 </span>
                                                             </label>
 
-                                                            <!-- Guest Inclusion Option -->
-                                                            <div class="ms-4 mt-2 addon-guest-option"
-                                                                id="guest_option_{{ $addon->id }}"
-                                                                style="display: none;">
-                                                                <div class="form-check form-check-inline">
-                                                                    <input class="form-check-input addon-guest-checkbox"
-                                                                        type="checkbox"
-                                                                        id="include_guest_{{ $addon->id }}"
-                                                                        data-addon-id="{{ $addon->id }}" checked>
-                                                                    <label class="form-check-label text-muted small"
-                                                                        for="include_guest_{{ $addon->id }}">
-                                                                        <i class="fas fa-user-friends"></i> Include for
-                                                                        guests
-                                                                    </label>
+                                                            <!-- Guest Inclusion Option - Show based on addon_availability setting -->
+                                                            @php
+                                                                $showGuestOption = true;
+                                                                $guestChecked = true;
+                                                                $guestDisabled = false;
+                                                                
+                                                                // Handle addon availability settings
+                                                                if (isset($addonAvailability)) {
+                                                                    if ($addonAvailability === 'participant_only') {
+                                                                        $showGuestOption = false;
+                                                                        $guestChecked = false;
+                                                                    } elseif ($addonAvailability === 'accompany_only') {
+                                                                        $guestChecked = true;
+                                                                        $guestDisabled = true;
+                                                                    }
+                                                                }
+                                                            @endphp
+                                                            
+                                                            @if($showGuestOption)
+                                                                <div class="ms-4 mt-2 addon-guest-option"
+                                                                    id="guest_option_{{ $addon->id }}"
+                                                                    style="display: none;">
+                                                                    <div class="form-check form-check-inline">
+                                                                        <input class="form-check-input addon-guest-checkbox"
+                                                                            type="checkbox"
+                                                                            id="include_guest_{{ $addon->id }}"
+                                                                            data-addon-id="{{ $addon->id }}" 
+                                                                            {{ $guestChecked ? 'checked' : '' }}
+                                                                            {{ $guestDisabled ? 'disabled' : '' }}>
+                                                                        <label class="form-check-label text-muted small"
+                                                                            for="include_guest_{{ $addon->id }}">
+                                                                            <i class="fas fa-user-friends"></i> 
+                                                                            @if($addonAvailability === 'accompany_only')
+                                                                                Only for accompanying persons
+                                                                            @else
+                                                                                Include for guests
+                                                                            @endif
+                                                                        </label>
+                                                                    </div>
                                                                 </div>
-                                                            </div>
+                                                            @endif
                                                         </div>
                                                     @endforeach
                                                 </div>
                                             </div>
                                             <small class="text-muted">
                                                 <i class="fas fa-info-circle"></i>
-                                                You can choose whether add-ons apply to guests or only to you
+                                                @if(isset($addonAvailability))
+                                                    @if($addonAvailability === 'participant_only')
+                                                        Add-ons are available for participants only
+                                                    @elseif($addonAvailability === 'accompany_only')
+                                                        Add-ons are available for accompanying persons only
+                                                    @else
+                                                        You can choose whether add-ons apply to guests or only to you
+                                                    @endif
+                                                @else
+                                                    You can choose whether add-ons apply to guests or only to you
+                                                @endif
                                             </small>
                                         </div>
                                     @endif
@@ -1174,6 +1217,10 @@
             let selectedAddOns = []; // Store selected add-ons with their details
             let selectedWorkshops = []; // Store selected workshops with their details
             let workshopPricing = {}; // Store workshop pricing data
+            const addonAvailability = '{{ $addonAvailability ?? 'both' }}'; // Get addon availability setting
+            
+            // Log the addon availability setting for debugging
+            console.log('Addon Availability Setting:', addonAvailability);
 
             // Initialize
             $.ajaxSetup({
@@ -1323,7 +1370,19 @@
                     const addonName = $(this).data('name');
                     const addonAmount = parseFloat($(this).data('amount')) || 0;
                     const addonGuestAmount = parseFloat($(this).data('guest-amount')) || 0;
-                    const includeGuest = $(`#include_guest_${addonId}`).is(':checked');
+                    
+                    // Determine include_guest based on addon availability setting
+                    let includeGuest = false;
+                    if (addonAvailability === 'participant_only') {
+                        includeGuest = false; // Never include guest
+                    } else if (addonAvailability === 'accompany_only') {
+                        includeGuest = true; // Always include guest only
+                    } else {
+                        // 'both' - check the checkbox
+                        includeGuest = $(`#include_guest_${addonId}`).is(':checked');
+                    }
+
+                    console.log(`Addon: ${addonName}, Mode: ${addonAvailability}, Include Guest: ${includeGuest}`);
 
                     selectedAddOns.push({
                         id: addonId,
@@ -1348,7 +1407,10 @@
                 const guestOption = $(`#guest_option_${addonId}`);
 
                 if ($(this).is(':checked')) {
-                    guestOption.slideDown(200);
+                    // Always show guest option when addon is checked (if it exists)
+                    if (guestOption.length > 0) {
+                        guestOption.slideDown(200);
+                    }
                 } else {
                     guestOption.slideUp(200);
                 }
@@ -1387,7 +1449,7 @@
                     if (workshopText.length > 50) {
                         workshopText = selectedWorkshops.length + ' workshop' + (selectedWorkshops.length > 1 ?
                             's' : '') + ' selected';
-                    }
+                    } 
                 }
 
                 // Handle multiple add-ons
@@ -1450,13 +1512,25 @@
                 let addOnTotal = 0;
 
                 selectedAddOns.forEach(addon => {
-                    // Main attendee gets the regular addon price
-                    addOnTotal += addon.amount;
+                    // Handle different addon availability settings
+                    if (addonAvailability === 'participant_only') {
+                        // Only main attendee gets the addon
+                        addOnTotal += addon.amount;
+                    } else if (addonAvailability === 'accompany_only') {
+                        // Only guests get the addon
+                        if (additionalGuest > 0) {
+                            const guestPrice = addon.guest_amount > 0 ? addon.guest_amount : addon.amount;
+                            addOnTotal += guestPrice * additionalGuest;
+                        }
+                    } else {
+                        // 'both' - main attendee gets the addon
+                        addOnTotal += addon.amount;
 
-                    // Guests get the guest price only if include_guest is true
-                    if (additionalGuest > 0 && addon.include_guest) {
-                        const guestPrice = addon.guest_amount > 0 ? addon.guest_amount : addon.amount;
-                        addOnTotal += guestPrice * additionalGuest;
+                        // Guests get the guest price only if include_guest is true
+                        if (additionalGuest > 0 && addon.include_guest) {
+                            const guestPrice = addon.guest_amount > 0 ? addon.guest_amount : addon.amount;
+                            addOnTotal += guestPrice * additionalGuest;
+                        }
                     }
                 });
 
@@ -1588,44 +1662,86 @@
                     // Add-ons pricing (multiple add-ons)
                     if (selectedAddOns.length > 0) {
                         selectedAddOns.forEach(addon => {
-                            // Main attendee addon price
-                            const mainAddonPrice = addon.amount;
-
-                            if (delegate == 2) {
-                                preTotalPrice += mainAddonPrice;
-                            } else {
-                                totalPrice += mainAddonPrice;
-                            }
-
-                            calculatedData.append(generatePriceTableRow(
-                                rowNumber++,
-                                `Add-on: ${addon.name}`,
-                                1,
-                                addon.amount,
-                                mainAddonPrice,
-                                currencyCondition
-                            ));
-
-                            // Guest addon pricing if there are guests AND include_guest is true
-                            if (additionalGuest > 0 && addon.include_guest) {
-                                const guestAddonPrice = addon.guest_amount > 0 ? addon
-                                    .guest_amount : addon.amount;
-                                const guestAddonTotal = guestAddonPrice * additionalGuest;
+                            // Handle different addon availability settings
+                            if (addonAvailability === 'participant_only') {
+                                // Only main attendee gets the addon
+                                const mainAddonPrice = addon.amount;
 
                                 if (delegate == 2) {
-                                    preTotalPrice += guestAddonTotal;
+                                    preTotalPrice += mainAddonPrice;
                                 } else {
-                                    totalPrice += guestAddonTotal;
+                                    totalPrice += mainAddonPrice;
                                 }
 
                                 calculatedData.append(generatePriceTableRow(
                                     rowNumber++,
-                                    `${addon.name} - Additional Guests`,
-                                    additionalGuest,
-                                    guestAddonPrice,
-                                    guestAddonTotal,
+                                    `Add-on: ${addon.name} (Participant Only)`,
+                                    1,
+                                    addon.amount,
+                                    mainAddonPrice,
                                     currencyCondition
                                 ));
+                            } else if (addonAvailability === 'accompany_only') {
+                                // Only guests get the addon
+                                if (additionalGuest > 0) {
+                                    const guestAddonPrice = addon.guest_amount > 0 ? addon.guest_amount : addon.amount;
+                                    const guestAddonTotal = guestAddonPrice * additionalGuest;
+
+                                    if (delegate == 2) {
+                                        preTotalPrice += guestAddonTotal;
+                                    } else {
+                                        totalPrice += guestAddonTotal;
+                                    }
+
+                                    calculatedData.append(generatePriceTableRow(
+                                        rowNumber++,
+                                        `Add-on: ${addon.name} (Guests Only)`,
+                                        additionalGuest,
+                                        guestAddonPrice,
+                                        guestAddonTotal,
+                                        currencyCondition
+                                    ));
+                                }
+                            } else {
+                                // 'both' - Main attendee gets the addon
+                                const mainAddonPrice = addon.amount;
+
+                                if (delegate == 2) {
+                                    preTotalPrice += mainAddonPrice;
+                                } else {
+                                    totalPrice += mainAddonPrice;
+                                }
+
+                                calculatedData.append(generatePriceTableRow(
+                                    rowNumber++,
+                                    `Add-on: ${addon.name}`,
+                                    1,
+                                    addon.amount,
+                                    mainAddonPrice,
+                                    currencyCondition
+                                ));
+
+                                // Guest addon pricing if there are guests AND include_guest is true
+                                if (additionalGuest > 0 && addon.include_guest) {
+                                    const guestAddonPrice = addon.guest_amount > 0 ? addon
+                                        .guest_amount : addon.amount;
+                                    const guestAddonTotal = guestAddonPrice * additionalGuest;
+
+                                    if (delegate == 2) {
+                                        preTotalPrice += guestAddonTotal;
+                                    } else {
+                                        totalPrice += guestAddonTotal;
+                                    }
+
+                                    calculatedData.append(generatePriceTableRow(
+                                        rowNumber++,
+                                        `${addon.name} - Additional Guests`,
+                                        additionalGuest,
+                                        guestAddonPrice,
+                                        guestAddonTotal,
+                                        currencyCondition
+                                    ));
+                                }
                             }
                         });
                     }

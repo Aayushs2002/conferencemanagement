@@ -4,7 +4,7 @@
 
 @endsection
 @section('content')
-    @if($conference->conferenceSetting?->show_stats_dashboard ?? 1)
+    @if($conference ->conferenceSetting?->show_stats_dashboard ?? 1)
     <section class="container">
         <div class="row g-4 text-center stats-dashboard">
             <div class="col-lg-3 col-md-6 col-6">
@@ -475,7 +475,16 @@
                                     <span class="badge bg-primary me-2" style="font-size: 0.75rem; padding: 0.4rem 0.8rem;">
                                         <i class="fa-solid fa-puzzle-piece me-1"></i> ADD-ON
                                     </span>
-                                    <h4 class="section-title mb-0">{{ $addonName }}</h4>
+                                    <h4 class="section-title mb-0">
+                                        {{ $addonName }}
+                                        @if(isset($addonAvailability))
+                                            @if($addonAvailability === 'participant_only')
+                                                <small class="text-muted" style="font-size: 0.8rem;">(Participants Only)</small>
+                                            @elseif($addonAvailability === 'accompany_only')
+                                                <small class="text-muted" style="font-size: 0.8rem;">(Accompanying Persons Only)</small>
+                                            @endif
+                                        @endif
+                                    </h4>
                                 </div>
                                 <div class="table-responsive">
                                     <table class="table table-bordered text-center align-middle">
