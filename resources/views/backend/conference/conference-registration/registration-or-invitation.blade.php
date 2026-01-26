@@ -9,7 +9,7 @@
             <h4 class="card-header">
                 Add Registration/Invitations</h4>
             <div class="card-body">
-                <form class="needs-validation"
+                <form class="needs-validation" 
                     action="{{ route('conference.conference-registration.registrationOrInvitationSubmit', [$society, $conference]) }}"
                     id="registrationForm" method="POST" enctype="multipart/form-data" novalidate>
                     @csrf

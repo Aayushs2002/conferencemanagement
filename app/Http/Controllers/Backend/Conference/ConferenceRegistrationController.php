@@ -55,7 +55,7 @@ class ConferenceRegistrationController extends Controller
     public function index(Request $request, $society, $conference)
     {
         $society_id = $society->id;
-        $query = ConferenceRegistration::with([
+        $query = ConferenceRegistration::with([ 
             'user' => function ($query) use ($society_id) {
                 $query->with([
                     'userDetail.namePrefix',
@@ -966,10 +966,10 @@ class ConferenceRegistrationController extends Controller
                 $rules['council_number'] = 'nullable';
                 $rules['transaction_id'] = 'required|unique:conference_registrations,transaction_id';
                 $rules['amount'] = 'required|numeric';
-            }
+            } 
 
             if ($request->registrant_type == 2) {
-                $rules['description'] = 'required';
+                $rules['short_cv'] = 'required';
             }
 
             if ($request->additional_guests >= 1) {
@@ -1171,6 +1171,7 @@ class ConferenceRegistrationController extends Controller
 
             return redirect()->back()->with('status', 'Successfully registered.');
         } catch (Exception $e) {
+            // dd($e->getMessage());
             DB::rollBack();
             throw $e;
         }
