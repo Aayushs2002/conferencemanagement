@@ -35,6 +35,8 @@ return [
         'submission.show' => 'View Submission',
         'submission.expertForwardForm' => 'Expert Assign',
         'submission.expertForward' => 'Expert Assign',
+        'submission.bulkExpertForwardForm' => 'Expert Assign',
+        'submission.bulkExpertForward' => 'Expert Assign',
         'submission.sentToAuthorForm' => 'Change Request Status',
         'submission.sentToAuthor' => 'Change Request Status',
         'submission.viewDiscussion' => 'View Discussion',

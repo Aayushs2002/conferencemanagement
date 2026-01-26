@@ -124,6 +124,48 @@
                     </div>
                 </div>
 
+                <!-- Add-ons Distribution Card -->
+                <div class="col-lg-3 col-sm-6">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-body p-4">
+                            <div class="d-flex align-items-center justify-content-between mb-3">
+                                <div class="bg-purple bg-opacity-10 rounded-circle p-3" style="background-color: rgba(138, 43, 226, 0.1) !important;">
+                                    <i class="icon-base ti tabler-circle-plus text-purple fs-4" style="color: #8a2be2 !important;"></i>
+                                </div>
+                                <span class="badge bg-purple bg-opacity-10 text-purple px-3 py-2 rounded-pill" style="background-color: rgba(138, 43, 226, 0.1) !important; color: #8a2be2 !important;">Add-ons</span>
+                            </div>
+                            <a href="{{ route('conference.conference-registration.index', [$society, $conference]) }}">
+                                <h3 class="fw-bold text-dark mb-2">{{ $totalAddons }}</h3>
+                            </a>
+                            <p class="text-muted mb-0 fw-medium">Total Add-on Registrations</p>
+                            <div class="progress mt-3" style="height: 4px;">
+                                <div class="progress-bar" style="width: 75%; background-color: #8a2be2;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Accompanying Persons Card -->
+                <div class="col-lg-3 col-sm-6">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-body p-4">
+                            <div class="d-flex align-items-center justify-content-between mb-3">
+                                <div class="bg-danger bg-opacity-10 rounded-circle p-3">
+                                    <i class="icon-base ti tabler-users-group text-danger fs-4"></i>
+                                </div>
+                                <span class="badge bg-danger bg-opacity-10 text-danger px-3 py-2 rounded-pill">Guests</span>
+                            </div>
+                            <a href="{{ route('conference.conference-registration.index', [$society, $conference]) }}">
+                                <h3 class="fw-bold text-dark mb-2">{{ $totalAccompanyingPersons }}</h3>
+                            </a>
+                            <p class="text-muted mb-0 fw-medium">Accompanying Persons</p>
+                            <div class="progress mt-3" style="height: 4px;">
+                                <div class="progress-bar bg-danger" style="width: 65%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Registration Trends Chart -->
                 <div class="col-lg-7 col-12">
                     <div class="card border-0 shadow-sm h-100">
@@ -210,6 +252,69 @@
 
                         <!-- Chart -->
                         <canvas id="submissionsChart" height="320"></canvas>
+                    </div>
+                </div>
+
+                <!-- Add-ons Detailed Statistics Card -->
+                <div class="col-lg-7 col-12">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-header bg-transparent border-0 pt-4 px-4 pb-0">
+                            <div class="d-flex align-items-center mb-2">
+                                <div class="bg-purple bg-opacity-10 rounded-circle p-2 me-3" style="background-color: rgba(138, 43, 226, 0.1) !important;">
+                                    <i class="icon-base ti tabler-chart-pie text-purple fs-5" style="color: #8a2be2 !important;"></i>
+                                </div>
+                                <h5 class="fw-bold text-dark mb-0">Add-ons Distribution</h5>
+                            </div>
+                            <p class="text-muted mb-0">Detailed breakdown of add-on selections</p>
+                        </div>
+
+                        <div class="card-body p-4">
+                            @if($addonStats->count() > 0)
+                                <div class="table-responsive">
+                                    <table class="table table-hover">
+                                        <thead>
+                                            <tr>
+                                                <th>Add-on Name</th>
+                                                <th class="text-center">Participants</th>
+                                                <th class="text-center">Guests</th>
+                                                <th class="text-center">Total</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach($addonStats as $addon)
+                                                <tr>
+                                                    <td class="fw-semibold">{{ $addon->addon_name }}</td>
+                                                    <td class="text-center">
+                                                        <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-3 py-1">
+                                                            {{ $addon->participant_count }}
+                                                        </span>
+                                                    </td>
+                                                    <td class="text-center">
+                                                        <span class="badge bg-danger bg-opacity-10 text-danger rounded-pill px-3 py-1">
+                                                            {{ $addon->guest_count }}
+                                                        </span>
+                                                    </td>
+                                                    <td class="text-center">
+                                                        <span class="badge rounded-pill px-3 py-1" style="background-color: rgba(138, 43, 226, 0.1); color: #8a2be2;">
+                                                            {{ $addon->total_count }}
+                                                        </span>
+                                                    </td>
+                                                </tr>
+                                            @endforeach
+                                        </tbody>
+                                    </table>
+                                </div>
+                            @else
+                                <div class="text-center py-5">
+                                    <div class="bg-purple bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" 
+                                         style="width: 80px; height: 80px; background-color: rgba(138, 43, 226, 0.1) !important;">
+                                        <i class="icon-base ti tabler-package-off fs-1" style="color: #8a2be2;"></i>
+                                    </div>
+                                    <h5 class="fw-semibold mb-2">No Add-ons Registered</h5>
+                                    <p class="text-muted mb-0">No add-on selections have been made yet</p>
+                                </div>
+                            @endif
+                        </div>
                     </div>
                 </div>
                 @if (feature_enabled('workshop-management', getSociety(request()->segment(2))))
@@ -430,7 +535,7 @@
         </div>
     @else
         <div class="container-xxl flex-grow-1 container-p-y">
-            <!-- Page Header -->
+            <!-- Page Header --> 
             <div class="row mb-4">
                 <div class="col-12">
                     <div class="card border-0 shadow-sm" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
@@ -712,7 +817,7 @@
 
             <!-- Conference Information Section -->
             <div class="row g-4 mb-4">
-                <div class="col-lg-8">
+                <div class="col-lg-4">
                     <div class="card border-0 shadow-sm h-100">
                         <div class="card-header bg-transparent border-0 pt-4 px-4 pb-0">
                             <div class="d-flex align-items-center mb-2">
@@ -762,7 +867,99 @@
                     </div>
                 </div>
 
+                <!-- My Add-ons Card -->
                 <div class="col-lg-4">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-header bg-transparent border-0 pt-4 px-4 pb-0">
+                            <div class="d-flex align-items-center mb-2">
+                                <div class="bg-purple bg-opacity-10 rounded-circle p-2 me-3" style="background-color: rgba(138, 43, 226, 0.1) !important;">
+                                    <i class="icon-base ti tabler-circle-plus text-purple fs-5" style="color: #8a2be2 !important;"></i>
+                                </div>
+                                <h5 class="fw-bold text-dark mb-0">My Add-ons</h5>
+                            </div>
+                            <p class="text-muted small mb-0">Your selected add-ons</p>
+                        </div>
+                        <div class="card-body p-4">
+                            @if(count($userAddons) > 0)
+                                <div class="list-group list-group-flush">
+                                    @foreach($userAddons as $addon)
+                                        <div class="list-group-item border-0 px-0 py-3">
+                                            <h6 class="mb-1 fw-semibold">{{ $addon->addon_name }}</h6>
+                                            <small class="text-muted">
+                                                @if($addon->include_for_guests)
+                                                    <span class="badge bg-danger bg-opacity-10 text-danger rounded-pill">For Guest</span>
+                                                @else
+                                                    <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill">For Participant</span>
+                                                @endif
+                                            </small>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            @else
+                                <div class="text-center py-4">
+                                    <div class="bg-purple bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" 
+                                         style="width: 60px; height: 60px; background-color: rgba(138, 43, 226, 0.1) !important;">
+                                        <i class="icon-base ti tabler-package-off" style="font-size: 1.8rem; color: #8a2be2;"></i>
+                                    </div>
+                                    <h6 class="fw-semibold mb-1">No Add-ons Selected</h6>
+                                    <p class="text-muted small mb-0">You haven't registered any add-ons</p>
+                                </div>
+                            @endif
+                        </div>
+                    </div>
+                </div>
+
+                <!-- My Accompanying Persons Card -->
+                <div class="col-lg-4">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-header bg-transparent border-0 pt-4 px-4 pb-0">
+                            <div class="d-flex align-items-center mb-2">
+                                <div class="bg-danger bg-opacity-10 rounded-circle p-2 me-3">
+                                    <i class="icon-base ti tabler-users-group text-danger fs-5"></i>
+                                </div>
+                                <h5 class="fw-bold text-dark mb-0">Accompanying Persons</h5>
+                            </div>
+                            <p class="text-muted small mb-0">Your registered guests</p>
+                        </div>
+                        <div class="card-body p-4">
+                            @if(count($userAccompanyingPersons) > 0)
+                                <div class="list-group list-group-flush">
+                                    @foreach($userAccompanyingPersons as $index => $person)
+                                        <div class="list-group-item border-0 px-0 py-3 d-flex align-items-center">
+                                            <div class="bg-danger bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center me-3"
+                                                 style="width: 40px; height: 40px;">
+                                                <i class="icon-base ti tabler-user text-danger"></i>
+                                            </div>
+                                            <div>
+                                                <h6 class="mb-0 fw-semibold">{{ $person->person_name }}</h6>
+                                                <small class="text-muted">Guest {{ $index + 1 }}</small>
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                </div>
+                                <div class="mt-3 pt-3 border-top text-center">
+                                    <span class="badge bg-danger bg-opacity-10 text-danger rounded-pill px-4 py-2">
+                                        <i class="icon-base ti tabler-users me-1"></i>
+                                        {{ count($userAccompanyingPersons) }} {{ Str::plural('Person', count($userAccompanyingPersons)) }}
+                                    </span>
+                                </div>
+                            @else
+                                <div class="text-center py-4">
+                                    <div class="bg-danger bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" 
+                                         style="width: 60px; height: 60px;">
+                                        <i class="icon-base ti tabler-user-off text-danger" style="font-size: 1.8rem;"></i>
+                                    </div>
+                                    <h6 class="fw-semibold mb-1">No Accompanying Persons</h6>
+                                    <p class="text-muted small mb-0">You haven't registered any guests</p>
+                                </div>
+                            @endif
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row g-4 mb-4">
+                <div class="col-lg-12">
                     <div class="card border-0 shadow-sm h-100">
                         <div class="card-header bg-transparent border-0 pt-4 px-4 pb-0">
                             <div class="d-flex align-items-center mb-2">

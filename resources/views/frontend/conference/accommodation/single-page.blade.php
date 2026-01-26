@@ -13,11 +13,13 @@
         </div>
 
         <div class="row g-5 position-relative">
-            <!-- LEFT CONTENT --> 
+            <!-- LEFT CONTENT -->
             <div class="col-lg-8 position-relative">
                 <div class="d-flex align-items-center mb-4">
                     @if ($hotel->featured_image)
-                        <img src="{{ Storage::url('hotel/featured-image/' . $hotel->featured_image) }}" alt="{{ $hotel->name }}" style="height: 60px; margin-right: 15px; border-radius: 8px; object-fit: cover;">
+                        <img src="{{ Storage::url('hotel/featured-image/' . $hotel->featured_image) }}"
+                            alt="{{ $hotel->name }}"
+                            style="height: 60px; margin-right: 15px; border-radius: 8px; object-fit: cover;">
                     @endif
                     <div>
                         <h2 class="section-title mb-0">{{ $hotel->name }}</h2>
@@ -30,22 +32,26 @@
                         <div class="carousel-inner rounded-3" style="overflow: hidden; height: auto;">
                             @foreach ($hotel->images as $index => $image)
                                 <div class="carousel-item {{ $index === 0 ? 'active' : '' }}">
-                                    <img src="{{ Storage::url('hotel/images/' . $image['fileName']) }}" class="d-block w-100"
-                                        style="object-fit: cover; max-height: 400px; width: 100%;" alt="{{ $hotel->name }} - {{ $image['room_type'] ?? 'Image' }}">
+                                    <img src="{{ Storage::url('hotel/images/' . $image['fileName']) }}"
+                                        class="d-block w-100" style="object-fit: cover; max-height: 400px; width: 100%;"
+                                        alt="{{ $hotel->name }} - {{ $image['room_type'] ?? 'Image' }}">
                                 </div>
                             @endforeach
                         </div>
 
                         @if (count($hotel->images) > 1)
                             <!-- Prev Button -->
-                            <button class="carousel-control-prev" type="button" data-bs-target="#hotelCarousel" data-bs-slide="prev"
+                            <button class="carousel-control-prev" type="button" data-bs-target="#hotelCarousel"
+                                data-bs-slide="prev"
                                 style="top: 50%; transform: translateY(-50%); width: 8%; height: 8%; opacity: 0.9; font-weight: 900;">
-                                <span class="carousel-control-prev-icon" aria-hidden="true" style="width: 100%; height: 100%;"></span>
+                                <span class="carousel-control-prev-icon" aria-hidden="true"
+                                    style="width: 100%; height: 100%;"></span>
                                 <span class="visually-hidden">Previous</span>
                             </button>
 
                             <!-- Next Button -->
-                            <button class="carousel-control-next" type="button" data-bs-target="#hotelCarousel" data-bs-slide="next"
+                            <button class="carousel-control-next" type="button" data-bs-target="#hotelCarousel"
+                                data-bs-slide="next"
                                 style="top: 50%; transform: translateY(-50%); width: 8%; height: 8%; opacity: 0.9;">
                                 <span class="carousel-control-next-icon" aria-hidden="true"
                                     style="width: 100%; height: 100%; font-weight: 900;"></span>
@@ -75,13 +81,7 @@
                     @endif
                 </div>
 
-                @if ($hotel->website)
-                    <div class="mt-4">
-                        <a href="{{ $hotel->website }}" target="_blank" class="view-hotel-btn">
-                            View Hotel Website <i class="fa-solid fa-arrow-up-right-from-square"></i>
-                        </a>
-                    </div>
-                @endif
+
 
                 @if ($hotel->google_map)
                     <h3 class="section-title mt-5">Google Map Location</h3>
@@ -123,6 +123,23 @@
                             <p class="mb-3">{{ $hotel->promo_code }}</p>
                         @endif
                     </div>
+                    <div class="d-flex flex-row align-items-center gap-3 justify-content-center ">
+                        @if ($hotel->website)
+                            <div class="mt-4">
+                                <a href="{{ $hotel->website }}" target="_blank" class="view-hotel-btn">
+                                    View Hotel Website <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                                </a>
+                            </div>
+                        @endif
+                        @if ($hotel->booking_link)
+                            <div class="mt-4">
+                                <a href="{{ $hotel->booking_link }}" target="_blank" class="view-hotel-btns" style="border: 1px solid red; background-color:none !important; padding: 10px 15px; color:red; border-radius:8px; hover;background-color:red; color:white;">
+                                    Book Now <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                                </a>
+                            </div>
+                        @endif
+                    </div>
+                    
                 </div>
             </div>
         </div>

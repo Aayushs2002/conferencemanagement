@@ -38,8 +38,13 @@
         @endif
     </div>
     <br>
-    <div>
-        {{-- <a href="{{ route('submission.index') }}" class="button">Go to Submission</a> --}}
+    <div style="text-align: center; margin: 20px 0;">
+        <a href="{{ route('my-society.conference.submission.submissionReview', [$data['society_slug'] ?? 'society', $data['conference_slug'] ?? 'conference']) }}" class="button">
+            📋 Review Now
+        </a>
+        <p style="color: #6c757d; font-size: 14px; margin-top: 10px;">
+            Click the button above to access your reviewer dashboard.
+        </p>
     </div>
     <br>
     <div>

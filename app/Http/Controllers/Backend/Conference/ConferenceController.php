@@ -281,6 +281,42 @@ class ConferenceController extends Controller
 
         $conferenceId = $conference->id;
 
+        // Get add-ons statistics
+        $addonStats = DB::table('conference_registration_addons as cra')
+            ->join('conference_addons as ca', 'cra.conference_addon_id', '=', 'ca.id')
+            ->join('conference_registrations as cr', 'cra.conference_registration_id', '=', 'cr.id')
+            ->where('cr.conference_id', $conference->id)
+            ->where('cra.status', 1)
+            ->select(
+                'ca.id',
+                'ca.addon_name',
+                DB::raw('COUNT(*) as total_count'),
+                DB::raw('SUM(CASE WHEN cra.include_for_guests = true THEN 1 ELSE 0 END) as guest_count'),
+                DB::raw('SUM(CASE WHEN cra.include_for_guests = false THEN 1 ELSE 0 END) as participant_count'),
+                DB::raw('SUM(CAST(cra.amount as DECIMAL(10,2))) as total_revenue')
+            )
+            ->groupBy('ca.id', 'ca.addon_name')
+            ->get();
+
+        // Get total add-ons count
+        $totalAddons = DB::table('conference_registration_addons as cra')
+            ->join('conference_registrations as cr', 'cra.conference_registration_id', '=', 'cr.id')
+            ->where('cr.conference_id', $conference->id)
+            ->where('cra.status', 1)
+            ->count();
+
+        // Get accompanying persons statistics
+        $accompanyingStats = DB::table('accompany_people as ap')
+            ->join('conference_registrations as cr', 'ap.conference_registration_id', '=', 'cr.id')
+            ->where('cr.conference_id', $conference->id)
+            ->where('ap.status', 1)
+            ->select(
+                DB::raw('COUNT(*) as total_count')
+            )
+            ->first();
+
+        $totalAccompanyingPersons = $accompanyingStats->total_count ?? 0;
+
 
         $data = DB::table('conference_registrations')
             ->leftJoin('attendances', 'conference_registrations.id', '=', 'attendances.conference_registration_id')
@@ -320,7 +356,28 @@ class ConferenceController extends Controller
         $workshop = Workshop::where(['conference_id' => $conference->id, 'status' => 1])->pluck('id');
         $workshopRegistrationCount = WorkshopRegistration::where(['user_id' => current_user()->id, 'registrant_type' => 1, 'status' => 1])->whereIn('workshop_id', $workshop)->count();
         $submissionCategoryMajorTracks = SubmissionCategoryMajorTrack::where(['conference_id' => $conference->id, 'status' => 1])->get();
-        return view('backend.conference.dashboard', compact('conferenceRegistrationCount', 'totalNationalRegistrants', 'totalInternationalRegistrants', 'mealCounts', 'conference', 'society', 'data', 'dates', 'workshops', 'workshopMealCounts', 'submissionCount', 'workshopRegistrationCount', 'submissionCategoryMajorTracks'));
+
+        // Get current user's addon and accompanying person info (for participants)
+        $userRegistration = ConferenceRegistration::where(['conference_id' => $conference->id, 'user_id' => current_user()->id, 'status' => 1])->first();
+        $userAddons = [];
+        $userAccompanyingPersons = [];
+        if ($userRegistration) {
+            $userAddons = DB::table('conference_registration_addons as cra')
+                ->join('conference_addons as ca', 'cra.conference_addon_id', '=', 'ca.id')
+                ->where('cra.conference_registration_id', $userRegistration->id)
+                ->where('cra.status', 1)
+                ->select('ca.addon_name', 'cra.amount', 'cra.include_for_guests', 'cra.conference_addon_id')
+                ->orderBy('ca.addon_name')
+                ->orderBy('cra.include_for_guests')
+                ->get();
+            
+            $userAccompanyingPersons = DB::table('accompany_people')
+                ->where('conference_registration_id', $userRegistration->id)
+                ->where('status', 1)
+                ->get();
+        }
+
+        return view('backend.conference.dashboard', compact('conferenceRegistrationCount', 'totalNationalRegistrants', 'totalInternationalRegistrants', 'mealCounts', 'conference', 'society', 'data', 'dates', 'workshops', 'workshopMealCounts', 'submissionCount', 'workshopRegistrationCount', 'submissionCategoryMajorTracks', 'addonStats', 'totalAddons', 'totalAccompanyingPersons', 'userAddons', 'userAccompanyingPersons'));
     }
 
     public function submissionsChart(Request $request, $society, $conference)
