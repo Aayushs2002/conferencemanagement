@@ -15,7 +15,7 @@
                     method="POST" enctype="multipart/form-data" novalidate>
                     @csrf
                     @isset($hotel)
-                        @method('patch')
+                        @method('patch') 
                     @endisset
                     <div class="row">
                         <div class="col-md-4 form-group mb-3">
@@ -104,7 +104,7 @@
                             <label for="price">Price </label>
                             <input type="text" class="form-control @error('price') is-invalid @enderror" name="price"
                                 value="{{ isset($hotel) ? $hotel->price : old('price') }}"
-                                placeholder="Enter hotel contact number" />
+                                placeholder="Enter Room Price" />
                             @error('price')
                                 <p class="text-danger">{{ $message }}</p>
                             @enderror
@@ -113,8 +113,17 @@
                             <label for="website">Website </label>
                             <input type="text" class="form-control @error('website') is-invalid @enderror"
                                 name="website" value="{{ isset($hotel) ? $hotel->website : old('website') }}"
-                                placeholder="Enter hotel contact number" />
+                                placeholder="Enter hotel website" />
                             @error('website')
+                                <p class="text-danger">{{ $message }}</p>
+                            @enderror
+                        </div>
+                        <div class="col-md-4 form-group mb-3">
+                            <label for="booking_link">Booking Link </label>
+                            <input type="text" class="form-control @error('booking_link') is-invalid @enderror"
+                                name="booking_link" value="{{ isset($hotel) ? $hotel->booking_link : old('booking_link') }}"
+                                placeholder="Enter hotel booking link" />
+                            @error('booking_link')
                                 <p class="text-danger">{{ $message }}</p>
                             @enderror
                         </div>
@@ -122,7 +131,7 @@
                             <label for="promo_code">Promo Code </label>
                             <input type="text" class="form-control @error('promo_code') is-invalid @enderror"
                                 name="promo_code" value="{{ isset($hotel) ? $hotel->promo_code : old('promo_code') }}"
-                                placeholder="Enter hotel contact number" />
+                                placeholder="Enter hotel promo code" />
                             @error('promo_code')
                                 <p class="text-danger">{{ $message }}</p>
                             @enderror

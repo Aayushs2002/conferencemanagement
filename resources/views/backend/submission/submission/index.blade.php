@@ -117,6 +117,13 @@
                             <i class="icon-base ti tabler-eye icon-xs me-sm-1"></i>
                             <span class="d-none d-sm-inline-block">View Abstract Book Format</span>
                         </a>
+                        @if (auth()->user()->hasConferencePermissionBlade($conference, 'Expert Assign'))
+                            <button type="button" class="btn btn-success" id="bulkAssignBtn" style="display: none;">
+                                <i class="icon-base ti tabler-users icon-xs me-sm-1"></i>
+                                <span class="d-none d-sm-inline-block">Bulk Assign to Expert</span>
+                                <span class="badge bg-white text-success ms-1" id="selectedCount">0</span>
+                            </button>
+                        @endif
                         @if (auth()->user()->hasConferencePermissionBlade($conference, 'Send Mail'))
                             <a href="" class="btn btn-primary sendMail" data-bs-toggle="modal"
                                 data-bs-target="#pricingModal" tabindex="0">
@@ -144,6 +151,11 @@
             <table class="datatables-basic table">
                 <thead>
                     <tr>
+                        @if (auth()->user()->hasConferencePermissionBlade($conference, 'Expert Assign'))
+                            <th>
+                                <input type="checkbox" id="selectAll" class="form-check-input">
+                            </th>
+                        @endif
                         <th>#</th>
                         <th scope="col">Speaker Name</th>
                         {{-- <th>Presentation Category</th> --}}
@@ -164,6 +176,13 @@
                 <tbody>
                     @foreach ($submissions as $submission)
                         <tr class="{{ $submission->row_color ?? '' }}">
+                            @if (auth()->user()->hasConferencePermissionBlade($conference, 'Expert Assign'))
+                                <td>
+                                    <input type="checkbox" class="form-check-input submission-checkbox" 
+                                           data-id="{{ $submission->id }}" 
+                                           data-title="{{ $submission->title }}">
+                                </td>
+                            @endif
                             <th scope="row">{{ $loop->iteration }}</th>
                             <td>{{ $submission->presenter?->fullName($submission->presenter) }}</td>
 {{-- 
@@ -550,6 +569,76 @@
                 form.attr('action',
                     '{{ route('submission.index', [$society, $conference]) }}');
                 form.submit();
+            });
+
+            // Bulk assignment functionality
+            $('#selectAll').on('change', function() {
+                $('.submission-checkbox').prop('checked', this.checked);
+                updateBulkAssignButton();
+            });
+
+            $('.submission-checkbox').on('change', function() {
+                updateBulkAssignButton();
+                // Update select all checkbox state
+                if (!this.checked) {
+                    $('#selectAll').prop('checked', false);
+                } else {
+                    // Check if all checkboxes are checked
+                    if ($('.submission-checkbox:checked').length === $('.submission-checkbox').length) {
+                        $('#selectAll').prop('checked', true);
+                    }
+                }
+            });
+
+            function updateBulkAssignButton() {
+                var selectedCount = $('.submission-checkbox:checked').length;
+                $('#selectedCount').text(selectedCount);
+                
+                if (selectedCount > 0) {
+                    $('#bulkAssignBtn').fadeIn();
+                } else {
+                    $('#bulkAssignBtn').fadeOut();
+                }
+            }
+
+            $('#bulkAssignBtn').on('click', function() {
+                var selectedIds = [];
+                var selectedTitles = [];
+                
+                $('.submission-checkbox:checked').each(function() {
+                    selectedIds.push($(this).data('id'));
+                    selectedTitles.push($(this).data('title'));
+                });
+                
+                if (selectedIds.length === 0) {
+                    notyf.error('Please select at least one submission');
+                    return;
+                }
+
+                var url = '{{ route('submission.bulkExpertForwardForm', [$society, $conference]) }}';
+                var _token = '{{ csrf_token() }}';
+                
+                $('#modalContent').html(`
+                    <div class="modal-body text-center">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                `);
+                
+                var data = {
+                    _token: _token,
+                    ids: selectedIds,
+                    titles: selectedTitles
+                };
+                
+                $.post(url, data, function(response) {
+                    $('#pricingModal .modal-dialog').removeClass('modal-lg').addClass('modal-xl');
+                    setTimeout(function() {
+                        $('#modalContent').html(response);
+                        $('#pricingModal').modal('show');
+                    }, 500);
+                });
             });
         });
     </script>

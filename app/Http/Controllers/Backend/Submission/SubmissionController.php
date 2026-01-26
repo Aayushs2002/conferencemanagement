@@ -13,6 +13,7 @@ use App\Mail\Submission\SubmissionCorrectionMail;
 use App\Mail\Submission\SubmissionRejectMail;
 use App\Models\Conference\ArticleType;
 use App\Models\Conference\Author;
+use App\Models\Conference\Conference;
 use App\Models\Conference\ConferenceRegistration;
 use App\Models\Conference\ConferenceSetting;
 use App\Models\Conference\Expert;
@@ -312,6 +313,8 @@ class SubmissionController extends Controller
                     'namePrefix' => $expert->userDetail->prefix,
                     'topic' => $submission->title,
                     'conference_name' => $submission->conference->conference_name,
+                    'society_slug' => $submission->conference->society->slug ?? 'society',
+                    'conference_slug' => $submission->conference->slug ?? 'conference',
                 ];
                 $data = [
                     'submission_topic' => $submission->title,
@@ -325,6 +328,159 @@ class SubmissionController extends Controller
                 logActivity($submission->conference_id, 'Assign Expert', $expert->fullName($expert).'is assign as a expert to '.$submission->title);
                 DB::commit();
             }
+        } catch (Exception $e) {
+            $type = 'error';
+            $message = $e->getMessage();
+            DB::rollBack();
+        }
+
+        return response()->json(['type' => $type, 'message' => $message]);
+    }
+
+    // Bulk Expert Forward Form
+    public function bulkExpertForwardForm(Request $request, $society, $conference)
+    {
+        try {
+            $submissionIds = $request->ids;
+            
+            if (empty($submissionIds) || !is_array($submissionIds)) {
+                return response()->json(['type' => 'error', 'message' => 'No submissions selected']);
+            }
+
+            $submissions = Submission::whereIn('id', $submissionIds)
+                ->where('conference_id', $conference->id)
+                ->where('status', 1)
+                ->get();
+
+            if ($submissions->isEmpty()) {
+                return response()->json(['type' => 'error', 'message' => 'No valid submissions found']);
+            }
+
+            // Get all author user IDs for these submissions
+            $authorUserIds = Author::whereIn('submission_id', $submissionIds)
+                ->whereNotNull('email')
+                ->get()
+                ->map(function ($author) {
+                    return User::where('email', $author->email)->value('id');
+                })
+                ->filter()
+                ->unique()
+                ->toArray();
+
+            // Exclude experts who are authors of any of these submissions
+            $experts = Expert::where(['conference_id' => $conference->id, 'status' => 1])
+                ->whereNotIn('user_id', $authorUserIds)
+                ->get();
+
+            return view('backend.submission.submission.bulk-expert-forward-modal', compact('submissions', 'submissionIds', 'experts', 'society', 'conference'));
+        } catch (Exception $e) {
+            return response()->json(['type' => 'error', 'message' => $e->getMessage()]);
+        }
+    }
+
+    // Bulk Expert Forward
+    public function bulkExpertForward(Request $request)
+    {
+        try {
+            $type = 'success';
+            $message = 'Submissions successfully assigned to expert.';
+
+            $validated = $request->validate([
+                'expert_id' => 'required|exists:users,id',
+                'ids' => 'required|json',
+                'password_option' => 'required|in:generate,keep'
+            ]);
+
+            $submissionIds = json_decode($validated['ids'], true);
+            
+            if (empty($submissionIds) || !is_array($submissionIds)) {
+                throw new Exception('Invalid submission IDs');
+            }
+
+            $expertUser = User::find($validated['expert_id']);
+            if (!$expertUser) {
+                throw new Exception('Expert not found');
+            }
+
+            $submissions = Submission::whereIn('id', $submissionIds)
+                ->where('status', 1)
+                ->get();
+
+            if ($submissions->isEmpty()) {
+                throw new Exception('No valid submissions found');
+            }
+
+            DB::beginTransaction();
+
+            $assignedSubmissions = [];
+            $conferenceId = null;
+
+            foreach ($submissions as $submission) {
+                // Check if expert is the main submitter
+                if ($validated['expert_id'] == $submission->user_id) {
+                    throw new Exception("Presenter and Expert should not be same for: {$submission->title}");
+                }
+
+                // Check if expert is one of the authors 
+                $isAuthor = Author::where('submission_id', $submission->id)
+                    ->where('email', $expertUser->email)
+                    ->exists();
+
+                if ($isAuthor) {
+                    throw new Exception("Expert cannot review their own submission: {$submission->title}");
+                }
+
+                // Update submission
+                $submission->update([
+                    'expert_id' => $validated['expert_id'],
+                    'forward_expert' => 1,
+                    'review_status' => 0
+                ]);
+
+                $assignedSubmissions[] = [
+                    'id' => $submission->id,
+                    'title' => $submission->title,
+                    'presentation_type' => $submission->presentation_type == 1 ? 'Poster' : 'Oral',
+                    'presenter' => $submission->presenter?->fullName($submission->presenter)
+                ];
+
+                $conferenceId = $submission->conference_id;
+
+                logActivity($submission->conference_id, 'Bulk Assign Expert', $expertUser->fullName($expertUser).' is assigned as expert to '.$submission->title);
+            }
+
+            // Generate new password if requested
+            $newPassword = null;
+            if ($validated['password_option'] === 'generate') {
+                $newPassword = \Illuminate\Support\Str::random(10);
+                $expertUser->update([
+                    'password' => bcrypt($newPassword)
+                ]);
+            }
+
+            // Send email to expert
+            $template = EmailTemplate::where(['conference_id' => $conferenceId, 'key' => 1])->first();
+            $conference = Conference::find($conferenceId);
+
+            $mailData = [
+                'name' => $expertUser->fullName($expertUser),
+                'namePrefix' => $expertUser->userDetail->prefix ?? '',
+                'email' => $expertUser->email,
+                'password' => $newPassword,
+                'password_changed' => $validated['password_option'] === 'generate',
+                'submissions' => $assignedSubmissions,
+                'total_count' => count($assignedSubmissions),
+                'conference_name' => $conference->conference_name,
+                'society_slug' => $conference->society ?? 'society',
+                'conference_slug' => $conference ?? 'conference',
+            ];
+
+            $subject = "Multiple Submissions Assigned For Review - {$conference->conference_name}";
+            $body = $template?->body ?? '';
+
+            Mail::to($expertUser->email)->send(new \App\Mail\Submission\BulkExpertForwardMail($mailData, $subject, $body, $conference->conference_name));
+
+            DB::commit();
         } catch (Exception $e) {
             $type = 'error';
             $message = $e->getMessage();

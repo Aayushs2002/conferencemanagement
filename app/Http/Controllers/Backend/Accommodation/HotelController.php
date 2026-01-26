@@ -53,6 +53,7 @@ class HotelController extends Controller
                 'google_map' => 'nullable',
                 'price' => 'nullable',
                 'website' => 'nullable|url',
+                'booking_link' => 'nullable|url',
                 'facility' => 'nullable',
                 'promo_code' => 'nullable',
             ];
@@ -141,6 +142,7 @@ class HotelController extends Controller
                 'google_map' => 'nullable',
                 'price' => 'nullable',
                 'website' => 'nullable|url',
+                'booking_link' => 'nullable|url',
                 'facility' => 'nullable',
                 'promo_code' => 'nullable',
             ];

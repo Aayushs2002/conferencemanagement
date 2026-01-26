@@ -329,6 +329,9 @@ class ConferenceRegistrationController extends Controller
                     if (!empty($request->selected_addons)) {
                         $addons = explode(',', $request->selected_addons);
                         $insertData = [];
+                        
+                        // Get addon availability setting
+                        $addonAvailability = $conference->conferenceSetting?->addon_availability ?? 'both';
 
                         foreach ($addons as $addon) {
                             $parts = explode(':', $addon);
@@ -337,14 +340,39 @@ class ConferenceRegistrationController extends Controller
                             $guestAmount = isset($parts[2]) ? $parts[2] : $parts[1]; // Guest amount
                             $includeGuest = isset($parts[3]) && $parts[3] == '1' ? 1 : 0;
 
-                            $insertData[] = [
-                                'conference_registration_id' => $conferenceRegistration->id,
-                                'conference_addon_id'        => $addonId,
-                                'amount'                     => $amount,
-                                'include_for_guests'         => $includeGuest,
-                                'created_at'                 => now(),
-                                'updated_at'                 => now(),
-                            ];
+                            // When addon_availability is 'both' and includeGuest is true,
+                            // create TWO entries: one for participant and one for guest
+                            if ($addonAvailability === 'both' && $includeGuest) {
+                                // Entry for participant
+                                $insertData[] = [
+                                    'conference_registration_id' => $conferenceRegistration->id,
+                                    'conference_addon_id'        => $addonId,
+                                    'amount'                     => $amount,
+                                    'include_for_guests'         => false,
+                                    'created_at'                 => now(),
+                                    'updated_at'                 => now(),
+                                ];
+                                
+                                // Entry for guest
+                                $insertData[] = [
+                                    'conference_registration_id' => $conferenceRegistration->id,
+                                    'conference_addon_id'        => $addonId,
+                                    'amount'                     => $guestAmount,
+                                    'include_for_guests'         => true,
+                                    'created_at'                 => now(),
+                                    'updated_at'                 => now(),
+                                ];
+                            } else {
+                                // Single entry (for participant_only, accompany_only, or both with includeGuest=false)
+                                $insertData[] = [
+                                    'conference_registration_id' => $conferenceRegistration->id,
+                                    'conference_addon_id'        => $addonId,
+                                    'amount'                     => $includeGuest ? $guestAmount : $amount,
+                                    'include_for_guests'         => $includeGuest,
+                                    'created_at'                 => now(),
+                                    'updated_at'                 => now(),
+                                ];
+                            }
                         }
 
                         DB::table('conference_registration_addons')->insert($insertData);
@@ -607,6 +635,9 @@ class ConferenceRegistrationController extends Controller
             if (!empty($onlinePayment['selected_addons'])) {
                 $addons = explode(',', $onlinePayment['selected_addons']);
                 $insertData = [];
+                
+                // Get addon availability setting
+                $addonAvailability = $conference->conferenceSetting?->addon_availability ?? 'both';
 
                 foreach ($addons as $addon) {
                     $parts = explode(':', $addon);
@@ -614,15 +645,40 @@ class ConferenceRegistrationController extends Controller
                     $amount = $parts[1]; // Main attendee amount
                     $guestAmount = isset($parts[2]) ? $parts[2] : $parts[1]; // Guest amount
                     $includeGuest = isset($parts[3]) && $onlinePayment['accompany_person'] > 0  && $parts[3] == '1' ? 1 : 0;
- 
-                    $insertData[] = [
-                        'conference_registration_id' => $conference_registration->id,
-                        'conference_addon_id'        => $addonId,
-                        'amount'                     => $amount,
-                        'include_for_guests'         => $includeGuest,
-                        'created_at'                 => now(),
-                        'updated_at'                 => now(),
-                    ];
+
+                    // When addon_availability is 'both' and includeGuest is true,
+                    // create TWO entries: one for participant and one for guest
+                    if ($addonAvailability === 'both' && $includeGuest) {
+                        // Entry for participant
+                        $insertData[] = [
+                            'conference_registration_id' => $conference_registration->id,
+                            'conference_addon_id'        => $addonId,
+                            'amount'                     => $amount,
+                            'include_for_guests'         => false,
+                            'created_at'                 => now(),
+                            'updated_at'                 => now(),
+                        ];
+                        
+                        // Entry for guest
+                        $insertData[] = [
+                            'conference_registration_id' => $conference_registration->id,
+                            'conference_addon_id'        => $addonId,
+                            'amount'                     => $guestAmount,
+                            'include_for_guests'         => true,
+                            'created_at'                 => now(),
+                            'updated_at'                 => now(),
+                        ];
+                    } else {
+                        // Single entry (for participant_only, accompany_only, or both with includeGuest=false)
+                        $insertData[] = [
+                            'conference_registration_id' => $conference_registration->id,
+                            'conference_addon_id'        => $addonId,
+                            'amount'                     => $includeGuest ? $guestAmount : $amount,
+                            'include_for_guests'         => $includeGuest,
+                            'created_at'                 => now(),
+                            'updated_at'                 => now(),
+                        ];
+                    }
                 }
 
                 DB::table('conference_registration_addons')->insert($insertData);

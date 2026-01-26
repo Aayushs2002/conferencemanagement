@@ -188,6 +188,8 @@ Route::middleware('auth')->group(function () {
         Route::patch('update/{submission}', 'update')->name('update');
         Route::post('/forward-to-expert-form', 'expertForwardForm')->name('expertForwardForm');
         Route::post('/forward-to-expert', 'expertForward')->name('expertForward');
+        Route::post('/bulk-forward-to-expert-form', 'bulkExpertForwardForm')->name('bulkExpertForwardForm');
+        Route::post('/bulk-forward-to-expert', 'bulkExpertForward')->name('bulkExpertForward');
         Route::post('/sent-to-author-form', 'sentToAuthorForm')->name('sentToAuthorForm');
         Route::post('/sentToAuthor', 'sentToAuthor')->name('sentToAuthor');
         Route::get('/{submission}/view-discussion', 'viewDiscussion')->name('viewDiscussion');

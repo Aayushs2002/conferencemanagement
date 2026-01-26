@@ -25,6 +25,7 @@ class Hotel extends Model
         'contact_person',
         'price',
         'website',
+        'booking_link',
         'facility',
         'promo_code'
     ];
