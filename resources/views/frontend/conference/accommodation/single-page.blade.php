@@ -56,7 +56,7 @@
                                 <span class="carousel-control-next-icon" aria-hidden="true"
                                     style="width: 100%; height: 100%; font-weight: 900;"></span>
                                 <span class="visually-hidden">Next</span>
-                            </button>
+                            </button> 
                         @endif
                     </div>
                 @endif
