@@ -2,16 +2,113 @@
 
 @section('content')
     <div class="container-xxl flex-grow-1 container-p-y">
+        <!-- Page Header -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <h4 class="mb-1"><i class="ti ti-building-skyscraper me-2"></i>International Accommodation Management</h4>
+                <p class="text-muted">Manage and monitor accommodation details for all international participants</p>
+            </div>
+        </div>
+
+        <!-- Statistics Cards -->
+        <div class="row mb-4">
+            <div class="col-xl-3 col-md-6 mb-4">
+                <div class="card border-left-primary shadow h-100">
+                    <div class="card-body">
+                        <div class="row no-gutters align-items-center">
+                            <div class="col mr-2">
+                                <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                    Total Accommodations
+                                </div>
+                                <div class="h5 mb-0 font-weight-bold">{{ $accommodations->count() }}</div>
+                            </div>
+                            <div class="col-auto">
+                                <i class="ti ti-building display-4 text-primary"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-xl-3 col-md-6 mb-4">
+                <div class="card border-left-warning shadow h-100">
+                    <div class="card-body">
+                        <div class="row no-gutters align-items-center">
+                            <div class="col mr-2">
+                                <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                    Awaiting Admin Setup
+                                </div>
+                                <div class="h5 mb-0 font-weight-bold text-warning">{{ $invitedAwaitingAccommodation->count() }}</div>
+                            </div>
+                            <div class="col-auto">
+                                <i class="ti ti-user-plus display-4 text-warning"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-xl-3 col-md-6 mb-4">
+                <div class="card border-left-info shadow h-100">
+                    <div class="card-body">
+                        <div class="row no-gutters align-items-center">
+                            <div class="col mr-2">
+                                <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                    Pending Self-Fill
+                                </div>
+                                <div class="h5 mb-0 font-weight-bold text-info">{{ $selfRegisteredNeedingAccommodation->count() }}</div>
+                            </div>
+                            <div class="col-auto">
+                                <i class="ti ti-alert-triangle display-4 text-info"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-xl-3 col-md-6 mb-4">
+                <div class="card border-left-success shadow h-100">
+                    <div class="card-body">
+                        <div class="row no-gutters align-items-center">
+                            <div class="col mr-2">
+                                <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                    Airport Pickup Required
+                                </div>
+                                <div class="h5 mb-0 font-weight-bold text-success">
+                                    {{ $accommodations->where('airport_pickup_required', true)->count() }}
+                                </div>
+                            </div>
+                            <div class="col-auto">
+                                <i class="ti ti-car display-4 text-success"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Accommodation Table Card -->
         <div class="row">
             <div class="col-12">
-                <div class="card">
-                    <div class="card-header d-flex justify-content-between align-items-center">
-                        <h5 class="mb-0">Accommodation Management</h5>
+                <div class="card shadow">
+                    <div class="card-header d-flex justify-content-between align-items-center bg-white">
+                        <h5 class="mb-0">Accommodation Records</h5>
+                        <div>
+                            <a href="{{ route('conference.accommodation.export', [$society, $conference]) }}" class="btn btn-success btn-sm me-2">
+                                <i class="ti ti-file-spreadsheet"></i> Export Excel
+                            </a>
+                            <button class="btn btn-primary btn-sm" onclick="window.print()">
+                                <i class="ti ti-printer"></i> Print
+                            </button>
+                        </div>
                     </div>
                     <div class="card-body">
-                        <div class="row mb-4">
+                        <!-- Advanced Filters -->
+                        <div class="row mb-4 g-3">
                             <div class="col-md-3">
-                                <label for="countryFilter" class="form-label">Filter by Country</label>
+                                <label for="countryFilter" class="form-label fw-semibold">
+                                    <i class="ti ti-world me-1"></i>Filter by Country
+                                </label>
                                 <select class="form-select" id="countryFilter">
                                     <option value="">All Countries</option>
                                     @foreach($countries as $country)
@@ -20,7 +117,9 @@
                                 </select>
                             </div>
                             <div class="col-md-3">
-                                <label for="hotelFilter" class="form-label">Filter by Hotel</label>
+                                <label for="hotelFilter" class="form-label fw-semibold">
+                                    <i class="ti ti-building me-1"></i>Filter by Hotel
+                                </label>
                                 <select class="form-select" id="hotelFilter">
                                     <option value="">All Hotels</option>
                                     @foreach($hotels as $hotel)
@@ -29,115 +128,187 @@
                                 </select>
                             </div>
                             <div class="col-md-3">
-                                <label for="dateRangeFilter" class="form-label">Filter by Date Range</label>
+                                <label for="dateRangeFilter" class="form-label fw-semibold">
+                                    <i class="ti ti-calendar me-1"></i>Filter by Date Range
+                                </label>
                                 <input type="text" class="form-control" id="dateRangeFilter" placeholder="Select date range">
                             </div>
+                            <div class="col-md-3">
+                                <label for="pickupFilter" class="form-label fw-semibold">
+                                    <i class="ti ti-car me-1"></i>Airport Pickup
+                                </label>
+                                <select class="form-select" id="pickupFilter">
+                                    <option value="">All</option>
+                                    <option value="required">Required</option>
+                                    <option value="not-required">Not Required</option>
+                                </select>
+                            </div>
                         </div>
+
+                        <!-- Data Table -->
                         <div class="table-responsive">
-                            <table class="table table-hover" id="accommodationTable">
-                                <thead>
+                            <table class="table table-hover table-bordered" id="accommodationTable">
+                                <thead class="table-light">
                                     <tr>
-                                        <th>#</th>
-                                        <th>Participant Name</th>
+                                        <th class="text-center" style="width: 50px;">#</th>
+                                        <th>Participant</th>
                                         <th>Country</th>
                                         <th>Hotel</th>
+                                        <th>Room Type</th>
                                         <th>Arrival</th>
                                         <th>Departure</th>
                                         <th>Check-in</th>
                                         <th>Check-out</th>
+                                        <th class="text-center">Pickup</th>
                                         <th>Status</th>
-                                        <th>Actions</th>
+                                        <th class="text-center" style="width: 120px;">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @foreach($accommodations as $accommodation)
+                                    @forelse($accommodations as $accommodation)
                                         <tr>
-                                            <td>{{ $loop->iteration }}</td>
+                                            <td class="text-center">{{ $loop->iteration }}</td>
                                             <td>
-                                                {{ $accommodation->conferenceRegistration->user->f_name }}
-                                                {{ $accommodation->conferenceRegistration->user->l_name }}
+                                                <div class="d-flex flex-column">
+                                                    <strong>
+                                                        {{ $accommodation->conferenceRegistration->user->f_name }}
+                                                        {{ $accommodation->conferenceRegistration->user->l_name }}
+                                                    </strong>
+                                                    <small class="text-muted">
+                                                        <i class="ti ti-mail"></i> 
+                                                        {{ $accommodation->conferenceRegistration->user->email }}
+                                                    </small>
+                                                </div>
                                             </td>
-                                            <td>{{ $accommodation->conferenceRegistration->user->userDetail->country->country_name ?? 'N/A' }}</td>
+                                            <td>
+                                                <span class="badge bg-label-primary">
+                                                    {{ $accommodation->conferenceRegistration->user->userDetail->country->country_name ?? 'N/A' }}
+                                                </span>
+                                            </td>
                                             <td>{{ $accommodation->hotel->name }}</td>
                                             <td>
-                                                {{ \Carbon\Carbon::parse($accommodation->arrival_date)->format('Y-m-d') }}
-                                                <br>
-                                                <small>{{ \Carbon\Carbon::parse($accommodation->arrival_time)->format('H:i') }}</small>
+                                                @if($accommodation->room_type)
+                                                    <span class="badge bg-label-info">{{ ucfirst($accommodation->room_type) }}</span>
+                                                @else
+                                                    <span class="text-muted">-</span>
+                                                @endif
                                             </td>
                                             <td>
-                                                {{ \Carbon\Carbon::parse($accommodation->departure_date)->format('Y-m-d') }}
-                                                <br>
-                                                <small>{{ \Carbon\Carbon::parse($accommodation->departure_time)->format('H:i') }}</small>
+                                                <div class="d-flex flex-column">
+                                                    <span>{{ \Carbon\Carbon::parse($accommodation->arrival_date)->format('M d, Y') }}</span>
+                                                    <small class="text-muted">{{ \Carbon\Carbon::parse($accommodation->arrival_time)->format('h:i A') }}</small>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div class="d-flex flex-column">
+                                                    <span>{{ \Carbon\Carbon::parse($accommodation->departure_date)->format('M d, Y') }}</span>
+                                                    <small class="text-muted">{{ \Carbon\Carbon::parse($accommodation->departure_time)->format('h:i A') }}</small>
+                                                </div>
                                             </td>
                                             <td>
                                                 @if($accommodation->check_in_date)
-                                                    {{ \Carbon\Carbon::parse($accommodation->check_in_date)->format('Y-m-d') }}
+                                                    {{ \Carbon\Carbon::parse($accommodation->check_in_date)->format('M d, Y') }}
                                                 @else
                                                     <span class="text-muted">Not set</span>
                                                 @endif
                                             </td>
                                             <td>
                                                 @if($accommodation->check_out_date)
-                                                    {{ \Carbon\Carbon::parse($accommodation->check_out_date)->format('Y-m-d') }}
+                                                    {{ \Carbon\Carbon::parse($accommodation->check_out_date)->format('M d, Y') }}
                                                 @else
                                                     <span class="text-muted">Not set</span>
                                                 @endif
                                             </td>
-                                            <td>
-                                                <span class="badge bg-success">Completed</span>
-                                                @if($accommodation->created_by_admin ?? false)
-                                                    <br><small class="text-muted">Created by Admin</small>
+                                            <td class="text-center">
+                                                @if($accommodation->airport_pickup_required)
+                                                    <span class="badge bg-success" title="Airport pickup required">
+                                                        <i class="ti ti-check"></i>
+                                                    </span>
                                                 @else
-                                                    <br><small class="text-muted">Self-filled</small>
+                                                    <span class="badge bg-secondary" title="No airport pickup">
+                                                        <i class="ti ti-x"></i>
+                                                    </span>
                                                 @endif
                                             </td>
                                             <td>
+                                                @if($accommodation->created_by_admin ?? false)
+                                                    <span class="badge bg-label-warning">
+                                                        <i class="ti ti-user-shield"></i> Admin
+                                                    </span>
+                                                @else
+                                                    <span class="badge bg-label-success">
+                                                        <i class="ti ti-user-check"></i> Self-filled
+                                                    </span>
+                                                @endif
+                                            </td>
+                                            <td class="text-center">
                                                 <a href="{{ route('conference.accommodation.show', [$society, $conference, $accommodation]) }}" 
-                                                   class="btn btn-sm btn-info">
-                                                    <i class="ti ti-eye"></i> View Details
+                                                   class="btn btn-sm btn-info" title="View Details">
+                                                    <i class="ti ti-eye"></i>
                                                 </a>
                                             </td>
                                         </tr>
-                                    @endforeach
+                                    @empty
+                                        <tr>
+                                            <td colspan="12" class="text-center py-4">
+                                                <i class="ti ti-inbox display-4 text-muted d-block mb-2"></i>
+                                                <p class="text-muted">No accommodation records found</p>
+                                            </td>
+                                        </tr>
+                                    @endforelse
                                 </tbody>
                             </table>
                         </div>
 
                         @if($invitedAwaitingAccommodation->count() > 0)
                             <div class="mt-4">
-                                <h6 class="text-danger">
-                                    <i class="ti ti-user-plus"></i> 
-                                    Invited Participants Awaiting Admin Setup ({{ $invitedAwaitingAccommodation->count() }})
-                                </h6>
-                                <div class="alert alert-danger">
-                                    <p class="mb-2">The following invited participants need accommodation details filled by admin:</p>
+                                <div class="alert alert-danger border-left-danger shadow">
+                                    <div class="d-flex align-items-center mb-3">
+                                        <i class="ti ti-user-plus display-6 me-3"></i>
+                                        <div>
+                                            <h5 class="mb-0">
+                                                Invited Participants Awaiting Admin Setup
+                                            </h5>
+                                            <p class="mb-0 small">{{ $invitedAwaitingAccommodation->count() }} participant(s) need accommodation details filled by admin</p>
+                                        </div>
+                                    </div>
                                     <div class="table-responsive">
-                                        <table class="table table-sm">
-                                            <thead>
+                                        <table class="table table-sm table-bordered bg-white">
+                                            <thead class="table-danger">
                                                 <tr>
+                                                    <th>#</th>
                                                     <th>Name</th>
+                                                    <th>Email</th>
                                                     <th>Country</th>
                                                     <th>Invitation Accepted</th>
                                                     <th>Registrant Type</th>
-                                                    <th>Action</th>
+                                                    <th class="text-center">Action</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
                                                 @foreach($invitedAwaitingAccommodation as $registration)
                                                     <tr>
+                                                        <td>{{ $loop->iteration }}</td>
                                                         <td>
-                                                            {{ $registration->user->f_name }} {{ $registration->user->l_name }}
+                                                            <strong>{{ $registration->user->f_name }} {{ $registration->user->l_name }}</strong>
                                                         </td>
-                                                        <td>{{ $registration->user->userDetail->country->country_name ?? 'N/A' }}</td>
+                                                        <td>
+                                                            <small>{{ $registration->user->email }}</small>
+                                                        </td>
+                                                        <td>
+                                                            <span class="badge bg-label-primary">
+                                                                {{ $registration->user->userDetail->country->country_name ?? 'N/A' }}
+                                                            </span>
+                                                        </td>
                                                         <td>
                                                             <small>{{ $registration->invitation_accepted_at->format('M d, Y H:i') }}</small>
                                                         </td>
                                                         <td>
                                                             <span class="badge bg-info">{{ $registration->registrant_type_text }}</span>
                                                         </td>
-                                                        <td>
+                                                        <td class="text-center">
                                                             <button class="btn btn-sm btn-primary" onclick="createAccommodation({{ $registration->user->id }})">
-                                                                <i class="ti ti-plus"></i> Create Accommodation
+                                                                <i class="ti ti-plus"></i> Create
                                                             </button>
                                                         </td>
                                                     </tr>
@@ -151,39 +322,53 @@
 
                         @if($selfRegisteredNeedingAccommodation->count() > 0)
                             <div class="mt-4">
-                                <h6 class="text-warning">
-                                    <i class="ti ti-alert-triangle"></i> 
-                                    Self-Registered Participants Needing to Fill Details ({{ $selfRegisteredNeedingAccommodation->count() }})
-                                </h6>
-                                <div class="alert alert-warning">
-                                    <p class="mb-2">The following self-registered participants need to fill their own accommodation details:</p>
+                                <div class="alert alert-warning border-left-warning shadow">
+                                    <div class="d-flex align-items-center mb-3">
+                                        <i class="ti ti-alert-triangle display-6 me-3"></i>
+                                        <div>
+                                            <h5 class="mb-0">
+                                                Self-Registered Participants Needing to Fill Details
+                                            </h5>
+                                            <p class="mb-0 small">{{ $selfRegisteredNeedingAccommodation->count() }} participant(s) need to fill their own accommodation details</p>
+                                        </div>
+                                    </div>
                                     <div class="table-responsive">
-                                        <table class="table table-sm">
-                                            <thead>
+                                        <table class="table table-sm table-bordered bg-white">
+                                            <thead class="table-warning">
                                                 <tr>
+                                                    <th>#</th>
                                                     <th>Name</th>
+                                                    <th>Email</th>
                                                     <th>Country</th>
                                                     <th>Registration Date</th>
                                                     <th>Registrant Type</th>
-                                                    <th>Action</th>
+                                                    <th class="text-center">Action</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
                                                 @foreach($selfRegisteredNeedingAccommodation as $registration)
                                                     <tr>
+                                                        <td>{{ $loop->iteration }}</td>
                                                         <td>
-                                                            {{ $registration->user->f_name }} {{ $registration->user->l_name }}
+                                                            <strong>{{ $registration->user->f_name }} {{ $registration->user->l_name }}</strong>
                                                         </td>
-                                                        <td>{{ $registration->user->userDetail->country->country_name ?? 'N/A' }}</td>
+                                                        <td>
+                                                            <small>{{ $registration->user->email }}</small>
+                                                        </td>
+                                                        <td>
+                                                            <span class="badge bg-label-primary">
+                                                                {{ $registration->user->userDetail->country->country_name ?? 'N/A' }}
+                                                            </span>
+                                                        </td>
                                                         <td>
                                                             <small>{{ $registration->created_at->format('M d, Y H:i') }}</small>
                                                         </td>
                                                         <td>
                                                             <span class="badge bg-success">{{ $registration->registrant_type_text }}</span>
                                                         </td>
-                                                        <td>
+                                                        <td class="text-center">
                                                             <button class="btn btn-sm btn-warning" onclick="sendReminder({{ $registration->user->id }})">
-                                                                <i class="ti ti-mail"></i> Send Reminder
+                                                                <i class="ti ti-mail"></i> Remind
                                                             </button>
                                                         </td>
                                                     </tr>
@@ -196,9 +381,9 @@
                         @endif
                     </div>
                 </div>
+            </div>
         </div>
     </div>
-</div>
 
 <!-- Modal for Accommodation Creation -->
 <div class="modal fade" id="accommodationModal" tabindex="-1" aria-labelledby="accommodationModalLabel" aria-hidden="true">
@@ -209,8 +394,35 @@
     </div>
 </div>
 @endsection
+
 @section('styles')
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css">
+<style>
+    .border-left-primary {
+        border-left: 4px solid #007bff !important;
+    }
+    .border-left-warning {
+        border-left: 4px solid #ffc107 !important;
+    }
+    .border-left-info {
+        border-left: 4px solid #17a2b8 !important;
+    }
+    .border-left-success {
+        border-left: 4px solid #28a745 !important;
+    }
+    .border-left-danger {
+        border-left: 4px solid #dc3545 !important;
+    }
+    @media print {
+        .btn, .card-header .btn, .alert {
+            display: none !important;
+        }
+        .card {
+            border: 1px solid #ddd !important;
+            box-shadow: none !important;
+        }
+    }
+</style>
 @endsection
 
 @section('scripts')
@@ -218,12 +430,44 @@
 <script src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
 <script>
     $(document).ready(function() {
-        // Initialize DataTable
+        // Initialize DataTable with enhanced options
         var table = $('#accommodationTable').DataTable({
-            // dom: 'Bfrtip',
-            // // buttons: [
-            // //     'copy', 'csv', 'excel', 'pdf', 'print'
-            // // ],
+            responsive: true,
+            pageLength: 25,
+            order: [[1, 'asc']], // Sort by participant name
+            dom: 'Bfrtip',
+            buttons: [
+                {
+                    extend: 'copy',
+                    className: 'btn btn-secondary btn-sm'
+                },
+                {
+                    extend: 'excel',
+                    className: 'btn btn-success btn-sm',
+                    title: 'International Accommodations - {{ $conference->name }}',
+                    exportOptions: {
+                        columns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+                    }
+                },
+                {
+                    extend: 'pdf',
+                    className: 'btn btn-danger btn-sm',
+                    title: 'International Accommodations',
+                    orientation: 'landscape',
+                    pageSize: 'A4',
+                    exportOptions: {
+                        columns: [0, 1, 2, 3, 4, 5, 6, 7, 8]
+                    }
+                },
+                {
+                    extend: 'print',
+                    className: 'btn btn-info btn-sm',
+                    title: 'International Accommodations - {{ $conference->name }}',
+                    exportOptions: {
+                        columns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+                    }
+                }
+            ],
             initComplete: function () {
                 this.api().columns().every(function () {
                     var column = this;
@@ -232,21 +476,26 @@
             }
         });
 
+        // Move buttons to custom location
+        table.buttons().container().appendTo('#accommodationTable_wrapper .col-md-6:eq(0)');
+
         // Initialize Date Range Picker
         $('#dateRangeFilter').daterangepicker({
             autoUpdateInput: false,
             locale: {
-                cancelLabel: 'Clear'
+                cancelLabel: 'Clear',
+                format: 'MMM DD, YYYY'
             }
         });
 
         $('#dateRangeFilter').on('apply.daterangepicker', function(ev, picker) {
-            $(this).val(picker.startDate.format('MM/DD/YYYY') + ' - ' + picker.endDate.format('MM/DD/YYYY'));
+            $(this).val(picker.startDate.format('MMM DD, YYYY') + ' - ' + picker.endDate.format('MMM DD, YYYY'));
             filterByDateRange(picker.startDate, picker.endDate);
         });
 
         $('#dateRangeFilter').on('cancel.daterangepicker', function(ev, picker) {
             $(this).val('');
+            $.fn.dataTable.ext.search.pop();
             table.draw();
         });
 
@@ -260,28 +509,39 @@
             table.column(3).search(this.value).draw();
         });
 
+        // Airport Pickup Filter
+        $('#pickupFilter').on('change', function() {
+            var value = this.value;
+            if (value === '') {
+                table.column(9).search('').draw();
+            } else if (value === 'required') {
+                table.column(9).search('✓', true, false).draw();
+            } else if (value === 'not-required') {
+                table.column(9).search('✕', true, false).draw();
+            }
+        });
+
         // Custom filtering function for date range
         function filterByDateRange(start, end) {
             $.fn.dataTable.ext.search.push(function(settings, data, dataIndex) {
-                // Updated column indexes: Arrival=4, Departure=5, Check-in=6, Check-out=7
-                var arrivalDate = moment(data[4], 'YYYY-MM-DD');
-                var departureDate = moment(data[5], 'YYYY-MM-DD');
-                var checkInDate = moment(data[6], 'YYYY-MM-DD');
-                var checkOutDate = moment(data[7], 'YYYY-MM-DD');
+                // Column indexes: Arrival=5, Departure=6, Check-in=7, Check-out=8
+                var arrivalDate = moment(data[5], 'MMM DD, YYYY');
+                var departureDate = moment(data[6], 'MMM DD, YYYY');
+                var checkInDate = moment(data[7], 'MMM DD, YYYY');
+                var checkOutDate = moment(data[8], 'MMM DD, YYYY');
                 
                 if (
-                    (arrivalDate.isSameOrAfter(start, 'day') && arrivalDate.isSameOrBefore(end, 'day')) ||
-                    (departureDate.isSameOrAfter(start, 'day') && departureDate.isSameOrBefore(end, 'day')) ||
+                    (arrivalDate.isValid() && arrivalDate.isSameOrAfter(start, 'day') && arrivalDate.isSameOrBefore(end, 'day')) ||
+                    (departureDate.isValid() && departureDate.isSameOrAfter(start, 'day') && departureDate.isSameOrBefore(end, 'day')) ||
                     (checkInDate.isValid() && checkInDate.isSameOrAfter(start, 'day') && checkInDate.isSameOrBefore(end, 'day')) ||
                     (checkOutDate.isValid() && checkOutDate.isSameOrAfter(start, 'day') && checkOutDate.isSameOrBefore(end, 'day')) ||
-                    (arrivalDate.isSameOrBefore(start, 'day') && departureDate.isSameOrAfter(end, 'day'))
+                    (arrivalDate.isValid() && departureDate.isValid() && arrivalDate.isSameOrBefore(start, 'day') && departureDate.isSameOrAfter(end, 'day'))
                 ) {
                     return true;
                 }
                 return false;
             });
             table.draw();
-            $.fn.dataTable.ext.search.pop(); // Clean up the filter after use
         }
     });
 

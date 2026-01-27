@@ -14,6 +14,8 @@ use App\Notifications\AccommodationDetailReminder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\InternationalAccommodationExport;
 
 class AccommodationManagementController extends Controller
 {
@@ -217,5 +219,27 @@ class AccommodationManagementController extends Controller
                 'message' => $e->getMessage()
             ], 400);
         }
+    }
+
+    /**
+     * Export accommodation data to Excel
+     */
+    public function export(Society $society, Conference $conference)
+    {
+        $accommodations = InternationalAccommodation::query()
+            ->whereHas('conferenceRegistration', function ($query) use ($conference) {
+                $query->where('conference_id', $conference->id)
+                    ->where('verified_status', 1);
+            })
+            ->with([
+                'conferenceRegistration.user.userDetail.country',
+                'hotel'
+            ])
+            ->get();
+
+        return Excel::download(
+            new InternationalAccommodationExport($accommodations, $conference),
+            'international-accommodations-' . $conference->slug . '-' . now()->format('Y-m-d') . '.xlsx'
+        );
     }
 }

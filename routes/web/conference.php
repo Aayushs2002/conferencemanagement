@@ -64,6 +64,7 @@ Route::middleware('auth')->group(function () {
         // Accommodation Management Routes
         Route::controller(AccommodationManagementController::class)->middleware(['auto.conf.permission'])->prefix('accommodation')->name('conference.accommodation.')->group(function () {
             Route::get('/', 'index')->name('index');
+            Route::get('/export', 'export')->name('export');
             Route::get('/{accommodation}', 'show')->name('show');
             Route::post('/send-reminder', 'sendReminder')->name('sendReminder');
             Route::post('/create-for-invited', 'createForInvited')->name('createForInvited');
