@@ -19,7 +19,7 @@
 
                     @isset($workshop)
                         @method('patch')
-                    @endisset
+                    @endisset 
                     <div class="row g-6">
                         <div class="col-12">
                             <h6>1. Workshop Details</h6>
@@ -34,6 +34,17 @@
                             <div class="valid-feedback">Looks good!</div>
                             <div class="invalid-feedback">Please enter workshop tite.</div>
                             @error('workshop_title')
+                                <p class="text-danger">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        <div class="mb-6 col-md-4">
+                            <label class="form-label" for="workshop_slogan">Workshop Slogan</label>
+                            <input type="text" class="form-control @error('workshop_slogan') is-invalid @enderror"
+                                id="workshop_slogan" placeholder="Enter workshop slogan" name="workshop_slogan"
+                                value="{{ !empty(old('workshop_slogan')) ? old('workshop_slogan') : @$workshop->workshop_slogan }}" />
+                            <div class="valid-feedback">Looks good!</div>
+                            @error('workshop_slogan')
                                 <p class="text-danger">{{ $message }}</p>
                             @enderror
                         </div>

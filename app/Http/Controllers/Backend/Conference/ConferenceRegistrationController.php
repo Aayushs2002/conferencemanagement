@@ -1283,11 +1283,14 @@ class ConferenceRegistrationController extends Controller
 
             if ($conferenceUserPassDesignation) {
                 $designation = $conferenceUserPassDesignation->pass_designation;
+                $color = $conferenceUserPassDesignation->color;
             } else {
                 $designation = $conferenceMemberTypeNameTag?->name_tag ?? null;
+                $color = $conferenceMemberTypeNameTag?->color ?? null;
             }
 
             $participant->designation = $designation;
+            $participant->designation_color = $color;       
 
             return $participant;
         });

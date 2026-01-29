@@ -689,10 +689,11 @@
             <div class="profile-card">
                 <div class="profile-info">
                     <div class="avatar">
-                        <img src="{{ asset('default-image/avatar.png') }}" alt="Profile Avatar" />
+                        <img src="{{ $participant->user->userDetail->image ? asset('storage/profile/image/' . $participant->user->userDetail->image) : asset('default-image/avatar.png') }}" alt="Profile Avatar" />
+
                     </div>
                     <div>
-                        <h2 class="user-name">{{ $participant->name ?? 'Participant' }}</h2>
+                        <h2 class="user-name">{{ $participant->user->fullName($participant->user) ?? 'Participant' }}</h2>
                         <p class="user-title">Conference Participant</p>
                     </div>
                 </div>

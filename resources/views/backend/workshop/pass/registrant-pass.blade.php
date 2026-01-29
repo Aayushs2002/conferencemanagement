@@ -169,21 +169,21 @@
                         style="padding:160px 0px 0px;  font-size:20px; font-size:20px; text-align:center; font-weight:normal; line-height:22px;">
                         <small
                             style="font-size:18px; font-weight:500; color:white; letter-spacing:-0.01em;  padding-top:40px;">Venue:
-                            {{ $registrant->workshop->venue }}
+                            {{ $registrant->workshop->WorkshopVenueDetail->venue_name . ', ' . $registrant->workshop->WorkshopVenueDetail->venue_address }}
                         </small>
                         <p
                             style="line-height:30PX; color:white; margin:0px; padding:2px 0px 6px; font-size:16px; font-weight:500;">
                             Date:
-                              @if ($registrant->workshop->start_date == $registrant->workshop->end_date)
+                            @if ($registrant->workshop->start_date == $registrant->workshop->end_date)
                                 {{ \Carbon\Carbon::parse($registrant->workshop->start_date)->format('jS F, Y') }}
                             @else
                                 {{ \Carbon\Carbon::parse($registrant->workshop->start_date)->format('jS') }}
                                 -
                                 {{ \Carbon\Carbon::parse($registrant->workshop->end_date)->format('jS F, Y') }}
-                            @endif 
+                            @endif
                             {{-- Date: 31<sup>st</sup> Jan, 2026  --}}
                             <br />
-                         </p>
+                        </p>
 
                         <h6
                             style="font-size:24px; background:#fff;  margin:5px 0px; line-height:30px; font-weight:500; padding:2px 0px; background-color:rgba(0,174, 239, 0.4);">
@@ -200,25 +200,35 @@
                             @endif
                         </h1>
                         <h2> {{ $registrant->workshop->workshop_title }}</h2>
-                        <h3 style="color:#fff;">Peripherally Inserted Central Catheters -
-                            Live demonstration & hands-on training</h3>
+                        <div style="padding:0px 20px; height:auto;  margin-top:10px; ">
+
+                            <h3 style="color:#fff;">
+                                @if ($registrant->workshop->workshop_slogan)
+                                    {{ $registrant->workshop->workshop_slogan }}
+                                @endif
+                            </h3>
+                        </div>
 
                         <h1
-                            style="font-size:34px;text-transform:capitalize; letter-spacing:-0.02em; background:#fff; margin:15px auto 5px; width:470px; border-radius:10px; height:25px; padding:14px 0px;">
-                           {{$registrant->user->userDetail->namePrefix->prefix }} {{ $registrant->user->fullName($registrant->user) }}
+                            style="font-size:34px;text-transform:capitalize; letter-spacing:-0.02em; background:#fff; {{$registrant->workshop->workshop_slogan ? 'margin:15px auto 5px' : 'margin:15px auto 70px'}}; width:470px; border-radius:10px; height:25px; padding:14px 0px;">
+                            {{ $registrant->user->userDetail->namePrefix->prefix }}
+                            {{ $registrant->user->fullName($registrant->user) }}
 
-                           </h1>
+                        </h1>
                     </div>
 
 
-                    <div style="background-color:{{$registrant->registrant_type == 1 ? 'blue' : 'green'}}; height:auto; float:left; width:100%; overflow:hidden;">
+                    <div
+                        style="background-color:{{ $registrant->registrant_type == 1 ? '#011589' : 'green' }}; height:auto; float:left; width:100%; overflow:hidden;">
                         <h1
                             style="color:#fff;  font-size:40px; padding:0px 30px 8px; margin:0px; weight:bold; text-align:center;">
                             {{ $registrant->registrant_type == 1 ? 'Participant' : 'Instructor' }}</h1>
                     </div>
                     <div style="width:92%; font-size:15px; padding:12px 25px; color:#fff; float:left;">
                         <p style="text-align:center; text-shadow:1px 1px 1px #000; "><b>Hosted by:</b><br />
-                            {{$registrant->workshop->conference->society->users->where('type',2)->value('f_name')}} (<span style="text-transform:uppercase;">{{$registrant->workshop->conference->society->abbreviation}}</span>)
+                            {{ $registrant->workshop->conference->society->users->where('type', 2)->value('f_name') }}
+                            (<span
+                                style="text-transform:uppercase;">{{ $registrant->workshop->conference->society->abbreviation }}</span>)
                         </p>
                     </div>
 
