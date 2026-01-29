@@ -52,7 +52,7 @@
                         <th scope="col">Image</th>
                         <th scope="col">CV</th> --}}
                         <th scope="col">Action</th>
-                    </tr>
+                    </tr> 
                 </thead>
                 <tbody>
                     @foreach ($trainers as $trainer)
