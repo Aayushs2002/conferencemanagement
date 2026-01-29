@@ -15,13 +15,24 @@
                 </div>
                 <div class="d-md-flex justify-content-between align-items-center dt-layout-end col-md-auto ms-auto mt-0">
                     <div class="dt-buttons btn-group flex-wrap mb-0">
-                        <a href="{{ route('workshop.generatePass', ['workshop' => $workshop, 'registrant_type' => 1]) }}"
-                            class="btn btn-success me-2" tabindex="0">
+                        <button type="button" class="btn btn-success dropdown-toggle me-2" data-bs-toggle="dropdown" aria-expanded="false">
                             <span class="d-none d-sm-inline-block">Generate Pass</span>
-                        </a>
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li>
+                                <a class="dropdown-item" href="{{ route('workshop.generatePass', ['workshop' => $workshop, 'registrant_type' => 1]) }}">
+                                    <i class="ti tabler-users me-2"></i> Generate for Registered Users
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="javascript:void(0);" data-bs-toggle="modal" data-bs-target="#dummyPassModal">
+                                    <i class="ti tabler-user-plus me-2"></i> Generate Dummy Pass
+                                </a>
+                            </li>
+                        </ul>
                     </div>
                 </div>
-            </div>
+            </div> 
             <table class="datatables-basic table">
                 <thead>
                     <tr>
@@ -40,11 +51,11 @@
                     @foreach ($registrations as $registration)
                         <tr>
                             @php 
-                                $userSociety = $registration->user->societies->first();
+                                $userSociety = $registration->user?->societies->first();
                                 $memberType = $userSociety?->pivot?->memberType;
                             @endphp
                             <th scope="row">{{ $loop->iteration }}</th>
-                            <td>{{ $registration->user->fullName($registration->user) }}</td>
+                            <td>{{ $registration->user?->fullName($registration->user) }}</td>
                             <td>{{ $memberType->type ?? 'N/A' }}</td>
 
                             <td>{{ $registration->transaction_id }}</td>
@@ -136,6 +147,34 @@
         <div class="modal fade" id="pricingModal" tabindex="-1" aria-hidden="true">
             <div class="modal-dialog modal-lg modal-simple modal-pricing">
                 <div class="modal-content" id="modalContent">
+                </div>
+            </div>
+        </div>
+
+        <!-- Dummy Pass Generation Modal -->
+        <div class="modal fade" id="dummyPassModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Generate Dummy Pass</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <form action="{{ route('workshop.generateDummyPass', ['workshop' => $workshop]) }}" method="POST" target="_blank">
+                        @csrf
+                        <div class="modal-body">
+                            <div class="mb-3">
+                                <label for="dummy_count" class="form-label">Number of Dummy Passes <code>*</code></label>
+                                <input type="number" class="form-control" id="dummy_count" name="dummy_count" 
+                                       min="1" max="100" value="1" required>
+                                <small class="text-muted">Enter the number of dummy passes to generate (Max: 100)</small>
+                            </div>
+                            <input type="hidden" name="registrant_type" value="1">
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <button type="submit" class="btn btn-success">Generate Passes</button>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>

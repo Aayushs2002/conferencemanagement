@@ -19,7 +19,8 @@ class WorkshopRegistration extends Model
         'remarks',
         'amount',
         'meal_type',
-        'status'
+        'status',
+        'is_dummy'
     ];
 
     public function user()

@@ -312,6 +312,52 @@ class WorkshopRegistrationController extends Controller
         $registrants = WorkshopRegistration::where(['workshop_id' => $workshop->id, 'registrant_type' => $registrant_type, 'status' => 1])->get();
         $passSetting = WorkshopPassSetting::where(['conference_id' => $workshop->conference_id, 'status' => 1])->first();
         return view('backend.workshop.pass.registrant-pass', compact('registrants', 'passSetting'));
+    }
+
+    public function generateDummyPass(Request $request, $workshop)
+    {
+        $request->validate([
+            'dummy_count' => 'required|integer|min:1|max:100',
+            'registrant_type' => 'required|integer|in:1,2'
+        ]);
+
+        $dummyCount = $request->dummy_count;
+        $registrantType = $request->registrant_type;
+        
+        // Create and save dummy registrant objects to database
+        $savedRegistrants = collect();
+        
+        for ($i = 1; $i <= $dummyCount; $i++) {
+            // Create and save dummy registration to database
+            $dummyRegistrant = WorkshopRegistration::create([
+                'workshop_id' => $workshop->id,
+                'registrant_type' => $registrantType,
+                'user_id' => null, // No user linked
+                'token' => \Str::random(32),
+                'status' => 1,
+                // 'is_dummy' => 1,
+                'verified_status' => 1, // Auto-verify dummy passes
+                'payment_type' => null,
+                'transaction_id' => 'DUMMY-' . \Str::upper(\Str::random(10)),
+                'amount' => 0
+            ]);
+            
+            // Create a dummy user object for display purposes
+            $dummyUser = new \App\Models\User();
+            $dummyUser->f_name = '';
+            $dummyUser->m_name = '';
+            $dummyUser->l_name = '';
+            $dummyUser->email = '';
+            
+            // Set the relationship manually
+            $dummyRegistrant->setRelation('user', $dummyUser);
+            
+            $savedRegistrants->push($dummyRegistrant);
+        }
+        
+        $passSetting = WorkshopPassSetting::where(['conference_id' => $workshop->conference_id, 'status' => 1])->first();
+        
+        return view('backend.workshop.pass.registrant-pass', compact('passSetting'))->with('registrants', $savedRegistrants);
     } 
 
     public function participantProfile($token)
