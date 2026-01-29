@@ -7,16 +7,16 @@
             <div class="col-12">
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
-                        <h4 class="mb-1"><i class="ti ti-building-skyscraper me-2"></i>International Accommodation Details</h4>
+                        <h4 class="mb-1"><i class="ti tabler-building-skyscraper me-2"></i>International Accommodation Details</h4>
                         <p class="text-muted mb-0">Complete accommodation and travel information for international participant</p>
                     </div>
                     <div>
                         <a href="{{ route('conference.accommodation.index', [$society, $conference]) }}" 
                            class="btn btn-secondary me-2">
-                            <i class="ti ti-arrow-left"></i> Back to List
+                            <i class="ti tabler-arrow-left"></i> Back to List
                         </a>
                         <button onclick="window.print()" class="btn btn-primary">
-                            <i class="ti ti-printer"></i> Print
+                            <i class="ti tabler-printer"></i> Print
                         </button>
                     </div>
                 </div>
@@ -28,7 +28,7 @@
             <div class="col-lg-6 mb-4">
                 <div class="card h-100">
                     <div class="card-header bg-primary text-white">
-                        <h5 class="mb-0"><i class="ti ti-user me-2"></i>Participant Information</h5>
+                        <h5 class="mb-0"><i class="ti tabler-user me-2"></i>Participant Information</h5>
                     </div>
                     <div class="card-body">
                         <div class="row mb-3">
@@ -84,7 +84,7 @@
             <div class="col-lg-6 mb-4">
                 <div class="card h-100">
                     <div class="card-header bg-info text-white">
-                        <h5 class="mb-0"><i class="ti ti-plane me-2"></i>Flight & Travel Details</h5>
+                        <h5 class="mb-0"><i class="ti tabler-plane me-2"></i>Flight & Travel Details</h5>
                     </div>
                     <div class="card-body">
                         <div class="row mb-3">
@@ -96,7 +96,7 @@
                         <hr>
                         <div class="mb-3">
                             <div class="d-flex align-items-center mb-2">
-                                <i class="ti ti-plane-arrival text-success me-2"></i>
+                                <i class="ti tabler-plane-arrival text-success me-2"></i>
                                 <strong>Arrival Information</strong>
                             </div>
                             <div class="row mb-2">
@@ -117,7 +117,7 @@
                         <hr>
                         <div class="mb-3">
                             <div class="d-flex align-items-center mb-2">
-                                <i class="ti ti-plane-departure text-danger me-2"></i>
+                                <i class="ti tabler-plane-departure text-danger me-2"></i>
                                 <strong>Departure Information</strong>
                             </div>
                             <div class="row mb-2">
@@ -141,11 +141,11 @@
                             <div class="col-8">
                                 @if($accommodation->airport_pickup_required)
                                     <span class="badge bg-success">
-                                        <i class="ti ti-check"></i> Required
+                                        <i class="ti tabler-check"></i> Required
                                     </span>
                                 @else
                                     <span class="badge bg-secondary">
-                                        <i class="ti ti-x"></i> Not Required
+                                        <i class="ti tabler-x"></i> Not Required
                                     </span>
                                 @endif
                             </div>
@@ -158,7 +158,7 @@
             <div class="col-lg-6 mb-4">
                 <div class="card h-100">
                     <div class="card-header bg-warning text-white">
-                        <h5 class="mb-0"><i class="ti ti-building me-2"></i>Hotel Accommodation</h5>
+                        <h5 class="mb-0"><i class="ti tabler-building me-2"></i>Hotel Accommodation</h5>
                     </div>
                     <div class="card-body">
                         <div class="row mb-3">
@@ -227,7 +227,7 @@
             <div class="col-lg-6 mb-4">
                 <div class="card h-100">
                     <div class="card-header bg-secondary text-white">
-                        <h5 class="mb-0"><i class="ti ti-notes me-2"></i>Special Requirements & Additional Info</h5>
+                        <h5 class="mb-0"><i class="ti tabler-notes me-2"></i>Special Requirements & Additional Info</h5>
                     </div>
                     <div class="card-body">
                         <div class="row mb-3">
@@ -235,11 +235,11 @@
                             <div class="col-8">
                                 @if($accommodation->status)
                                     <span class="badge bg-success">
-                                        <i class="ti ti-check"></i> {{ ucfirst($accommodation->status) }}
+                                        <i class="ti tabler-check"></i> {{ ucfirst($accommodation->status) }}
                                     </span>
                                 @else
                                     <span class="badge bg-warning">
-                                        <i class="ti ti-clock"></i> Pending
+                                        <i class="ti tabler-clock"></i> Pending
                                     </span>
                                 @endif
                             </div>
@@ -275,13 +275,13 @@
             <div class="col-12">
                 <div class="card">
                     <div class="card-header bg-dark text-white">
-                        <h5 class="mb-0"><i class="ti ti-timeline me-2"></i>Timeline Summary</h5>
+                        <h5 class="mb-0"><i class="ti tabler-timeline me-2"></i>Timeline Summary</h5>
                     </div>
                     <div class="card-body">
                         <div class="row text-center">
                             <div class="col-md-3 mb-3">
                                 <div class="p-3 border rounded">
-                                    <i class="ti ti-plane-arrival display-6 text-success mb-2"></i>
+                                    <i class="ti tabler-plane-arrival display-6 text-success mb-2"></i>
                                     <h6 class="mb-1">Arrival</h6>
                                     <p class="mb-0 small text-muted">
                                         {{ \Carbon\Carbon::parse($accommodation->arrival_date)->format('M d, Y') }}
@@ -291,7 +291,7 @@
                             </div>
                             <div class="col-md-3 mb-3">
                                 <div class="p-3 border rounded">
-                                    <i class="ti ti-door-enter display-6 text-primary mb-2"></i>
+                                    <i class="ti tabler-door-enter display-6 text-primary mb-2"></i>
                                     <h6 class="mb-1">Check-in</h6>
                                     <p class="mb-0 small text-muted">
                                         @if($accommodation->check_in_date)
@@ -305,7 +305,7 @@
                             </div>
                             <div class="col-md-3 mb-3">
                                 <div class="p-3 border rounded">
-                                    <i class="ti ti-door-exit display-6 text-warning mb-2"></i>
+                                    <i class="ti tabler-door-exit display-6 text-warning mb-2"></i>
                                     <h6 class="mb-1">Check-out</h6>
                                     <p class="mb-0 small text-muted">
                                         @if($accommodation->check_out_date)
@@ -319,7 +319,7 @@
                             </div>
                             <div class="col-md-3 mb-3">
                                 <div class="p-3 border rounded">
-                                    <i class="ti ti-plane-departure display-6 text-danger mb-2"></i>
+                                    <i class="ti tabler-plane-departure display-6 text-danger mb-2"></i>
                                     <h6 class="mb-1">Departure</h6>
                                     <p class="mb-0 small text-muted">
                                         {{ \Carbon\Carbon::parse($accommodation->departure_date)->format('M d, Y') }}

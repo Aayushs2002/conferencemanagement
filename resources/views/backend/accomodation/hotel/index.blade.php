@@ -13,6 +13,13 @@
                 </div>
                 <div class="d-md-flex justify-content-between align-items-center dt-layout-end col-md-auto ms-auto mt-0">
                     <div class="dt-buttons btn-group flex-wrap mb-0">
+                        @if (auth()->user()->hasConferencePermissionBlade(getConference(request()->segment(4)), 'View Accommodation'))
+                            <a href="{{ route('conference.accommodation.index', [$society, $conference]) }}" 
+                               class="btn btn-info me-2" title="View International Accommodations">
+                                <i class="icon-base ti tabler-building-skyscraper icon-xs me-sm-1"></i>
+                                <span class="d-none d-sm-inline-block">View Accommodations</span>
+                            </a>
+                        @endif
                         <div class="btn-group me-2">
                             <button type="button" class="btn btn-success dropdown-toggle" data-bs-toggle="dropdown"
                                 aria-expanded="false">

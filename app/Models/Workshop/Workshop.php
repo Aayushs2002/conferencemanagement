@@ -4,8 +4,10 @@ namespace App\Models\Workshop;
 
 use App\Models\User;
 use App\Models\WorkshopRating;
+use App\Models\Conference\Conference;
 use Illuminate\Database\Eloquent\Model;
 use Vinkla\Hashids\Facades\Hashids;
+
 
 class Workshop extends Model
 {
@@ -64,6 +66,11 @@ class Workshop extends Model
     public function WorkshopChairPersonDetail()
     {
         return $this->hasOne(WorkshopChairPersonDetail::class, 'workshop_id', 'id');
+    }
+
+    public function conference()
+    {
+        return $this->belongsTo(Conference::class, 'conference_id', 'id');
     }
 
     public function registrations()
