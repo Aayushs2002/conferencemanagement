@@ -27,6 +27,7 @@ class WorkshopRequest extends FormRequest
             : 'nullable|mimes:pdf,doc,docx|max:5120';
         $rules = [
             'workshop_title' => 'required|string|max:255',
+            'workshop_slogan' => 'nullable|string|max:500',
             'workshop_type' => 'required|integer|in:1,2',
             'start_date' => 'required|date',
             'end_date' => 'required|date|after_or_equal:start_date',

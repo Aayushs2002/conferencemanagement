@@ -80,6 +80,7 @@ class WorkshopController extends Controller
             $workshopData = [
                 'conference_id' => $conference->id,
                 'workshop_title' => $validated['workshop_title'],
+                'workshop_slogan' => $validated['workshop_slogan'] ?? null,
                 'workshop_type' => $validated['workshop_type'],
                 'start_date' => $validated['start_date'],
                 'end_date' => $validated['end_date'],

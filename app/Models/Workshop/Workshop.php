@@ -14,6 +14,7 @@ class Workshop extends Model
     protected $fillable = [
         'conference_id',
         'workshop_title',
+        'workshop_slogan',
         'image',
         'workshop_type',
         'start_date',
