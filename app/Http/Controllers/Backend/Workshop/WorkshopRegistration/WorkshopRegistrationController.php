@@ -312,7 +312,7 @@ class WorkshopRegistrationController extends Controller
         $registrants = WorkshopRegistration::where(['workshop_id' => $workshop->id, 'registrant_type' => $registrant_type, 'status' => 1])->get();
         $passSetting = WorkshopPassSetting::where(['conference_id' => $workshop->conference_id, 'status' => 1])->first();
         return view('backend.workshop.pass.registrant-pass', compact('registrants', 'passSetting'));
-    }
+    } 
 
     public function participantProfile($token)
     {

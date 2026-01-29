@@ -5,7 +5,7 @@
         <!-- Page Header -->
         <div class="row mb-4">
             <div class="col-12">
-                <h4 class="mb-1"><i class="ti ti-building-skyscraper me-2"></i>International Accommodation Management</h4>
+                <h4 class="mb-1"><i class="ti tabler-building-skyscraper me-2"></i>International Accommodation Management</h4>
                 <p class="text-muted">Manage and monitor accommodation details for all international participants</p>
             </div>
         </div>
@@ -23,7 +23,7 @@
                                 <div class="h5 mb-0 font-weight-bold">{{ $accommodations->count() }}</div>
                             </div>
                             <div class="col-auto">
-                                <i class="ti ti-building display-4 text-primary"></i>
+                                <i class="ti tabler-building display-4 text-primary"></i>
                             </div>
                         </div>
                     </div>
@@ -41,7 +41,7 @@
                                 <div class="h5 mb-0 font-weight-bold text-warning">{{ $invitedAwaitingAccommodation->count() }}</div>
                             </div>
                             <div class="col-auto">
-                                <i class="ti ti-user-plus display-4 text-warning"></i>
+                                <i class="ti tabler-user-plus display-4 text-warning"></i>
                             </div>
                         </div>
                     </div>
@@ -59,7 +59,7 @@
                                 <div class="h5 mb-0 font-weight-bold text-info">{{ $selfRegisteredNeedingAccommodation->count() }}</div>
                             </div>
                             <div class="col-auto">
-                                <i class="ti ti-alert-triangle display-4 text-info"></i>
+                                <i class="ti tabler-alert-triangle display-4 text-info"></i>
                             </div>
                         </div>
                     </div>
@@ -79,7 +79,7 @@
                                 </div>
                             </div>
                             <div class="col-auto">
-                                <i class="ti ti-car display-4 text-success"></i>
+                                <i class="ti tabler-car display-4 text-success"></i>
                             </div>
                         </div>
                     </div>
@@ -95,10 +95,10 @@
                         <h5 class="mb-0">Accommodation Records</h5>
                         <div>
                             <a href="{{ route('conference.accommodation.export', [$society, $conference]) }}" class="btn btn-success btn-sm me-2">
-                                <i class="ti ti-file-spreadsheet"></i> Export Excel
+                                <i class="ti tabler-file-spreadsheet"></i> Export Excel
                             </a>
                             <button class="btn btn-primary btn-sm" onclick="window.print()">
-                                <i class="ti ti-printer"></i> Print
+                                <i class="ti tabler-printer"></i> Print
                             </button>
                         </div>
                     </div>
@@ -107,7 +107,7 @@
                         <div class="row mb-4 g-3">
                             <div class="col-md-3">
                                 <label for="countryFilter" class="form-label fw-semibold">
-                                    <i class="ti ti-world me-1"></i>Filter by Country
+                                    <i class="ti tabler-world me-1"></i>Filter by Country
                                 </label>
                                 <select class="form-select" id="countryFilter">
                                     <option value="">All Countries</option>
@@ -118,7 +118,7 @@
                             </div>
                             <div class="col-md-3">
                                 <label for="hotelFilter" class="form-label fw-semibold">
-                                    <i class="ti ti-building me-1"></i>Filter by Hotel
+                                    <i class="ti tabler-building me-1"></i>Filter by Hotel
                                 </label>
                                 <select class="form-select" id="hotelFilter">
                                     <option value="">All Hotels</option>
@@ -129,13 +129,13 @@
                             </div>
                             <div class="col-md-3">
                                 <label for="dateRangeFilter" class="form-label fw-semibold">
-                                    <i class="ti ti-calendar me-1"></i>Filter by Date Range
+                                    <i class="ti tabler-calendar me-1"></i>Filter by Date Range
                                 </label>
                                 <input type="text" class="form-control" id="dateRangeFilter" placeholder="Select date range">
                             </div>
                             <div class="col-md-3">
                                 <label for="pickupFilter" class="form-label fw-semibold">
-                                    <i class="ti ti-car me-1"></i>Airport Pickup
+                                    <i class="ti tabler-car me-1"></i>Airport Pickup
                                 </label>
                                 <select class="form-select" id="pickupFilter">
                                     <option value="">All</option>
@@ -175,7 +175,7 @@
                                                         {{ $accommodation->conferenceRegistration->user->l_name }}
                                                     </strong>
                                                     <small class="text-muted">
-                                                        <i class="ti ti-mail"></i> 
+                                                        <i class="ti tabler-mail"></i> 
                                                         {{ $accommodation->conferenceRegistration->user->email }}
                                                     </small>
                                                 </div>
@@ -222,36 +222,36 @@
                                             <td class="text-center">
                                                 @if($accommodation->airport_pickup_required)
                                                     <span class="badge bg-success" title="Airport pickup required">
-                                                        <i class="ti ti-check"></i>
+                                                        <i class="ti tabler-check"></i>
                                                     </span>
                                                 @else
                                                     <span class="badge bg-secondary" title="No airport pickup">
-                                                        <i class="ti ti-x"></i>
+                                                        <i class="ti tabler-x"></i>
                                                     </span>
                                                 @endif
                                             </td>
                                             <td>
                                                 @if($accommodation->created_by_admin ?? false)
                                                     <span class="badge bg-label-warning">
-                                                        <i class="ti ti-user-shield"></i> Admin
+                                                        <i class="ti tabler-user-shield"></i> Admin
                                                     </span>
                                                 @else
                                                     <span class="badge bg-label-success">
-                                                        <i class="ti ti-user-check"></i> Self-filled
+                                                        <i class="ti tabler-user-check"></i> Self-filled
                                                     </span>
                                                 @endif
                                             </td>
                                             <td class="text-center">
                                                 <a href="{{ route('conference.accommodation.show', [$society, $conference, $accommodation]) }}" 
                                                    class="btn btn-sm btn-info" title="View Details">
-                                                    <i class="ti ti-eye"></i>
+                                                    <i class="ti tabler-eye"></i>
                                                 </a>
                                             </td>
                                         </tr>
                                     @empty
                                         <tr>
                                             <td colspan="12" class="text-center py-4">
-                                                <i class="ti ti-inbox display-4 text-muted d-block mb-2"></i>
+                                                <i class="ti tabler-inbox display-4 text-muted d-block mb-2"></i>
                                                 <p class="text-muted">No accommodation records found</p>
                                             </td>
                                         </tr>
@@ -264,7 +264,7 @@
                             <div class="mt-4">
                                 <div class="alert alert-danger border-left-danger shadow">
                                     <div class="d-flex align-items-center mb-3">
-                                        <i class="ti ti-user-plus display-6 me-3"></i>
+                                        <i class="ti tabler-user-plus display-6 me-3"></i>
                                         <div>
                                             <h5 class="mb-0">
                                                 Invited Participants Awaiting Admin Setup
@@ -308,7 +308,7 @@
                                                         </td>
                                                         <td class="text-center">
                                                             <button class="btn btn-sm btn-primary" onclick="createAccommodation({{ $registration->user->id }})">
-                                                                <i class="ti ti-plus"></i> Create
+                                                                <i class="ti tabler-plus"></i> Create
                                                             </button>
                                                         </td>
                                                     </tr>
@@ -324,7 +324,7 @@
                             <div class="mt-4">
                                 <div class="alert alert-warning border-left-warning shadow">
                                     <div class="d-flex align-items-center mb-3">
-                                        <i class="ti ti-alert-triangle display-6 me-3"></i>
+                                        <i class="ti tabler-alert-triangle display-6 me-3"></i>
                                         <div>
                                             <h5 class="mb-0">
                                                 Self-Registered Participants Needing to Fill Details
@@ -368,7 +368,7 @@
                                                         </td>
                                                         <td class="text-center">
                                                             <button class="btn btn-sm btn-warning" onclick="sendReminder({{ $registration->user->id }})">
-                                                                <i class="ti ti-mail"></i> Remind
+                                                                <i class="ti tabler-mail"></i> Remind
                                                             </button>
                                                         </td>
                                                     </tr>

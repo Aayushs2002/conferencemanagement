@@ -1,4 +1,4 @@
-<!DOCTYPE html
+{{-- <!DOCTYPE html
     PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
 
@@ -14,7 +14,7 @@
         body {
             font-family: "Barlow", sans-serif;
             font-optical-sizing: auto;
-            font-style: normal;
+            font-style: normal; 
         }
     </style>
 </head>
@@ -104,9 +104,7 @@
                         <div
                             style="padding:5px; font-size:13px; border-radius:5px; height:138px; width:120px; margin:10px auto 15px; overflow:hidden; background:#fff;">
                             {!! QrCode::size(120)->generate(config('app.url') . 'workshop/participant/profile/' . $registrant->token) !!}
-                            {{-- <img src="data:image/png;base64, {!! base64_encode(
-                            QrCode::size(200)->generate(config('app.url') . '/participant/profile/' . $participant->token),
-                        ) !!} "> --}}
+                   
                             <br />Serial No:
 
                         </div>
@@ -133,6 +131,102 @@
 
         </div>
     @endforeach
+
+</body>
+
+</html> --}}
+
+
+<!DOCTYPE html
+    PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Untitled Document</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Archivo:ital,wght@0,300;0,500;0,700;1,300;1,500;1,700&family=Barlow:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap"
+        rel="stylesheet">
+    <style>
+        body {
+            font-family: "Barlow", sans-serif;
+            font-optical-sizing: auto;
+            font-style: normal;
+        }
+    </style>
+</head>
+
+<body>
+    <div style="width:1280px; height:auto;">
+
+        @foreach ($registrants as $registrant)
+            <div style="width:550px; float:left !important; margin:20px;">
+                <div
+                    style="font-size:18px; background:url({{ asset('storage/workshop/pass/' . $passSetting->image) }}) no-repeat center top #6dc3fe;  background-size:100%; height:auto; overflow:hidden; padding:150px 0px 0px;">
+                    <div
+                        style="padding:160px 0px 0px;  font-size:20px; font-size:20px; text-align:center; font-weight:normal; line-height:22px;">
+                        <small
+                            style="font-size:18px; font-weight:500; color:white; letter-spacing:-0.01em;  padding-top:40px;">Venue:
+                            {{ $registrant->workshop->venue }}
+                        </small>
+                        <p
+                            style="line-height:30PX; color:white; margin:0px; padding:2px 0px 6px; font-size:16px; font-weight:500;">
+                            Date:
+                              @if ($registrant->workshop->start_date == $registrant->workshop->end_date)
+                                {{ \Carbon\Carbon::parse($registrant->workshop->start_date)->format('jS F, Y') }}
+                            @else
+                                {{ \Carbon\Carbon::parse($registrant->workshop->start_date)->format('jS') }}
+                                -
+                                {{ \Carbon\Carbon::parse($registrant->workshop->end_date)->format('jS F, Y') }}
+                            @endif 
+                            {{-- Date: 31<sup>st</sup> Jan, 2026  --}}
+                            <br />
+                         </p>
+
+                        <h6
+                            style="font-size:24px; background:#fff;  margin:5px 0px; line-height:30px; font-weight:500; padding:2px 0px; background-color:rgba(0,174, 239, 0.4);">
+                        </h6>
+
+                        <h1
+                            style="font-size:34px;text-transform:capitalize; letter-spacing:-0.02em; color:#fff; background:#c4161c; margin:15px 40px 5px 40px; border-radius:20px; height:30px; padding:10px 0px;">
+                            @if (\Carbon\Carbon::parse($registrant->workshop->start_date)->lt(\Carbon\Carbon::parse('2025-04-04')))
+                                {{-- Pre-congress --}}
+                                Pre-Conference Workshop
+                            @elseif (\Carbon\Carbon::parse($registrant->workshop->start_date)->gt(\Carbon\Carbon::parse('2025-04-05')))
+                                {{-- Post-congress --}}
+                                Post-Conference Workshop
+                            @endif
+                        </h1>
+                        <h2> {{ $registrant->workshop->workshop_title }}</h2>
+                        <h3 style="color:#fff;">Peripherally Inserted Central Catheters -
+                            Live demonstration & hands-on training</h3>
+
+                        <h1
+                            style="font-size:34px;text-transform:capitalize; letter-spacing:-0.02em; background:#fff; margin:15px auto 5px; width:470px; border-radius:10px; height:25px; padding:14px 0px;">
+                           {{$registrant->user->userDetail->namePrefix->prefix }} {{ $registrant->user->fullName($registrant->user) }}
+
+                           </h1>
+                    </div>
+
+
+                    <div style="background-color:{{$registrant->registrant_type == 1 ? 'blue' : 'green'}}; height:auto; float:left; width:100%; overflow:hidden;">
+                        <h1
+                            style="color:#fff;  font-size:40px; padding:0px 30px 8px; margin:0px; weight:bold; text-align:center;">
+                            {{ $registrant->registrant_type == 1 ? 'Participant' : 'Instructor' }}</h1>
+                    </div>
+                    <div style="width:92%; font-size:15px; padding:12px 25px; color:#fff; float:left;">
+                        <p style="text-align:center; text-shadow:1px 1px 1px #000; "><b>Hosted by:</b><br />
+                            {{$registrant->workshop->conference->society->users->where('type',2)->value('f_name')}} (<span style="text-transform:uppercase;">{{$registrant->workshop->conference->society->abbreviation}}</span>)
+                        </p>
+                    </div>
+
+                </div>
+            </div>
+        @endforeach
+
+    </div>
 
 </body>
 
