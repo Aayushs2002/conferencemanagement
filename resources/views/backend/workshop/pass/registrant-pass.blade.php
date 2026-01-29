@@ -211,8 +211,8 @@
 
                         <h1
                             style="font-size:34px;text-transform:capitalize; letter-spacing:-0.02em; background:#fff; {{$registrant->workshop->workshop_slogan ? 'margin:15px auto 5px' : 'margin:15px auto 70px'}}; width:470px; border-radius:10px; height:25px; padding:14px 0px;">
-                            {{ $registrant->user->userDetail->namePrefix->prefix }}
-                            {{ $registrant->user->fullName($registrant->user) }}
+                            {{ $registrant?->user?->userDetail?->namePrefix->prefix }}
+                            {{ $registrant->user?->fullName($registrant->user) }}
 
                         </h1>
                     </div>

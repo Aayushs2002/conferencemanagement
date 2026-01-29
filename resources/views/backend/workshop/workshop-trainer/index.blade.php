@@ -15,10 +15,21 @@
                 </div>
                 <div class="d-md-flex justify-content-between align-items-center dt-layout-end col-md-auto ms-auto mt-0">
                     <div class="dt-buttons btn-group flex-wrap mb-0">
-                        <a href="{{ route('workshop.generatePass', ['workshop' => $workshop, 'registrant_type' => 2]) }}"
-                            class="btn btn-success me-2" tabindex="0">
+                        <button type="button" class="btn btn-success dropdown-toggle me-2" data-bs-toggle="dropdown" aria-expanded="false">
                             <span class="d-none d-sm-inline-block">Generate Pass</span>
-                        </a>
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li>
+                                <a class="dropdown-item" href="{{ route('workshop.generatePass', ['workshop' => $workshop, 'registrant_type' => 2]) }}">
+                                    <i class="ti tabler-users me-2"></i> Generate for Registered Trainers
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="javascript:void(0);" data-bs-toggle="modal" data-bs-target="#dummyPassModalTrainer">
+                                    <i class="ti tabler-user-plus me-2"></i> Generate Dummy Pass
+                                </a>
+                            </li>
+                        </ul>
                         
                         @if (auth()->user()->hasConferencePermissionBlade(getConference(request()->segment(4)), 'Add Workshop Trainer'))
                             <a href="{{ route('workshop.workshop-trainer.create', [$society, $conference, $workshop]) }}"
@@ -41,14 +52,14 @@
                         <th scope="col">Image</th>
                         <th scope="col">CV</th> --}}
                         <th scope="col">Action</th>
-                    </tr>
+                    </tr> 
                 </thead>
                 <tbody>
                     @foreach ($trainers as $trainer)
                         <tr>
                             <th scope="row">{{ $loop->iteration }}</th>
-                            <td>{{ $trainer->user->fullName($trainer->user) }}</td>
-                            <td>{{ $trainer->user->email }}</td>
+                            <td>{{ $trainer->user?->fullName($trainer->user) }}</td>
+                            <td>{{ $trainer->user?->email }}</td>
                             {{-- <td>{{ $trainer->affiliation }}</td>
                             <td><a href="{{ asset('storage/workshop/trainers/image/' . $trainer->image) }}"
                                     target="_blank"><img
@@ -94,6 +105,34 @@
         <div class="modal fade" id="pricingModal" tabindex="-1" aria-hidden="true">
             <div class="modal-dialog modal-lg modal-simple modal-pricing">
                 <div class="modal-content" id="modalContent">
+                </div>
+            </div>
+        </div>
+
+        <!-- Dummy Pass Generation Modal for Trainers -->
+        <div class="modal fade" id="dummyPassModalTrainer" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Generate Dummy Pass for Trainers</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <form action="{{ route('workshop.generateDummyPass', ['workshop' => $workshop]) }}" method="POST" target="_blank">
+                        @csrf
+                        <div class="modal-body">
+                            <div class="mb-3">
+                                <label for="dummy_count_trainer" class="form-label">Number of Dummy Passes <code>*</code></label>
+                                <input type="number" class="form-control" id="dummy_count_trainer" name="dummy_count" 
+                                       min="1" max="100" value="1" required>
+                                <small class="text-muted">Enter the number of dummy trainer passes to generate (Max: 100)</small>
+                            </div>
+                            <input type="hidden" name="registrant_type" value="2">
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <button type="submit" class="btn btn-success">Generate Passes</button>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>

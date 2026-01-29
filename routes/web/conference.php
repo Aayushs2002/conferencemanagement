@@ -322,6 +322,7 @@ Route::middleware('auth')->group(function () {
     });
 
     Route::get('workshop-registrant/generate-pass/{workshop}', [WorkshopRegistrationController::class, 'generatePass'])->name('workshop.generatePass');
+    Route::post('workshop-registrant/generate-dummy-pass/{workshop}', [WorkshopRegistrationController::class, 'generateDummyPass'])->name('workshop.generateDummyPass');
 
     Route::controller(WorkshopRegistrationController::class)->name('workshop.workshop-registration.')->group(function () {
         Route::post('/workshop/take-attendance', 'takeAttendance')->name('takeAttendance');
