@@ -342,15 +342,39 @@ class WorkshopRegistrationController extends Controller
                 'amount' => 0
             ]);
             
-            // Create a dummy user object for display purposes
-            $dummyUser = new \App\Models\User();
-            $dummyUser->f_name = '';
-            $dummyUser->m_name = '';
-            $dummyUser->l_name = '';
-            $dummyUser->email = '';
+            // Reload with workshop relationship
+            $dummyRegistrant->load('workshop');
+            
+            // Create a mock user object with userDetail
+            $dummyUserDetail = new class {
+                public $namePrefix;
+                public function __construct() {
+                    $this->namePrefix = new class {
+                        public $prefix = '';
+                    };
+                }
+            };
+            
+            // Create a mock fullName method by setting it as a closure
+            $dummyUserModel = new class {
+                public $userDetail;
+                public function __construct() {
+                    $this->userDetail = new class {
+                        public $namePrefix;
+                        public function __construct() {
+                            $this->namePrefix = new class {
+                                public $prefix = '';
+                            };
+                        }
+                    };
+                }
+                public function fullName($user) {
+                    return '';
+                }
+            };
             
             // Set the relationship manually
-            $dummyRegistrant->setRelation('user', $dummyUser);
+            $dummyRegistrant->setRelation('user', $dummyUserModel);
             
             $savedRegistrants->push($dummyRegistrant);
         }
