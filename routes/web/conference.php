@@ -287,6 +287,7 @@ Route::middleware('auth')->group(function () {
             Route::post('/verify', 'verify')->name('verify');
             Route::get('/download-voucher/{workshopRegistration}', 'downloadVoucher')->name('downloadVoucher');
             Route::post('/view', 'view')->name('view');
+            Route::delete('/destroy/{workshop}/{registration}', 'destroy')->name('destroy');
         });
 
 
@@ -296,7 +297,7 @@ Route::middleware('auth')->group(function () {
             Route::post('store', 'store')->name('store');
             Route::get('edit/{workshop}/{trainer}', 'edit')->name('edit');
             Route::any('update/{trainer}', 'update')->name('update');
-            Route::delete('destroy/{trainer}', 'destroy')->name('destroy');
+            Route::delete('destroy/{workshop}/{trainer}', 'destroy')->name('destroy');
         });
 
         Route::resource('workshop/workshop-pass-settings', WorkshopPassSettingController::class)->middleware('auto.conf.permission');

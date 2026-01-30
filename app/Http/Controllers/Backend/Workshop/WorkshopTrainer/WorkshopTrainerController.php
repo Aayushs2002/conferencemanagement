@@ -92,9 +92,13 @@ class WorkshopTrainerController extends Controller
         }
     }
 
-    public function destroy(WorkshopRegistration $trainer)
+    public function destroy($society, $conference, $workshop, WorkshopRegistration $trainer)
     {
-        $trainer->update(['status' => 0]);
-        return redirect()->back()->with('delete', 'Trainer Deleted Successfully');
+        try {
+            $trainer->update(['status' => 0]);
+            return redirect()->back()->with('delete', 'Trainer Deleted Successfully');
+        } catch (Exception $e) {
+            return redirect()->back()->with('delete', 'Failed to delete trainer');
+        }
     }
 }

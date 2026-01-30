@@ -125,14 +125,16 @@
                                         <a class="dropdown-item"
                                             href="{{ route('workshop.workshop-registration.downloadVoucher', [$society, $conference, $registration->id]) }}"><i
                                                 class="icon-base ti tabler-ticket me-1"></i> Downlaod Payment Voucher</a>
-                                        {{-- <hr>
-                                        <form action="{{ route('workshop.destroy', [$society, $conference, $workshop->id]) }}"
-                                            method="POST">
-                                            @method('delete')
-                                            @csrf
-                                            <a class="dropdown-item text-danger delete" href="javascript:void(0);"><i
-                                                    class="icon-base ti tabler-trash me-1"></i> Delete</a>
-                                        </form> --}}
+                                        {{-- @if ($registration->is_dummy == 1) --}}
+                                            <hr>
+                                            <form action="{{ route('workshop.workshop-registration.destroy', [$society, $conference, $workshop, $registration->id]) }}"
+                                                method="POST">
+                                                @method('delete')
+                                                @csrf
+                                                <a class="dropdown-item text-danger delete" href="javascript:void(0);"><i
+                                                        class="icon-base ti tabler-trash me-1"></i> Delete</a>
+                                            </form>
+                                        {{-- @endif --}}
                                     </div>
 
                                 </div>
