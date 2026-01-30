@@ -81,16 +81,16 @@
                                                     class="icon-base ti tabler-pencil me-1"></i> Edit</a>
                                         @endif
                                         <hr>
-                                        @if (auth()->user()->hasConferencePermissionBlade(getConference(request()->segment(4)), 'Delete Workshop Trainer'))
+                                        {{-- @if (auth()->user()->hasConferencePermissionBlade(getConference(request()->segment(4)), 'Delete Workshop Trainer')) --}}
                                             <form
-                                                action="{{ route('workshop.workshop-trainer.destroy', [$society, $conference, $trainer->id]) }}"
+                                                action="{{ route('workshop.workshop-trainer.destroy', [$society, $conference, $workshop, $trainer->id]) }}"
                                                 method="POST">
                                                 @method('delete')
                                                 @csrf
                                                 <a class="dropdown-item text-danger delete" href="javascript:void(0);"><i
                                                         class="icon-base ti tabler-trash me-1"></i> Delete</a>
                                             </form>
-                                        @endif
+                                        {{-- @endif --}}
                                     </div>
 
                                 </div>

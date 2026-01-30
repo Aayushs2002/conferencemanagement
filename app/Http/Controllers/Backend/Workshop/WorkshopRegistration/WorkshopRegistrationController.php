@@ -454,4 +454,14 @@ class WorkshopRegistrationController extends Controller
 
         return $pdf->download('payment-voucher.pdf');
     }
+
+    public function destroy($society, $conference, $workshop, WorkshopRegistration $registration)
+    {
+        try {
+            $registration->delete();
+            return redirect()->back()->with('delete', 'Registration Deleted Successfully');
+        } catch (Exception $e) {
+            return redirect()->back()->with('delete', 'Failed to delete registration');
+        }
+    }
 }
