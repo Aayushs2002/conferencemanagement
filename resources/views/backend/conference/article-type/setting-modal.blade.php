@@ -64,6 +64,73 @@
                 </div>
             </div>
 
+            <!-- Title Scoring Configuration -->
+            <div class="col-12 mb-4">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header border-0" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div class="d-flex align-items-center">
+                                <div class="bg-white bg-opacity-25 rounded-circle p-2 me-2">
+                                    <i class="ti tabler-heading fs-5"></i>
+                                </div>
+                                <h6 class="mb-0 text-white fw-semibold">Title Scoring</h6>
+                            </div>
+                            <div class="form-check form-switch mb-0">
+                                <input class="form-check-input" type="checkbox" id="title_scoring_enabled" 
+                                       name="title_scoring_enabled" value="1" style="width: 3rem; height: 1.5rem;"
+                                       {{ old('title_scoring_enabled', $setting->title_scoring_enabled ?? 0) ? 'checked' : '' }}>
+                                <label class="form-check-label text-white fw-semibold ms-2" for="title_scoring_enabled">
+                                    Enable Title Scoring
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body p-4" id="titleScoringBody" style="display: none;">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="title_max_marks" class="form-label fw-semibold mb-2">
+                                    Title Maximum Marks <span class="text-danger title-scoring-required">*</span>
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light border-end-0">
+                                        <i class="ti tabler-star text-warning"></i>
+                                    </span>
+                                    <input type="number" class="form-control border-start-0" id="title_max_marks" 
+                                           name="title_max_marks" 
+                                           value="{{ old('title_max_marks', $setting->title_max_marks ?? 0) }}"
+                                           placeholder="e.g., 2" min="0" step="0.5">
+                                </div>
+                                <small class="text-muted d-block mt-1">
+                                    <i class="ti tabler-info-circle me-1"></i>Maximum marks for the article title
+                                </small>
+                                <div id="titleMarksFeedback" class="mt-1" style="display: none;"></div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="alert alert-info border-0 mb-0" style="background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);">
+                                    <div class="d-flex align-items-start">
+                                        <i class="ti tabler-info-circle text-warning fs-4 me-2 mt-1"></i>
+                                        <div>
+                                            <strong class="d-block mb-1">Note:</strong>
+                                            <small>Title marks will be included in the total marks calculation along with section marks.</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-12 mb-0">
+                                <label for="title_reviewer_instruction" class="form-label fw-semibold mb-2">
+                                    <i class="ti tabler-checklist text-success me-1"></i>Reviewer Instructions for Title
+                                </label>
+                                <textarea class="form-control" id="title_reviewer_instruction" name="title_reviewer_instruction" rows="3" 
+                                          placeholder="Criteria for reviewers when rating the title (e.g., Assess clarity, relevance, accuracy, and engagement of the title)">{{ old('title_reviewer_instruction', $setting->title_reviewer_instruction ?? '') }}</textarea>
+                                <small class="text-muted d-block mt-1">
+                                    <i class="ti tabler-info-circle me-1"></i>These instructions will be shown to reviewers during title evaluation
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Number of Sections -->
             <div class="col-12 mb-4">
                 <div class="card border-0 shadow-sm"> 
@@ -153,7 +220,7 @@
                                         </div>
                                     </div>
                                 @endforeach
-                            @endif
+                            @endif 
                         </div>
                         
                         <div class="alert alert-light border mb-0 mt-2" style="background-color: #f8f9fa;">
@@ -279,6 +346,8 @@
                 $('.scoring-required').show();
                 $('#total_marks').prop('required', true);
                 $('.section-max-marks').prop('required', true);
+                // Also check title scoring state
+                toggleTitleScoringFields();
                 checkOverallInstructionRequired();
             } else {
                 $('#scoringConfigBody').slideUp();
@@ -286,8 +355,37 @@
                 $('.scoring-required').hide();
                 $('#total_marks').prop('required', false);
                 $('.section-max-marks').prop('required', false);
+                $('#titleScoringBody').slideUp();
+                $('#title_scoring_enabled').prop('disabled', true);
                 $('#overallInstructionField').slideUp();
             }
+        }
+
+        // Toggle title scoring fields
+        function toggleTitleScoringFields() {
+            const scoringEnabled = $('#scoring_allowed').is(':checked');
+            const titleScoringEnabled = $('#title_scoring_enabled').is(':checked');
+            
+            if (!scoringEnabled) {
+                $('#titleScoringBody').slideUp();
+                $('#title_scoring_enabled').prop('disabled', true);
+                $('#title_max_marks').prop('required', false);
+                return;
+            }
+            
+            $('#title_scoring_enabled').prop('disabled', false);
+            
+            if (titleScoringEnabled) {
+                $('#titleScoringBody').slideDown();
+                $('.title-scoring-required').show();
+                $('#title_max_marks').prop('required', true);
+            } else {
+                $('#titleScoringBody').slideUp();
+                $('.title-scoring-required').hide();
+                $('#title_max_marks').prop('required', false);
+            }
+            
+            checkOverallInstructionRequired();
         }
 
         // Check if overall instruction is required
@@ -295,44 +393,79 @@
             if (!$('#scoring_allowed').is(':checked')) {
                 $('#overallInstructionField').hide();
                 $('.section-marks-feedback').hide().html('');
+                $('#titleMarksFeedback').hide().html('');
                 return;
             }
 
             const totalMarks = parseFloat($('#total_marks').val()) || 10;
             let sectionMarksSum = 0;
+            let titleMarks = 0;
             
-            // First, calculate the total sum of all section marks
+            // Add title marks if title scoring is enabled
+            if ($('#title_scoring_enabled').is(':checked')) {
+                titleMarks = parseFloat($('#title_max_marks').val()) || 0;
+            }
+            
+            // Calculate the total sum of all section marks
             $('.section-max-marks').each(function() {
                 const value = parseFloat($(this).val()) || 0;
                 sectionMarksSum += value;
             });
             
-            // Now show validation messages based on the total sum
+            // Calculate combined marks (title + sections)
+            const combinedMarks = titleMarks + sectionMarksSum;
+            
+            // Show validation for title marks
+            if ($('#title_scoring_enabled').is(':checked')) {
+                const titleFeedback = $('#titleMarksFeedback');
+                if (titleMarks < 0) {
+                    titleFeedback.html(`<small class="text-danger"><i class="ti tabler-alert-circle me-1"></i>Marks cannot be negative</small>`).show();
+                } else if (combinedMarks > totalMarks) {
+                    const excess = combinedMarks - totalMarks;
+                    titleFeedback.html(`<small class="text-danger"><i class="ti tabler-alert-circle me-1"></i>Combined marks (${combinedMarks}) exceed total marks (${totalMarks}) by ${excess}</small>`).show();
+                } else {
+                    titleFeedback.hide().html('');
+                }
+            }
+            
+            // Show validation messages for section marks based on the total sum
             $('.section-max-marks').each(function() {
                 const value = parseFloat($(this).val()) || 0;
                 const feedbackDiv = $(this).closest('.section-scoring-field').find('.section-marks-feedback');
                 
                 if (value < 0) {
                     feedbackDiv.html(`<small class="text-danger"><i class="ti tabler-alert-circle me-1"></i>Marks cannot be negative</small>`).show();
-                } else if (sectionMarksSum > totalMarks) {
-                    const excess = sectionMarksSum - totalMarks;
-                    feedbackDiv.html(`<small class="text-danger"><i class="ti tabler-alert-circle me-1"></i>Total section marks (${sectionMarksSum}) exceed total marks (${totalMarks}) by ${excess}</small>`).show();
+                } else if (combinedMarks > totalMarks) {
+                    const excess = combinedMarks - totalMarks;
+                    feedbackDiv.html(`<small class="text-danger"><i class="ti tabler-alert-circle me-1"></i>Combined marks (${combinedMarks}) exceed total marks (${totalMarks}) by ${excess}</small>`).show();
                 } else {
                     feedbackDiv.hide().html('');
                 }
             });
             
-            // Show overall instruction field based on sum
-            if (sectionMarksSum < totalMarks && sectionMarksSum >= 0) {
-                const remaining = totalMarks - sectionMarksSum;
+            // Show overall instruction field based on combined sum
+            if (combinedMarks < totalMarks && combinedMarks >= 0) {
+                const remaining = totalMarks - combinedMarks;
+                let breakdownText = '';
+                if (titleMarks > 0) {
+                    breakdownText = `(${totalMarks} - ${titleMarks} title - ${sectionMarksSum} sections)`;
+                } else {
+                    breakdownText = `(${totalMarks} - ${sectionMarksSum})`;
+                }
                 $('#remainingMarksText').text(
-                    `Remaining ${remaining} marks (${totalMarks} - ${sectionMarksSum}) will be for overall rating. Provide instructions for reviewers.`
+                    `Remaining ${remaining} marks ${breakdownText} will be for overall rating. Provide instructions for reviewers.`
                 );
                 $('#overallInstructionField').slideDown();
-            } else if (sectionMarksSum > totalMarks) {
-                const excess = sectionMarksSum - totalMarks;
+            } else if (combinedMarks > totalMarks) {
+                const excess = combinedMarks - totalMarks;
+                let breakdownText = '';
+                if (titleMarks > 0) {
+                    breakdownText = `(${titleMarks} title + ${sectionMarksSum} sections = ${combinedMarks})`;
+                } else {
+                    breakdownText = `(${sectionMarksSum})`;
+                }
                 $('#remainingMarksText').text(
-                    `Section marks (${sectionMarksSum}) exceed total marks (${totalMarks}) by ${excess}. Please adjust.`
+                    `Combined marks ${breakdownText} exceed total marks (${totalMarks}) by ${excess}. Please adjust.`
                 );
                 $('#overallInstructionField').slideDown();
             } else {
@@ -348,8 +481,13 @@
             toggleScoringFields();
         });
 
-        // Listen to total marks and section marks changes
-        $(document).on('input', '#total_marks, .section-max-marks', function() {
+        // Listen to title scoring toggle
+        $('#title_scoring_enabled').on('change', function() {
+            toggleTitleScoringFields();
+        });
+
+        // Listen to total marks, title marks, and section marks changes
+        $(document).on('input', '#total_marks, #title_max_marks, .section-max-marks', function() {
             if ($('#scoring_allowed').is(':checked')) {
                 checkOverallInstructionRequired();
             }
@@ -470,7 +608,7 @@
             $(this).next('.invalid-feedback').remove();
         });
 
-        // Validate section marks don't exceed total marks
+        // Validate marks don't exceed total marks
         function validateSectionMarks() {
             if (!$('#scoring_allowed').is(':checked')) {
                 return true; // Skip validation if scoring is disabled
@@ -478,16 +616,25 @@
 
             var totalMarks = parseFloat($('#total_marks').val()) || 10;
             var sectionMarksSum = 0;
+            var titleMarks = 0;
+            
+            // Add title marks if enabled
+            if ($('#title_scoring_enabled').is(':checked')) {
+                titleMarks = parseFloat($('#title_max_marks').val()) || 0;
+            }
             
             $('.section-max-marks').each(function() {
                 sectionMarksSum += parseFloat($(this).val()) || 0;
             });
             
-            if (sectionMarksSum > totalMarks) {
+            var combinedMarks = titleMarks + sectionMarksSum;
+            
+            if (combinedMarks > totalMarks) {
+                var breakdown = titleMarks > 0 ? `(${titleMarks} title + ${sectionMarksSum} sections = ${combinedMarks})` : `(${sectionMarksSum})`;
                 Swal.fire({
                     icon: 'warning',
                     title: 'Invalid Configuration',
-                    text: `Sum of section marks (${sectionMarksSum}) exceeds total marks (${totalMarks}). Please adjust the values.`,
+                    text: `Combined marks ${breakdown} exceed total marks (${totalMarks}). Please adjust the values.`,
                 });
                 return false;
             }

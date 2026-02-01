@@ -215,6 +215,7 @@
                                                    collect($submission->submissionRating->section_ratings)->sum(
                                                        'rating',
                                                    ) +
+                                                   ($submission->submissionRating->title_rating ?? 0) +
                                                    ($submission->submissionRating->grammar ?? 0) +
                                                    ($submission->submissionRating->overall_rating ?? 0);
                                            }
@@ -465,7 +466,7 @@
                         </div>
                     </div>
                 `);
-               var data = {
+               var data = { 
                    _token: _token,
                    id: id
                };

@@ -66,6 +66,63 @@
                     </div>
                     {{-- @endif --}}
                     @if (($submission->articleType->setting->scoring_allowed ?? 1) == 1)
+                        {{-- Title Scoring --}}
+                        @if (($submission->articleType->setting->title_scoring_enabled ?? 0) == 1)
+                            <div class="row pl-3 decisionForm" style="display: none;">
+                                <div class="col-md-12 mb-4">
+                                    <div class="card border-0 shadow-sm" style="background: linear-gradient(135deg, #fff8e1 0%, #ffecb3 100%);">
+                                        <div class="card-body p-3">
+                                            <label for="title_rating" class="form-label fw-semibold mb-2">
+                                                <i class="ti tabler-heading text-warning me-1"></i>
+                                                Title Rating
+                                            </label>
+                                            
+                                            @if(!empty($submission->articleType->setting->title_reviewer_instruction))
+                                                <div class="alert border-0 py-2 px-3 mb-3" style="background: linear-gradient(135deg, #e1f5fe 0%, #b3e5fc 100%);">
+                                                    <div class="d-flex align-items-start">
+                                                        <i class="ti tabler-info-circle text-info me-2 mt-1 flex-shrink-0"></i>
+                                                        <small class="text-dark mb-0" style="line-height: 1.5;">
+                                                            <strong>Review Criteria:</strong> {{ $submission->articleType->setting->title_reviewer_instruction }}
+                                                        </small>
+                                                    </div>
+                                                </div>
+                                            @endif
+                                            
+                                            <div class="d-flex align-items-center gap-2 mb-2">
+                                                <span class="badge rounded-pill px-3 py-2" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                                                    <i class="ti tabler-star me-1"></i>Max: {{ $submission->articleType->setting->title_max_marks ?? 0 }}
+                                                </span>
+                                                <code class="bg-danger bg-opacity-10 text-danger px-2 py-1 rounded">*</code>
+                                            </div>
+                                            
+                                            @php
+                                                $titleMaxMarks = $submission->articleType->setting->title_max_marks ?? 0;
+                                                $titleScoreOptions = [];
+                                                if ($titleMaxMarks >= 1) {
+                                                    $step = ($titleMaxMarks <= 2) ? 1 : 0.5;
+                                                    for ($i = 0; $i <= $titleMaxMarks; $i += $step) {
+                                                        $titleScoreOptions[] = $i;
+                                                    }
+                                                } else {
+                                                    $titleScoreOptions = [0];
+                                                }
+                                            @endphp
+                                            
+                                            <select name="title_rating" id="title_rating"
+                                                class="form-control form-select title-rating-select" 
+                                                data-max-marks="{{ $titleMaxMarks }}">
+                                                <option value="" hidden>-- Select Title Score --</option>
+                                                @foreach($titleScoreOptions as $score)
+                                                    <option value="{{ $score }}">{{ $score }} {{ $score == $titleMaxMarks ? '(Max)' : '' }}</option>
+                                                @endforeach
+                                            </select>
+                                            <p class="text-danger title-rating-error mb-0 mt-2 small"></p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        @endif
+
                         {{-- Section-based ratings if article type has sections --}}
                         @if (!empty($articleTypeSections) && is_array($articleTypeSections))
                             <div class="row pl-3 decisionForm" style="display: none;">
@@ -459,8 +516,8 @@
 
     // Check if overall rating field should be shown for section-based ratings
     function checkSectionOverallRatingRequired() {
-        // Only proceed if section rating fields exist
-        if ($('.section-rating-select').length === 0) {
+        // Only proceed if section rating fields exist or title rating exists
+        if ($('.section-rating-select').length === 0 && $('.title-rating-select').length === 0) {
             return;
         }
 
@@ -473,8 +530,16 @@
         @endphp
         const totalMarks = {{ $totalMarks }};
 
-        // Calculate maximum possible score based on each section's max_marks
+        // Calculate maximum possible score based on title and each section's max_marks
         let maxPossibleScore = 0;
+        
+        // Add title marks if enabled
+        if ($('.title-rating-select').length > 0) {
+            const titleMaxMarks = parseFloat($('.title-rating-select').data('max-marks')) || 0;
+            maxPossibleScore += titleMaxMarks;
+        }
+        
+        // Add section marks
         $('.section-rating-select').each(function() {
             const sectionMaxMarks = parseFloat($(this).data('max-marks')) || 2;
             maxPossibleScore += sectionMaxMarks;
@@ -498,9 +563,22 @@
             $('#sectionOverallRatingDiv').show();
             $('#section_overall_rating').attr('required', true);
             
+            // Build breakdown text
+            let breakdownText = '';
+            if ($('.title-rating-select').length > 0) {
+                const titleMarks = parseFloat($('.title-rating-select').data('max-marks')) || 0;
+                let sectionMarksTotal = 0;
+                $('.section-rating-select').each(function() {
+                    sectionMarksTotal += parseFloat($(this).data('max-marks')) || 0;
+                });
+                breakdownText = `(${totalMarks} total - ${titleMarks} title - ${sectionMarksTotal} sections = ${remaining} remaining)`;
+            } else {
+                breakdownText = `(${totalMarks} total - ${maxPossibleScore} sections = ${remaining} remaining)`;
+            }
+            
             // Update label with badge showing remaining marks
             $('#sectionOverallRatingDiv .form-label').html(
-                `<i class="ti tabler-certificate text-success me-1"></i>Overall Rating (Consistency, Grammar, Language, etc.) <span class="badge rounded-pill ms-2" style="background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);"><i class="ti tabler-star me-1"></i>Remaining: ${remaining}</span><code class="ms-1">*</code>`
+                `<i class="ti tabler-certificate text-success me-1"></i>Overall Rating <span class="badge rounded-pill ms-2" style="background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);"><i class="ti tabler-star me-1"></i>Remaining: ${remaining} ${breakdownText}</span><code class="ms-1">*</code>`
             );
         } else {
             // Hide overall rating field if max possible score is already at or above total marks
@@ -580,6 +658,12 @@
 
                     $('.' + key).html('');
                     $('.' + key).append(val);
+                    
+                    // Handle title rating error
+                    if (key === 'title_rating') {
+                        $('.title-rating-error').html(val);
+                    }
+                    
                     $('.section-rating-error-' + key.split('.')[1]).html(val);
 
                     $(fieldId).addClass('border-danger');
@@ -588,11 +672,13 @@
                     $(fieldId).on('input change', function() {
                         $('.' + key).html('');
                         $('.section-rating-error-' + key.split('.')[1]).html('');
+                        $('.title-rating-error').html('');
                         $(this).removeClass('border-danger');
                     });
 
                     $('#' + key).on('input change', function() {
                         $('.' + key).html('');
+                        $('.title-rating-error').html('');
                         $(this).removeClass('border-danger');
                     });
                 });

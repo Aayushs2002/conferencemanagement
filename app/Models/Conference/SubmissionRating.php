@@ -14,6 +14,7 @@ class SubmissionRating extends Model
         'conclusion',
         'grammar',
         'overall_rating',
+        'title_rating',
         'section_ratings',
         'status'
     ];

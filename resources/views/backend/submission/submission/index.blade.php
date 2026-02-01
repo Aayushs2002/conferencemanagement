@@ -285,6 +285,7 @@
                                                     collect($submission->submissionRating->section_ratings)->sum(
                                                         'rating',
                                                     ) +
+                                                    ($submission->submissionRating->title_rating ?? 0) +
                                                     ($submission->submissionRating->grammar ?? 0) +
                                                     ($submission->submissionRating->overall_rating ?? 0);
                                             }

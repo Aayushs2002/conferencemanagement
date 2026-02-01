@@ -545,6 +545,12 @@ class SubmissionController extends Controller
 
                 // Validate ratings based on section-based or default structure
                 if ($hasSectionRatings) {
+                    // Title rating validation (if title scoring is enabled)
+                    if ($submission->articleType->setting->title_scoring_enabled ?? false) {
+                        $titleMaxMarks = $submission->articleType->setting->title_max_marks ?? 0;
+                        $rules['title_rating'] = $scoreRule . "|min:0|max:{$titleMaxMarks}";
+                    }
+                    
                     // Section-based ratings validation with dynamic max marks
                     if ($request->has('section_ratings') && is_array($request->section_ratings)) {
                         $sections = $submission->articleType->setting->sections ?? [];
@@ -558,8 +564,15 @@ class SubmissionController extends Controller
                     // Get total marks from article type setting (default 10)
                     $totalMarks = $submission->articleType->setting->total_marks ?? 10;
                     
-                    // Calculate maximum possible score based on sum of section max_marks
+                    // Calculate maximum possible score based on sum of section max_marks and title marks
                     $maxPossibleScore = 0;
+                    
+                    // Add title marks if enabled
+                    if ($submission->articleType->setting->title_scoring_enabled ?? false) {
+                        $maxPossibleScore += $submission->articleType->setting->title_max_marks ?? 0;
+                    }
+                    
+                    // Add section marks
                     $sections = $submission->articleType->setting->sections ?? [];
                     foreach ($sections as $section) {
                         $maxPossibleScore += $section['max_marks'] ?? 2;
@@ -623,6 +636,7 @@ class SubmissionController extends Controller
             if ($hasSectionRatings && $request->has('section_ratings')) {
                 // Section-based rating
                 $ratingData = [
+                    'title_rating' => $request->title_rating ?? null,
                     'section_ratings' => $request->section_ratings,
                     'grammar' => $validated['grammar'] ?? null,
                     'overall_rating' => $validated['overall_rating'] ?? null, // Store overall rating if provided
