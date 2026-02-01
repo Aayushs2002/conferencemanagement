@@ -121,13 +121,13 @@
                     @foreach ($workshop->registrations as $registration)
                         <div class="col-md-4">
                             <div class="prof-card p-3 d-flex flex-column h-100 ">
-                                <img src="{{ Storage::url('profile/image/' . $registration->user->userDetail->image) }}"
-                                    alt="{{ $registration->user->fullName($registration->user) }}" class="profile-img mb-3">
-                                <h6 class="card-title mb-1">{{ $registration->user->userDetail->namePrefix->prefix }}
-                                    {{ $registration->user->fullName($registration->user) }}
+                                <img src="{{ Storage::url('profile/image/' . $registration?->user?->userDetail->image) }}"
+                                    alt="{{ $registration->user?->fullName($registration->user) }}" class="profile-img mb-3">
+                                <h6 class="card-title mb-1">{{ $registration->user?->userDetail->namePrefix->prefix }}
+                                    {{ $registration->user?->fullName($registration->user) }}
                                 </h6>
                                 <small
-                                    class="card-subtitle">{{ $registration->user->userDetail->designation?->designation }}</small>
+                                    class="card-subtitle">{{ $registration->user?->userDetail->designation?->designation }}</small>
                             </div>
                         </div>
                     @endforeach
