@@ -16,6 +16,14 @@
                     <h6 class="text-primary"><i class="ti tabler-report-analytics me-2"></i>Section-Based Scores</h6>
                 </div>
 
+                {{-- Title Rating --}}
+                @if ($submission->submissionRating->title_rating !== null)
+                    <div class="col-md-4 mb-4">
+                        <p class="text-primary mb-1"><i class="ti tabler-heading text-16 me-1"></i>Title Rating</p>
+                        <span class="badge bg-label-warning">{{ $submission->submissionRating->title_rating }}</span>
+                    </div>
+                @endif
+
                 @foreach ($submission->submissionRating->section_ratings as $index => $sectionRating)
                     <div class="col-md-4 mb-4">
                         <p class="text-primary mb-1"><i
@@ -39,6 +47,7 @@
                 @php
                     $totalSectionScore =
                         collect($submission->submissionRating->section_ratings)->sum('rating') +
+                        ($submission->submissionRating->title_rating ?? 0) +
                         ($submission->submissionRating->grammar ?? 0) +
                         ($submission->submissionRating->overall_rating ?? 0);
                 @endphp

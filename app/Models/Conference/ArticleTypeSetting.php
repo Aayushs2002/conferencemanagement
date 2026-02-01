@@ -12,6 +12,9 @@ class ArticleTypeSetting extends Model
         'sections',
         'total_marks',
         'scoring_allowed',
+        'title_scoring_enabled',
+        'title_max_marks',
+        'title_reviewer_instruction',
         'overall_instruction',
         'attachment_name',
         'is_attachment_required',
@@ -25,6 +28,7 @@ class ArticleTypeSetting extends Model
         'sections' => 'array',
         'is_attachment_required' => 'boolean',
         'scoring_allowed' => 'boolean',
+        'title_scoring_enabled' => 'boolean',
         'is_conflict_of_interest_required' => 'boolean',
         'is_source_of_funding_required' => 'boolean',
     ];

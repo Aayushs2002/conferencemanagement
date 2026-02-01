@@ -313,8 +313,8 @@ class SubmissionController extends Controller
                     'namePrefix' => $expert->userDetail->prefix,
                     'topic' => $submission->title,
                     'conference_name' => $submission->conference->conference_name,
-                    'society_slug' => $submission->conference->society->slug ?? 'society',
-                    'conference_slug' => $submission->conference->slug ?? 'conference',
+                    'society_slug' => $submission->conference->society,
+                    'conference_slug' => $submission->conference,
                 ];
                 $data = [
                     'submission_topic' => $submission->title,
