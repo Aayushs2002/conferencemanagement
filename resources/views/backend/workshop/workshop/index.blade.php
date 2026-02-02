@@ -19,16 +19,35 @@
                                 <span class="d-none d-sm-inline-block">Export</span> 
                             </button>
                             <ul class="dropdown-menu">
-                                <li><a class="dropdown-item" href="#" onclick="exportTo('excel')">Export to Excel</a>
+                                <li><h6 class="dropdown-header">Workshop Data</h6></li>
+                                <li><a class="dropdown-item" href="#" onclick="exportTo('excel')">Export Workshops to Excel</a></li>
+                                <li><a class="dropdown-item" href="#" onclick="exportTo('pdf')">Export Workshops to PDF</a></li>
+                                <li><a class="dropdown-item" href="#" onclick="exportTo('csv')">Export Workshops to CSV</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><h6 class="dropdown-header">Registrations & Trainers</h6></li>
+                                <li>
+                                    <a class="dropdown-item" href="{{ route('workshop.export.registrations', [$society, $conference]) }}">
+                                        <i class="ti tabler-users me-1"></i> Export All Registrations
+                                    </a>
                                 </li>
-                                <li><a class="dropdown-item" href="#" onclick="exportTo('pdf')">Export to PDF</a></li>
-                                <li><a class="dropdown-item" href="#" onclick="exportTo('csv')">Export to CSV</a></li>
+                                <li>
+                                    <a class="dropdown-item" href="{{ route('workshop.export.trainers', [$society, $conference]) }}">
+                                        <i class="ti tabler-school me-1"></i> Export All Trainers
+                                    </a>
+                                </li>
                                 <li>
                                     <hr class="dropdown-divider">
                                 </li>
                                 <li><a class="dropdown-item" href="#" onclick="window.print()">Print</a></li>
                             </ul>
                         </div>
+                        @if (auth()->user()->hasConferencePermissionBlade(getConference(request()->segment(4)), 'Send Mail'))
+                            <a href="" class="btn btn-info sendMail me-2" data-bs-toggle="modal"
+                                data-bs-target="#pricingModal" tabindex="0">
+                                <i class="icon-base ti tabler-mail icon-xs me-sm-1"></i>
+                                <span class="d-none d-sm-inline-block">Send Mail</span>
+                            </a>
+                        @endif
                         @if (auth()->user()->hasConferencePermissionBlade(getConference(request()->segment(4)), 'Add Workshop'))
                             <a href="{{ route('workshop.create', [$society, $conference]) }}" class="btn btn-primary"
                                 tabindex="0">
@@ -65,7 +84,7 @@
                             <td class="drag-handle text-center">
                                 <i class="ti tabler-grip-vertical" style="font-size: 20px; color: #999;"></i>
                             </td>
-                            <td>{{ $loop->iteration }}</td>
+                            <td>{{ $loop->iteration }}</td> 
                             <td>{{ $workshop->workshop_title }}</td>
                             <td>{{ \Carbon\Carbon::parse($workshop->start_date)->format('d M, Y') }}
                                 {{ !empty($workshop->end_date) ? ' - ' . \Carbon\Carbon::parse($workshop->end_date)->format('d M, Y') : '' }}
@@ -165,6 +184,23 @@
                                                         class="icon-base ti tabler-user me-1"></i>Registrants</a>
                                             @endif
                                         @endif
+                                        @if (auth()->user()->hasConferencePermissionBlade(getConference(request()->segment(4)), 'View Workshop Certificate Setting'))
+                                            <a href="{{ route('workshop-certificate.index', [$society, $conference, $workshop]) }}"
+                                                class="dropdown-item mb-1"><i
+                                                    class="icon-base ti tabler-certificate me-1"></i>Certificate Setting</a>
+                                        @endif
+                                        <hr>
+                                        <h6 class="dropdown-header">Download Excel</h6>
+                                        <a href="{{ route('workshop.export.registrations', [$society, $conference, 'workshop_id' => $workshop->id]) }}"
+                                            class="dropdown-item">
+                                            <i class="icon-base ti tabler-download me-1"></i> Registrants 
+                                            <span class="badge bg-success ms-1">{{ $workshop->registrations->where('status', 1)->where('registrant_type', 1)->count() }}</span>
+                                        </a>
+                                        <a href="{{ route('workshop.export.trainers', [$society, $conference, 'workshop_id' => $workshop->id]) }}"
+                                            class="dropdown-item">
+                                            <i class="icon-base ti tabler-download me-1"></i> Trainers 
+                                            <span class="badge bg-info ms-1">{{ $workshop->registrations->where('status', 1)->where('registrant_type', 2)->count() }}</span>
+                                        </a>
                                         <hr>
                                         @if (auth()->user()->hasConferencePermissionBlade(getConference(request()->segment(4)), 'Delete Workshop'))
                                             <form
@@ -317,6 +353,28 @@
                 var data = {
                     _token: _token,
                     id: id
+                };
+                $.post(url, data, function(response) {
+                    setTimeout(function() {
+                        $('#modalContent').html(response);
+                    }, 1000);
+                });
+            });
+
+            $(document).on("click", ".sendMail", function(e) {
+                e.preventDefault();
+                $(".modal-dialog").removeClass('custom-modal-width');
+                var url = '{{ route('workshop.sendMail', [$society, $conference]) }}';
+                var _token = '{{ csrf_token() }}';
+                $('#modalContent').html(`
+                    <div class="modal-body text-center">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                `);
+                var data = {
+                    _token: _token
                 };
                 $.post(url, data, function(response) {
                     setTimeout(function() {

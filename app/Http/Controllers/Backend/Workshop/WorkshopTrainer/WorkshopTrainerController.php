@@ -14,10 +14,34 @@ use Illuminate\Http\Request;
 class WorkshopTrainerController extends Controller
 {
     public function __construct(protected FileService $fileService) {}
-    public function index($society, $conference, $workshop)
+    public function index(Request $request, $society, $conference, $workshop)
     {
+        $query = WorkshopRegistration::with('user')->where(['workshop_registrations.workshop_id' => $workshop->id, 'workshop_registrations.registrant_type' => 2, 'workshop_registrations.status' => 1]);
 
-        $trainers = WorkshopRegistration::where(['workshop_id' => $workshop->id, 'registrant_type' => 2, 'status' => 1])->latest()->get();
+        // Apply sorting
+        if ($request->filled('sort')) {
+            if ($request->sort == 'name_asc') {
+                $query->leftJoin('users', 'workshop_registrations.user_id', '=', 'users.id')
+                    ->orderByRaw('CASE WHEN workshop_registrations.user_id IS NULL THEN 1 ELSE 0 END')
+                    ->orderBy('users.f_name', 'asc')
+                    ->orderBy('users.l_name', 'asc')
+                    ->select('workshop_registrations.*');
+            } elseif ($request->sort == 'name_desc') {
+                $query->leftJoin('users', 'workshop_registrations.user_id', '=', 'users.id')
+                    ->orderByRaw('CASE WHEN workshop_registrations.user_id IS NULL THEN 1 ELSE 0 END')
+                    ->orderBy('users.f_name', 'desc')
+                    ->orderBy('users.l_name', 'desc')
+                    ->select('workshop_registrations.*');
+            } else {
+                $query->orderByRaw('CASE WHEN workshop_registrations.user_id IS NULL THEN 1 ELSE 0 END')
+                    ->latest('workshop_registrations.created_at');
+            }
+        } else {
+            $query->orderByRaw('CASE WHEN workshop_registrations.user_id IS NULL THEN 1 ELSE 0 END')
+                ->latest('workshop_registrations.created_at');
+        }
+
+        $trainers = $query->get();
         return view('backend.workshop.workshop-trainer.index', compact('workshop', 'trainers', 'society', 'conference'));
     }
 

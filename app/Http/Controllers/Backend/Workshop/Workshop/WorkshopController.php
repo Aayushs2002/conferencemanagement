@@ -4,16 +4,22 @@ namespace App\Http\Controllers\Backend\Workshop\Workshop;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Conference\WorkshopRequest;
+use App\Jobs\SendWorkshopBulkMailJob;
+use App\Exports\WorkshopRegistrationExport;
+use App\Exports\WorkshopTrainerExport;
 use App\Models\User\Society;
 use App\Models\Workshop\Workshop;
 use App\Models\Workshop\WorkshopChairPersonDetail;
+use App\Models\Workshop\WorkshopRegistration;
 use App\Models\Workshop\WorkshopRegistrationPrice;
+use App\Models\Workshop\WorkshopTrainer;
 use App\Models\Workshop\WorkshopVenueDetail;
 use App\Models\WorkshopRating;
 use App\Services\File\FileService;
 use Exception;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB; 
+use Illuminate\Support\Facades\DB;
+use Maatwebsite\Excel\Facades\Excel; 
 use Batch;
 
 class WorkshopController extends Controller
@@ -465,4 +471,176 @@ class WorkshopController extends Controller
             ], 500);
         }
     }
+
+    public function sendMail($society, $conference)
+    {
+        $workshops = Workshop::where(['conference_id' => $conference->id, 'status' => 1])
+            ->orderBy('workshop_title', 'asc')
+            ->get();
+
+        return view('backend.workshop.workshop.send-mail', compact('workshops', 'society', 'conference'));
+    }
+
+    public function sendMailSubmit(Request $request, $society, $conference)
+    {
+        try {
+            $type = 'success';
+            $message = 'Mail sent successfully.';
+
+            $validated = $request->validate([
+                'workshop_id' => 'required|exists:workshops,id',
+                'recipient_type' => 'required|in:1,2,3',
+                'User' => 'required',
+                'subject' => 'required',
+                'mail_content' => 'required',
+            ]);
+
+            $users = json_decode($validated['User']);
+
+            if (empty($users)) {
+                throw new Exception('No recipients selected');
+            }
+
+            foreach ($users as $user) {
+                SendWorkshopBulkMailJob::dispatch($user, $validated['subject'], $validated['mail_content'], $conference->conference_name);
+            }
+        } catch (Exception $e) {
+            $type = 'error';
+            $message = $e->getMessage();
+        }
+
+        return response()->json(['type' => $type, 'message' => $message]);
+    }
+
+    public function getUsersByWorkshopAndType(Request $request, $society, $conference)
+    {
+        try {
+            $workshopId = $request->input('workshop_id');
+            $recipientType = $request->input('recipient_type');
+
+            if (!$workshopId || !$recipientType) {
+                return response()->json([]);
+            }
+
+            $users = collect();
+
+            // Recipient Type: 1 = Registrants, 2 = Trainers, 3 = Both
+            if (in_array($recipientType, ['1', '3'])) {
+                // Get registrants (verified and active only)
+                $registrants = WorkshopRegistration::where('workshop_id', $workshopId)
+                    ->where('verified_status', 1)
+                    ->where('status', 1)
+                    ->where('registrant_type', 1)
+                    ->with('user:id,f_name,m_name,l_name,email')
+                    ->get()
+                    ->pluck('user')
+                    ->filter();
+
+                $users = $users->merge($registrants);
+            }
+
+            if (in_array($recipientType, ['2', '3'])) {
+                // Get trainers (registrant_type = 2)
+                $trainers = WorkshopRegistration::where('workshop_id', $workshopId)
+                    ->where('verified_status', 1)
+                    ->where('status', 1)
+                    ->where('registrant_type', 2)
+                    ->with('user:id,f_name,m_name,l_name,email')
+                    ->get()
+                    ->pluck('user')
+                    ->filter();
+
+                $users = $users->merge($trainers);
+            }
+
+            // Remove duplicates based on email
+            $users = $users->unique('email')
+                ->filter(function ($user) {
+                    return !empty($user) && !empty($user->email);
+                })
+                ->map(function ($user) {
+                    return [
+                        'value' => $user->id,
+                        'name' => trim("{$user->f_name} {$user->m_name} {$user->l_name}"),
+                        'email' => $user->email,
+                        'avatar' => 'https://i.pravatar.cc/80?u='.urlencode($user->email),
+                    ];
+                })->values();
+
+            return response()->json($users);
+        } catch (Exception $e) {
+            \Log::error('Workshop getUsersByWorkshopAndType error: ' . $e->getMessage());
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
+
+    public function exportRegistrations(Request $request, $society, $conference)
+    {
+        try {
+            $query = WorkshopRegistration::where('status', 1)
+                ->where('registrant_type', 1)
+                ->with(['user.userDetail.country', 'user.userDetail.institution', 'workshop']);
+
+            // Filter by conference
+            $query->whereHas('workshop', function ($q) use ($conference) {
+                $q->where('conference_id', $conference->id);
+            });
+
+            // Filter by workshop if provided
+            if ($request->filled('workshop_id')) {
+                $query->where('workshop_id', $request->workshop_id);
+            }
+
+            // Filter by verified status if provided
+            if ($request->filled('verified_status')) {
+                $query->where('verified_status', $request->verified_status);
+            }
+
+            // Filter by meal type if provided
+            if ($request->filled('meal_type')) {
+                $query->where('meal_type', $request->meal_type);
+            }
+
+            $registrants = $query->get();
+
+            $fileName = 'Workshop_Registrations_' . date('Y-m-d_H-i-s') . '.xlsx';
+
+            return Excel::download(new WorkshopRegistrationExport($registrants), $fileName);
+        } catch (Exception $e) {
+            return redirect()->back()->with('delete', 'Export failed: ' . $e->getMessage());
+        }
+    }
+
+    public function exportTrainers(Request $request, $society, $conference)
+    {
+        try {
+            $query = WorkshopRegistration::where('status', 1)
+                ->where('registrant_type', 2)
+                ->with(['user.userDetail.country', 'user.userDetail.institution', 'workshop']);
+
+            // Filter by conference
+            $query->whereHas('workshop', function ($q) use ($conference) {
+                $q->where('conference_id', $conference->id);
+            });
+
+            // Filter by workshop if provided
+            if ($request->filled('workshop_id')) {
+                $query->where('workshop_id', $request->workshop_id);
+            }
+
+            // Filter by verified status if provided
+            if ($request->filled('verified_status')) {
+                $query->where('verified_status', $request->verified_status);
+            }
+
+            $trainers = $query->get();
+
+            $fileName = 'Workshop_Trainers_' . date('Y-m-d_H-i-s') . '.xlsx';
+
+            return Excel::download(new WorkshopTrainerExport($trainers), $fileName);
+        } catch (Exception $e) {
+            return redirect()->back()->with('delete', 'Export failed: ' . $e->getMessage());
+        }
+    }
 }
+

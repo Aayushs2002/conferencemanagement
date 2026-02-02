@@ -100,47 +100,43 @@
             </aside>
             <!-- Tab Content -->
             <main class="col-lg-9 order-2 order-lg-1">
-                <div class="tab-content" id="safogTabsContent"> 
+                <div class="tab-content" id="safogTabsContent">
                     @foreach ($committees as $index => $committee)
                         {{-- @dd($committee) --}}
                         <div class="tab-pane fade {{ $index === 0 ? 'show active' : '' }}" id="{{ $committee->slug }}"
                             role="tabpanel">
                             <h2 class="section-title">{{ $committee->committee_name }}</h2>
                             {{-- @dd($committee->committeeMembers) --}}
-                            @php
+                            {{-- @php
                                 $groupedMembers = $committee->committeeMembers->groupBy(
                                     fn($m) => $m->designation->designation ?? 'Members',
                                 );
-                            @endphp
+                            @endphp --}}
                             {{-- @dd($groupedMembers) --}}
+                            <div class="row mt-3 align-items-center">
+                                @foreach ($committee->committeeMembers as $member)
+                                    <div class="col-md-4">
+                                        <div class="prof-card p-3 rounded-3 h-100 d-flex flex-column">
+                                            <img src="{{ $member->user->userDetail && $member->user->userDetail->image
+                                                ? Storage::url('profile/image/' . $member->user->userDetail->image)
+                                                : asset('frontend/assets/img/user.jpg') }}"
+                                                alt="{{ $member->user->fullName($member->user) }}"
+                                                class="profile-img mb-3">
 
-                            @foreach ($groupedMembers as $designationName => $members)
-                                {{-- <p class="span-text mt-5">{{ $designationName }}</p> --}}
-                                <div class="row mt-3 align-items-center">
-                                    @foreach ($members as $member) 
-                                        <div class="col-md-4">
-                                            <div class="prof-card p-3 rounded-3 h-100 d-flex flex-column">
-                                                <img src="{{ $member->user->userDetail && $member->user->userDetail->image
-                                                    ? Storage::url('profile/image/' . $member->user->userDetail->image)
-                                                    : asset('frontend/assets/img/user.jpg') }}"
-                                                    alt="{{ $member->user->fullName($member->user) }}"
-                                                    class="profile-img mb-3">
-
-                                                <div class="w-100 d-flex align-items-center justify-content-center">
-                                                    <h6 class="card-title mb-0">
-                                                        {{ $member->user->fullName($member->user) }}
-                                                    </h6>
-                                                </div>
-
-                                                <small class="card-subtitle text-center">
-                                                    {{ $designationName }}<br>
-                                                    {{-- {{ $committee->committee_name }} --}}
-                                                </small>
+                                            <div class="w-100 d-flex align-items-center justify-content-center">
+                                                <h6 class="card-title mb-0">
+                                                    {{ $member->user->fullName($member->user) }}
+                                                </h6>
                                             </div>
+
+                                            <small class="card-subtitle text-center">
+                                                {{ $member->designation->designation ?? 'Member' }}
+                                            </small>
                                         </div>
-                                    @endforeach
-                                </div>
-                            @endforeach
+                                    </div>
+                                @endforeach
+                            </div>
+
 
                         </div>
                     @endforeach
