@@ -79,6 +79,11 @@ class Workshop extends Model
         return $this->hasMany(WorkshopRegistration::class);
     }
 
+    public function workshopCertificate()
+    {
+        return $this->hasOne(WorkshopCertificate::class);
+    }
+
     public function creator()
     {
         return $this->belongsTo(User::class, 'created_by');

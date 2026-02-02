@@ -2,50 +2,46 @@
     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 
     <div class="rounded-top">
-        <h5 class="modal-title" id="exampleModalCenterTitle">Send Mail</span></h5>
+        <h5 class="modal-title" id="exampleModalCenterTitle">Send Mail to Workshop Participants</h5>
         <hr class="py-4">
 
         <form id="mailForm">
             @csrf
             <div class="row">
                 <div class="col-md-6 form-group mb-3">
-                    <label for="user_type" class="mb-2">Submission User Type <code>*</code></label>
-                    <select name="user_type" id="user_type"
-                        class="form-control @error('user_type') is-invalid @enderror">
-                        <option value="">-- Submission User Type --</option>
-                        <option value="1"> 
-                            Presenter
-                        </option>
-                        <option value="2">
-                            Expert
-                        </option>
+                    <label for="workshop_id" class="mb-2">Select Workshop <code>*</code></label>
+                    <select name="workshop_id" id="workshop_id"
+                        class="form-control @error('workshop_id') is-invalid @enderror">
+                        <option value="">-- Select Workshop --</option>
+                        @foreach ($workshops as $workshop)
+                            <option value="{{ $workshop->id }}">
+                                {{ $workshop->workshop_title }}
+                            </option>
+                        @endforeach
                     </select>
+                    <p class="text-danger workshop_id"></p>
                 </div>
                 <div class="col-md-6 form-group mb-3">
-                    <label for="presentation_type" class="mb-2">Presentation Type <code>*</code></label>
-                    <select name="presentation_type" id="presentation_types"
-                        class="form-control @error('presentation_type') is-invalid @enderror">
-                        <option value="">-- Presentation Type --</option>
-                        <option value="2">
-                            Oral
-                        </option>
-                        <option value="1">
-                            Poster
-                        </option>
-                        <option value="3">
-                            Both
-                        </option>
+                    <label for="recipient_type" class="mb-2">Recipient Type <code>*</code></label>
+                    <select name="recipient_type" id="recipient_type"
+                        class="form-control @error('recipient_type') is-invalid @enderror">
+                        <option value="">-- Select Recipient Type --</option>
+                        <option value="1">Registrants</option>
+                        <option value="2">Trainers</option>
+                        <option value="3">Both (Registrants & Trainers)</option>
                     </select>
+                    <p class="text-danger recipient_type"></p>
                 </div>
-                <div class="col-md-12">
-                    <label for="User" class="form-label">Users List<code>*</code></label>
+                <div class="col-md-12 form-group mb-3">
+                    <label for="User" class="form-label">Recipients List<code>*</code></label>
                     <input id="User" name="User" class="form-control" />
+                    <p class="text-danger User"></p>
                 </div>
                 <div class="mb-6 col-md-12 mt-3">
                     <label class="form-label" for="subject">Subject <code>*</code></label>
                     <input type="text" class="form-control @error('subject') is-invalid @enderror" id="subject"
                         placeholder="Enter a Subject" name="subject" />
-
+                    <p class="text-danger subject"></p>
                     @error('subject')
                         <p class="text-danger">{{ $message }}</p>
                     @enderror
@@ -53,6 +49,7 @@
                 <div class="mb-6">
                     <label class="form-label" for="mail_content">Mail Content <code>*</code></label>
                     <textarea class="form-control ckeditor" id="mail_content" name="mail_content" rows="5" cols="30"></textarea>
+                    <p class="text-danger mail_content"></p>
                     @error('mail_content')
                         <p class="text-danger">{{ $message }}</p>
                     @enderror
@@ -77,7 +74,7 @@
             }
         });
 
-        const getUsersUrl = @json(route('submission.get.users', [$society, $conference]));
+        const getUsersUrl = @json(route('workshop.get.users', [$society, $conference]));
         const UserEl = document.querySelector('#User');
         let User;
 
@@ -125,7 +122,7 @@
             return `
     <div class="${this.settings.classNames.dropdownItem} ${this.settings.classNames.dropdownItem}__addAll">
         <strong>${this.value.length ? 'Add remaining' : 'Add All'}</strong>
-        <span>${suggestions.length} members</span>
+        <span>${suggestions.length} recipients</span>
     </div>
   `;
         }
@@ -168,30 +165,43 @@
             }
         }
 
-        function fetchAndUpdateUsers(userType, presentationType) {
-            if (!userType || !presentationType || !User) return;
+        function fetchAndUpdateUsers(workshopId, recipientType) {
+            if (!workshopId || !recipientType || !User) return;
 
             User.loading(true);
-            fetch(`${getUsersUrl}?user_type=${userType}&presentation_type=${presentationType}`)
-                .then(res => res.json())
+            fetch(`${getUsersUrl}?workshop_id=${workshopId}&recipient_type=${recipientType}`)
+                .then(res => {
+                    if (!res.ok) {
+                        throw new Error(`HTTP error! status: ${res.status}`);
+                    }
+                    return res.json();
+                })
                 .then(data => {
+                    console.log('Fetched users:', data);
                     User.settings.whitelist = data;
                     User.loading(false);
                     User.removeAllTags();
-                    User.dropdown.show.call(User);
+                    
+                    if (data.length > 0) {
+                        User.dropdown.show.call(User);
+                        notyf.success(`${data.length} recipient(s) loaded`);
+                    } else {
+                        notyf.error('No recipients found for the selected criteria');
+                    }
                 })
                 .catch(err => {
-                    console.error('User fetch error', err);
+                    console.error('User fetch error:', err);
                     User.loading(false);
+                    notyf.error('Failed to load recipients. Please try again.');
                 });
         }
 
-        document.querySelector('#user_type')?.addEventListener('change', function() {
-            fetchAndUpdateUsers(this.value, document.querySelector('#presentation_types').value);
+        document.querySelector('#workshop_id')?.addEventListener('change', function() {
+            fetchAndUpdateUsers(this.value, document.querySelector('#recipient_type').value);
         });
 
-        document.querySelector('#presentation_types')?.addEventListener('change', function() {
-            fetchAndUpdateUsers(document.querySelector('#user_type').value, this.value);
+        document.querySelector('#recipient_type')?.addEventListener('change', function() {
+            fetchAndUpdateUsers(document.querySelector('#workshop_id').value, this.value);
         });
 
 
@@ -206,7 +216,7 @@
             });
             $.ajax({
                 type: "POST",
-                url: '{{ route('submission.sendMailSubmit', [$society, $conference]) }}',
+                url: '{{ route('workshop.sendMailSubmit', [$society, $conference]) }}',
                 data: data,
                 dataType: "json",
                 processData: false,
@@ -219,6 +229,7 @@
                 },
                 success: function(response) {
                     $('#sendMail').attr('disabled', false);
+                    $('#sendMail').find('.spinner').remove();
                     if (response.type == 'success') {
                         $(".modal").modal("hide");
                         notyf.success(response.message);
@@ -236,14 +247,14 @@
                         $('.' + key).html('');
                         $('.' + key).append(val);
                         $('#' + key).addClass('border-danger');
-                        $('#' + key).on('input', function() {
+                        $('#' + key).on('input change', function() {
                             $('.' + key).html('');
                             $('#' + key).removeClass('border-danger');
                         });
                     });
 
                     $('#sendMail').attr('disabled', false);
-                    $('#sendMail').text('Update');
+                    $('#sendMail').find('.spinner').remove();
                 }
             });
         });

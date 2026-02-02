@@ -36,6 +36,7 @@ use App\Http\Controllers\Backend\Workshop\PassSetting\WorkshopPassSettingControl
 use App\Http\Controllers\Backend\Workshop\Workshop\WorkshopController;
 use App\Http\Controllers\Backend\Workshop\WorkshopRegistration\WorkshopRegistrationController;
 use App\Http\Controllers\Backend\Workshop\WorkshopTrainer\WorkshopTrainerController;
+use App\Http\Controllers\Backend\Workshop\WorkshopCertificateController;
 use App\Models\Sponsor\Sponsor;
 use Illuminate\Support\Facades\Route;
 
@@ -275,6 +276,11 @@ Route::middleware('auth')->group(function () {
             Route::post('/{workshop_approve}/approve', 'approve')->name('approve');
             Route::post('/{workshop_reject}/reject', 'reject')->name('reject');
             Route::post('/{workshop_request_correction}/request-correction', 'requestCorrection')->name('requestCorrection');
+            Route::post('/send-mail', 'sendMail')->name('sendMail');
+            Route::post('/send-mail-submit', 'sendMailSubmit')->name('sendMailSubmit');
+            Route::get('/get-users', 'getUsersByWorkshopAndType')->name('get.users');
+            Route::get('/export-registrations', 'exportRegistrations')->name('export.registrations');
+            Route::get('/export-trainers', 'exportTrainers')->name('export.trainers');
         });
 
         Route::controller(WorkshopRegistrationController::class)->name('workshop.workshop-registration.')->prefix('/workshop/workshop-registration')->group(function () {
@@ -287,6 +293,8 @@ Route::middleware('auth')->group(function () {
             Route::post('/verify', 'verify')->name('verify');
             Route::get('/download-voucher/{workshopRegistration}', 'downloadVoucher')->name('downloadVoucher');
             Route::post('/view', 'view')->name('view');
+            Route::get('/edit/{workshop}/{registration}', 'edit')->name('edit');
+            Route::put('/update/{workshop}/{registration}', 'update')->name('update');
             Route::delete('/destroy/{workshop}/{registration}', 'destroy')->name('destroy');
         });
 
@@ -298,6 +306,15 @@ Route::middleware('auth')->group(function () {
             Route::get('edit/{workshop}/{trainer}', 'edit')->name('edit');
             Route::any('update/{trainer}', 'update')->name('update');
             Route::delete('destroy/{workshop}/{trainer}', 'destroy')->name('destroy');
+        });
+
+        Route::controller(WorkshopCertificateController::class)->name('workshop-certificate.')->prefix('/workshop/{workshop}/workshop-certificate')->group(function () {
+            Route::get('/', 'index')->name('index');
+            Route::get('/create', 'create')->name('create');
+            Route::post('/store', 'store')->name('store');
+            Route::get('/{workshop_certificate}/edit', 'edit')->name('edit');
+            Route::match(['put', 'patch'], '/{workshop_certificate}/update', 'update')->name('update');
+            Route::delete('/{workshop_certificate}/destroy', 'destroy')->name('destroy');
         });
 
         Route::resource('workshop/workshop-pass-settings', WorkshopPassSettingController::class)->middleware('auto.conf.permission');

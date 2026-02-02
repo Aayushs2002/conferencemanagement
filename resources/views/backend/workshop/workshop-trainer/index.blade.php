@@ -15,6 +15,28 @@
                 </div>
                 <div class="d-md-flex justify-content-between align-items-center dt-layout-end col-md-auto ms-auto mt-0">
                     <div class="dt-buttons btn-group flex-wrap mb-0">
+                        <button type="button" class="btn btn-secondary dropdown-toggle me-2" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="ti tabler-sort-ascending me-1"></i>
+                            <span class="d-none d-sm-inline-block">Sort by Name</span>
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li>
+                                <a class="dropdown-item {{ request('sort') == 'name_asc' ? 'active' : '' }}" href="{{ route('workshop.workshop-trainer.index', [$society, $conference, $workshop, 'sort' => 'name_asc']) }}">
+                                    <i class="ti tabler-sort-ascending me-2"></i> Name (A-Z)
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item {{ request('sort') == 'name_desc' ? 'active' : '' }}" href="{{ route('workshop.workshop-trainer.index', [$society, $conference, $workshop, 'sort' => 'name_desc']) }}">
+                                    <i class="ti tabler-sort-descending me-2"></i> Name (Z-A)
+                                </a>
+                            </li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <a class="dropdown-item {{ !request('sort') ? 'active' : '' }}" href="{{ route('workshop.workshop-trainer.index', [$society, $conference, $workshop]) }}">
+                                    <i class="ti tabler-refresh me-2"></i> Default (Recent First)
+                                </a>
+                            </li>
+                        </ul>
                         <button type="button" class="btn btn-success dropdown-toggle me-2" data-bs-toggle="dropdown" aria-expanded="false">
                             <span class="d-none d-sm-inline-block">Generate Pass</span>
                         </button>
@@ -77,8 +99,13 @@
                                     <div class="dropdown-menu">
                                         @if (auth()->user()->hasConferencePermissionBlade(getConference(request()->segment(4)), 'Edit Workshop Trainer'))
                                             <a class="dropdown-item"
+                                                href="{{ route('workshop.workshop-registration.edit', [$society, $conference, $workshop, $trainer->id]) }}"><i
+                                                    class="icon-base ti tabler-pencil me-1"></i> Edit Registration</a>
+                                        @endif
+                                        @if (auth()->user()->hasConferencePermissionBlade(getConference(request()->segment(4)), 'Edit Workshop Trainer'))
+                                            <a class="dropdown-item"
                                                 href="{{ route('workshop.workshop-trainer.edit', [$society, $conference, $workshop, $trainer->id]) }}"><i
-                                                    class="icon-base ti tabler-pencil me-1"></i> Edit</a>
+                                                    class="icon-base ti tabler-user-edit me-1"></i> Edit Trainer Profile</a>
                                         @endif
                                         <hr>
                                         {{-- @if (auth()->user()->hasConferencePermissionBlade(getConference(request()->segment(4)), 'Delete Workshop Trainer')) --}}

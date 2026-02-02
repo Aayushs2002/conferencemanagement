@@ -100,6 +100,9 @@ return [
         'workshop.destroy' => 'Delete Workshop',
         'workshop.allocatePriceForm' => 'Add/Update Registration Price',
         'workshop.allocatePriceSubmit' => 'Add/Update Registration Price',
+        'workshop.sendMail' => 'Send Mail',
+        'workshop.sendMailSubmit' => 'Send Mail',
+        'workshop.get.users' => 'Send Mail',
         'workshop.workshop-registration.registerForExceptionalCase' => 'Regster User in Exceptional Case',
         'workshop.workshop-registration.registerForExceptionalCaseSubmit' => 'Regster User in Exceptional Case',
         'workshop.workshop-registration.registerForNewUser' => 'Regster New User',
@@ -122,6 +125,13 @@ return [
         'workshop.workshop-trainer.edit' => 'Edit Workshop Trainer',
         'workshop.workshop-trainer.update' => 'Edit Workshop Trainer',
         'workshop.workshop-trainer.destroy' => 'Delete Workshop Trainer',
+
+        //workshop certificate setting
+        'workshop-certificate.index' => 'View Workshop Certificate Setting',
+        'workshop-certificate.create' => 'Add Workshop Certificate Setting',
+        'workshop-certificate.store' => 'Add Workshop Certificate Setting',
+        'workshop-certificate.edit' => 'Edit Workshop Certificate Setting',
+        'workshop-certificate.update' => 'Edit Workshop Certificate Setting',
 
         //CommitteeDesignation Permission
         'committe-designation.index' => 'View Committee Designation',

@@ -321,6 +321,23 @@ class PermissionSeeder extends Seeder
                 'parent' => 'Workshop Trainer'
             ],
 
+            //Workshop Certificate Setting
+            [
+                'name' => 'View Workshop Certificate Setting',
+                'guard_name' => 'web',
+                'parent' => 'Workshop Certificate Setting'
+            ],
+            [
+                'name' => 'Add Workshop Certificate Setting',
+                'guard_name' => 'web',
+                'parent' => 'Workshop Certificate Setting'
+            ],
+            [
+                'name' => 'Edit Workshop Certificate Setting',
+                'guard_name' => 'web',
+                'parent' => 'Workshop Certificate Setting'
+            ],
+
             //Workshop Registrant
             [
                 'name' => 'View Workshop Registrant',
