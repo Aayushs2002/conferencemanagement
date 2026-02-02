@@ -572,27 +572,73 @@
                 form.submit();
             });
 
-            // Bulk assignment functionality
-            $('#selectAll').on('change', function() {
-                $('.submission-checkbox').prop('checked', this.checked);
+            // Bulk assignment functionality - Store selected submissions across all pages
+            var selectedSubmissions = {};  // Store as object: {id: title}
+            
+            // Handle select all checkbox
+            $(document).on('change', '#selectAll', function() {
+                var isChecked = this.checked;
+                $('.submission-checkbox:visible').each(function() {
+                    var id = $(this).data('id');
+                    var title = $(this).data('title');
+                    
+                    $(this).prop('checked', isChecked);
+                    
+                    if (isChecked) {
+                        selectedSubmissions[id] = title;
+                    } else {
+                        delete selectedSubmissions[id];
+                    }
+                });
                 updateBulkAssignButton();
             });
 
-            $('.submission-checkbox').on('change', function() {
-                updateBulkAssignButton();
-                // Update select all checkbox state
-                if (!this.checked) {
-                    $('#selectAll').prop('checked', false);
+            // Handle individual checkbox changes - use event delegation for DataTables
+            $(document).on('change', '.submission-checkbox', function() {
+                var id = $(this).data('id');
+                var title = $(this).data('title');
+                
+                if (this.checked) {
+                    selectedSubmissions[id] = title;
                 } else {
-                    // Check if all checkboxes are checked
-                    if ($('.submission-checkbox:checked').length === $('.submission-checkbox').length) {
-                        $('#selectAll').prop('checked', true);
-                    }
+                    delete selectedSubmissions[id];
+                    $('#selectAll').prop('checked', false);
                 }
+                
+                updateBulkAssignButton();
+                updateSelectAllState();
             });
+
+            // Restore checkbox states when DataTable redraws (pagination, search, etc.)
+            $('.datatables-basic').on('draw.dt', function() {
+                $('.submission-checkbox').each(function() {
+                    var id = $(this).data('id');
+                    if (selectedSubmissions.hasOwnProperty(id)) {
+                        $(this).prop('checked', true);
+                    }
+                });
+                updateSelectAllState();
+            });
+
+            function updateSelectAllState() {
+                var visibleCheckboxes = $('.submission-checkbox:visible');
+                var visibleCheckedCount = 0;
+                
+                visibleCheckboxes.each(function() {
+                    if ($(this).is(':checked')) {
+                        visibleCheckedCount++;
+                    }
+                });
+                
+                if (visibleCheckboxes.length > 0 && visibleCheckedCount === visibleCheckboxes.length) {
+                    $('#selectAll').prop('checked', true);
+                } else {
+                    $('#selectAll').prop('checked', false);
+                }
+            }
 
             function updateBulkAssignButton() {
-                var selectedCount = $('.submission-checkbox:checked').length;
+                var selectedCount = Object.keys(selectedSubmissions).length;
                 $('#selectedCount').text(selectedCount);
                 
                 if (selectedCount > 0) {
@@ -603,13 +649,8 @@
             }
 
             $('#bulkAssignBtn').on('click', function() {
-                var selectedIds = [];
-                var selectedTitles = [];
-                
-                $('.submission-checkbox:checked').each(function() {
-                    selectedIds.push($(this).data('id'));
-                    selectedTitles.push($(this).data('title'));
-                });
+                var selectedIds = Object.keys(selectedSubmissions);
+                var selectedTitles = Object.values(selectedSubmissions);
                 
                 if (selectedIds.length === 0) {
                     notyf.error('Please select at least one submission');
