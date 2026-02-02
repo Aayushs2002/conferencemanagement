@@ -9,7 +9,7 @@
             @csrf
             <div class="row"> 
                 <input type="hidden" id="submissionId" name="id" value="{{ $submission->id }}">
-                <div class="col-md-6 form-group mb-3">
+                <div class="col-md-6 form-group mb-3"> 
                     <label for="expert_id">Expert <code>*</code></label>
                     <select name="expert_id" class="form-control @error('expert_id') is-invalid @enderror">
                         <option value="" hidden>-- Select Expert --</option>
@@ -19,6 +19,25 @@
                         @endforeach
                     </select>
                     <p class="text-danger expert_id"></p>
+                </div>
+
+                <div class="col-md-6 form-group mb-3">
+                    <label class="form-label">
+                        <i class="ti tabler-key me-1"></i> Password Options <code>*</code>
+                    </label>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="password_option" id="generate_new_password" value="generate" checked>
+                        <label class="form-check-label" for="generate_new_password">
+                            Generate and send new password (Recommended)
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="password_option" id="keep_existing_password" value="keep">
+                        <label class="form-check-label" for="keep_existing_password">
+                            Keep existing password (Don't change)
+                        </label>
+                    </div>
+                    <p class="text-danger password_option"></p>
                 </div>
                 
                 @if (!empty($submission->sections))
@@ -90,6 +109,9 @@
     $("#forwardRequest").on('click', function(e) {
         e.preventDefault(); 
         var data = new FormData($('#dataForm')[0]);
+        
+        // Add password option
+        data.append('password_option', $('input[name="password_option"]:checked').val());
         
         @if (!empty($submission->sections))
             // Get data from section editors

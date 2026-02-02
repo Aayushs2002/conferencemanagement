@@ -26,6 +26,9 @@
                         <option {{ request()->registrant_type == 4 ? 'selected' : '' }} value="4">
                             Special Guest
                         </option>
+                        <option {{ request()->registrant_type == 5 ? 'selected' : '' }} value="5">
+                            Organizer
+                        </option>
                     </select>
                 </div>
                 <div class="col-md-3 form-group mb-3">
@@ -36,7 +39,7 @@
                             <option {{ request()->prefix == $name_prefiex->id ? 'selected' : '' }}
                                 value="{{ $name_prefiex->id }}">
                                 {{ $name_prefiex->prefix }}
-                            </option>
+                            </option> 
                         @endforeach
                     </select>
                 </div>
@@ -134,7 +137,7 @@
                                 <i class="icon-base ti tabler-upload icon-xs me-sm-1"></i>
                                 <span class="d-none d-sm-inline-block">Export</span>
                             </button>
-                            <ul class="dropdown-menu">
+                            <ul class="dropdown-menu"> 
                                 <li><a class="dropdown-item" href="#" onclick="exportTo('excel')">Export to
                                         Excel</a>
                                 </li>

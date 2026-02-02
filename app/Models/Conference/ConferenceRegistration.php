@@ -46,6 +46,7 @@ class ConferenceRegistration extends Model
     public const REGISTRANT_SPEAKER = 2;
     public const REGISTRANT_SESSION_CHAIR = 3;
     public const REGISTRANT_SPECIAL_GUEST = 4;
+    public const REGISTRANT_ORGANIZER = 5;
 
     public const ATTEND_PHYSICAL = 1;
     public const ATTEND_ONLINE = 2;
@@ -133,6 +134,7 @@ class ConferenceRegistration extends Model
                 self::REGISTRANT_SPEAKER => 'Speaker/Presenter',
                 self::REGISTRANT_SESSION_CHAIR => 'Session Chair',
                 self::REGISTRANT_SPECIAL_GUEST => 'Special Guest',
+                self::REGISTRANT_ORGANIZER => 'Organizer',
                 default => 'Unknown'
             }
         );

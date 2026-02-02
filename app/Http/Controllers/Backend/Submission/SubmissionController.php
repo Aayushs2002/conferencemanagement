@@ -262,7 +262,10 @@ class SubmissionController extends Controller
             $message = 'Forwarded to expert successfully.';
 
             // Dynamic validation based on whether sections exist
-            $rules = ['expert_id' => 'required'];
+            $rules = [
+                'expert_id' => 'required',
+                'password_option' => 'required|in:generate,keep'
+            ];
 
             $submission = Submission::whereId($request->id)->first();
             if ($request->has('sections') && is_array($request->sections)) {
@@ -308,9 +311,23 @@ class SubmissionController extends Controller
                 $expert = User::whereId($validated['expert_id'])->first();
                 $template = EmailTemplate::where(['conference_id' => $submission->conference_id, 'key' => 1])->first();
 
+                DB::beginTransaction();
+
+                // Generate new password if requested
+                $newPassword = null;
+                if ($validated['password_option'] === 'generate') {
+                    $newPassword = \Illuminate\Support\Str::random(10);
+                    $expert->update([
+                        'password' => bcrypt($newPassword)
+                    ]);
+                }
+
                 $mailData = [
                     'name' => $expert->fullName($expert),
                     'namePrefix' => $expert->userDetail->prefix,
+                    'email' => $expert->email,
+                    'password' => $newPassword,
+                    'password_changed' => $validated['password_option'] === 'generate',
                     'topic' => $submission->title,
                     'conference_name' => $submission->conference->conference_name,
                     'society_slug' => $submission->conference->society,
@@ -319,7 +336,6 @@ class SubmissionController extends Controller
                 $data = [
                     'submission_topic' => $submission->title,
                 ];
-                DB::beginTransaction();
                 $subject = parseTemplate($template?->subject, $data);
                 $body = parseTemplate($template?->body, $data);
                 Mail::to($expert->email)->send(new ExpertForwardMail($mailData, $subject, $body, $submission->conference->conference_name));
