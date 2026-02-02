@@ -502,6 +502,19 @@ class SubmissionController extends Controller
     {
         // dd('ok');
         $submission = Submission::with('articleType.setting')->whereId($request->id)->first();
+        
+        // Check if review deadline has passed
+        if ($submission->review_deadline) {
+            $deadline = \Carbon\Carbon::parse($submission->review_deadline);
+            if (\Carbon\Carbon::now()->greaterThan($deadline)) {
+                return response()->json([
+                    'type' => 'error',
+                    'message' => 'Review deadline has expired. Reviews can no longer be submitted for this submission.',
+                    'deadline_expired' => true
+                ]);
+            }
+        }
+        
         $setting = SubmissionSetting::where(['conference_id' => $conference->id, 'status' => 1])->first();
 
         // Get article type setting sections if available
@@ -518,6 +531,18 @@ class SubmissionController extends Controller
         // dd($request->all());
         try {
             $submission = Submission::with('articleType.setting')->findOrFail($request->id);
+            
+            // Check if review deadline has passed
+            if ($submission->review_deadline) {
+                $deadline = \Carbon\Carbon::parse($submission->review_deadline);
+                if (\Carbon\Carbon::now()->greaterThan($deadline)) {
+                    return response()->json([
+                        'type' => 'error',
+                        'message' => 'Review deadline has expired. Reviews can no longer be submitted for this submission.'
+                    ]);
+                }
+            }
+            
             $setting = SubmissionSetting::where(['conference_id' => $submission->conference_id, 'status' => 1])->first();
 
             // Determine if scoring is required or nullable (changed to numeric to support decimal values)

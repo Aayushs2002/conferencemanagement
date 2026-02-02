@@ -39,6 +39,18 @@
                     </div>
                     <p class="text-danger password_option"></p>
                 </div>
+
+                <div class="col-md-12 form-group mb-3">
+                    <label for="review_deadline">
+                        <i class="ti tabler-calendar me-1"></i> Review Deadline <code>*</code>
+                    </label>
+                    <input type="datetime-local" name="review_deadline" id="review_deadline" 
+                           class="form-control @error('review_deadline') is-invalid @enderror" 
+                           value="{{ old('review_deadline', @$submission->review_deadline) }}" 
+                           required>
+                    <small class="text-muted">Set the deadline for the expert to complete the review</small>
+                    <p class="text-danger review_deadline"></p>
+                </div>
                 
                 @if (!empty($submission->sections))
                     {{-- Display sections if they exist --}}

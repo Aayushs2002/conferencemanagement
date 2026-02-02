@@ -49,6 +49,17 @@
                 </div>
 
                 <div class="col-md-12 form-group mb-3">
+                    <label for="bulk_review_deadline">
+                        <i class="ti tabler-calendar me-1"></i> Review Deadline <code>*</code>
+                    </label>
+                    <input type="datetime-local" name="review_deadline" id="bulk_review_deadline" 
+                           class="form-control @error('review_deadline') is-invalid @enderror" 
+                           required>
+                    <small class="text-muted">Set the deadline for the expert to complete all reviews</small>
+                    <p class="text-danger review_deadline"></p>
+                </div>
+
+                <div class="col-md-12 form-group mb-3">
                     <label class="form-label">
                         <i class="ti tabler-list me-1"></i> Submissions to be Assigned:
                     </label>

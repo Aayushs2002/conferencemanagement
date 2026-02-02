@@ -264,7 +264,8 @@ class SubmissionController extends Controller
             // Dynamic validation based on whether sections exist
             $rules = [
                 'expert_id' => 'required',
-                'password_option' => 'required|in:generate,keep'
+                'password_option' => 'required|in:generate,keep',
+                'review_deadline' => 'required|date|after:now'
             ];
 
             $submission = Submission::whereId($request->id)->first();
@@ -329,6 +330,7 @@ class SubmissionController extends Controller
                     'password' => $newPassword,
                     'password_changed' => $validated['password_option'] === 'generate',
                     'topic' => $submission->title,
+                    'review_deadline' => $validated['review_deadline'],
                     'conference_name' => $submission->conference->conference_name,
                     'society_slug' => $submission->conference->society,
                     'conference_slug' => $submission->conference,
@@ -404,7 +406,8 @@ class SubmissionController extends Controller
             $validated = $request->validate([
                 'expert_id' => 'required|exists:users,id',
                 'ids' => 'required|json',
-                'password_option' => 'required|in:generate,keep'
+                'password_option' => 'required|in:generate,keep',
+                'review_deadline' => 'required|date|after:now'
             ]);
 
             $submissionIds = json_decode($validated['ids'], true);
@@ -450,7 +453,8 @@ class SubmissionController extends Controller
                 $submission->update([
                     'expert_id' => $validated['expert_id'],
                     'forward_expert' => 1,
-                    'review_status' => 0
+                    'review_status' => 0,
+                    'review_deadline' => $validated['review_deadline']
                 ]);
 
                 $assignedSubmissions[] = [
@@ -486,6 +490,7 @@ class SubmissionController extends Controller
                 'password_changed' => $validated['password_option'] === 'generate',
                 'submissions' => $assignedSubmissions,
                 'total_count' => count($assignedSubmissions),
+                'review_deadline' => $validated['review_deadline'],
                 'conference_name' => $conference->conference_name,
                 'society_slug' => $conference->society ?? 'society',
                 'conference_slug' => $conference ?? 'conference',

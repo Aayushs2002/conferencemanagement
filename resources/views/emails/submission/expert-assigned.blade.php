@@ -59,6 +59,20 @@
             <p>We want to inform you that a presentation submission for the topic <strong>{{ $data['topic'] }}</strong> has been assigned to you to review and make a decision for the request.</p>
             <p>Please check your dashboard for more details. Thank You.</p>
         @endif
+
+        @if (isset($data['review_deadline']))
+            <div style="background-color: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; margin: 20px 0; border-radius: 5px;">
+                <h4 style="margin-top: 0; color: #856404;">
+                    <i style="font-size: 20px;">⏰</i> Review Deadline
+                </h4>
+                <p style="margin: 0; font-size: 16px; color: #856404;">
+                    <strong>{{ \Carbon\Carbon::parse($data['review_deadline'])->format('F d, Y \\a\\t h:i A') }}</strong>
+                </p>
+                <p style="margin: 10px 0 0 0; font-size: 14px; color: #856404;">
+                    Please complete your review before the deadline.
+                </p>
+            </div>
+        @endif
     </div>
     <br>
     <div style="text-align: center; margin: 20px 0;">
