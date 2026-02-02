@@ -173,6 +173,9 @@
                                                     Session Chair</option>
                                                 <option value="4" {{ $registrantType == 4 ? 'selected' : '' }}>
                                                     Special Guest</option>
+                                                <option value="5" {{ $registrantType == 5 ? 'selected' : '' }}>
+                                                    Organizer</option>
+
                                             </select>
                                         </td>
                                         <td>
@@ -218,6 +221,8 @@
                                                     Session Chair</option>
                                                 <option value="4">
                                                     Special Guest</option>
+                                                <option value="5">
+                                                    Organizer</option>
                                             </select>
                                         </td>
                                         <td>
@@ -317,6 +322,7 @@
                     <option value="2">Speaker/Presenter</option>
                     <option value="3">Session Chair</option>
                     <option value="4">Special Guest</option>
+                    <option value="5">Organizer</option>
                 </select>
             </td>
             <td>

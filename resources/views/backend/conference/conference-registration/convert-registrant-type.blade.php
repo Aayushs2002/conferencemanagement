@@ -29,6 +29,10 @@
                             {{ old('registrant_type', optional($registration)->registrant_type) == 4 ? 'selected' : '' }}>
                             Special Guest
                         </option>
+                        <option value="5"
+                            {{ old('registrant_type', optional($registration)->registrant_type) == 5 ? 'selected' : '' }}>
+                            Organizer
+                        </option>
                     </select>
 
                     @error('registrant_type')
