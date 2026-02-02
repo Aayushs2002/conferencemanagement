@@ -13,6 +13,7 @@ class Submission extends Model
         'conference_id',
         'user_id',
         'expert_id',
+        'review_deadline',
         'submission_category_major_track_id',
         'title',
         'article_type_id',

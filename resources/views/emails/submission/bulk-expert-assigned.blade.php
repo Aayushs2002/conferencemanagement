@@ -189,6 +189,20 @@
                 <p>Please review these submissions carefully and provide your expert evaluation. You can access all the submissions through your reviewer dashboard.</p>
             @endif
 
+            @if (isset($data['review_deadline']))
+                <div style="background-color: #fff3cd; border-left: 4px solid #ffc107; padding: 20px; margin: 20px 0; border-radius: 8px;">
+                    <h3 style="margin-top: 0; color: #856404;">
+                        <span style="font-size: 24px;">⏰</span> Review Deadline
+                    </h3>
+                    <p style="margin: 0; font-size: 18px; color: #856404;">
+                        <strong>{{ \Carbon\Carbon::parse($data['review_deadline'])->format('F d, Y \\a\\t h:i A') }}</strong>
+                    </p>
+                    <p style="margin: 10px 0 0 0; font-size: 14px; color: #856404;">
+                        Please complete the review of all assigned submissions before the deadline.
+                    </p>
+                </div>
+            @endif
+
             <div style="margin: 30px 0; text-align: center;">
                 <a href="{{ route('my-society.conference.submission.submissionReview', [$data['society_slug'] ?? 'society', $data['conference_slug'] ?? 'conference']) }}" class="button">
                     📋 Review Now

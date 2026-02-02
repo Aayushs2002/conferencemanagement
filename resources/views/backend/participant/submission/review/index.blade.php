@@ -130,6 +130,75 @@
        </div>
    @endif
 
+   {{-- Deadline Notifications --}}
+   @php
+       $overdueSubmissions = $submissions->filter(function($submission) {
+           return $submission->review_deadline && 
+                  \Carbon\Carbon::now()->greaterThan(\Carbon\Carbon::parse($submission->review_deadline)) &&
+                  $submission->expert_id == current_user()->id &&
+                  ($submission->review_status == 0 || $submission->review_status == 2);
+       });
+       
+       $dueSoonSubmissions = $submissions->filter(function($submission) {
+           if (!$submission->review_deadline) return false;
+           $deadline = \Carbon\Carbon::parse($submission->review_deadline);
+           $hoursRemaining = \Carbon\Carbon::now()->diffInHours($deadline, false);
+           return $hoursRemaining <= 24 && $hoursRemaining > 0 &&
+                  $submission->expert_id == current_user()->id &&
+                  ($submission->review_status == 0 || $submission->review_status == 2);
+       });
+   @endphp
+
+   @if ($overdueSubmissions->isNotEmpty())
+       <div class="alert alert-danger alert-dismissible fade show" role="alert">
+           <h5 class="alert-heading">
+               <i class="ti tabler-lock me-2"></i>
+               <strong>Expired Review Deadlines!</strong>
+           </h5>
+           <p class="mb-2">You have <strong>{{ $overdueSubmissions->count() }}</strong> submission(s) with expired review deadlines:</p>
+           <ul class="mb-2">
+               @foreach ($overdueSubmissions->take(3) as $overdue)
+                   <li>
+                       <strong>{{ \Illuminate\Support\Str::limit($overdue->title, 50) }}</strong> - 
+                       Deadline expired on {{ \Carbon\Carbon::parse($overdue->review_deadline)->format('M d, Y h:i A') }}
+                       ({{ \Carbon\Carbon::parse($overdue->review_deadline)->diffForHumans() }})
+                   </li>
+               @endforeach
+               @if ($overdueSubmissions->count() > 3)
+                   <li><em>... and {{ $overdueSubmissions->count() - 3 }} more</em></li>
+               @endif
+           </ul>
+           <div class="alert alert-dark mb-0" style="background-color: #343a40; color: white; border-color: #343a40;">
+               <i class="ti tabler-info-circle me-1"></i>
+               <strong>Important:</strong> Review period has ended for these submissions. Reviews can no longer be submitted after the deadline.
+           </div>
+           <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+       </div>
+   @endif
+
+   @if ($dueSoonSubmissions->isNotEmpty())
+       <div class="alert alert-warning alert-dismissible fade show" role="alert">
+           <h5 class="alert-heading">
+               <i class="ti tabler-clock-hour-4 me-2"></i>
+               <strong>Reviews Due Soon!</strong>
+           </h5>
+           <p class="mb-2">You have <strong>{{ $dueSoonSubmissions->count() }}</strong> submission(s) due within 24 hours:</p>
+           <ul class="mb-0">
+               @foreach ($dueSoonSubmissions->take(3) as $dueSoon)
+                   <li>
+                       <strong>{{ \Illuminate\Support\Str::limit($dueSoon->title, 50) }}</strong> - 
+                       Due {{ \Carbon\Carbon::parse($dueSoon->review_deadline)->format('M d, Y h:i A') }}
+                       ({{ \Carbon\Carbon::parse($dueSoon->review_deadline)->diffForHumans() }})
+                   </li>
+               @endforeach
+               @if ($dueSoonSubmissions->count() > 3)
+                   <li><em>... and {{ $dueSoonSubmissions->count() - 3 }} more</em></li>
+               @endif
+           </ul>
+           <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+       </div>
+   @endif
+
    <div class="card mb-6">
 
        <div class="card-datatable table-responsive pt-0">
@@ -157,6 +226,7 @@
                        <th>Presentation Category</th>
                        <th>Topic</th>
                        <th>Presentation Type</th>
+                       <th>Review Deadline</th>
                        <th>Request Status</th>
                        @if ($submissionSetting->scoring_allowed == 1)
                            <th>Score</th>
@@ -185,6 +255,41 @@
                                        class="btn btn-sm btn-success mt-2 convertPresentationType"
                                        {{ $submission->user_id != current_user()->id ? 'hidden' : '' }}>Change
                                        Presentation Type</a>
+                               @endif
+                           </td>
+                           <td>
+                               @if ($submission->review_deadline)
+                                   @php
+                                       $deadline = \Carbon\Carbon::parse($submission->review_deadline);
+                                       $now = \Carbon\Carbon::now();
+                                       $isOverdue = $now->greaterThan($deadline);
+                                       $hoursRemaining = $now->diffInHours($deadline, false);
+                                   @endphp
+                                   
+                                   @if ($isOverdue)
+                                       <div style="background-color: #f8d7da; border: 1px solid #f5c6cb; border-radius: 5px; padding: 8px;">
+                                           <i class="ti tabler-alert-circle text-danger"></i>
+                                           <strong class="text-danger">Overdue!</strong><br>
+                                           <small class="text-danger">{{ $deadline->format('M d, Y h:i A') }}</small><br>
+                                           <small class="text-muted">{{ $deadline->diffForHumans() }}</small>
+                                       </div>
+                                   @elseif ($hoursRemaining <= 24 && $hoursRemaining > 0)
+                                       <div style="background-color: #fff3cd; border: 1px solid #ffeaa7; border-radius: 5px; padding: 8px;">
+                                           <i class="ti tabler-clock text-warning"></i>
+                                           <strong class="text-warning">Due Soon!</strong><br>
+                                           <small>{{ $deadline->format('M d, Y h:i A') }}</small><br>
+                                           <small class="text-muted">{{ $deadline->diffForHumans() }}</small>
+                                       </div>
+                                   @else
+                                       <div style="background-color: #d1ecf1; border: 1px solid #bee5eb; border-radius: 5px; padding: 8px;">
+                                           <i class="ti tabler-calendar-event text-info"></i>
+                                           <strong class="text-info">Deadline:</strong><br>
+                                           <small>{{ $deadline->format('M d, Y h:i A') }}</small><br>
+                                           <small class="text-muted">{{ $deadline->diffForHumans() }}</small>
+                                       </div>
+                                   @endif
+                               @else
+                                   <span class="badge bg-secondary">No deadline set</span>
                                @endif
                            </td>
                            <td>
@@ -266,13 +371,30 @@
                                    @if (
                                        $submission->expert_id == current_user()->id &&
                                            ($submission->review_status == 2 || $submission->review_status == 0))
-                                       <a class="reviewNow btn btn-sm btn-danger text-white"
-                                           data-id="{{ $submission->id }}" data-bs-toggle="modal"
-                                           data-bs-target="#pricingModal">
-                                           <span id="reviewNow">
-                                               Review Now
+                                       @php
+                                           $isReviewOverdue = false;
+                                           if ($submission->review_deadline) {
+                                               $deadline = \Carbon\Carbon::parse($submission->review_deadline);
+                                               $isReviewOverdue = \Carbon\Carbon::now()->greaterThan($deadline);
+                                           }
+                                       @endphp
+                                       
+                                       @if($isReviewOverdue)
+                                           <span class="badge bg-danger" title="Review deadline has expired">
+                                               <i class="ti tabler-lock me-1"></i> Deadline Expired
                                            </span>
-                                       </a>
+                                           <small class="d-block text-danger mt-1">
+                                               <i class="ti tabler-calendar-x"></i> Review period ended
+                                           </small>
+                                       @else
+                                           <a class="reviewNow btn btn-sm btn-danger text-white"
+                                               data-id="{{ $submission->id }}" data-bs-toggle="modal"
+                                               data-bs-target="#pricingModal">
+                                               <span id="reviewNow">
+                                                   Review Now
+                                               </span>
+                                           </a>
+                                       @endif
                                    @endif
                                    @if ($submission->discussions->isNotEmpty())
                                        <span class="mt-1">
@@ -420,9 +542,25 @@
                $('#pricingModal .modal-dialog').removeClass('modal-lg');
                $('#pricingModal .modal-dialog').addClass('modal-xl');
                $.post(url, data, function(response) {
-                   setTimeout(function() {
-                       $('#modalData').html(response);
-                   }, 1000);
+                   // Check if deadline has expired
+                   if (typeof response === 'object' && response.deadline_expired) {
+                       $('#pricingModal').modal('hide');
+                       notyf.error(response.message || 'Review deadline has expired');
+                       setTimeout(function() {
+                           window.location.reload();
+                       }, 2000);
+                   } else {
+                       setTimeout(function() {
+                           $('#modalData').html(response);
+                       }, 1000);
+                   }
+               }).fail(function(xhr) {
+                   $('#pricingModal').modal('hide');
+                   if (xhr.responseJSON && xhr.responseJSON.message) {
+                       notyf.error(xhr.responseJSON.message);
+                   } else {
+                       notyf.error('An error occurred while loading the review form');
+                   }
                });
            });
 
