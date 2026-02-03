@@ -27,7 +27,9 @@ class ConferenceController extends Controller
     /**  
      * Display a listing of the resource.
      */
-    public function __construct(protected FileService $file_service) {}
+    public function __construct(protected FileService $file_service) {
+        
+    }
 
     public function index($society)
     {
@@ -86,7 +88,7 @@ class ConferenceController extends Controller
                 //file uplaod function parameter required file,name,location
                 $req['conference_banner'] = $this->file_service->fileUpload($req['conference_banner'], 'conference_banner', 'conference/conference/banner');
             }
-
+ 
             //uploading the organizer logo
             if (!empty($req['organizer_logo'])) {
                 //file uplaod function parameter required file,name,location

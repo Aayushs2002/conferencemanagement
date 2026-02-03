@@ -50,7 +50,7 @@
                                                            <img src="{{ asset('default-image/fonepay.png') }}"
                                                                style="width: 35%;" alt="fonepay logo">
                                                            @if (current_user()->userDetail->country->country_name == 'India')
-                                                               <p>Cross Border Support</p> 
+                                                               <p>Cross Border Support</p>
                                                            @endif
                                                        </div>
                                                        <div class="position-absolute" style="bottom: 40px; right: 20px;">
@@ -331,7 +331,10 @@
                                    </h5>
                                    @php
                                        $totalQuota = $w_item->no_of_participants;
-                                       $appliedQuota = $w_item->registrations->where('verified_status', 1)->count();
+                                       $appliedQuota = $w_item->registrations
+                                           ->where('verified_status', 1)
+                                           ->where('registrant_type', 1)
+                                           ->count();
                                    @endphp
                                    <p class="text-muted mt-2 mb-0">Total Quota: {{ $totalQuota }}</p>
                                    <p class="text-muted mt-2 mb-0">Applied Quota: {{ $appliedQuota }}</p>
