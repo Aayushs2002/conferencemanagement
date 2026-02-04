@@ -89,6 +89,15 @@ class SubmissionController extends Controller
             });
         }
 
+        // Filter by expert assignment status
+        if ($request->filled('expert_assigned')) {
+            if ($request->expert_assigned == 'assigned') {
+                $query->whereNotNull('expert_id');
+            } elseif ($request->expert_assigned == 'not_assigned') {
+                $query->whereNull('expert_id');
+            }
+        }
+
         $submissions = $query->latest()->get();
 
         // Track duplicate submissions by user
@@ -848,7 +857,7 @@ class SubmissionController extends Controller
 
     public function exportExcel(Request $request, $society, $conference)
     {
-        $query = Submission::with(['authors', 'presenter.userDetail', 'submissionCategoryMajorTrack', 'articleType'])
+        $query = Submission::with(['authors', 'presenter.userDetail', 'submissionCategoryMajorTrack', 'articleType', 'expert.userDetail'])
             ->where(['conference_id' => $conference->id, 'status' => 1]);
 
         if ($request->filled('article_type_id')) {
@@ -880,6 +889,15 @@ class SubmissionController extends Controller
             $query->whereHas('presenter.userDetail.designation', function ($q) use ($request) {
                 $q->where('designation', $request->designation);
             });
+        }
+
+        // Filter by expert assignment status
+        if ($request->filled('expert_assigned')) {
+            if ($request->expert_assigned == 'assigned') {
+                $query->whereNotNull('expert_id');
+            } elseif ($request->expert_assigned == 'not_assigned') {
+                $query->whereNull('expert_id');
+            }
         }
 
         $submissions = $query->latest()->get();
@@ -942,8 +960,9 @@ class SubmissionController extends Controller
         });
 
         $filename = 'Submissions_Export_'.now()->format('Ymd_His').'.xlsx';
+        $includeExpertInfo = $request->filled('expert_assigned');
 
-        return Excel::download(new SubmissionExport($submissions), $filename);
+        return Excel::download(new SubmissionExport($submissions, $includeExpertInfo), $filename);
     }
 
     public function exportWord(Request $request, $society, $conference)

@@ -11,10 +11,12 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 class SubmissionExport implements FromCollection, WithHeadings, ShouldAutoSize, WithStyles
 {
     protected $submissions;
+    protected $includeExpertInfo;
 
-    public function __construct($submissions)
+    public function __construct($submissions, $includeExpertInfo = false)
     {
         $this->submissions = $submissions;
+        $this->includeExpertInfo = $includeExpertInfo;
     }
 
     public function collection()
@@ -91,7 +93,7 @@ class SubmissionExport implements FromCollection, WithHeadings, ShouldAutoSize, 
                     break;
             }
             
-            $arrayData[] = [
+            $rowData = [
                 'Author Name' => $authorName,
                 'Affiliation' => $affiliation ?: 'N/A',
                 'Email' => $email,
@@ -103,6 +105,25 @@ class SubmissionExport implements FromCollection, WithHeadings, ShouldAutoSize, 
                 'Major Track' => $majorTrack,
                 'Status' => $status,
             ];
+
+            // Add expert information if filter is active
+            if ($this->includeExpertInfo) {
+                $expertName = 'Not Assigned';
+                $reviewDeadline = 'N/A';
+                
+                if ($submission->expert_id && $submission->expert) {
+                    $expertName = $submission->expert->fullName($submission->expert);
+                }
+                
+                if ($submission->review_deadline) {
+                    $reviewDeadline = \Carbon\Carbon::parse($submission->review_deadline)->format('Y-m-d');
+                }
+                
+                $rowData['Expert Assigned'] = $expertName;
+                $rowData['Review Deadline'] = $reviewDeadline;
+            }
+
+            $arrayData[] = $rowData;
         }
         
         return collect($arrayData);
@@ -110,7 +131,7 @@ class SubmissionExport implements FromCollection, WithHeadings, ShouldAutoSize, 
 
     public function headings(): array
     {
-        return [
+        $headings = [
             'Author Name',
             'Affiliation - Designation, Institution, Address',
             'Email',
@@ -122,6 +143,14 @@ class SubmissionExport implements FromCollection, WithHeadings, ShouldAutoSize, 
             'Major Track',
             'Status'
         ];
+
+        // Add expert columns if filter is active
+        if ($this->includeExpertInfo) {
+            $headings[] = 'Expert Assigned';
+            $headings[] = 'Review Deadline';
+        }
+
+        return $headings;
     }
 
     public function styles(Worksheet $sheet)
