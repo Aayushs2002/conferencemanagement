@@ -21,6 +21,7 @@
                      <thead>
                          <tr>
                              <th>#</th>
+                             <th>Discussion By</th>
                              <th>Remarks</th>
                              <th>Reviewer Comment</th>
                          </tr>
@@ -29,6 +30,17 @@
                          @foreach ($discussions as $discussion)
                              <tr>
                                  <th scope="row">{{ $loop->iteration }}</th>
+                                 <td>
+                                    @if ($submission->expert_id == $discussion->sender_id )
+                                       Expert
+                                    @elseif ($submission->user_id == $discussion->sender_id )
+                                       Presenter
+                                    @elseif ($discussion->sender->type == 2)
+                                        Insitution Admin
+                                    @else
+                                        System Admin
+                                    @endif
+                                 </td>
                                  <td>{{ $discussion->remarks }}</td>
                                  <td>
                                      @if ($discussion->expert_visible && $discussion->submission->expert_id == current_user()->id)
