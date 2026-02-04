@@ -42,7 +42,7 @@
                         </button>
                         <ul class="dropdown-menu">
                             <li>
-                                <a class="dropdown-item" href="{{ route('workshop.generatePass', ['workshop' => $workshop, 'registrant_type' => 1]) }}">
+                                <a class="dropdown-item" href="{{ route('workshop.generatePass', ['workshop' => $workshop, 'registrant_type' => 1]) }}" target="_blank">
                                     <i class="ti tabler-users me-2"></i> Generate for Registered Users
                                 </a>
                             </li>
@@ -58,7 +58,7 @@
                             @endif
                             @if($registrationCount > 15)
                             <li><hr class="dropdown-divider"></li>
-                            <li><small class="dropdown-item-text text-warning">⚠️ Use batch mode for >20 registrations to avoid errors</small></li>
+                            <li><small class="dropdown-item-text text-warning">⚠️ Use batch mode for >15 registrations to avoid errors</small></li>
                             @endif
                             <li>
                                 <a class="dropdown-item" href="javascript:void(0);" data-bs-toggle="modal" data-bs-target="#dummyPassModal">
