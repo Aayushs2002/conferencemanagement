@@ -344,11 +344,11 @@ class WorkshopRegistrationController extends Controller
         $registrant_type = request('registrant_type');
         
         // Count first to determine if we should redirect to batch mode
-        $count = WorkshopRegistration::where([
-            'workshop_id' => $workshop->id, 
-            'registrant_type' => $registrant_type, 
-            'status' => 1
-        ])->count();
+        // $count = WorkshopRegistration::where([
+        //     'workshop_id' => $workshop->id, 
+        //     'registrant_type' => $registrant_type, 
+        //     'status' => 1
+        // ])->count();
         
         // If more than 15 registrations, automatically use batch mode
         // if ($count > 15) {
