@@ -249,10 +249,10 @@
 
                         <h1
                             style="font-size:34px;text-transform:capitalize; letter-spacing:-0.02em; color:#fff; background:#c4161c; margin:15px 40px 5px 40px; border-radius:20px; height:30px; padding:10px 0px;">
-                            @if (\Carbon\Carbon::parse($registrant->workshop->start_date)->lt(\Carbon\Carbon::parse('2025-04-04')))
+                            @if (\Carbon\Carbon::parse($registrant->workshop->start_date)->lt(\Carbon\Carbon::parse($registrant->workshop->conference->start_date)))
                                 {{-- Pre-congress --}}
                                 Pre-Conference Workshop
-                            @elseif (\Carbon\Carbon::parse($registrant->workshop->start_date)->gt(\Carbon\Carbon::parse('2025-04-05')))
+                            @elseif (\Carbon\Carbon::parse($registrant->workshop->start_date)->gt(\Carbon\Carbon::parse($registrant->workshop->conference->end_date)))
                                 {{-- Post-congress --}}
                                 Post-Conference Workshop
                             @endif
