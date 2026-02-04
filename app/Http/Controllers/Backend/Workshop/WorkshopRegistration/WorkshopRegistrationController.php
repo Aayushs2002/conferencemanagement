@@ -351,13 +351,13 @@ class WorkshopRegistrationController extends Controller
         ])->count();
         
         // If more than 15 registrations, automatically use batch mode
-        if ($count > 15) {
-            return redirect()->route('workshop.generatePassBatch', [
-                'workshop' => $workshop,
-                'registrant_type' => $registrant_type,
-                'batch' => 1
-            ]);
-        }
+        // if ($count > 15) {
+        //     return redirect()->route('workshop.generatePassBatch', [
+        //         'workshop' => $workshop,
+        //         'registrant_type' => $registrant_type,
+        //         'batch' => 1
+        //     ]);
+        // }
         
         // Eager load relationships to prevent N+1 queries
         $registrants = WorkshopRegistration::with([
@@ -382,7 +382,7 @@ class WorkshopRegistrationController extends Controller
         
         $registrant_type = request('registrant_type');
         $batch = request('batch', 1); // Current batch number
-        $perPage = 10; // Process 10 registrations at a time (reduced for low-resource servers)
+        $perPage = 12; // Process 12 registrations at a time (reduced for low-resource servers)
         
         // Get total count
         $total = WorkshopRegistration::where([

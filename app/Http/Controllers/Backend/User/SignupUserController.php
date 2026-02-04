@@ -195,7 +195,7 @@ class SignupUserController extends Controller
         $institutions = $loadData('institutions', Institution::class);
         // dd($institutions);
         $designations = $loadData('designations', Designation::class);
-        $departments = $loadData('departments', Department::class);
+        $departments = $loadData('departments', Department::class); 
         $prefixesAll = $loadData('namePrefixes', NamePrefix::class);
 
         return view('backend.users.signup-user.edit-user-profile', compact('user', 'prefixesAll', 'society', 'conference', 'institutions', 'designations', 'departments'));
@@ -217,7 +217,7 @@ class SignupUserController extends Controller
                 'department_id' => 'required',
                 'institute_address' => 'required|string:255',
                 'country_id' => 'required',
-                'council_number' => 'required',
+                'council_number' => 'nullable',
                 'name_prefix_id' => 'required',
                 'member_type_id' => 'required'
             ]);
