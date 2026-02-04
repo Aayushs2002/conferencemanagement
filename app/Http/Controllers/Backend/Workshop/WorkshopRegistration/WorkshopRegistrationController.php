@@ -336,11 +336,80 @@ class WorkshopRegistrationController extends Controller
 
     public function generatePass($workshop)
     {
+        // Increase memory and execution time limits for large datasets
+        ini_set('memory_limit', '1024M');
+        ini_set('max_execution_time', '300');
+        set_time_limit(300);
+        
         $registrant_type = request('registrant_type');
-        $registrants = WorkshopRegistration::where(['workshop_id' => $workshop->id, 'registrant_type' => $registrant_type, 'status' => 1])->get();
+        
+        // Count first to determine if we should redirect to batch mode
+        $count = WorkshopRegistration::where([
+            'workshop_id' => $workshop->id, 
+            'registrant_type' => $registrant_type, 
+            'status' => 1
+        ])->count();
+        
+        // If more than 15 registrations, automatically use batch mode
+        if ($count > 15) {
+            return redirect()->route('workshop.generatePassBatch', [
+                'workshop' => $workshop,
+                'registrant_type' => $registrant_type,
+                'batch' => 1
+            ]);
+        }
+        
+        // Eager load relationships to prevent N+1 queries
+        $registrants = WorkshopRegistration::with([
+            'workshop.WorkshopVenueDetail',
+            'workshop.conference.society.users',
+            'user.userDetail.namePrefix'
+        ])
+        ->where(['workshop_id' => $workshop->id, 'registrant_type' => $registrant_type, 'status' => 1])
+        ->get();
+        
         $passSetting = WorkshopPassSetting::where(['conference_id' => $workshop->conference_id, 'status' => 1])->first();
 
         return view('backend.workshop.pass.registrant-pass', compact('registrants', 'passSetting'));
+    }
+
+    public function generatePassBatch($workshop)
+    {
+        // For very large datasets, generate passes in batches
+        ini_set('memory_limit', '1024M');
+        ini_set('max_execution_time', '300');
+        set_time_limit(300);
+        
+        $registrant_type = request('registrant_type');
+        $batch = request('batch', 1); // Current batch number
+        $perPage = 10; // Process 10 registrations at a time (reduced for low-resource servers)
+        
+        // Get total count
+        $total = WorkshopRegistration::where([
+            'workshop_id' => $workshop->id, 
+            'registrant_type' => $registrant_type, 
+            'status' => 1
+        ])->count();
+        
+        // Calculate total batches
+        $totalBatches = ceil($total / $perPage);
+        
+        // Get registrations for current batch with eager loading
+        $registrants = WorkshopRegistration::with([
+            'workshop.WorkshopVenueDetail',
+            'workshop.conference.society.users',
+            'user.userDetail.namePrefix'
+        ])
+        ->where(['workshop_id' => $workshop->id, 'registrant_type' => $registrant_type, 'status' => 1])
+        ->skip(($batch - 1) * $perPage)
+        ->take($perPage)
+        ->get();
+        
+        $passSetting = WorkshopPassSetting::where(['conference_id' => $workshop->conference_id, 'status' => 1])->first();
+
+        return view('backend.workshop.pass.registrant-pass', compact('registrants', 'passSetting'))
+            ->with('batch', $batch)
+            ->with('totalBatches', $totalBatches);
     }
 
     public function generateDummyPass(Request $request, $workshop)

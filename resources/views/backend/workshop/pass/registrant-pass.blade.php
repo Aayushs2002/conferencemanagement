@@ -143,7 +143,7 @@
 
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>Untitled Document</title>
+    <title>Workshop Pass - {{ isset($batch) ? "Batch $batch of $totalBatches" : 'All Registrants' }}</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
@@ -155,10 +155,68 @@
             font-optical-sizing: auto;
             font-style: normal;
         }
+        @media print {
+            .no-print {
+                display: none;
+            }
+        }
+        .batch-navigation {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: white;
+            padding: 15px;
+            border: 2px solid #007bff;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            z-index: 1000;
+        }
+        .batch-navigation button {
+            margin: 0 5px;
+            padding: 8px 16px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .batch-navigation button:hover {
+            background: #0056b3;
+        }
+        .batch-navigation button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
     </style>
 </head>
 
 <body>
+    @if(isset($batch) && isset($totalBatches))
+    <div class="batch-navigation no-print">
+        <strong>Batch {{ $batch }} of {{ $totalBatches }}</strong><br>
+        <small>{{ count($registrants) }} passes on this page</small><br><br>
+        @if($batch > 1)
+            <button onclick="window.location.href='{{ url()->current() }}?registrant_type={{ request('registrant_type') }}&batch={{ $batch - 1 }}'">
+                ← Previous Batch
+            </button>
+        @else
+            <button disabled>← Previous Batch</button>
+        @endif
+        
+        @if($batch < $totalBatches)
+            <button onclick="window.location.href='{{ url()->current() }}?registrant_type={{ request('registrant_type') }}&batch={{ $batch + 1 }}'">
+                Next Batch →
+            </button>
+        @else
+            <button disabled>Next Batch →</button>
+        @endif
+        <br><br>
+        <button onclick="window.print()" style="background: #28a745; width: 100%;">
+            🖨️ Print This Batch
+        </button>
+    </div>
+    @endif
+    
     <div style="width:1280px; height:auto;">
 
         @foreach ($registrants as $registrant)

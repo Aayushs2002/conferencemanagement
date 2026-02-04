@@ -46,6 +46,20 @@
                                     <i class="ti tabler-users me-2"></i> Generate for Registered Users
                                 </a>
                             </li>
+                            @php
+                                $registrationCount = \App\Models\Workshop\WorkshopRegistration::where(['workshop_id' => $workshop->id, 'registrant_type' => 1, 'status' => 1])->count();
+                            @endphp
+                            @if($registrationCount > 15)
+                            <li>
+                                <a class="dropdown-item" href="{{ route('workshop.generatePassBatch', ['workshop' => $workshop, 'registrant_type' => 1, 'batch' => 1]) }}" target="_blank">
+                                    <i class="ti tabler-file-stack me-2"></i> Generate in Batches - Recommended ({{ $registrationCount }} registrants)
+                                </a>
+                            </li>
+                            @endif
+                            @if($registrationCount > 15)
+                            <li><hr class="dropdown-divider"></li>
+                            <li><small class="dropdown-item-text text-warning">⚠️ Use batch mode for >20 registrations to avoid errors</small></li>
+                            @endif
                             <li>
                                 <a class="dropdown-item" href="javascript:void(0);" data-bs-toggle="modal" data-bs-target="#dummyPassModal">
                                     <i class="ti tabler-user-plus me-2"></i> Generate Dummy Pass
