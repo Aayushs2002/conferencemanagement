@@ -87,6 +87,18 @@
                         @endforeach
                     </select>
                 </div>
+                <div class="col-md-3 form-group mb-3">
+                    <label for="expert_assigned" class="mb-2">Expert Assignment</label>
+                    <select name="expert_assigned" id="expert_assigned" class="form-control @error('expert_assigned') is-invalid @enderror">
+                        <option value="">-- All Submissions --</option>
+                        <option value="assigned" {{ request()->expert_assigned == 'assigned' ? 'selected' : '' }}>
+                            Assigned to Expert
+                        </option>
+                        <option value="not_assigned" {{ request()->expert_assigned == 'not_assigned' ? 'selected' : '' }}>
+                            Not Assigned
+                        </option>
+                    </select>
+                </div>
 
                 <input type="hidden" name="color_filter" id="color_filter" value="{{ request()->color_filter }}">
 
