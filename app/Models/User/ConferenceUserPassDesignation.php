@@ -10,5 +10,7 @@ class ConferenceUserPassDesignation extends Model
         'conference_id',
         'user_id',
         'pass_designation',
+        'color',
     ];
 }
+ 

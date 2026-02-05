@@ -6,6 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Models\Conference\ConferenceRegistrationKit;
 use App\Models\Conference\PassSetting;
 use App\Models\ConferenceMemberTypeNameTag;
+use App\Models\ConferenceCommitteePassDesignation;
+use App\Models\Committee\Committee;
+use App\Models\Committee\CommitteeDesignation;
 use App\Models\User\MemberType;
 use App\Services\File\FileService;
 use Exception;
@@ -35,9 +38,13 @@ class PassSettingController extends Controller
     public function create($society, $conference)
     {
         $memberTypes = MemberType::where('society_id', $conference->society_id)->get();
+        $committees = Committee::where('society_id', $society->id)->where('status', 1)->get();
+        $committeeDesignations = CommitteeDesignation::where('society_id', $society->id)->where('status', 1)->get();
 
         $passNameTags = ConferenceMemberTypeNameTag::where('conference_id', $conference->id)->get();
-        return view('backend.conference.conference-pass.create', compact('society', 'conference', 'memberTypes', 'passNameTags'));
+        $committeePassDesignations = ConferenceCommitteePassDesignation::where('conference_id', $conference->id)->get();
+        
+        return view('backend.conference.conference-pass.create', compact('society', 'conference', 'memberTypes', 'passNameTags', 'committees', 'committeeDesignations', 'committeePassDesignations'));
     }
 
     /**
@@ -103,14 +110,21 @@ class PassSettingController extends Controller
         $this->authorize('edit', $pass_setting);
 
         $memberTypes = MemberType::where('society_id', $conference->society_id)->get();
+        $committees = Committee::where('society_id', $society->id)->where('status', 1)->get();
+        $committeeDesignations = CommitteeDesignation::where('society_id', $society->id)->where('status', 1)->get();
 
         $passNameTags = ConferenceMemberTypeNameTag::where('conference_id', $conference->id)->get();
+        $committeePassDesignations = ConferenceCommitteePassDesignation::where('conference_id', $conference->id)->get();
+        
         return view('backend.conference.conference-pass.create', compact(
             'society',
             'conference',
             'pass_setting',
             'memberTypes',
-            'passNameTags'
+            'passNameTags',
+            'committees',
+            'committeeDesignations',
+            'committeePassDesignations'
         ));
     }
 
@@ -184,7 +198,50 @@ class PassSettingController extends Controller
                 \DB::table('conference_member_type_name_tags')->insert($dataToInsert);
             }
 
+            // Handle committee pass designations
+            if ($request->has('committee_id') && !empty($request->committee_id)) {
+                $committeeDataToInsert = [];
+                $committeeDataToUpdate = [];
 
+                foreach ($request->committee_id as $index => $committeeId) {
+                    $row = [
+                        'conference_id'   => $conference->id,
+                        'committee_id'  => $committeeId,
+                        'designation_id' => $request->committee_designation_id[$index],
+                        'name_tag'        => $request->committee_name_tag[$index],
+                        'color'           => $request->committee_color[$index] ?? null,
+                        'updated_at'      => now(),
+                    ];
+
+                    $id = $request->committee_ids[$index] ?? null;
+
+                    if ($id) {
+                        $row['id'] = $id;
+                        $committeeDataToUpdate[] = $row;
+                    } else {
+                        $row['created_at'] = now();
+                        $committeeDataToInsert[] = $row;
+                    }
+                }
+
+                if (!empty($committeeDataToUpdate)) {
+                    foreach ($committeeDataToUpdate as $row) {
+                        \DB::table('conference_committee_pass_designations')
+                            ->where('id', $row['id'])
+                            ->update([
+                                'committee_id'  => $row['committee_id'],
+                                'designation_id' => $row['designation_id'],
+                                'name_tag'        => $row['name_tag'],
+                                'color'           => $row['color'],
+                                'updated_at'      => $row['updated_at'],
+                            ]);
+                    }
+                }
+
+                if (!empty($committeeDataToInsert)) {
+                    \DB::table('conference_committee_pass_designations')->insert($committeeDataToInsert);
+                }
+            }
 
             return redirect()->route('pass-setting.index', [$society, $conference])->with('status', 'Pass Setting Updated Successfully');
         } catch (Exception $e) {

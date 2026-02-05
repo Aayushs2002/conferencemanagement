@@ -24,6 +24,8 @@ use App\Models\Conference\PassSetting;
 use App\Models\Conference\Poll;
 use App\Models\Conference\UserVote;
 use App\Models\ConferenceMemberTypeNameTag;
+use App\Models\ConferenceCommitteePassDesignation;
+use App\Models\Committee\CommitteeMember;
 use App\Models\User;
 use App\Models\User\ConferenceUserPassDesignation;
 use App\Models\User\Department;
@@ -119,7 +121,20 @@ class ConferenceRegistrationController extends Controller
             });
         }
 
-        $registrants = $query->latest()->get();
+        // Get all registrants
+        $registrants = $query->get();
+
+        // Separate dummy and real registrants
+        $dummyRegistrants = $registrants->whereNull('user_id');
+        $realRegistrants = $registrants->whereNotNull('user_id');
+
+        // Sort real registrants alphabetically by user's full name
+        $realRegistrants = $realRegistrants->sortBy(function ($registrant) {
+            return strtolower($registrant->user->f_name . ' ' . $registrant->user->l_name);
+        });
+
+        // Merge: real registrants first (alphabetically), then dummy registrants
+        $registrants = $realRegistrants->merge($dummyRegistrants);
 
         return view('backend.conference.conference-registration.registrant', [
             'registrants' => $registrants,
@@ -162,6 +177,22 @@ class ConferenceRegistrationController extends Controller
         $memberTypes = MemberType::where(['society_id' => $society->id, 'status' => 1])->get();
         $countries = \App\Models\User\Country::where('status', 1)->get();
 
+        // Get users for linking (only if registration has no user)
+        $users = collect();
+        if (empty($registrant->user_id)) {
+            // Get all society members who are not already registered for this conference
+            $alreadyRegisteredUserIds = ConferenceRegistration::where('conference_id', $conference->id)
+                ->where('status', 1)
+                ->whereNotNull('user_id')
+                ->pluck('user_id')
+                ->toArray();
+
+            $users = $society->users()
+                ->whereNotIn('users.id', $alreadyRegisteredUserIds)
+                ->where('users.status', 1)
+                ->get();
+        }
+
         // Check for custom institution, designation, department
         $userInstitution = UserInstitution::where('user_id', $registrant->user_id)->first();
         $userDesignation = UserDesignation::where('user_id', $registrant->user_id)->first();
@@ -182,6 +213,7 @@ class ConferenceRegistrationController extends Controller
             'institutions',
             'designations',
             'departments',
+            'users',
             'userInstitution',
             'userDesignation',
             'userDepartment'
@@ -192,28 +224,54 @@ class ConferenceRegistrationController extends Controller
     {
         try {
             $rules = [
-                'name_prefix_id' => 'required',
-                'gender' => 'required',
-                'f_name' => 'required',
-                'm_name' => 'nullable',
-                'l_name' => 'required',
-                'phone' => 'required',
-                'designation_id' => 'nullable',
-                'department_id' => 'nullable',
-                'institution_id' => 'nullable',
-                'address' => 'nullable',
-                'member_type_id' => 'required',
                 'registrant_type' => 'required',
                 'additional_guests' => 'nullable|numeric',
-                'country_id' => 'required',
                 'meal_type' => 'required',
                 'payment_type' => 'required|in:1,2,3,4,5,6',
                 'payment_voucher' => 'nullable|mimes:jpg,png,pdf|max:250',
-                'email' => 'required|email|unique:users,email,' . $registrant->user_id,
-                'council_number' => 'nullable',
                 'transaction_id' => 'required|unique:conference_registrations,transaction_id,' . $registrant->id,
                 'amount' => 'required|numeric',
             ];
+
+            // Handle user linking or creation for dummy registrations
+            if (empty($registrant->user_id)) {
+                if ($request->filled('existing_user_id')) {
+                    // Link to existing user
+                    $rules['existing_user_id'] = 'required|exists:users,id';
+                } else {
+                    // Create new user - validate user fields
+                    $rules['name_prefix_id'] = 'required';
+                    $rules['gender'] = 'required';
+                    $rules['f_name'] = 'required';
+                    $rules['m_name'] = 'nullable';
+                    $rules['l_name'] = 'required';
+                    $rules['phone'] = 'required';
+                    $rules['institution_id'] = 'required';
+                    $rules['address'] = 'required';
+                    $rules['designation_id'] = 'required';
+                    $rules['department_id'] = 'required';
+                    $rules['member_type_id'] = 'required';
+                    $rules['council_number'] = 'nullable';
+                    $rules['email'] = 'required|email|unique:users,email';
+                    $rules['country_id'] = 'required';
+                }
+            } else {
+                // Update existing user
+                $rules['name_prefix_id'] = 'required';
+                $rules['gender'] = 'required';
+                $rules['f_name'] = 'required';
+                $rules['m_name'] = 'nullable';
+                $rules['l_name'] = 'required';
+                $rules['phone'] = 'required';
+                $rules['designation_id'] = 'nullable';
+                $rules['department_id'] = 'nullable';
+                $rules['institution_id'] = 'nullable';
+                $rules['address'] = 'nullable';
+                $rules['member_type_id'] = 'required';
+                $rules['email'] = 'required|email|unique:users,email,' . $registrant->user_id;
+                $rules['country_id'] = 'required';
+                $rules['council_number'] = 'nullable';
+            }
 
             if ($request->institution_id == 'other') {
                 $rules['other_institution_name'] = 'required';
@@ -269,58 +327,137 @@ class ConferenceRegistrationController extends Controller
 
             DB::beginTransaction();
 
-            // Update user data
-            $user = User::findOrFail($registrant->user_id);
-            $user->update([
-                'name_prefix_id' => $validated['name_prefix_id'],
-                'f_name' => $validated['f_name'],
-                'm_name' => $validated['m_name'],
-                'l_name' => $validated['l_name'],
-                'gender' => $validated['gender'],
-                'email' => $validated['email'],
-            ]);
+            // Handle user linking or creation
+            if (empty($registrant->user_id)) {
+                if ($request->filled('existing_user_id')) {
+                    // Check if user is already registered for this conference
+                    $existingRegistration = ConferenceRegistration::where('conference_id', $conference->id)
+                        ->where('user_id', $validated['existing_user_id'])
+                        ->where('status', 1)
+                        ->where('id', '!=', $registrant->id)
+                        ->first();
 
-            // Update user details
-            $user->userDetail->update([
-                'phone' => $validated['phone'],
-                'designation_id' => $validated['designation_id'] ?? null,
-                'department_id' => $validated['department_id'] ?? null,
-                'institution_id' => $validated['institution_id'] ?? null,
-                'institute_address' => $validated['address'],
-                'council_number' => $validated['council_number'],
-                'country_id' => $validated['country_id'],
-            ]);
+                    if ($existingRegistration) {
+                        DB::rollBack();
+                        return redirect()->back()->withInput()->with('delete', 'This user is already registered for this conference.');
+                    }
 
-            // Create custom institution, designation, department if "other" was selected
-            if ($request->institution_id == 'other') {
-                // Delete existing custom institution for this user
-                UserInstitution::where('user_id', $user->id)->delete();
-                UserInstitution::create([
-                    'user_id' => $user->id,
-                    'institution_name' => $request->other_institution_name
+                    // Link to existing user
+                    $registrant->user_id = $validated['existing_user_id'];
+                    $user = User::findOrFail($validated['existing_user_id']);
+                } else {
+                    // Create new user
+                    $password = random_word(8);
+                    $userData = [
+                        'f_name' => $validated['f_name'],
+                        'm_name' => $validated['m_name'],
+                        'l_name' => $validated['l_name'],
+                        'email' => $validated['email'],
+                        'password' => Hash::make($password),
+                        'type' => 3,
+                    ];
+
+                    $newUser = User::create($userData);
+
+                    // Handle "other" options
+                    $institution_id = $request->institution_id == 'other' ? null : $validated['institution_id'];
+                    $designation_id = $request->designation_id == 'other' ? null : $validated['designation_id'];
+                    $department_id = $request->department_id == 'other' ? null : $validated['department_id'];
+
+                    \App\Models\User\UserDetail::create([
+                        'user_id' => $newUser->id,
+                        'phone' => $validated['phone'],
+                        'gender' => $validated['gender'],
+                        'name_prefix_id' => $validated['name_prefix_id'],
+                        'designation_id' => $designation_id,
+                        'department_id' => $department_id,
+                        'institution_id' => $institution_id,
+                        'institute_address' => $validated['address'],
+                        'council_number' => $validated['council_number'],
+                        'country_id' => $validated['country_id'],
+                    ]);
+
+                    // Create custom institution, designation, department if "other" was selected
+                    if ($request->institution_id == 'other') {
+                        \App\Models\User\UserInstitution::create([
+                            'user_id' => $newUser->id,
+                            'institution_name' => $request->other_institution_name,
+                        ]);
+                    }
+                    if ($request->designation_id == 'other') {
+                        \App\Models\User\UserDesignation::create([
+                            'user_id' => $newUser->id,
+                            'designation_name' => $request->other_designation,
+                        ]);
+                    }
+                    if ($request->department_id == 'other') {
+                        \App\Models\User\UserDepartment::create([
+                            'user_id' => $newUser->id,
+                            'department_name' => $request->other_department,
+                        ]);
+                    }
+
+                    $newUser->societies()->attach($society->id, [
+                        'member_type_id' => $validated['member_type_id'],
+                    ]);
+
+                    $registrant->user_id = $newUser->id;
+                    $user = $newUser;
+                }
+            } else {
+                // Update existing user
+                $user = User::findOrFail($registrant->user_id);
+                $user->update([
+                    'f_name' => $validated['f_name'],
+                    'm_name' => $validated['m_name'],
+                    'l_name' => $validated['l_name'],
+                    'email' => $validated['email'],
+                ]);
+
+                // Update user details
+                $user->userDetail->update([
+                    'phone' => $validated['phone'],
+                    'gender' => $validated['gender'],
+                    'name_prefix_id' => $validated['name_prefix_id'],
+                    'designation_id' => $validated['designation_id'] ?? null,
+                    'department_id' => $validated['department_id'] ?? null,
+                    'institution_id' => $validated['institution_id'] ?? null,
+                    'institute_address' => $validated['address'],
+                    'council_number' => $validated['council_number'],
+                    'country_id' => $validated['country_id'],
+                ]);
+
+                // Create custom institution, designation, department if "other" was selected
+                if ($request->institution_id == 'other') {
+                    // Delete existing custom institution for this user
+                    UserInstitution::where('user_id', $user->id)->delete();
+                    UserInstitution::create([
+                        'user_id' => $user->id,
+                        'institution_name' => $request->other_institution_name
+                    ]);
+                }
+                if ($request->designation_id == 'other') {
+                    // Delete existing custom designation for this user
+                    UserDesignation::where('user_id', $user->id)->delete();
+                    UserDesignation::create([
+                        'user_id' => $user->id,
+                        'designation_name' => $request->other_designation
+                    ]);
+                }
+                if ($request->department_id == 'other') {
+                    // Delete existing custom department for this user
+                    UserDepartment::where('user_id', $user->id)->delete();
+                    UserDepartment::create([
+                        'user_id' => $user->id,
+                        'department_name' => $request->other_department
+                    ]);
+                }
+
+                // Update user society membership
+                $user->societies()->syncWithoutDetaching([
+                    $society->id => ['member_type_id' => $validated['member_type_id']]
                 ]);
             }
-            if ($request->designation_id == 'other') {
-                // Delete existing custom designation for this user
-                UserDesignation::where('user_id', $user->id)->delete();
-                UserDesignation::create([
-                    'user_id' => $user->id,
-                    'designation_name' => $request->other_designation
-                ]);
-            }
-            if ($request->department_id == 'other') {
-                // Delete existing custom department for this user
-                UserDepartment::where('user_id', $user->id)->delete();
-                UserDepartment::create([
-                    'user_id' => $user->id,
-                    'department_name' => $request->other_department
-                ]);
-            }
-
-            // Update user society membership
-            $user->societies()->syncWithoutDetaching([
-                $society->id => ['member_type_id' => $validated['member_type_id']]
-            ]);
 
             // Update conference registration
             $registrant->update([
@@ -373,8 +510,8 @@ class ConferenceRegistrationController extends Controller
                 ConferenceRegistration_addon::where('conference_registration_id', $registrant->id)->delete();
             }
 
-            $middleName = !empty($validated['m_name']) ? $validated['m_name'] . ' ' : '';
-            logActivity($conference->id, 'Updated Conference Registration', $validated['f_name'] . ' ' . $middleName . $validated['l_name'] . ' registration updated');
+            $middleName = !empty($user->m_name) ? $user->m_name . ' ' : '';
+            logActivity($conference->id, 'Updated Conference Registration', $user->f_name . ' ' . $middleName . $user->l_name . ' registration updated');
 
             DB::commit();
 
@@ -834,7 +971,7 @@ class ConferenceRegistrationController extends Controller
             $registration = ConferenceRegistration::where('id', $request->id)->first();
 
             $registration->update($validated);
-
+ 
             $type = 'success';
             $message = "Registrant type Converted Successfully Added";
 
@@ -1222,13 +1359,18 @@ class ConferenceRegistrationController extends Controller
 
     public function generatePass(Request $request, $society, $conference)
     {
+        // Increase memory and execution time limits for large datasets
+        ini_set('memory_limit', '1024M');
+        ini_set('max_execution_time', '300');
+        set_time_limit(300);
+        
         $society_id = $society->id ?? null;
 
         $query = ConferenceRegistration::with([
             'user.societies' => function ($query) use ($society_id) {
                 $query->where('society_id', $society_id);
             },
-            'user.userDetail'
+            'user.userDetail' 
         ])
             ->where('conference_id', $conference->id)
             ->where('status', 1);
@@ -1264,7 +1406,7 @@ class ConferenceRegistrationController extends Controller
         $passSetting = PassSetting::where(['conference_id' => $conference->id, 'status' => 1])->first();
 
         $registrantsWithDesignation = $registrants->map(function ($participant) use ($conference) {
-            $userSociety = $participant->user->societies->first();
+            $userSociety = $participant->user?->societies->first();
             $memberType = $userSociety?->pivot?->memberType;
 
             $conferenceUserPassDesignation = ConferenceUserPassDesignation::where([
@@ -1281,12 +1423,54 @@ class ConferenceRegistrationController extends Controller
                 ])->first();
             }
 
+            // Check if user is a committee member
+            $committeeMember = CommitteeMember::where([
+                'conference_id' => $conference->id,
+                'user_id' => $participant->user_id,
+                'status' => 1
+            ])->first();
+        // dd($committeeMember);
+            $conferenceCommitteePassDesignation = null;
+            if ($committeeMember) {
+                $conferenceCommitteePassDesignation = ConferenceCommitteePassDesignation::where([
+                    'conference_id' => $conference->id,
+                    'committee_id' => $committeeMember->committee_id,
+                    'designation_id' => $committeeMember->designation_id
+                ])->first();
+                // dd($conferenceCommitteePassDesignation);
+            }
+
+            // Priority: ConferenceUserPassDesignation > Committee Designation > ConferenceMemberTypeNameTag
             if ($conferenceUserPassDesignation) {
                 $designation = $conferenceUserPassDesignation->pass_designation;
                 $color = $conferenceUserPassDesignation->color;
+            } elseif ($conferenceCommitteePassDesignation) {
+                $designation = $conferenceCommitteePassDesignation->name_tag;
+                $color = $conferenceCommitteePassDesignation->color;
+            } elseif ($conferenceMemberTypeNameTag) {
+                $designation = $conferenceMemberTypeNameTag->name_tag;
+                $color = $conferenceMemberTypeNameTag->color;
             } else {
-                $designation = $conferenceMemberTypeNameTag?->name_tag ?? null;
-                $color = $conferenceMemberTypeNameTag?->color ?? null;
+                // Fallback: Try to get any name tag for this registrant type (ignore member_type)
+                $fallbackNameTag = ConferenceMemberTypeNameTag::where('conference_id', $conference->id)
+                    ->where('registrant_type', $participant->registrant_type)
+                    ->first();
+                
+                if ($fallbackNameTag) {
+                    $designation = $fallbackNameTag->name_tag;
+                    $color = $fallbackNameTag->color ?? '#7367f0';
+                } else {
+                    // Ultimate fallback based on registrant type
+                    $registrantTypes = [
+                        1 => 'Attendee',
+                        2 => 'Speaker/Presenter',
+                        3 => 'Session Chair',
+                        4 => 'Special Guest',
+                        5 => 'Organizer'
+                    ];
+                    $designation = $registrantTypes[$participant->registrant_type] ?? 'Participant';
+                    $color = '#7367f0';
+                }
             }
 
             $participant->designation = $designation;
@@ -1305,26 +1489,78 @@ class ConferenceRegistrationController extends Controller
             'conference' => $conference,
         ]);
     }
-
+ 
 
     public function generateIndividualPass($society, $conference, ConferenceRegistration $conferenceRegistration)
     {
         // dd($conference);
         $participant = $conferenceRegistration;
         $passSetting = PassSetting::where(['conference_id' => $conference->id, 'status' => 1])->first();
-        $userSociety = $participant->user->societies->first();
+        $userSociety = $participant->user?->societies->first();
         $memberType = $userSociety?->pivot?->memberType;
         $conferenceUserPassDesignation = ConferenceUserPassDesignation::where(['conference_id' => $conference->id, 'user_id' => $participant->user_id])->first();
-        $conferenceMemberTypeNameTag = ConferenceMemberTypeNameTag::where(['conference_id' => $conference->id, 'member_type_id' => $memberType->id, 'registrant_type' => $participant->registrant_type])->first();
+        
+        $conferenceMemberTypeNameTag = null;
+        if ($memberType) {
+            $conferenceMemberTypeNameTag = ConferenceMemberTypeNameTag::where([
+                'conference_id' => $conference->id, 
+                'member_type_id' => $memberType->id, 
+                'registrant_type' => $participant->registrant_type
+            ])->first();
+        }
+        
+        // Check if user is a committee member
+        $committeeMember = CommitteeMember::where([
+            'conference_id' => $conference->id,
+            'user_id' => $participant->user_id,
+            'status' => 1
+        ])->first();
+
+        $conferenceCommitteePassDesignation = null;
+        if ($committeeMember) {
+            $conferenceCommitteePassDesignation = ConferenceCommitteePassDesignation::where([
+                'conference_id' => $conference->id,
+                'committee_id' => $committeeMember->committee_id,
+                'designation_id' => $committeeMember->designation_id
+            ])->first();
+        }
+
+        // Priority: ConferenceUserPassDesignation > Committee Designation > ConferenceMemberTypeNameTag
         if ($conferenceUserPassDesignation) {
             $designation = $conferenceUserPassDesignation->pass_designation;
+            $color = $conferenceUserPassDesignation->color;
+        } elseif ($conferenceCommitteePassDesignation) {
+            $designation = $conferenceCommitteePassDesignation->name_tag;
+            $color = $conferenceCommitteePassDesignation->color;
+        } elseif ($conferenceMemberTypeNameTag) {
+            $designation = $conferenceMemberTypeNameTag->name_tag;
+            $color = $conferenceMemberTypeNameTag->color;
         } else {
-            $designation = $conferenceMemberTypeNameTag?->name_tag; 
-        }
-        if (!$passSetting) {
+            // Fallback: Try to get any name tag for this registrant type (ignore member_type)
+            $fallbackNameTag = ConferenceMemberTypeNameTag::where('conference_id', $conference->id)
+                ->where('registrant_type', $participant->registrant_type)
+                ->first();
+            
+            if ($fallbackNameTag) {
+                $designation = $fallbackNameTag->name_tag;
+                $color = $fallbackNameTag->color ?? '#7367f0';
+            } else {
+                // Ultimate fallback based on registrant type
+                $registrantTypes = [
+                    1 => 'Attendee',
+                    2 => 'Speaker/Presenter',
+                    3 => 'Session Chair',
+                    4 => 'Special Guest',
+                    5 => 'Organizer'
+                ];
+                $designation = $registrantTypes[$participant->registrant_type] ?? 'Participant';
+                $color = '#7367f0';
+            }
+        } 
+        if (!$passSetting) { 
             return redirect()->back()->with('delete', 'Please Create Pass Setting');
         }
-        return view('backend.conference.conference-registration.individual-pass', compact('participant', 'passSetting', 'designation', 'conference'));
+        return view('backend.conference.conference-registration.individual-pass', compact('participant', 'passSetting', 'designation', 'conference', 'color'));
     }
 
     public function generateCertificate($society, $conference, ConferenceRegistration $conferenceRegistration)
@@ -1638,6 +1874,126 @@ class ConferenceRegistrationController extends Controller
         }
 
         return $results;
+    }
+
+    public function generateDummyPass(Request $request, $society, $conference)
+    {
+        $request->validate([
+            'dummy_count' => 'required|integer|min:1|max:100',
+            'registrant_type' => 'required|integer|in:1,2,3,4,5',
+        ]);
+
+        $dummyCount = $request->dummy_count;
+        $registrantType = $request->registrant_type;
+
+        // Create and save dummy registrant objects to database
+        $savedRegistrants = collect();
+
+        for ($i = 1; $i <= $dummyCount; $i++) {
+            // Create and save dummy registration to database
+            $dummyRegistrant = ConferenceRegistration::create([
+                'conference_id' => $conference->id,
+                'registrant_type' => $registrantType,
+                'user_id' => null, // No user linked
+                'token' => \Str::random(32),
+                'status' => 1,
+                'verified_status' => 1, // Auto-verify dummy passes
+                'payment_type' => null,
+                'transaction_id' => 'DUMMY-' . \Str::upper(\Str::random(10)),
+                'amount' => 0,
+                'total_attendee' => 1,
+            ]);
+
+            // Reload with conference relationship
+            $dummyRegistrant->load('conference');
+
+            // Create a mock user object with userDetail
+            $dummyUserModel = new class
+            {
+                public $userDetail;
+                public $societies;
+
+                public function __construct()
+                {
+                    $this->userDetail = new class
+                    {
+                        public $namePrefix;
+
+                        public function __construct()
+                        {
+                            $this->namePrefix = new class
+                            {
+                                public $prefix = '';
+                            };
+                        }
+                    };
+                    
+                    $this->societies = collect();
+                }
+
+                public function fullName($user)
+                {
+                    return '';
+                }
+            };
+
+            // Set the relationship manually
+            $dummyRegistrant->setRelation('user', $dummyUserModel);
+
+            $savedRegistrants->push($dummyRegistrant);
+        }
+
+        $passSetting = PassSetting::where(['conference_id' => $conference->id, 'status' => 1])->first();
+
+        if (!$passSetting) {
+            return redirect()->back()->with('delete', 'Please Create Pass Setting');
+        }
+
+        // Process each registrant with designation
+        $registrantsWithDesignation = $savedRegistrants->map(function ($participant) use ($conference) {
+            // For dummy passes, we'll use ConferenceMemberTypeNameTag as fallback
+            // Get any name tag configuration for this registrant type (regardless of member_type)
+            $conferenceMemberTypeNameTag = ConferenceMemberTypeNameTag::where('conference_id', $conference->id)
+                ->where('registrant_type', $participant->registrant_type)
+                ->first();
+
+            // Fallback to committee designation if no member type name tag found
+            if (!$conferenceMemberTypeNameTag) {
+                $conferenceCommitteePassDesignation = ConferenceCommitteePassDesignation::where('conference_id', $conference->id)
+                    ->whereHas('designation')
+                    ->first();
+                
+                if ($conferenceCommitteePassDesignation) {
+                    $designation = $conferenceCommitteePassDesignation->name_tag;
+                    $color = $conferenceCommitteePassDesignation->color ?? '#7367f0';
+                } else {
+                    // Ultimate fallback based on registrant type
+                    $registrantTypes = [
+                        1 => 'Attendee',
+                        2 => 'Speaker/Presenter',
+                        3 => 'Session Chair',
+                        4 => 'Special Guest',
+                        5 => 'Organizer'
+                    ];
+                    $designation = $registrantTypes[$participant->registrant_type] ?? 'Participant';
+                    $color = '#7367f0';
+                }
+            } else {
+                $designation = $conferenceMemberTypeNameTag->name_tag;
+                $color = $conferenceMemberTypeNameTag->color ?? '#7367f0';
+            }
+
+            $participant->designation = $designation;
+            $participant->designation_color = $color;
+
+            return $participant;
+        });
+
+        return view('backend.conference.conference-registration.bulk-pass', [
+            'registrants' => $registrantsWithDesignation,
+            'passSetting' => $passSetting,
+            'conference' => $conference,
+        ]);
     }
 
     public function destroy($society, $conference, ConferenceRegistration $registrant)
