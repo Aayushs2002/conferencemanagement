@@ -7,7 +7,7 @@
         <form id="verifyForm">
             @csrf
             <div class="row">
-                <div class="col-md-12 form-group mb-3">
+                <div class="col-md-8 form-group mb-3">
                     <input type="hidden" id="userId" name="user_id" value="{{ $user->id }}">
 
                     <label for="pass_designation">Pass Designation <code>*</code></label>
@@ -16,9 +16,17 @@
                         placeholder="Enter pass designation" />
                     @error('pass_designation')
                         <p class="text-danger">{{ $message }}</p>
-                    @enderror
+                    @enderror 
 
                     @error('registrant_type')
+                        <p class="text-danger">{{ $message }}</p>
+                    @enderror
+                </div>
+                <div class="col-md-4 form-group mb-3">
+                    <label for="color">Color <code>*</code></label>
+                    <input type="color" name="color" id="color" class="form-control color-picker"
+                        value="{{ old('color', $passDesignation?->color ?? '#7367f0') }}" style="height: 40px;" required>
+                    @error('color')
                         <p class="text-danger">{{ $message }}</p>
                     @enderror
                 </div>

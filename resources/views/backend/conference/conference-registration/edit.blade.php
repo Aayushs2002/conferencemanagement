@@ -15,6 +15,61 @@
                     @csrf
                     @method('PUT')
 
+                    @if(empty($registrant->user_id))
+                        <div class="alert alert-warning" role="alert">
+                            <strong>No User Linked!</strong> This is a dummy registration. You can either link it to an existing user or create a new user.
+                        </div>
+
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <div class="form-group">
+                                    <label><strong>Choose an option:</strong></label>
+                                    <div class="mt-2">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="user_option" id="linkExisting" value="link" checked>
+                                            <label class="form-check-label" for="linkExisting">
+                                                Link to Existing User
+                                            </label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="user_option" id="createNew" value="create">
+                                            <label class="form-check-label" for="createNew">
+                                                Create New User
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row mb-4" id="existingUserSection">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="existing_user_id">Select Existing User <code>*</code></label>
+                                    <select name="existing_user_id" class="form-control select2" id="existing_user_id">
+                                        <option value="">-- Select User --</option>
+                                        @foreach($users as $user)
+                                            <option value="{{ $user->id }}">
+                                                {{ $user->f_name }} {{ $user->m_name }} {{ $user->l_name }} ({{ $user->email }})
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                    @error('existing_user_id')
+                                        <p class="text-danger">{{ $message }}</p>
+                                    @enderror
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="newUserSection" style="display: none;">
+                            <div class="alert alert-info" role="alert">
+                                Fill in the user details below to create a new user account.
+                            </div>
+                        </div>
+
+                        <hr class="mb-4">
+                    @endif
+
                     <div class="row">
                         <div class="col-md-4 form-group mb-3">
                             <label for="name_prefix_id">Name Prefix <code>*</code></label>
@@ -22,7 +77,7 @@
                                 <option value="" hidden>-- Select Name Prefix --</option>
                                 @foreach ($prefixesAll as $prefix)
                                     <option value="{{ $prefix->id }}"
-                                        @selected(old('name_prefix_id', $registrant->user->userDetail->name_prefix_id) == $prefix->id)>
+                                        @selected(old('name_prefix_id', $registrant->user?->userDetail->name_prefix_id) == $prefix->id)>
                                         {{ $prefix->prefix }}</option> 
                                 @endforeach
                             </select>
@@ -33,17 +88,17 @@
                         <div class="col-md-4 form-group mb-3">
                             <label for="gender">Select Gender <code>*</code></label><br>
                             <span class="mr-3">
-                                <input type="radio" @checked(old('gender', $registrant->user->userDetail->gender) == 1) id="male" name="gender"
+                                <input type="radio" @checked(old('gender', $registrant->user?->userDetail->gender) == 1) id="male" name="gender"
                                     value="1">
                                 <label for="male">Male</label>
                             </span>
                             <span class="mr-3">
-                                <input type="radio" @checked(old('gender', $registrant->user->userDetail->gender) == 2) id="female" name="gender"
+                                <input type="radio" @checked(old('gender', $registrant->user?->userDetail->gender) == 2) id="female" name="gender"
                                     value="2" style="margin-left: 10px;">
                                 <label for="female">Female</label>
                             </span>
                             <span>
-                                <input type="radio" @checked(old('gender', $registrant->user->gender) == 3) id="other" name="gender"
+                                <input type="radio" @checked(old('gender', $registrant->user?->gender) == 3) id="other" name="gender"
                                     value="3" style="margin-left: 10px;">
                             </span>
                             <label for="other">Other</label>
@@ -54,7 +109,7 @@
                         <div class="col-md-4 form-group mb-3">
                             <label for="f_name">First Name <code>*</code></label>
                             <input type="text" class="form-control @error('f_name') is-invalid @enderror" name="f_name"
-                                id="f_name" value="{{ old('f_name', $registrant->user->f_name) }}"
+                                id="f_name" value="{{ old('f_name', $registrant->user?->f_name) }}"
                                 placeholder="Enter first name" required />
                             @error('f_name')
                                 <p class="text-danger">{{ $message }}</p>
@@ -63,7 +118,7 @@
                         <div class="col-md-4 form-group mb-3">
                             <label for="m_name">Middle Name </label>
                             <input type="text" class="form-control @error('m_name') is-invalid @enderror" name="m_name"
-                                id="m_name" value="{{ old('m_name', $registrant->user->m_name) }}"
+                                id="m_name" value="{{ old('m_name', $registrant->user?->m_name) }}"
                                 placeholder="Enter middle name" />
                             @error('m_name')
                                 <p class="text-danger">{{ $message }}</p>
@@ -72,7 +127,7 @@
                         <div class="col-md-4 form-group mb-3">
                             <label for="l_name">Last Name <code>*</code></label>
                             <input type="text" class="form-control @error('l_name') is-invalid @enderror" name="l_name"
-                                id="l_name" value="{{ old('l_name', $registrant->user->l_name) }}"
+                                id="l_name" value="{{ old('l_name', $registrant->user?->l_name) }}"
                                 placeholder="Enter last name" required />
                             @error('l_name')
                                 <p class="text-danger">{{ $message }}</p>
@@ -81,7 +136,7 @@
                         <div class="col-md-4 form-group mb-3">
                             <label for="email">Email <code>*</code></label>
                             <input type="email" class="form-control @error('email') is-invalid @enderror" name="email"
-                                id="email" value="{{ old('email', $registrant->user->email) }}"
+                                id="email" value="{{ old('email', $registrant->user?->email) }}"
                                 placeholder="Enter email" required />
                             @error('email')
                                 <p class="text-danger">{{ $message }}</p>
@@ -90,7 +145,7 @@
                         <div class="col-md-4 form-group mb-3">
                             <label for="phone">Phone <code>*</code></label>
                             <input type="text" class="form-control @error('phone') is-invalid @enderror" name="phone"
-                                id="phone" value="{{ old('phone', $registrant->user->userDetail->phone) }}"
+                                id="phone" value="{{ old('phone', $registrant->user?->userDetail->phone) }}"
                                 placeholder="Enter phone" required />
                             @error('phone')
                                 <p class="text-danger">{{ $message }}</p>
@@ -103,10 +158,10 @@
                                 <option value="" hidden>-- Select Institution Name --</option>
                                 @foreach ($institutions as $institution)
                                     <option value="{{ $institution->id }}"
-                                        @selected(old('institution_id', $registrant->user->userDetail->institution_id) == $institution->id)>
+                                        @selected(old('institution_id', $registrant->user?->userDetail->institution_id) == $institution->id)>
                                         {{ $institution->name }}</option>
                                 @endforeach
-                                <option value="other" @selected(old('institution_id', $userInstitution ? 'other' : $registrant->user->userDetail->institution_id) == 'other')>Others</option>
+                                <option value="other" @selected(old('institution_id', $userInstitution ? 'other' : $registrant->user?->userDetail->institution_id) == 'other')>Others</option>
                             </select>
                             @error('institution_id')
                                 <p class="text-danger">{{ $message }}</p>
@@ -129,10 +184,10 @@
                                 <option value="" hidden>-- Select Designation --</option>
                                 @foreach ($designations as $designation)
                                     <option value="{{ $designation->id }}"
-                                        @selected(old('designation_id', $registrant->user->userDetail->designation_id) == $designation->id)>
+                                        @selected(old('designation_id', $registrant->user?->userDetail->designation_id) == $designation->id)>
                                         {{ $designation->designation }}</option>
                                 @endforeach
-                                <option value="other" @selected(old('designation_id', $userDesignation ? 'other' : $registrant->user->userDetail->designation_id) == 'other')>Others</option>
+                                <option value="other" @selected(old('designation_id', $userDesignation ? 'other' : $registrant->user?->userDetail->designation_id) == 'other')>Others</option>
                             </select>
                             @error('designation_id')
                                 <p class="text-danger">{{ $message }}</p>
@@ -155,10 +210,10 @@
                                 <option value="" hidden>-- Select Department --</option>
                                 @foreach ($departments as $department)
                                     <option value="{{ $department->id }}"
-                                        @selected(old('department_id', $registrant->user->userDetail->department_id) == $department->id)>
+                                        @selected(old('department_id', $registrant->user?->userDetail->department_id) == $department->id)>
                                         {{ $department->name }}</option>
                                 @endforeach
-                                <option value="other" @selected(old('department_id', $userDepartment ? 'other' : $registrant->user->userDetail->department_id) == 'other')>Others</option>
+                                <option value="other" @selected(old('department_id', $userDepartment ? 'other' : $registrant->user?->userDetail->department_id) == 'other')>Others</option>
                             </select>
                             @error('department_id')
                                 <p class="text-danger">{{ $message }}</p>
@@ -179,7 +234,7 @@
                             <label for="address">Institute Address <code>*</code></label>
                             <input type="text" class="form-control @error('address') is-invalid @enderror"
                                 name="address" id="address"
-                                value="{{ old('address', $registrant->user->userDetail->institute_address) }}"
+                                value="{{ old('address', $registrant->user?->userDetail->institute_address) }}"
                                 placeholder="Enter institute address" required />
                             @error('address')
                                 <p class="text-danger">{{ $message }}</p>
@@ -190,7 +245,7 @@
                             <label for="council_number">Council Number</label>
                             <input type="text" class="form-control @error('council_number') is-invalid @enderror"
                                 name="council_number" id="council_number"
-                                value="{{ old('council_number', $registrant->user->userDetail->council_number) }}"
+                                value="{{ old('council_number', $registrant->user?->userDetail->council_number) }}"
                                 placeholder="Enter council number" />
                             @error('council_number')
                                 <p class="text-danger">{{ $message }}</p>
@@ -202,7 +257,7 @@
                                 <option value="">-- Select Country --</option>
                                 @foreach ($countries as $country)
                                     <option value="{{ $country->id }}"
-                                        @selected(old('country_id', $registrant->user->userDetail->country_id) == $country->id)>
+                                        @selected(old('country_id', $registrant->user?->userDetail->country_id) == $country->id)>
                                         {{ $country->country_name }}</option>
                                 @endforeach
                             </select>
@@ -212,7 +267,7 @@
                         </div>
 
                         @php
-                            $userSociety = $registrant->user->societies->first();
+                            $userSociety = $registrant->user?->societies->first();
                             $currentMemberType = $userSociety?->pivot?->member_type_id;
                         @endphp
 
@@ -433,6 +488,12 @@
                 }
             });
 
+            // Initialize select2 for existing user dropdown
+            $('#existing_user_id').select2({
+                placeholder: '-- Select User --',
+                allowClear: true
+            });
+
             // Handle voucher deletion
             $("#deleteVoucher").on("click", function(e) {
                 e.preventDefault();
@@ -629,6 +690,24 @@
                     return;
                 } else {
                     event.preventDefault();
+                }
+            });
+
+            // Toggle between link existing user and create new user
+            $('input[name="user_option"]').on('change', function() {
+                var selectedOption = $(this).val();
+                if (selectedOption === 'link') {
+                    $('#existingUserSection').show();
+                    $('#newUserSection').hide();
+                    $('#existing_user_id').prop('required', true);
+                    // Make user form fields not required when linking
+                    $('#registrationForm input, #registrationForm select').not('#existing_user_id').prop('required', false);
+                } else {
+                    $('#existingUserSection').hide();
+                    $('#newUserSection').show();
+                    $('#existing_user_id').prop('required', false);
+                    // Make user form fields required when creating new
+                    $('#registrationForm input[required], #registrationForm select[required]').prop('required', true);
                 }
             });
         });

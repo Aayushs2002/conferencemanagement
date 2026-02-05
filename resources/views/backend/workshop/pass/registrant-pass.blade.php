@@ -155,11 +155,13 @@
             font-optical-sizing: auto;
             font-style: normal;
         }
+
         @media print {
             .no-print {
                 display: none;
             }
         }
+
         .batch-navigation {
             position: fixed;
             top: 10px;
@@ -168,9 +170,10 @@
             padding: 15px;
             border: 2px solid #007bff;
             border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
             z-index: 1000;
         }
+
         .batch-navigation button {
             margin: 0 5px;
             padding: 8px 16px;
@@ -180,9 +183,11 @@
             border-radius: 4px;
             cursor: pointer;
         }
+
         .batch-navigation button:hover {
             background: #0056b3;
         }
+
         .batch-navigation button:disabled {
             background: #ccc;
             cursor: not-allowed;
@@ -191,32 +196,34 @@
 </head>
 
 <body>
-    @if(isset($batch) && isset($totalBatches))
-    <div class="batch-navigation no-print">
-        <strong>Batch {{ $batch }} of {{ $totalBatches }}</strong><br>
-        <small>{{ count($registrants) }} passes on this page</small><br><br>
-        @if($batch > 1)
-            <button onclick="window.location.href='{{ url()->current() }}?registrant_type={{ request('registrant_type') }}&batch={{ $batch - 1 }}'">
-                ← Previous Batch
+    @if (isset($batch) && isset($totalBatches))
+        <div class="batch-navigation no-print">
+            <strong>Batch {{ $batch }} of {{ $totalBatches }}</strong><br>
+            <small>{{ count($registrants) }} passes on this page</small><br><br>
+            @if ($batch > 1)
+                <button
+                    onclick="window.location.href='{{ url()->current() }}?registrant_type={{ request('registrant_type') }}&batch={{ $batch - 1 }}'">
+                    ← Previous Batch
+                </button>
+            @else
+                <button disabled>← Previous Batch</button>
+            @endif
+
+            @if ($batch < $totalBatches)
+                <button
+                    onclick="window.location.href='{{ url()->current() }}?registrant_type={{ request('registrant_type') }}&batch={{ $batch + 1 }}'">
+                    Next Batch →
+                </button>
+            @else
+                <button disabled>Next Batch →</button>
+            @endif
+            <br><br>
+            <button onclick="window.print()" style="background: #28a745; width: 100%;">
+                🖨️ Print This Batch
             </button>
-        @else
-            <button disabled>← Previous Batch</button>
-        @endif
-        
-        @if($batch < $totalBatches)
-            <button onclick="window.location.href='{{ url()->current() }}?registrant_type={{ request('registrant_type') }}&batch={{ $batch + 1 }}'">
-                Next Batch →
-            </button>
-        @else
-            <button disabled>Next Batch →</button>
-        @endif
-        <br><br>
-        <button onclick="window.print()" style="background: #28a745; width: 100%;">
-            🖨️ Print This Batch
-        </button>
-    </div>
+        </div>
     @endif
-    
+
     <div style="width:1280px; height:auto;">
 
         @foreach ($registrants as $registrant)
@@ -249,15 +256,20 @@
 
                         <h1
                             style="font-size:34px;text-transform:capitalize; letter-spacing:-0.02em; color:#fff; background:#c4161c; margin:15px 40px 5px 40px; border-radius:20px; height:30px; padding:10px 0px;">
-                            @if (\Carbon\Carbon::parse($registrant->workshop->start_date)->lt(\Carbon\Carbon::parse($registrant->workshop->conference->start_date)))
+                            @if (
+                                \Carbon\Carbon::parse($registrant->workshop->start_date)->lt(
+                                    \Carbon\Carbon::parse($registrant->workshop->conference->start_date)))
                                 {{-- Pre-congress --}}
                                 Pre-Conference Workshop
-                            @elseif (\Carbon\Carbon::parse($registrant->workshop->start_date)->gt(\Carbon\Carbon::parse($registrant->workshop->conference->end_date)))
+                            @elseif (
+                                \Carbon\Carbon::parse($registrant->workshop->start_date)->gt(
+                                    \Carbon\Carbon::parse($registrant->workshop->conference->end_date)))
                                 {{-- Post-congress --}}
                                 Post-Conference Workshop
                             @endif
                         </h1>
-                        <h2> {{ $registrant->workshop->workshop_title }}</h2>
+
+                        <h2 > {{ $registrant->workshop->workshop_title }}</h2>
                         <div style="padding:0px 20px; height:auto;  margin-top:10px; ">
 
                             <h3 style="color:#fff;">
@@ -268,7 +280,7 @@
                         </div>
 
                         <h1
-                            style="font-size:34px;text-transform:capitalize; letter-spacing:-0.02em; background:#fff; {{$registrant->workshop->workshop_slogan ? 'margin:15px auto 5px' : 'margin:15px auto 70px'}}; width:470px; border-radius:10px; height:25px; padding:14px 0px;">
+                            style="font-size:34px;text-transform:capitalize; letter-spacing:-0.02em; background:#fff; {{ $registrant->workshop->workshop_slogan ? 'margin:15px auto 5px' : 'margin:15px auto 70px' }}; width:470px; border-radius:10px; height:25px; padding:14px 0px;">
                             {{ $registrant?->user?->userDetail?->namePrefix->prefix }}
                             {{ $registrant?->user?->fullName($registrant->user) }}
 

@@ -116,7 +116,7 @@
                                 <i class="icon-base ti tabler-upload icon-xs me-sm-1"></i>
                                 Export CSV</button>
                         @endif
-                        <button type="submit" id="PassBtn" class="btn btn-warning">Pass</button>
+                        <button type="submit" id="PassBtn" class="btn btn-warning" target="_blank">Pass</button>
                         <button type="submit" id="filterBtn" class="btn btn-primary">Filter</button>
                     </div>
                 </div>
@@ -155,8 +155,26 @@
                               <i class="icon-base ti tabler-plus icon-xs me-sm-1"></i>
                               <span class="d-none d-sm-inline-block">Add New</span>
                           </a> --}}
-                        <button type="button" id="importRegistrant" data-bs-toggle="modal" data-bs-target="#pricingModal"
-                            class="btn btn-primary">Import Registrant</button> 
+                        <div class="btn-group">
+                            <button type="button" class="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="icon-base ti tabler-user-plus icon-xs me-sm-1"></i>
+                                <span class="d-none d-sm-inline-block">Actions</span>
+                            </button>
+                            <ul class="dropdown-menu">
+                                <li>
+                                    <button type="button" id="importRegistrant" data-bs-toggle="modal" data-bs-target="#pricingModal"
+                                        class="dropdown-item">
+                                        <i class="ti tabler-file-import me-2"></i> Import Registrant
+                                    </button>
+                                </li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <a class="dropdown-item" href="javascript:void(0);" data-bs-toggle="modal" data-bs-target="#dummyPassModal">
+                                        <i class="ti tabler-user-plus me-2"></i> Generate Dummy Pass
+                                    </a>
+                                </li>
+                            </ul>
+                        </div> 
 
                     </div>
                 </div>
@@ -180,9 +198,9 @@
                     @foreach ($registrants as $registrant)
                         <tr>
                             <th scope="row">{{ $loop->iteration }}</th>
-                            <td>{{$registrant->user->userDetail->namePrefix->prefix .' '. $registrant->user->fullName($registrant->user) }}</td>
+                            <td>{{$registrant->user?->userDetail->namePrefix->prefix .' '. $registrant->user?->fullName($registrant->user) }}</td>
                             @php
-                                $userSociety = $registrant->user->societies->first();
+                                $userSociety = $registrant->user?->societies->first();
                                 $memberType = $userSociety?->pivot?->memberType;
                             @endphp
                             <td>{{ $memberType->type ?? 'N/A' }}</td>
@@ -265,6 +283,8 @@
                                     Session Chair
                                 @elseif ($registrant->registrant_type == 4)
                                     Special Guest
+                                @elseif ($registrant->registrant_type == 5) 
+                                    Organizer
                                 @endif
                                 @if ($registrant->is_invited == 1)
                                     <span title="Invited"
@@ -317,7 +337,7 @@
                                                 Type</a>
                                         @endif
                                         <a class="dropdown-item"
-                                            href="{{ route('conference.conference-registration.generateIndividualPass', [$society, $conference, $registrant->id]) }}"><i
+                                            href="{{ route('conference.conference-registration.generateIndividualPass', [$society, $conference, $registrant->id]) }}" target="_blank"><i
                                                 class="icon-base ti tabler-ticket me-1"></i> Generate Pass</a>
                                         <a class="dropdown-item"
                                             href="{{ route('conference.conference-registration.downloadVoucher', [$society, $conference, $registrant->id]) }}"><i
@@ -350,6 +370,44 @@
         <div class="modal fade" id="pricingModal" tabindex="-1" aria-hidden="true">
             <div class="modal-dialog modal-md modal-simple modal-pricing">
                 <div class="modal-content" id="modalContent">
+                </div>
+            </div>
+        </div>
+
+        <!-- Dummy Pass Generation Modal -->
+        <div class="modal fade" id="dummyPassModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Generate Dummy Pass</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <form action="{{ route('conference.conference-registration.generateDummyPass', [$society, $conference]) }}" method="POST" target="_blank">
+                        @csrf
+                        <div class="modal-body">
+                            <div class="mb-3">
+                                <label for="dummy_count" class="form-label">Number of Dummy Passes <code>*</code></label>
+                                <input type="number" class="form-control" id="dummy_count" name="dummy_count" 
+                                       min="1" max="100" value="1" required>
+                                <small class="text-muted">Enter the number of dummy passes to generate (Max: 100)</small>
+                            </div>
+                            <div class="mb-3">
+                                <label for="registrant_type" class="form-label">Registrant Type <code>*</code></label>
+                                <select class="form-control" id="registrant_type" name="registrant_type" required>
+                                    <option value="">-- Select Registrant Type --</option>
+                                    <option value="1">Attendee</option>
+                                    <option value="2">Speaker/Presenter</option>
+                                    <option value="3">Session Chair</option>
+                                    <option value="4">Special Guest</option>
+                                    <option value="5">Organizer</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <button type="submit" class="btn btn-success">Generate Passes</button>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>

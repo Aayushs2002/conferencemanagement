@@ -251,7 +251,8 @@ class SignupUserController extends Controller
     {
         try {
             $validated = $request->validate([
-                'pass_designation' => 'required'
+                'pass_designation' => 'required',
+                'color' => 'required'
             ]);
             $user = User::whereId($request->user_id)->first();
             ConferenceUserPassDesignation::updateOrCreate(
@@ -260,7 +261,8 @@ class SignupUserController extends Controller
                     'conference_id' => $conference->id,
                 ],
                 [
-                    'pass_designation' => $request->pass_designation
+                    'pass_designation' => $request->pass_designation,
+                    'color' => $request->color
                 ]
             );
             $message = 'Designation Passed Successfully Added';

@@ -218,9 +218,9 @@
                                                 <option value="1">Attendee</option>
                                                 <option value="2">Speaker/Presenter</option>
                                                 <option value="3">
-                                                    Session Chair</option>
+                                                    Session Chair</option> 
                                                 <option value="4">
-                                                    Special Guest</option>
+                                                    Special Guest</option> 
                                                 <option value="5">
                                                     Organizer</option>
                                             </select>
@@ -237,6 +237,117 @@
                                             <button type="button" name="add" id="add"
                                                 class="btn btn-success">Add</button>
                                         </td>
+                                    </tr>
+                                @endif
+                            </tbody>
+                        </table>
+
+                        <div class="col-12 mt-6">
+                            <h6>3. Committee Pass Configuration</h6> 
+                            <hr class="mt-0" style="height:1px;border:none;color:#333;background-color:#333;" />
+                        </div>
+
+                        <table class="table table-bordered" id="committee_dynamic_field">
+                            <thead>
+                                <tr>
+                                    <th>S.N.</th>
+                                    <th>Committee</th>
+                                    <th>Committee Designation</th>
+                                    <th>Name Tag</th>
+                                    <th>Color</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @php
+                                    $committeeRows = old('committee_id')
+                                        ? count(old('committee_id'))
+                                        : (isset($committeePassDesignations)
+                                            ? $committeePassDesignations->count()
+                                            : 0);
+                                @endphp
+
+                                @for ($i = 0; $i < $committeeRows; $i++)
+                                    <tr id="committee_row{{ $i + 1 }}">
+                                        <td>{{ $i + 1 }}.</td>
+                                        <td>
+                                            <select name="committee_id[{{ $i }}]" class="form-control committee-select" required>
+                                                <option value="" hidden>-- Select Committee --</option>
+                                                @foreach ($committees as $committee)
+                                                    <option value="{{ $committee->id }}"
+                                                        {{ old("committee_id.$i", isset($committeePassDesignations[$i]) ? $committeePassDesignations[$i]->committee_id : '') == $committee->id ? 'selected' : '' }}>
+                                                        {{ $committee->committee_name }}
+                                                    </option>
+                                                @endforeach
+                                            </select>
+                                        </td>
+                                        <td>
+                                            <select name="committee_designation_id[{{ $i }}]" class="form-control" required>
+                                                <option value="" hidden>-- Select Designation --</option>
+                                                @foreach ($committeeDesignations as $designation)
+                                                    <option value="{{ $designation->id }}"
+                                                        {{ old("committee_designation_id.$i", isset($committeePassDesignations[$i]) ? $committeePassDesignations[$i]->designation_id : '') == $designation->id ? 'selected' : '' }}>
+                                                        {{ $designation->designation }}
+                                                    </option>
+                                                @endforeach
+                                            </select>
+                                        </td>
+                                        <td>
+                                            <input type="text" name="committee_name_tag[{{ $i }}]" class="form-control"
+                                                placeholder="Enter Name Tag"
+                                                value="{{ old("committee_name_tag.$i", isset($committeePassDesignations[$i]) ? $committeePassDesignations[$i]->name_tag : '') }}"
+                                                required>
+                                        </td>
+                                        <td>
+                                            <input type="color" name="committee_color[{{ $i }}]" class="form-control color-picker"
+                                                value="{{ old("committee_color.$i", isset($committeePassDesignations[$i]) ? $committeePassDesignations[$i]->color : '#7367f0') }}"
+                                                style="height: 40px;">
+                                        </td>
+                                        <td>
+                                            @if ($i == 0)
+                                                <button type="button" name="add_committee" id="add_committee"
+                                                    class="btn btn-success">Add</button>
+                                            @else
+                                                <button type="button" class="btn btn-danger btn_remove_committee">Remove</button>
+                                            @endif
+                                        </td>
+                                        <input type="hidden" name="committee_ids[{{ $i }}]" 
+                                            value="{{ old("committee_ids.$i", isset($committeePassDesignations[$i]) ? $committeePassDesignations[$i]->id : '') }}">
+                                    </tr>
+                                @endfor
+
+                                @if ($committeeRows == 0)
+                                    <tr id="committee_row1">
+                                        <td>1.</td>
+                                        <td>
+                                            <select name="committee_id[0]" class="form-control committee-select" required>
+                                                <option value="" hidden>-- Select Committee --</option>
+                                                @foreach ($committees as $committee)
+                                                    <option value="{{ $committee->id }}">{{ $committee->committee_name }}</option>
+                                                @endforeach
+                                            </select>
+                                        </td>
+                                        <td>
+                                            <select name="committee_designation_id[0]" class="form-control" required>
+                                                <option value="" hidden>-- Select Designation --</option>
+                                                @foreach ($committeeDesignations as $designation)
+                                                    <option value="{{ $designation->id }}">{{ $designation->designation }}</option>
+                                                @endforeach
+                                            </select>
+                                        </td>
+                                        <td>
+                                            <input type="text" name="committee_name_tag[0]" class="form-control"
+                                                placeholder="Enter Name Tag" required>
+                                        </td>
+                                        <td>
+                                            <input type="color" name="committee_color[0]" class="form-control color-picker"
+                                                value="#7367f0" style="height: 40px;">
+                                        </td>
+                                        <td>
+                                            <button type="button" name="add_committee" id="add_committee"
+                                                class="btn btn-success">Add</button>
+                                        </td>
+                                        <input type="hidden" name="committee_ids[0]" value="">
                                     </tr>
                                 @endif
                             </tbody>
@@ -356,6 +467,76 @@
             });
 
             i = $('#dynamic_field tbody tr').length;
+        });
+
+        // Committee dynamic fields
+        let j = {{ isset($committeePassDesignations) && $committeePassDesignations->count() > 0 ? $committeePassDesignations->count() : 1 }};
+
+        function initializeCommitteeSelect2() {
+            $('.committee-select').select2({
+                placeholder: 'Select Committee',
+                width: '100%'
+            });
+        }
+
+        $(document).ready(function() {
+            initializeCommitteeSelect2();
+        });
+
+        $('#add_committee').click(function() {
+            j++;
+            let newCommitteeRow = `
+        <tr id="committee_row${j}">
+            <td>${j}.</td>
+            <td>
+                <select name="committee_id[${j - 1}]" class="form-control committee-select" required>
+                    <option value="" hidden>-- Select Committee --</option>
+                    @foreach ($committees as $committee)
+                        <option value="{{ $committee->id }}">{{ $committee->committee_name }}</option>
+                    @endforeach
+                </select>
+            </td>
+            <td>
+                <select name="committee_designation_id[${j - 1}]" class="form-control" required>
+                    <option value="" hidden>-- Select Designation --</option>
+                    @foreach ($committeeDesignations as $designation)
+                        <option value="{{ $designation->id }}">{{ $designation->designation }}</option>
+                    @endforeach
+                </select>
+            </td>
+            <td>
+                <input type="text" name="committee_name_tag[${j - 1}]" class="form-control" placeholder="Enter Name Tag" required>
+            </td>
+            <td>
+                <input type="color" name="committee_color[${j - 1}]" class="form-control color-picker" value="#7367f0" style="height: 40px;">
+            </td>
+            <td>
+                <button type="button" name="remove" class="btn btn-danger btn_remove_committee">Remove</button>
+            </td>
+            <input type="hidden" name="committee_ids[${j - 1}]" value="">
+        </tr>
+    `;
+            $('#committee_dynamic_field tbody').append(newCommitteeRow);
+            initializeCommitteeSelect2();
+        });
+
+        $(document).on('click', '.btn_remove_committee', function() {
+            $(this).closest('tr').remove();
+
+            // Re-number rows and fix input names
+            $('#committee_dynamic_field tbody tr').each(function(index) {
+                let rowIndex = index + 1;
+                $(this).attr('id', 'committee_row' + rowIndex);
+                $(this).find('td:first').text(rowIndex + '.');
+
+                $(this).find('select.committee-select').attr('name', `committee_id[${index}]`);
+                $(this).find('select[name^="committee_designation_id"]').attr('name', `committee_designation_id[${index}]`);
+                $(this).find('input[name^="committee_name_tag"]').attr('name', `committee_name_tag[${index}]`);
+                $(this).find('input[name^="committee_color"]').attr('name', `committee_color[${index}]`);
+                $(this).find('input[name^="committee_ids"]').attr('name', `committee_ids[${index}]`);
+            });
+
+            j = $('#committee_dynamic_field tbody tr').length;
         });
     </script>
 @endsection

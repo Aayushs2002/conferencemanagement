@@ -162,8 +162,8 @@
                         </h6>
                         <h1
                             style="font-size:34px;text-transform:capitalize; letter-spacing:-0.02em; background:#fff; margin:15px auto 5px; width:470px; border-radius:10px; height:30px; padding:22px 0px;">
-                            {{ $participant->user->userDetail->namePrefix->prefix ?? null }}
-                            {{ $participant->user->fullName($participant->user) }}</h1>
+                            {{ $participant->user?->userDetail->namePrefix->prefix ?? null }}
+                            {{ $participant->user?->fullName($participant->user) }}</h1>
                     </div>
                     <div style="width:510px; padding:0px 20px 10px; text-align:center; float:left;">
 
@@ -174,7 +174,7 @@
 
                         </div>
 
-
+ 
 
                     </div>
 
@@ -184,7 +184,7 @@
                             style="color:#fff;  font-size:40px; padding:0px 30px 8px; margin:0px; weight:bold; text-align:center;">
                             {{ $participant->designation }}
                         </h1>
-                    </div>
+                    </div> 
                     <div style="width:92%; font-size:15px; padding:12px 25px; color:#fff; float:left;">
                         <p style="text-align:center; text-shadow:1px 1px 1px #000; "><b>Hosted by:</b><br />
                              {{ $conference->society->users->where('type', 2)->value('f_name') }}

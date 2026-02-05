@@ -112,6 +112,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/generate-certificate/{conferenceRegistration}',  'generateCertificate')->name('generateCertificate');
         Route::get('/generate-individual-pass/{conferenceRegistration}', 'generateIndividualPass')->name('generateIndividualPass');
         Route::get('/download-voucher/{conferenceRegistration}', 'downloadVoucher')->name('downloadVoucher');
+        Route::post('/generate-dummy-pass', 'generateDummyPass')->name('generateDummyPass');
         Route::delete('/registrant/destroy/{registrant}', 'destroy')->name('registrant.destroy');
     });
 
