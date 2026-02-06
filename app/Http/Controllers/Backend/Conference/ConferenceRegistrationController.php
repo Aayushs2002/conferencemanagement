@@ -10,6 +10,7 @@ use App\Mail\Conference\ExceptionalRegistrationMail;
 use App\Mail\Conference\RegistrantAcceptMail;
 use App\Mail\Conference\RegistrantRejectMail;
 use App\Mail\Conference\RegistrationMail;
+use App\Models\Committee\CommitteeMember;
 use App\Models\Conference\AccompanyPerson;
 use App\Models\Conference\Attendance;
 use App\Models\Conference\ConferenceAddon;
@@ -23,9 +24,8 @@ use App\Models\Conference\Meal;
 use App\Models\Conference\PassSetting;
 use App\Models\Conference\Poll;
 use App\Models\Conference\UserVote;
-use App\Models\ConferenceMemberTypeNameTag;
 use App\Models\ConferenceCommitteePassDesignation;
-use App\Models\Committee\CommitteeMember;
+use App\Models\ConferenceMemberTypeNameTag;
 use App\Models\User;
 use App\Models\User\ConferenceUserPassDesignation;
 use App\Models\User\Department;
@@ -38,17 +38,15 @@ use App\Models\User\UserDepartment;
 use App\Models\User\UserDesignation;
 use App\Models\User\UserDetail;
 use App\Models\User\UserInstitution;
-use App\Models\User\UserSociety;
 use App\Models\Workshop\WorkshopRegistration;
 use App\Services\File\FileService;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Maatwebsite\Excel\Facades\Excel;
-use Barryvdh\DomPDF\Facade\Pdf;
-use Illuminate\Support\Facades\Log;
 
 class ConferenceRegistrationController extends Controller
 {
@@ -57,7 +55,7 @@ class ConferenceRegistrationController extends Controller
     public function index(Request $request, $society, $conference)
     {
         $society_id = $society->id;
-        $query = ConferenceRegistration::with([ 
+        $query = ConferenceRegistration::with([
             'user' => function ($query) use ($society_id) {
                 $query->with([
                     'userDetail.namePrefix',
@@ -70,12 +68,12 @@ class ConferenceRegistrationController extends Controller
                     },
                     'societyUsers.memberType' => function ($q) use ($society_id) {
                         $q->where('society_id', $society_id);
-                    }
+                    },
                 ]);
             },
             'conference',
             'accompanyPersons',
-            'addons'
+            'addons',
         ])
             ->where('conference_id', $conference->id)
             ->where('status', 1);
@@ -130,7 +128,7 @@ class ConferenceRegistrationController extends Controller
 
         // Sort real registrants alphabetically by user's full name
         $realRegistrants = $realRegistrants->sortBy(function ($registrant) {
-            return strtolower($registrant->user->f_name . ' ' . $registrant->user->l_name);
+            return strtolower($registrant->user->f_name.' '.$registrant->user->l_name);
         });
 
         // Merge: real registrants first (alphabetically), then dummy registrants
@@ -140,14 +138,14 @@ class ConferenceRegistrationController extends Controller
             'registrants' => $registrants,
             'conference' => $conference,
             'society' => $society,
-            'filters' => $request->only(['registrant_type', 'is_invited', 'payment_type', 'from', 'to'])
+            'filters' => $request->only(['registrant_type', 'is_invited', 'payment_type', 'from', 'to']),
         ]);
     }
-
 
     public function show(Request $request)
     {
         $registrant = ConferenceRegistration::whereId($request->id)->first();
+
         return view('backend.conference.conference-registration.view', compact('registrant'));
     }
 
@@ -165,6 +163,7 @@ class ConferenceRegistrationController extends Controller
             if ($society && $society->$relation()->exists()) {
                 return $society->$relation()->where('status', 1)->get();
             }
+
             return $model::where('status', 1)->get();
         };
 
@@ -229,7 +228,7 @@ class ConferenceRegistrationController extends Controller
                 'meal_type' => 'required',
                 'payment_type' => 'required|in:1,2,3,4,5,6',
                 'payment_voucher' => 'nullable|mimes:jpg,png,pdf|max:250',
-                'transaction_id' => 'required|unique:conference_registrations,transaction_id,' . $registrant->id,
+                'transaction_id' => 'required|unique:conference_registrations,transaction_id,'.$registrant->id,
                 'amount' => 'required|numeric',
             ];
 
@@ -268,7 +267,7 @@ class ConferenceRegistrationController extends Controller
                 $rules['institution_id'] = 'nullable';
                 $rules['address'] = 'nullable';
                 $rules['member_type_id'] = 'required';
-                $rules['email'] = 'required|email|unique:users,email,' . $registrant->user_id;
+                $rules['email'] = 'required|email|unique:users,email,'.$registrant->user_id;
                 $rules['country_id'] = 'required';
                 $rules['council_number'] = 'nullable';
             }
@@ -317,7 +316,7 @@ class ConferenceRegistrationController extends Controller
                 $validated['total_attendee'] = $validated['additional_guests'] + 1;
             }
 
-            if (!empty($validated['payment_voucher'])) {
+            if (! empty($validated['payment_voucher'])) {
                 // Delete old voucher if exists
                 if ($registrant->payment_voucher) {
                     $this->file_service->deleteFile($registrant->payment_voucher, 'conference/payment-voucher');
@@ -339,6 +338,7 @@ class ConferenceRegistrationController extends Controller
 
                     if ($existingRegistration) {
                         DB::rollBack();
+
                         return redirect()->back()->withInput()->with('delete', 'This user is already registered for this conference.');
                     }
 
@@ -433,7 +433,7 @@ class ConferenceRegistrationController extends Controller
                     UserInstitution::where('user_id', $user->id)->delete();
                     UserInstitution::create([
                         'user_id' => $user->id,
-                        'institution_name' => $request->other_institution_name
+                        'institution_name' => $request->other_institution_name,
                     ]);
                 }
                 if ($request->designation_id == 'other') {
@@ -441,7 +441,7 @@ class ConferenceRegistrationController extends Controller
                     UserDesignation::where('user_id', $user->id)->delete();
                     UserDesignation::create([
                         'user_id' => $user->id,
-                        'designation_name' => $request->other_designation
+                        'designation_name' => $request->other_designation,
                     ]);
                 }
                 if ($request->department_id == 'other') {
@@ -449,13 +449,13 @@ class ConferenceRegistrationController extends Controller
                     UserDepartment::where('user_id', $user->id)->delete();
                     UserDepartment::create([
                         'user_id' => $user->id,
-                        'department_name' => $request->other_department
+                        'department_name' => $request->other_department,
                     ]);
                 }
 
                 // Update user society membership
                 $user->societies()->syncWithoutDetaching([
-                    $society->id => ['member_type_id' => $validated['member_type_id']]
+                    $society->id => ['member_type_id' => $validated['member_type_id']],
                 ]);
             }
 
@@ -510,8 +510,8 @@ class ConferenceRegistrationController extends Controller
                 ConferenceRegistration_addon::where('conference_registration_id', $registrant->id)->delete();
             }
 
-            $middleName = !empty($user->m_name) ? $user->m_name . ' ' : '';
-            logActivity($conference->id, 'Updated Conference Registration', $user->f_name . ' ' . $middleName . $user->l_name . ' registration updated');
+            $middleName = ! empty($user->m_name) ? $user->m_name.' ' : '';
+            logActivity($conference->id, 'Updated Conference Registration', $user->f_name.' '.$middleName.$user->l_name.' registration updated');
 
             DB::commit();
 
@@ -519,7 +519,8 @@ class ConferenceRegistrationController extends Controller
                 ->with('status', 'Conference registration updated successfully.');
         } catch (Exception $e) {
             DB::rollBack();
-            return redirect()->back()->withInput()->with('delete', 'Failed to update registration: ' . $e->getMessage());
+
+            return redirect()->back()->withInput()->with('delete', 'Failed to update registration: '.$e->getMessage());
         }
     }
 
@@ -532,18 +533,18 @@ class ConferenceRegistrationController extends Controller
 
                 return response()->json([
                     'success' => true,
-                    'message' => 'Payment voucher deleted successfully.'
+                    'message' => 'Payment voucher deleted successfully.',
                 ]);
             }
 
             return response()->json([
                 'success' => false,
-                'message' => 'No voucher found to delete.'
+                'message' => 'No voucher found to delete.',
             ], 404);
         } catch (Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to delete voucher: ' . $e->getMessage()
+                'message' => 'Failed to delete voucher: '.$e->getMessage(),
             ], 500);
         }
     }
@@ -561,19 +562,19 @@ class ConferenceRegistrationController extends Controller
             $activeAccompanyCount = AccompanyPerson::where('conference_registration_id', $registration->id)->count();
 
             $registration->update([
-                'total_attendee' => $activeAccompanyCount + 1 // +1 for the registrant
+                'total_attendee' => $activeAccompanyCount + 1, // +1 for the registrant
             ]);
 
-            logActivity($conference->id, 'Deleted Accompany Person', 'Deleted accompany person: ' . $personName . ' from ' . $registration->user->fullName($registration->user) . ' registration');
+            logActivity($conference->id, 'Deleted Accompany Person', 'Deleted accompany person: '.$personName.' from '.$registration->user->fullName($registration->user).' registration');
 
             return response()->json([
                 'success' => true,
-                'message' => 'Accompany person deleted successfully.'
+                'message' => 'Accompany person deleted successfully.',
             ]);
         } catch (Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to delete accompany person: ' . $e->getMessage()
+                'message' => 'Failed to delete accompany person: '.$e->getMessage(),
             ], 500);
         }
     }
@@ -603,25 +604,25 @@ class ConferenceRegistrationController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'type' => 'error',
-                'message' => 'Import failed: ' . $e->getMessage()
+                'message' => 'Import failed: '.$e->getMessage(),
             ], 500);
         }
 
-        if (!empty($import->log)) {
-            $fileName = 'import_skipped_log_' . now()->format('Y_m_d_H_i_s') . '.xlsx';
+        if (! empty($import->log)) {
+            $fileName = 'import_skipped_log_'.now()->format('Y_m_d_H_i_s').'.xlsx';
 
             Excel::store(new ImportLogExport($import->log), $fileName, 'public_uploads');
 
             return response()->json([
                 'type' => 'log',
                 'file' => url($fileName),
-                'message' => 'Some rows were skipped, download the log file.'
+                'message' => 'Some rows were skipped, download the log file.',
             ]);
         }
 
         return response()->json([
             'type' => 'success',
-            'message' => 'Excel file imported successfully.'
+            'message' => 'Excel file imported successfully.',
         ]);
     }
 
@@ -634,7 +635,7 @@ class ConferenceRegistrationController extends Controller
                 ->orderByDesc('users.id');
         }])->where([
             'id' => $conference->society_id,
-            'status' => 1
+            'status' => 1,
         ])->first();
         $users = $society ? $society->users : collect();
 
@@ -646,10 +647,10 @@ class ConferenceRegistrationController extends Controller
         try {
             $userId = $request->user_id;
 
-            if (!$userId) {
+            if (! $userId) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'User ID is required'
+                    'message' => 'User ID is required',
                 ]);
             }
 
@@ -658,10 +659,10 @@ class ConferenceRegistrationController extends Controller
             $userSociety = $user->societies->where('id', $conference->society_id)->first();
             $memberType = $userSociety?->pivot?->memberType;
 
-            if (!$memberType) {
+            if (! $memberType) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Member type not found for this user'
+                    'message' => 'Member type not found for this user',
                 ]);
             }
 
@@ -669,7 +670,7 @@ class ConferenceRegistrationController extends Controller
             $addons = ConferenceAddon::where([
                 'conference_id' => $conference->id,
                 'member_type_id' => $memberType->id,
-                'status' => 1
+                'status' => 1,
             ])
                 ->select('id', 'addon_name', 'early_bird_amount', 'regular_amount', 'on_site_amount', 'guest_amount')
                 ->get()
@@ -686,18 +687,18 @@ class ConferenceRegistrationController extends Controller
                         'id' => $addon->id,
                         'addon_name' => $addon->addon_name,
                         'amount' => $amount,
-                        'guest_amount' => $addon->guest_amount ?? $amount
+                        'guest_amount' => $addon->guest_amount ?? $amount,
                     ];
                 });
 
             return response()->json([
                 'success' => true,
-                'addons' => $addons
+                'addons' => $addons,
             ]);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Error fetching addons: ' . $e->getMessage()
+                'message' => 'Error fetching addons: '.$e->getMessage(),
             ]);
         }
     }
@@ -707,10 +708,10 @@ class ConferenceRegistrationController extends Controller
         try {
             $memberTypeId = $request->member_type_id;
 
-            if (!$memberTypeId) {
+            if (! $memberTypeId) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Member type ID is required'
+                    'message' => 'Member type ID is required',
                 ]);
             }
 
@@ -718,7 +719,7 @@ class ConferenceRegistrationController extends Controller
             $addons = ConferenceAddon::where([
                 'conference_id' => $conference->id,
                 'member_type_id' => $memberTypeId,
-                'status' => 1
+                'status' => 1,
             ])
                 ->select('id', 'addon_name', 'early_bird_amount', 'regular_amount', 'on_site_amount', 'guest_amount')
                 ->get()
@@ -735,18 +736,18 @@ class ConferenceRegistrationController extends Controller
                         'id' => $addon->id,
                         'addon_name' => $addon->addon_name,
                         'amount' => $amount,
-                        'guest_amount' => $addon->guest_amount ?? $amount
+                        'guest_amount' => $addon->guest_amount ?? $amount,
                     ];
                 });
 
             return response()->json([
                 'success' => true,
-                'addons' => $addons
+                'addons' => $addons,
             ]);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Error fetching addons: ' . $e->getMessage()
+                'message' => 'Error fetching addons: '.$e->getMessage(),
             ]);
         }
     }
@@ -762,7 +763,7 @@ class ConferenceRegistrationController extends Controller
                 'amount' => 'required|integer',
                 'meal_type' => 'required',
                 'additional_guests' => 'nullable|numeric',
-                'payment_voucher' => 'nullable|mimes:jpg,png,pdf|max:250'
+                'payment_voucher' => 'nullable|mimes:jpg,png,pdf|max:250',
             ];
 
             if ($request->registrant_type == 2) {
@@ -794,17 +795,17 @@ class ConferenceRegistrationController extends Controller
             $validated['payment_type'] = 6;
             $date = \Carbon\Carbon::now()->format('F j, Y');
 
-            if (!empty($validated['payment_voucher'])) {
+            if (! empty($validated['payment_voucher'])) {
 
                 $validated['payment_voucher'] = $this->file_service->fileUpload($validated['payment_voucher'], 'payment_voucher', 'conference/payment-voucher');
             }
 
-            // for values end 
+            // for values end
             $conferenceSetting = ConferenceSetting::where('conference_id', $conference->id)->first();
 
             $user = User::whereId($validated['user_id'])->first();
             $mailData = [
-                'namePrefix'  => $user->userDetail->prefix ?? null,
+                'namePrefix' => $user->userDetail->prefix ?? null,
                 'conference_theme' => $conference->conference_theme,
                 'conference_name' => $conference->conference_name,
                 'name' => $user->fullName($user),
@@ -825,10 +826,10 @@ class ConferenceRegistrationController extends Controller
                 'signatureName' => $conferenceSetting->name,
                 'signature' => $conferenceSetting->signature,
                 'conferenceAmount' => $validated['amount'],
-                'addons'           => [],
-                'workshop'         => [],
+                'addons' => [],
+                'workshop' => [],
                 'accompany' => null,
-                'serviceCharge' =>  null
+                'serviceCharge' => null,
             ];
 
             Mail::to($user->email)->send(new ExceptionalRegistrationMail($mailData, $conference->conference_name));
@@ -860,7 +861,7 @@ class ConferenceRegistrationController extends Controller
             //         ]);
             //     }
             // }
-            if (!empty($request->selected_addons)) {
+            if (! empty($request->selected_addons)) {
 
                 $addons = explode(',', $request->selected_addons);
                 $insertData = [];
@@ -875,16 +876,16 @@ class ConferenceRegistrationController extends Controller
 
                     $insertData[] = [
                         'conference_registration_id' => $registration->id,
-                        'conference_addon_id'        => $addonId,
-                        'amount'                     => $amount,
-                        'include_for_guests'         => $includeGuest,
-                        'created_at'                 => now(),
-                        'updated_at'                 => now(),
+                        'conference_addon_id' => $addonId,
+                        'amount' => $amount,
+                        'include_for_guests' => $includeGuest,
+                        'created_at' => now(),
+                        'updated_at' => now(),
                     ];
                 }
                 ConferenceRegistration_addon::insert($insertData);
             }
-            logActivity($conference->id, 'Registered Conference', $user->fullName($user) . ' is registered to conference');
+            logActivity($conference->id, 'Registered Conference', $user->fullName($user).' is registered to conference');
 
             DB::commit();
 
@@ -898,6 +899,7 @@ class ConferenceRegistrationController extends Controller
     public function addPerson(Request $request, $society, $conference)
     {
         $registration = ConferenceRegistration::whereId($request->id)->first();
+
         return view('backend.conference.conference-registration.add-person', compact('registration', 'society', 'conference'));
     }
 
@@ -924,7 +926,6 @@ class ConferenceRegistrationController extends Controller
             DB::beginTransaction();
             // insert table-1
 
-
             // insert table-2
             if ($request->additional_guests >= 1) {
                 $insertArray = [];
@@ -938,10 +939,10 @@ class ConferenceRegistrationController extends Controller
                 AccompanyPerson::insert($insertArray);
             }
 
-            logActivity($registration->conference_id, 'Add Person', 'Added ' . $validated['additional_guests'] . ' Guests to ' . $registration->user->fullName($registration->user) . ' is registered to conference');
+            logActivity($registration->conference_id, 'Add Person', 'Added '.$validated['additional_guests'].' Guests to '.$registration->user->fullName($registration->user).' is registered to conference');
 
             $type = 'success';
-            $message = "Successfully Added";
+            $message = 'Successfully Added';
 
             DB::commit();
 
@@ -957,6 +958,7 @@ class ConferenceRegistrationController extends Controller
     public function convertRegistrantType(Request $request, $society, $conference)
     {
         $registration = ConferenceRegistration::whereId($request->id)->first();
+
         return view('backend.conference.conference-registration.convert-registrant-type', compact('registration', 'society', 'conference'));
     }
 
@@ -971,9 +973,9 @@ class ConferenceRegistrationController extends Controller
             $registration = ConferenceRegistration::where('id', $request->id)->first();
 
             $registration->update($validated);
- 
+
             $type = 'success';
-            $message = "Registrant type Converted Successfully Added";
+            $message = 'Registrant type Converted Successfully Added';
 
             DB::commit();
 
@@ -989,6 +991,7 @@ class ConferenceRegistrationController extends Controller
     public function verifyForm($society, $conference, Request $request)
     {
         $registration = ConferenceRegistration::whereId($request->id)->first();
+
         return view('backend.conference.conference-registration.verify', compact('registration', 'society', 'conference'));
     }
 
@@ -1026,14 +1029,15 @@ class ConferenceRegistrationController extends Controller
 
             $type = 'success';
             if ($conference_registration->registrant_type == 1) {
-                $message = "Attendee Updated Successfully";
+                $message = 'Attendee Updated Successfully';
             } else {
-                $message = "Presenter Updated Successfully";
+                $message = 'Presenter Updated Successfully';
             }
         } catch (Exception $e) {
             $type = 'error';
             $message = $e->getMessage();
         }
+
         return response()->json(['type' => $type, 'message' => $message]);
     }
 
@@ -1043,6 +1047,7 @@ class ConferenceRegistrationController extends Controller
             if ($society && $society->$relation()->exists()) {
                 return $society->$relation()->where('status', 1)->get();
             }
+
             return $model::where('status', 1)->get();
         };
 
@@ -1080,7 +1085,7 @@ class ConferenceRegistrationController extends Controller
                 'country_id' => 'required',
                 'meal_type' => 'required',
                 'payment_voucher' => 'nullable|mimes:jpg,png,pdf|max:250',
-                'email' => 'required|email|unique:users,email'
+                'email' => 'required|email|unique:users,email',
             ];
 
             if ($request->institution_id == 'other') {
@@ -1103,7 +1108,7 @@ class ConferenceRegistrationController extends Controller
                 $rules['council_number'] = 'nullable';
                 $rules['transaction_id'] = 'required|unique:conference_registrations,transaction_id';
                 $rules['amount'] = 'required|numeric';
-            } 
+            }
 
             if ($request->registrant_type == 2) {
                 $rules['short_cv'] = 'required';
@@ -1139,7 +1144,7 @@ class ConferenceRegistrationController extends Controller
 
             $date = \Carbon\Carbon::now()->format('F j, Y');
 
-            if (!empty($validated['payment_voucher'])) {
+            if (! empty($validated['payment_voucher'])) {
                 $validated['payment_voucher'] = $this->file_service->fileUpload($validated['payment_voucher'], 'payment_voucher', 'conference/payment-voucher');
             }
             $conferenceSetting = ConferenceSetting::where('conference_id', $conference->id)->first();
@@ -1171,12 +1176,11 @@ class ConferenceRegistrationController extends Controller
             //     }
             // }
 
-
-            $middleName = !empty($validated['m_name']) ? $validated['m_name'] . ' ' : '';
+            $middleName = ! empty($validated['m_name']) ? $validated['m_name'].' ' : '';
             $namePrefix = DB::table('name_prefixes')->whereId($validated['name_prefix_id'])->first()->prefix;
             $data = [
                 'namePrefix' => $namePrefix,
-                'name' => $validated['f_name'] . ' ' . $middleName . $validated['l_name'],
+                'name' => $validated['f_name'].' '.$middleName.$validated['l_name'],
                 'email' => $validated['email'],
                 'password' => $password,
                 'conference_theme' => $conference->conference_theme,
@@ -1196,14 +1200,14 @@ class ConferenceRegistrationController extends Controller
                 'signatureName' => $conferenceSetting->name,
                 'signature' => $conferenceSetting->signature,
                 'conferenceAmount' => $validated['amount'],
-                'addons'           => $addonData,
-                'workshop'         => [],
+                'addons' => $addonData,
+                'workshop' => [],
                 'accompany' => $validated['additional_guests'] ?? 0,
-                'serviceCharge' =>  null,
+                'serviceCharge' => null,
                 'invitationType' => 1,
                 'is_invited' => $request->has('invited_guest') ? 1 : 0,
                 'invitation_token' => $invitationToken,
-                'invitation_url' => route('invitation.show', $invitationToken)
+                'invitation_url' => route('invitation.show', $invitationToken),
             ];
             Mail::to($validated['email'])->send(new RegistrationMail($data, $conference->conference_name));
 
@@ -1240,26 +1244,26 @@ class ConferenceRegistrationController extends Controller
             if ($request->institution_id == 'other') {
                 UserInstitution::create([
                     'user_id' => $storeUser->id,
-                    'institution_name' => $request->other_institution_name
+                    'institution_name' => $request->other_institution_name,
                 ]);
             }
 
             if ($request->designation_id == 'other') {
                 UserDesignation::create([
                     'user_id' => $storeUser->id,
-                    'designation_name' => $request->other_designation
+                    'designation_name' => $request->other_designation,
                 ]);
             }
 
             if ($request->department_id == 'other') {
                 UserDepartment::create([
                     'user_id' => $storeUser->id,
-                    'department_name' => $request->other_department
+                    'department_name' => $request->other_department,
                 ]);
             }
 
             // $societyId = current_user()->societies->value('id');
-            //insert table-3
+            // insert table-3
             $storeUser->societies()->attach($society->id, [
                 'member_type_id' => $validated['member_type_id'],
             ]);
@@ -1281,7 +1285,7 @@ class ConferenceRegistrationController extends Controller
             }
 
             // Store addons with proper format: addonId:mainAmount:guestAmount:includeGuest
-            if (!empty($request->selected_addons)) {
+            if (! empty($request->selected_addons)) {
                 $addons = explode(',', $request->selected_addons);
                 $insertData = [];
 
@@ -1294,16 +1298,16 @@ class ConferenceRegistrationController extends Controller
 
                     $insertData[] = [
                         'conference_registration_id' => $registration->id,
-                        'conference_addon_id'        => $addonId,
-                        'amount'                     => $amount,
-                        'include_for_guests'         => $includeGuest,
-                        'created_at'                 => now(),
-                        'updated_at'                 => now(),
+                        'conference_addon_id' => $addonId,
+                        'amount' => $amount,
+                        'include_for_guests' => $includeGuest,
+                        'created_at' => now(),
+                        'updated_at' => now(),
                     ];
                 }
                 ConferenceRegistration_addon::insert($insertData);
             }
-            logActivity($conference->id, $request->has('invited_guest') ? 'Invited Conference' : 'Registered Conference', $validated['f_name'] . ' ' . $middleName . $validated['l_name'] . ' is registered to conference');
+            logActivity($conference->id, $request->has('invited_guest') ? 'Invited Conference' : 'Registered Conference', $validated['f_name'].' '.$middleName.$validated['l_name'].' is registered to conference');
             DB::commit();
 
             return redirect()->back()->with('status', 'Successfully registered.');
@@ -1322,7 +1326,7 @@ class ConferenceRegistrationController extends Controller
             'user.societies' => function ($query) use ($society_id) {
                 $query->where('society_id', $society_id);
             },
-            'user.userDetail'
+            'user.userDetail',
         ])
             ->where('conference_id', $conference->id)
             ->where('status', 1);
@@ -1354,7 +1358,8 @@ class ConferenceRegistrationController extends Controller
         }
 
         $registrants = $query->latest()->get();
-        return Excel::download(new ConferenceRegistrationExport($registrants),  'conferenceRegistration.xlsx');
+
+        return Excel::download(new ConferenceRegistrationExport($registrants), 'conferenceRegistration.xlsx');
     }
 
     public function generatePass(Request $request, $society, $conference)
@@ -1363,14 +1368,14 @@ class ConferenceRegistrationController extends Controller
         ini_set('memory_limit', '1024M');
         ini_set('max_execution_time', '300');
         set_time_limit(300);
-        
+
         $society_id = $society->id ?? null;
 
         $query = ConferenceRegistration::with([
             'user.societies' => function ($query) use ($society_id) {
                 $query->where('society_id', $society_id);
             },
-            'user.userDetail' 
+            'user.userDetail',
         ])
             ->where('conference_id', $conference->id)
             ->where('status', 1);
@@ -1405,13 +1410,13 @@ class ConferenceRegistrationController extends Controller
 
         $passSetting = PassSetting::where(['conference_id' => $conference->id, 'status' => 1])->first();
 
-        $registrantsWithDesignation = $registrants->map(function ($participant) use ($conference) {
+        $registrantsWithDesignation = $registrants->map(function ($participant) use ($conference, $passSetting) {
             $userSociety = $participant->user?->societies->first();
             $memberType = $userSociety?->pivot?->memberType;
 
             $conferenceUserPassDesignation = ConferenceUserPassDesignation::where([
                 'conference_id' => $conference->id,
-                'user_id' => $participant->user_id
+                'user_id' => $participant->user_id,
             ])->first();
 
             $conferenceMemberTypeNameTag = null;
@@ -1419,7 +1424,7 @@ class ConferenceRegistrationController extends Controller
                 $conferenceMemberTypeNameTag = ConferenceMemberTypeNameTag::where([
                     'conference_id' => $conference->id,
                     'member_type_id' => $memberType->id,
-                    'registrant_type' => $participant->registrant_type
+                    'registrant_type' => $participant->registrant_type,
                 ])->first();
             }
 
@@ -1427,35 +1432,164 @@ class ConferenceRegistrationController extends Controller
             $committeeMember = CommitteeMember::where([
                 'conference_id' => $conference->id,
                 'user_id' => $participant->user_id,
-                'status' => 1
+                'status' => 1,
             ])->first();
-        // dd($committeeMember);
+            // dd($committeeMember);
             $conferenceCommitteePassDesignation = null;
             if ($committeeMember) {
                 $conferenceCommitteePassDesignation = ConferenceCommitteePassDesignation::where([
                     'conference_id' => $conference->id,
                     'committee_id' => $committeeMember->committee_id,
-                    'designation_id' => $committeeMember->designation_id
+                    'designation_id' => $committeeMember->designation_id,
                 ])->first();
                 // dd($conferenceCommitteePassDesignation);
             }
 
-            // Priority: ConferenceUserPassDesignation > Committee Designation > ConferenceMemberTypeNameTag
+            // Priority: ConferenceUserPassDesignation > Committee Designation > Workshop Designation > ConferenceMemberTypeNameTag
             if ($conferenceUserPassDesignation) {
                 $designation = $conferenceUserPassDesignation->pass_designation;
                 $color = $conferenceUserPassDesignation->color;
             } elseif ($conferenceCommitteePassDesignation) {
                 $designation = $conferenceCommitteePassDesignation->name_tag;
                 $color = $conferenceCommitteePassDesignation->color;
-            } elseif ($conferenceMemberTypeNameTag) {
+            } else {
+                // Check if user is registered for any workshop
+                $workshopRegistration = \App\Models\Workshop\WorkshopRegistration::where([
+                    'user_id' => $participant->user_id ? $participant->user_id : 0,
+                    'status' => 1,
+                ])->first();
+                if ($workshopRegistration && $passSetting) {
+                    // registrant_type: 1 = participant, 2 = trainer
+                    if ($workshopRegistration->registrant_type == 2 && ! empty($passSetting->workshop_trainer_name_tag)) {
+                        $designation = $passSetting->workshop_trainer_name_tag;
+                        $color = $passSetting->workshop_trainer_color ?? '#7367f0';
+                    } elseif ($workshopRegistration->registrant_type == 1 && ! empty($passSetting->workshop_participant_name_tag)) {
+                        $designation = $passSetting->workshop_participant_name_tag;
+                        $color = $passSetting->workshop_participant_color ?? '#7367f0';
+                    } else {
+                        // Fall through to next priority
+                        $workshopRegistration = null;
+                    }
+                }
+
+                // If no workshop designation found, check member type name tag
+                if (! isset($designation) && $conferenceMemberTypeNameTag) {
+                    $designation = $conferenceMemberTypeNameTag->name_tag;
+                    $color = $conferenceMemberTypeNameTag->color;
+                } elseif (! isset($designation)) {
+                    // Fallback: Try to get any name tag for this registrant type (ignore member_type)
+                    $fallbackNameTag = ConferenceMemberTypeNameTag::where('conference_id', $conference->id)
+                        ->where('registrant_type', $participant->registrant_type)
+                        ->first();
+
+                    if ($fallbackNameTag) {
+                        $designation = $fallbackNameTag->name_tag;
+                        $color = $fallbackNameTag->color ?? '#7367f0';
+                    } else {
+                        // Ultimate fallback based on registrant type
+                        $registrantTypes = [
+                            1 => 'Attendee',
+                            2 => 'Speaker/Presenter',
+                            3 => 'Session Chair',
+                            4 => 'Special Guest',
+                            5 => 'Organizer',
+                        ];
+                        $designation = $registrantTypes[$participant->registrant_type] ?? 'Participant';
+                        $color = '#7367f0';
+                    }
+                }
+            }
+
+            $participant->designation = $designation;
+            $participant->designation_color = $color;
+
+            return $participant;
+        });
+
+        if (! $passSetting) {
+            return redirect()->back()->with('delete', 'Please Create Pass Setting');
+        }
+
+        // dd($registrantsWithDesignation);
+        return view('backend.conference.conference-registration.bulk-pass', [
+            'registrants' => $registrantsWithDesignation,
+            'passSetting' => $passSetting,
+            'conference' => $conference,
+        ]);
+    }
+
+    public function generateIndividualPass($society, $conference, ConferenceRegistration $conferenceRegistration)
+    {
+        // dd($conference);
+        $participant = $conferenceRegistration;
+        $passSetting = PassSetting::where(['conference_id' => $conference->id, 'status' => 1])->first();
+        $userSociety = $participant->user?->societies->first();
+        $memberType = $userSociety?->pivot?->memberType;
+        $conferenceUserPassDesignation = ConferenceUserPassDesignation::where(['conference_id' => $conference->id, 'user_id' => $participant->user_id])->first();
+
+        $conferenceMemberTypeNameTag = null;
+        if ($memberType) {
+            $conferenceMemberTypeNameTag = ConferenceMemberTypeNameTag::where([
+                'conference_id' => $conference->id,
+                'member_type_id' => $memberType->id,
+                'registrant_type' => $participant->registrant_type,
+            ])->first();
+        }
+
+        // Check if user is a committee member
+        $committeeMember = CommitteeMember::where([
+            'conference_id' => $conference->id,
+            'user_id' => $participant->user_id,
+            'status' => 1,
+        ])->first();
+
+        $conferenceCommitteePassDesignation = null;
+        if ($committeeMember) {
+            $conferenceCommitteePassDesignation = ConferenceCommitteePassDesignation::where([
+                'conference_id' => $conference->id,
+                'committee_id' => $committeeMember->committee_id,
+                'designation_id' => $committeeMember->designation_id,
+            ])->first();
+        }
+
+        // Priority: ConferenceUserPassDesignation > Committee Designation > Workshop Designation > ConferenceMemberTypeNameTag
+        if ($conferenceUserPassDesignation) {
+            $designation = $conferenceUserPassDesignation->pass_designation;
+            $color = $conferenceUserPassDesignation->color;
+        } elseif ($conferenceCommitteePassDesignation) {
+            $designation = $conferenceCommitteePassDesignation->name_tag;
+            $color = $conferenceCommitteePassDesignation->color;
+        } else {
+            // Check if user is registered for any workshop
+            $workshopRegistration = \App\Models\Workshop\WorkshopRegistration::where([
+                'user_id' => $participant->user_id ? $participant->user_id : 0,
+                'status' => 1,
+            ])->first();
+
+            if ($workshopRegistration && $passSetting) {
+                // registrant_type: 1 = participant, 2 = trainer
+                if ($workshopRegistration->registrant_type == 2 && ! empty($passSetting->workshop_trainer_name_tag)) {
+                    $designation = $passSetting->workshop_trainer_name_tag;
+                    $color = $passSetting->workshop_trainer_color ?? '#7367f0';
+                } elseif ($workshopRegistration->registrant_type == 1 && ! empty($passSetting->workshop_participant_name_tag)) {
+                    $designation = $passSetting->workshop_participant_name_tag;
+                    $color = $passSetting->workshop_participant_color ?? '#7367f0';
+                } else {
+                    // Fall through to next priority
+                    $workshopRegistration = null;
+                }
+            }
+
+            // If no workshop designation found, check member type name tag
+            if (! isset($designation) && $conferenceMemberTypeNameTag) {
                 $designation = $conferenceMemberTypeNameTag->name_tag;
                 $color = $conferenceMemberTypeNameTag->color;
-            } else {
+            } elseif (! isset($designation)) {
                 // Fallback: Try to get any name tag for this registrant type (ignore member_type)
                 $fallbackNameTag = ConferenceMemberTypeNameTag::where('conference_id', $conference->id)
                     ->where('registrant_type', $participant->registrant_type)
                     ->first();
-                
+
                 if ($fallbackNameTag) {
                     $designation = $fallbackNameTag->name_tag;
                     $color = $fallbackNameTag->color ?? '#7367f0';
@@ -1466,100 +1600,17 @@ class ConferenceRegistrationController extends Controller
                         2 => 'Speaker/Presenter',
                         3 => 'Session Chair',
                         4 => 'Special Guest',
-                        5 => 'Organizer'
+                        5 => 'Organizer',
                     ];
                     $designation = $registrantTypes[$participant->registrant_type] ?? 'Participant';
                     $color = '#7367f0';
                 }
             }
-
-            $participant->designation = $designation;
-            $participant->designation_color = $color;       
-
-            return $participant;
-        });
-
-        if (!$passSetting) {
+        }
+        if (! $passSetting) {
             return redirect()->back()->with('delete', 'Please Create Pass Setting');
         }
-        // dd($registrantsWithDesignation);
-        return view('backend.conference.conference-registration.bulk-pass', [
-            'registrants' => $registrantsWithDesignation,
-            'passSetting' => $passSetting,
-            'conference' => $conference,
-        ]);
-    }
- 
 
-    public function generateIndividualPass($society, $conference, ConferenceRegistration $conferenceRegistration)
-    {
-        // dd($conference);
-        $participant = $conferenceRegistration;
-        $passSetting = PassSetting::where(['conference_id' => $conference->id, 'status' => 1])->first();
-        $userSociety = $participant->user?->societies->first();
-        $memberType = $userSociety?->pivot?->memberType;
-        $conferenceUserPassDesignation = ConferenceUserPassDesignation::where(['conference_id' => $conference->id, 'user_id' => $participant->user_id])->first();
-        
-        $conferenceMemberTypeNameTag = null;
-        if ($memberType) {
-            $conferenceMemberTypeNameTag = ConferenceMemberTypeNameTag::where([
-                'conference_id' => $conference->id, 
-                'member_type_id' => $memberType->id, 
-                'registrant_type' => $participant->registrant_type
-            ])->first();
-        }
-        
-        // Check if user is a committee member
-        $committeeMember = CommitteeMember::where([
-            'conference_id' => $conference->id,
-            'user_id' => $participant->user_id,
-            'status' => 1
-        ])->first();
-
-        $conferenceCommitteePassDesignation = null;
-        if ($committeeMember) {
-            $conferenceCommitteePassDesignation = ConferenceCommitteePassDesignation::where([
-                'conference_id' => $conference->id,
-                'committee_id' => $committeeMember->committee_id,
-                'designation_id' => $committeeMember->designation_id
-            ])->first();
-        }
-
-        // Priority: ConferenceUserPassDesignation > Committee Designation > ConferenceMemberTypeNameTag
-        if ($conferenceUserPassDesignation) {
-            $designation = $conferenceUserPassDesignation->pass_designation;
-            $color = $conferenceUserPassDesignation->color;
-        } elseif ($conferenceCommitteePassDesignation) {
-            $designation = $conferenceCommitteePassDesignation->name_tag;
-            $color = $conferenceCommitteePassDesignation->color;
-        } elseif ($conferenceMemberTypeNameTag) {
-            $designation = $conferenceMemberTypeNameTag->name_tag;
-            $color = $conferenceMemberTypeNameTag->color;
-        } else {
-            // Fallback: Try to get any name tag for this registrant type (ignore member_type)
-            $fallbackNameTag = ConferenceMemberTypeNameTag::where('conference_id', $conference->id)
-                ->where('registrant_type', $participant->registrant_type)
-                ->first();
-            
-            if ($fallbackNameTag) {
-                $designation = $fallbackNameTag->name_tag;
-                $color = $fallbackNameTag->color ?? '#7367f0';
-            } else {
-                // Ultimate fallback based on registrant type
-                $registrantTypes = [
-                    1 => 'Attendee',
-                    2 => 'Speaker/Presenter',
-                    3 => 'Session Chair',
-                    4 => 'Special Guest',
-                    5 => 'Organizer'
-                ];
-                $designation = $registrantTypes[$participant->registrant_type] ?? 'Participant';
-                $color = '#7367f0';
-            }
-        } 
-        if (!$passSetting) { 
-            return redirect()->back()->with('delete', 'Please Create Pass Setting');
-        }
         return view('backend.conference.conference-registration.individual-pass', compact('participant', 'passSetting', 'designation', 'conference', 'color'));
     }
 
@@ -1579,9 +1630,9 @@ class ConferenceRegistrationController extends Controller
         // dd($workshopRegistraion);
         $membetType = $user->societies->where('id', $conference->society_id)->first()?->pivot?->memberType;
         $memberTypePrice = ConferenceMemberTypePrice::where(['conference_id' => $conference->id, 'member_type_id' => $membetType->id])->first();
-        //conference amount
+        // conference amount
         $conferenceAmount = '';
-        if (!empty($conference)) {
+        if (! empty($conference)) {
             $createdAt = strtotime($conferenceRegistration->created_at);
             $today = strtotime(date('Y-m-d'));
 
@@ -1589,12 +1640,11 @@ class ConferenceRegistrationController extends Controller
             $regularDeadline = strtotime($conference->regular_registration_deadline);
 
             if ($earlyBirdDeadline >= $today && $earlyBirdDeadline >= $createdAt) {
-                $conferenceAmount = !empty($memberTypePrice->early_bird_amount) ? $memberTypePrice->early_bird_amount : '';
+                $conferenceAmount = ! empty($memberTypePrice->early_bird_amount) ? $memberTypePrice->early_bird_amount : '';
             } elseif ($regularDeadline >= $today && $regularDeadline >= $createdAt) {
-                $conferenceAmount = !empty($memberTypePrice->regular_amount) ? $memberTypePrice->regular_amount : '';
+                $conferenceAmount = ! empty($memberTypePrice->regular_amount) ? $memberTypePrice->regular_amount : '';
             }
         }
-
 
         $addonsData = [];
         foreach ($conferenceRegistrationAddons as $addon) {
@@ -1608,45 +1658,45 @@ class ConferenceRegistrationController extends Controller
         foreach ($workshopRegistraions as $workshop) {
             $workshopData[] = [
                 'name' => $workshop->workshop->workshop_title,
-                'amount' => $workshop->amount
+                'amount' => $workshop->amount,
             ];
         }
 
-        $serviceCharge =  $user->userDetail->country_id != 125 ? $conferenceRegistration->amount * 0.035 : null;
+        $serviceCharge = $user->userDetail->country_id != 125 ? $conferenceRegistration->amount * 0.035 : null;
         $accompanyData = null;
         if ($conferenceRegistration->total_attendee > 1) {
             $accompanyData = [
                 'accompany_person' => $conferenceRegistration->total_attendee - 1,
-                'amount' => $memberTypePrice->guest_amount
+                'amount' => $memberTypePrice->guest_amount,
             ];
         }
 
         $data = [
-            'namePrefix'      => $user->userDetail->prefix ?? null,
+            'namePrefix' => $user->userDetail->prefix ?? null,
             'conference_theme' => $conference->conference_theme,
             'conference_name' => $conference->conference_name,
-            'name'            => $user->fullName($user),
+            'name' => $user->fullName($user),
             'namePrefix' => $user->userDetail->namePrefix->prefix,
-            'email'           => $user->email,
-            'paymentType'     => 'Online Payment',
-            'transactionId'   => $conferenceRegistration->transaction_id,
-            'amount'          => $conferenceRegistration->amount,
-            'amountInWord'    => numberToWord($conferenceRegistration->amount),
-            'date'            => $date,
-            'societyName'     => $society->users->where('type', 2)->first()->f_name,
-            'societyLogo'     => $society->logo,
-            'societyPhone'    => $society->phone,
-            'societyEmail'    => $society->users->where('type', 2)->first()->email,
-            'societyAddress'  => $society->address,
-            'primaryColor'    => $conference->primary_color,
-            'country'         => $user->userDetail->country_id,
-            'signatureName'   => $conferenceSetting->name,
-            'signature'       => $conferenceSetting->signature,
+            'email' => $user->email,
+            'paymentType' => 'Online Payment',
+            'transactionId' => $conferenceRegistration->transaction_id,
+            'amount' => $conferenceRegistration->amount,
+            'amountInWord' => numberToWord($conferenceRegistration->amount),
+            'date' => $date,
+            'societyName' => $society->users->where('type', 2)->first()->f_name,
+            'societyLogo' => $society->logo,
+            'societyPhone' => $society->phone,
+            'societyEmail' => $society->users->where('type', 2)->first()->email,
+            'societyAddress' => $society->address,
+            'primaryColor' => $conference->primary_color,
+            'country' => $user->userDetail->country_id,
+            'signatureName' => $conferenceSetting->name,
+            'signature' => $conferenceSetting->signature,
             'conferenceAmount' => $conferenceAmount,
-            'addons'           => $addonsData,
-            'workshop'         => $workshopData,
+            'addons' => $addonsData,
+            'workshop' => $workshopData,
             'accompany' => $accompanyData,
-            'serviceCharge' => $serviceCharge
+            'serviceCharge' => $serviceCharge,
         ];
 
         $pdf = Pdf::loadView('emails.conference.payment-voucher', ['data' => $data])
@@ -1654,7 +1704,6 @@ class ConferenceRegistrationController extends Controller
 
         return $pdf->download('payment-voucher.pdf');
     }
-
 
     public function participantProfile($token)
     {
@@ -1674,7 +1723,7 @@ class ConferenceRegistrationController extends Controller
             ->where(['conference_registration_id' => $participant->id])
             ->whereDate('created_at', date('Y-m-d'))
             ->first();
-        if (!empty($checkMeal)) {
+        if (! empty($checkMeal)) {
             $totalLunchRemaining =
                 $participant->total_attendee - $checkMeal->lunch_taken;
             $totalDinnerRemaining =
@@ -1710,30 +1759,31 @@ class ConferenceRegistrationController extends Controller
                 $poll->user_answer_id = UserVote::where('conference_registration_id', $participant->id)
                     ->where('poll_id', $poll->id)
                     ->value('poll_answer_id');
+
                 return $poll;
             });
 
         return view('backend.conference.conference-registration.attendance-profile', compact('participant', 'checkAttendance', 'totalLunchRemaining', 'totalDinnerRemaining', 'conferenceRegistrationKit', 'passSetting', 'halls', 'polls'));
     }
 
-
     public function takeAttendance(Request $request)
     {
         try {
             $data['conference_registration_id'] = $request->participant_id;
             Attendance::create($data);
+
             return response()->json(['success' => true]);
         } catch (Exception $e) {
             throw $e;
         }
     }
 
-
     public function takeConferenceKit(Request $request)
     {
         try {
             $data['conference_registration_id'] = $request->participant_id;
             ConferenceRegistrationKit::create($data);
+
             return response()->json(['success' => true]);
         } catch (Exception $e) {
             throw $e;
@@ -1748,20 +1798,20 @@ class ConferenceRegistrationController extends Controller
 
             $participant = ConferenceRegistration::find($request->participant_id);
 
-            if (!$participant) {
+            if (! $participant) {
                 return response()->json(['success' => false, 'message' => 'Participant not found.'], 404);
             }
 
             $passSetting = PassSetting::where('conference_id', $participant->conference_id)->first();
 
-            if (!$passSetting) {
+            if (! $passSetting) {
                 return response()->json(['success' => false, 'message' => 'Meal settings not found.'], 404);
             }
 
             $isLunch = ($currentTime >= $passSetting->lunch_start_time && $currentTime <= $passSetting->lunch_end_time);
             $isDinner = ($currentTime >= $passSetting->dinner_start_time && $currentTime <= $passSetting->dinner_end_time);
 
-            if (!$isLunch && !$isDinner) {
+            if (! $isLunch && ! $isDinner) {
                 return response()->json(['success' => false, 'message' => 'Meal is not available at this time.'], 403);
             }
 
@@ -1769,7 +1819,7 @@ class ConferenceRegistrationController extends Controller
                 ->whereDate('created_at', $today)
                 ->first();
 
-            if (!$mealRecord) {
+            if (! $mealRecord) {
                 // First meal record of the day
                 $mealData = [
                     'conference_registration_id' => $request->participant_id,
@@ -1794,12 +1844,12 @@ class ConferenceRegistrationController extends Controller
 
             return response()->json([
                 'success' => true,
-                'remaining' => $remaining
+                'remaining' => $remaining,
             ]);
         } catch (Exception $e) {
             return response()->json([
                 'success' => false,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ], 500);
         }
     }
@@ -1809,7 +1859,7 @@ class ConferenceRegistrationController extends Controller
         try {
             $participant = ConferenceRegistration::find($request->participant_id);
 
-            if (!$participant) {
+            if (! $participant) {
                 return response()->json(['success' => false, 'message' => 'Participant not found.'], 404);
             }
 
@@ -1820,7 +1870,7 @@ class ConferenceRegistrationController extends Controller
                 ->whereDate('created_at', date('Y-m-d'))
                 ->first();
 
-            if (!$checkAttendance) {
+            if (! $checkAttendance) {
                 return response()->json(['success' => false, 'message' => 'You must mark attendance before voting.'], 403);
             }
 
@@ -1837,7 +1887,7 @@ class ConferenceRegistrationController extends Controller
             UserVote::create([
                 'conference_registration_id' => $participant->id,
                 'poll_id' => $request->poll_id,
-                'poll_answer_id' => $request->answer_id
+                'poll_answer_id' => $request->answer_id,
             ]);
 
             // Calculate and return results
@@ -1846,12 +1896,12 @@ class ConferenceRegistrationController extends Controller
 
             return response()->json([
                 'success' => true,
-                'results' => $results
+                'results' => $results,
             ]);
         } catch (Exception $e) {
             return response()->json([
                 'success' => false,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ], 500);
         }
     }
@@ -1869,7 +1919,7 @@ class ConferenceRegistrationController extends Controller
                 'id' => $answer->id,
                 'text' => $answer->answer_text,
                 'votes' => $voteCount,
-                'percentage' => $percentage
+                'percentage' => $percentage,
             ];
         }
 
@@ -1899,7 +1949,7 @@ class ConferenceRegistrationController extends Controller
                 'status' => 1,
                 'verified_status' => 1, // Auto-verify dummy passes
                 'payment_type' => null,
-                'transaction_id' => 'DUMMY-' . \Str::upper(\Str::random(10)),
+                'transaction_id' => 'DUMMY-'.\Str::upper(\Str::random(10)),
                 'amount' => 0,
                 'total_attendee' => 1,
             ]);
@@ -1911,6 +1961,7 @@ class ConferenceRegistrationController extends Controller
             $dummyUserModel = new class
             {
                 public $userDetail;
+
                 public $societies;
 
                 public function __construct()
@@ -1927,7 +1978,7 @@ class ConferenceRegistrationController extends Controller
                             };
                         }
                     };
-                    
+
                     $this->societies = collect();
                 }
 
@@ -1945,7 +1996,7 @@ class ConferenceRegistrationController extends Controller
 
         $passSetting = PassSetting::where(['conference_id' => $conference->id, 'status' => 1])->first();
 
-        if (!$passSetting) {
+        if (! $passSetting) {
             return redirect()->back()->with('delete', 'Please Create Pass Setting');
         }
 
@@ -1958,11 +2009,11 @@ class ConferenceRegistrationController extends Controller
                 ->first();
 
             // Fallback to committee designation if no member type name tag found
-            if (!$conferenceMemberTypeNameTag) {
+            if (! $conferenceMemberTypeNameTag) {
                 $conferenceCommitteePassDesignation = ConferenceCommitteePassDesignation::where('conference_id', $conference->id)
                     ->whereHas('designation')
                     ->first();
-                
+
                 if ($conferenceCommitteePassDesignation) {
                     $designation = $conferenceCommitteePassDesignation->name_tag;
                     $color = $conferenceCommitteePassDesignation->color ?? '#7367f0';
@@ -1973,7 +2024,7 @@ class ConferenceRegistrationController extends Controller
                         2 => 'Speaker/Presenter',
                         3 => 'Session Chair',
                         4 => 'Special Guest',
-                        5 => 'Organizer'
+                        5 => 'Organizer',
                     ];
                     $designation = $registrantTypes[$participant->registrant_type] ?? 'Participant';
                     $color = '#7367f0';
@@ -2003,6 +2054,7 @@ class ConferenceRegistrationController extends Controller
                 $this->file_service->deleteFile($registrant->payment_voucher, 'conference/payment-voucher');
             }
             $registrant->delete();
+
             return redirect()->back()->with('status', 'Registrant Successfully Deleted.');
         } catch (\Exception $e) {
             return redirect()->back()->with('delete', 'Internal Server Error.');

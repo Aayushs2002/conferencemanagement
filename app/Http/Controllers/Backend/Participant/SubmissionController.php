@@ -222,7 +222,20 @@ class SubmissionController extends Controller
 
             $subject = parseTemplate($template?->subject, $data);
             $body = parseTemplate($template?->body, $data);
-            Mail::to($authUser->email)->send(new SubmissionSubmittedToUserMail($userMailData, $subject, $body, $conference->conference_name));
+            
+            // Send email with CC if configured
+            $mail = Mail::to($authUser->email);
+            
+            // Add CC emails if configured
+            $conferenceSetting = $conference->conferenceSetting;
+            if ($conferenceSetting && !empty($conferenceSetting->submission_cc_emails)) {
+                $ccEmails = getCcEmails($conferenceSetting->submission_cc_emails);
+                if (!empty($ccEmails)) {
+                    $mail->cc($ccEmails);
+                }
+            }
+            
+            $mail->send(new SubmissionSubmittedToUserMail($userMailData, $subject, $body, $conference->conference_name));
             DB::beginTransaction();
             // dd('dd');   
             $submission = Submission::create($validated);

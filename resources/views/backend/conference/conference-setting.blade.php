@@ -12,8 +12,8 @@
                 <hr class="mt-0" style="height:1px;border:none;color:#333;background-color:#333;" />
             </div>
 
-            <div class="col-md-4 mb-4">  
-                <label>Name</label> 
+            <div class="col-md-4 mb-4">
+                <label>Name</label>
                 <input type="text" class="form-control" name="name" value="{{ $conferenceSetting?->name }}">
             </div>
             <div class="col-md-4 mb-4">
@@ -49,17 +49,20 @@
 
             <div class="col-md-4 mb-4">
                 <label>Conference Registration Open Date</label>
-                <input type="date" class="form-control" name="registration_open_date" value="{{ $conferenceSetting?->registration_open_date }}">
+                <input type="date" class="form-control" name="registration_open_date"
+                    value="{{ $conferenceSetting?->registration_open_date }}">
             </div>
 
             <div class="col-md-4 mb-4">
                 <label>Workshop Registration Open Date</label>
-                <input type="date" class="form-control" name="workshop_registration_open_date" value="{{ $conferenceSetting?->workshop_registration_open_date }}">
+                <input type="date" class="form-control" name="workshop_registration_open_date"
+                    value="{{ $conferenceSetting?->workshop_registration_open_date }}">
             </div>
 
             <div class="col-md-4 mb-4">
                 <label>Workshop Application Deadline</label>
-                <input type="date" class="form-control" name="workshop_application_deadline" value="{{ $conferenceSetting?->workshop_application_deadline }}">
+                <input type="date" class="form-control" name="workshop_application_deadline"
+                    value="{{ $conferenceSetting?->workshop_application_deadline }}">
                 <small class="text-muted">Users cannot apply for workshops after this date</small>
             </div>
 
@@ -158,15 +161,16 @@
             <div class="col-12 mt-3">
                 <h6>8. Custom CSS</h6>
                 <hr class="mt-0" style="height:1px;border:none;color:#333;background-color:#333;" />
-                <p class="text-muted small">Add custom CSS code to style your conference page. You can target any element using class selectors.</p>
+                <p class="text-muted small">Add custom CSS code to style your conference page. You can target any
+                    element using class selectors.</p>
             </div>
 
             @php
                 $customCss = $conference->customCss->first();
             @endphp
 
-            <div class="col-md-12 mb-4"> 
-                <label>Custom CSS Code</label> 
+            <div class="col-md-12 mb-4">
+                <label>Custom CSS Code</label>
                 <textarea class="form-control font-monospace css-editor" name="custom_css" rows="15"
                     placeholder="/* Example: */&#10;.navbar-brand span {&#10;    color: #ff0000;&#10;    font-size: 1.8rem;&#10;}&#10;&#10;.conference-hero {&#10;    background-size: cover;&#10;    min-height: 500px;&#10;}&#10;&#10;.dash-card {&#10;    border-radius: 12px;&#10;    box-shadow: 0 4px 8px rgba(0,0,0,0.1);&#10;}">{{ $customCss?->custom_css ?? '' }}</textarea>
                 <small class="text-muted">
@@ -174,7 +178,7 @@
                     Enter CSS code with class selectors. Example: .navbar-brand, .hero-title, .countdown-box, etc.
                 </small>
             </div>
- 
+
             <div class="col-12 mt-3">
                 <h6>9. Section Visibility Settings</h6>
                 <hr class="mt-0" style="height:1px;border:none;color:#333;background-color:#333;" />
@@ -186,8 +190,9 @@
                     <div class="col-md-4 mb-3">
                         <div class="form-check form-switch">
                             <input type="hidden" name="show_stats_dashboard" value="0">
-                            <input class="form-check-input" type="checkbox" name="show_stats_dashboard" id="show_stats_dashboard" value="1"
-                                {{ ($conferenceSetting?->show_stats_dashboard ?? 1) ? 'checked' : '' }}>
+                            <input class="form-check-input" type="checkbox" name="show_stats_dashboard"
+                                id="show_stats_dashboard" value="1"
+                                {{ $conferenceSetting?->show_stats_dashboard ?? 1 ? 'checked' : '' }}>
                             <label class="form-check-label" for="show_stats_dashboard">
                                 <strong>Show Stats Dashboard</strong>
                                 <small class="d-block text-muted">Speakers, participants count</small>
@@ -206,13 +211,16 @@
             <div class="col-md-6 mb-4">
                 <label>Add-on Availability <code>*</code></label>
                 <select class="form-control" name="addon_availability" required>
-                    <option value="both" {{ ($conferenceSetting?->addon_availability ?? 'both') == 'both' ? 'selected' : '' }}>
+                    <option value="both"
+                        {{ ($conferenceSetting?->addon_availability ?? 'both') == 'both' ? 'selected' : '' }}>
                         Both Participant & Accompanying Persons
                     </option>
-                    <option value="participant_only" {{ $conferenceSetting?->addon_availability == 'participant_only' ? 'selected' : '' }}>
+                    <option value="participant_only"
+                        {{ $conferenceSetting?->addon_availability == 'participant_only' ? 'selected' : '' }}>
                         Participant Only
                     </option>
-                    <option value="accompany_only" {{ $conferenceSetting?->addon_availability == 'accompany_only' ? 'selected' : '' }}>
+                    <option value="accompany_only"
+                        {{ $conferenceSetting?->addon_availability == 'accompany_only' ? 'selected' : '' }}>
                         Accompanying Persons Only
                     </option>
                 </select>
@@ -221,6 +229,54 @@
                     Determines who can select add-ons: participant, accompanying persons, or both
                 </small>
             </div>
+
+            <div class="col-12 mt-3">
+                <h6>11. Email Notification CC Settings</h6>
+                <hr class="mt-0" style="height:1px;border:none;color:#333;background-color:#333;" />
+                <p class="text-muted small">Configure CC email addresses for different notification types. Multiple
+                    emails should be separated by commas. If left empty, no CC will be sent.</p>
+            </div>
+
+            <div class="col-md-6 mb-4">
+                <label>Submission CC Emails</label>
+                <textarea class="form-control" name="submission_cc_emails" rows="3"
+                    placeholder="email1@example.com, email2@example.com">{{ $conferenceSetting?->submission_cc_emails }}</textarea>
+                <small class="text-muted">
+                    <i class="ti tabler-info-circle"></i>
+                    These emails will receive CC when a user submits a submission
+                </small>
+            </div>
+
+            <div class="col-md-6 mb-4">
+                <label>Reviewer Assignment CC Emails</label>
+                <textarea class="form-control" name="reviewer_assignment_cc_emails" rows="3"
+                    placeholder="email1@example.com, email2@example.com">{{ $conferenceSetting?->reviewer_assignment_cc_emails }}</textarea>
+                <small class="text-muted">
+                    <i class="ti tabler-info-circle"></i>
+                    These emails will receive CC when a reviewer is assigned to a submission
+                </small>
+            </div>
+
+            <div class="col-md-6 mb-4">
+                <label>Conference Registration CC Emails</label>
+                <textarea class="form-control" name="conference_registration_cc_emails" rows="3"
+                    placeholder="email1@example.com, email2@example.com">{{ $conferenceSetting?->conference_registration_cc_emails }}</textarea>
+                <small class="text-muted">
+                    <i class="ti tabler-info-circle"></i>
+                    These emails will receive CC when a user registers for the conference
+                </small>
+            </div>
+            {{-- @if (feature_enabled('workshop-management', getSociety(request()->segment(2)))) --}}
+                <div class="col-md-6 mb-4">
+                    <label>Workshop Registration CC Emails</label>
+                    <textarea class="form-control" name="workshop_registration_cc_emails" rows="3"
+                        placeholder="email1@example.com, email2@example.com">{{ $conferenceSetting?->workshop_registration_cc_emails }}</textarea>
+                    <small class="text-muted">
+                        <i class="ti tabler-info-circle"></i>
+                        These emails will receive CC when a user registers for a workshop
+                    </small>
+                </div>
+            {{-- @endif --}}
 
         </div>
         <div class="text-end mt-4">
@@ -258,7 +314,7 @@
             CKEDITOR.instances['terms_conditions'].destroy(true);
         }
         if (CKEDITOR.instances['privacy_policy']) {
-            CKEDITOR.instances['privacy_policy'].destroy(true); 
+            CKEDITOR.instances['privacy_policy'].destroy(true);
         }
 
         // Initialize CKEditor for all textareas

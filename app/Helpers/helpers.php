@@ -733,3 +733,29 @@ if (!function_exists('conference_generate_breadcrumbs')) {
         return $breadcrumbs;
     }
 }
+
+if (!function_exists('getCcEmails')) {
+    /**
+     * Parse CC emails from comma-separated string
+     * Returns array of valid email addresses
+     * 
+     * @param string|null $ccEmailsString
+     * @return array
+     */
+    function getCcEmails($ccEmailsString)
+    {
+        if (empty($ccEmailsString)) {
+            return [];
+        }
+
+        // Split by comma and clean up emails
+        $emails = array_map('trim', explode(',', $ccEmailsString));
+
+        // Filter out empty strings and invalid emails
+        $validEmails = array_filter($emails, function($email) {
+            return !empty($email) && filter_var($email, FILTER_VALIDATE_EMAIL);
+        });
+
+        return array_values($validEmails);
+    }
+}
