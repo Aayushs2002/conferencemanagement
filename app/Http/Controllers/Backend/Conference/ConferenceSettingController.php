@@ -43,6 +43,10 @@ class ConferenceSettingController extends Controller
                 'workshop_application_deadline' => 'nullable|date',
                 'show_stats_dashboard' => 'required|in:0,1',
                 'addon_availability' => 'required|in:both,participant_only,accompany_only',
+                'submission_cc_emails' => 'nullable|string',
+                'reviewer_assignment_cc_emails' => 'nullable|string',
+                'conference_registration_cc_emails' => 'nullable|string',
+                'workshop_registration_cc_emails' => 'nullable|string',
 
             ]);
 
@@ -95,6 +99,10 @@ class ConferenceSettingController extends Controller
                 'workshop_application_deadline' => $request->workshop_application_deadline,
                 'show_stats_dashboard' => $request->show_stats_dashboard,
                 'addon_availability' => $request->addon_availability,
+                'submission_cc_emails' => $request->submission_cc_emails,
+                'reviewer_assignment_cc_emails' => $request->reviewer_assignment_cc_emails,
+                'conference_registration_cc_emails' => $request->conference_registration_cc_emails,
+                'workshop_registration_cc_emails' => $request->workshop_registration_cc_emails,
             ];
 
             if ($conferenceSetting) {

@@ -24,6 +24,10 @@ class ConferenceSetting extends Model
         'workshop_application_deadline',
         'show_stats_dashboard',
         'addon_availability',
+        'submission_cc_emails',
+        'reviewer_assignment_cc_emails',
+        'conference_registration_cc_emails',
+        'workshop_registration_cc_emails',
     ];
 }
  

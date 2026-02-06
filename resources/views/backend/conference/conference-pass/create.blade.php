@@ -105,6 +105,60 @@
                         </div>
 
                         <div class="col-12 mt-4">
+                            <h6>1.1. Workshop Pass Setting</h6>
+                            <hr class="mt-0" style="height:1px;border:none;color:#333;background-color:#333;" />
+                            <p class="text-muted small">Configure pass designations for workshop participants and trainers.</p>
+                        </div>
+
+                        <div class="mb-6 col-md-3">
+                            <label class="form-label" for="workshop_participant_name_tag">Workshop Participant Name Tag</label>
+                            <input type="text" class="form-control @error('workshop_participant_name_tag') is-invalid @enderror"
+                                id="workshop_participant_name_tag" name="workshop_participant_name_tag"
+                                placeholder="e.g., Workshop Participant"
+                                value="{{ old('workshop_participant_name_tag', @$pass_setting->workshop_participant_name_tag) }}" />
+                            <div class="valid-feedback">Looks good!</div>
+                            <div class="invalid-feedback">Please enter workshop participant name tag.</div>
+                            @error('workshop_participant_name_tag')
+                                <p class="text-danger">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        <div class="mb-6 col-md-3">
+                            <label class="form-label" for="workshop_participant_color">Workshop Participant Color</label>
+                            <input type="color" class="form-control @error('workshop_participant_color') is-invalid @enderror"
+                                id="workshop_participant_color" name="workshop_participant_color"
+                                value="{{ old('workshop_participant_color', @$pass_setting->workshop_participant_color ?? '#7367f0') }}"
+                                style="height: 40px;" />
+                            @error('workshop_participant_color')
+                                <p class="text-danger">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        <div class="mb-6 col-md-3">
+                            <label class="form-label" for="workshop_trainer_name_tag">Workshop Trainer Name Tag</label>
+                            <input type="text" class="form-control @error('workshop_trainer_name_tag') is-invalid @enderror"
+                                id="workshop_trainer_name_tag" name="workshop_trainer_name_tag"
+                                placeholder="e.g., Workshop Trainer"
+                                value="{{ old('workshop_trainer_name_tag', @$pass_setting->workshop_trainer_name_tag) }}" />
+                            <div class="valid-feedback">Looks good!</div>
+                            <div class="invalid-feedback">Please enter workshop trainer name tag.</div>
+                            @error('workshop_trainer_name_tag')
+                                <p class="text-danger">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        <div class="mb-6 col-md-3">
+                            <label class="form-label" for="workshop_trainer_color">Workshop Trainer Color</label>
+                            <input type="color" class="form-control @error('workshop_trainer_color') is-invalid @enderror"
+                                id="workshop_trainer_color" name="workshop_trainer_color"
+                                value="{{ old('workshop_trainer_color', @$pass_setting->workshop_trainer_color ?? '#7367f0') }}"
+                                style="height: 40px;" />
+                            @error('workshop_trainer_color')
+                                <p class="text-danger">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        <div class="col-12 mt-4">
                             <h6>2. Pass Name Tag Configuration</h6> 
                             <hr class="mt-0" style="height:1px;border:none;color:#333;background-color:#333;" />
                         </div>

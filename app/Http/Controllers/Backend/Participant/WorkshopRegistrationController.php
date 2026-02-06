@@ -123,7 +123,19 @@ class WorkshopRegistrationController extends Controller
                 'accompany' => null
             ];
 
-            Mail::to($authUser->email)->send(new UserRegistrationMail($mailData, $conference->conference_name));
+            // Send email with CC if configured
+            $mail = Mail::to($authUser->email);
+            
+            // Add CC emails if configured
+            $conferenceSetting = $conference->conferenceSetting;
+            if ($conferenceSetting && !empty($conferenceSetting->workshop_registration_cc_emails)) {
+                $ccEmails = getCcEmails($conferenceSetting->workshop_registration_cc_emails);
+                if (!empty($ccEmails)) {
+                    $mail->cc($ccEmails);
+                }
+            }
+            
+            $mail->send(new UserRegistrationMail($mailData, $conference->conference_name));
 
             WorkshopRegistration::create($validated);
 
@@ -190,7 +202,20 @@ class WorkshopRegistrationController extends Controller
                 'workshop'         => $workshopData,
                 'accompany' => null
             ];
-            Mail::to($authUser->email)->send(new UserRegistrationMail($mailData, $conference->conference_name));
+            
+            // Send email with CC if configured
+            $mail = Mail::to($authUser->email);
+            
+            // Add CC emails if configured
+            $conferenceSetting = $conference->conferenceSetting;
+            if ($conferenceSetting && !empty($conferenceSetting->workshop_registration_cc_emails)) {
+                $ccEmails = getCcEmails($conferenceSetting->workshop_registration_cc_emails);
+                if (!empty($ccEmails)) {
+                    $mail->cc($ccEmails);
+                }
+            }
+            
+            $mail->send(new UserRegistrationMail($mailData, $conference->conference_name));
 
             if (!empty($validated['payment_voucher'])) {
                 $validated['payment_voucher'] = $this->file_service->fileUpload($validated['payment_voucher'], 'payment_voucher', 'workshop/payment-voucher');

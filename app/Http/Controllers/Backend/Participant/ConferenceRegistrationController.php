@@ -321,7 +321,19 @@ class ConferenceRegistrationController extends Controller
                         'serviceCharge' => $authUser->userDetail->country_id != 125 ? $validated['amount'] * 0.035 : null
                     ];
 
-                    Mail::to($authUser->email)->send(new RegisteredByUserMail($mailData, $conference->conference_name));
+                    // Send email with CC if configured
+                    $mail = Mail::to($authUser->email);
+                    
+                    // Add CC emails if configured
+                    $conferenceSetting = $conference->conferenceSetting;
+                    if ($conferenceSetting && !empty($conferenceSetting->conference_registration_cc_emails)) {
+                        $ccEmails = getCcEmails($conferenceSetting->conference_registration_cc_emails);
+                        if (!empty($ccEmails)) {
+                            $mail->cc($ccEmails);
+                        }
+                    }
+                    
+                    $mail->send(new RegisteredByUserMail($mailData, $conference->conference_name));
 
                     DB::beginTransaction();
                     $conferenceRegistration = ConferenceRegistration::create($validated);
@@ -624,7 +636,18 @@ class ConferenceRegistrationController extends Controller
             ];
             // dd($mailData);
             // Send Email
-            Mail::to($authUser->email)->send(new RegisteredByUserMail($mailData, $conference->conference_name));
+            $mail = Mail::to($authUser->email);
+            
+            // Add CC emails if configured
+            $conferenceSetting = $conference->conferenceSetting;
+            if ($conferenceSetting && !empty($conferenceSetting->conference_registration_cc_emails)) {
+                $ccEmails = getCcEmails($conferenceSetting->conference_registration_cc_emails);
+                if (!empty($ccEmails)) {
+                    $mail->cc($ccEmails);
+                }
+            }
+            
+            $mail->send(new RegisteredByUserMail($mailData, $conference->conference_name));
 
             DB::beginTransaction();
 

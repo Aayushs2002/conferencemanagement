@@ -349,7 +349,20 @@ class SubmissionController extends Controller
                 ];
                 $subject = parseTemplate($template?->subject, $data);
                 $body = parseTemplate($template?->body, $data);
-                Mail::to($expert->email)->send(new ExpertForwardMail($mailData, $subject, $body, $submission->conference->conference_name));
+                
+                // Send email with CC if configured
+                $mail = Mail::to($expert->email);
+                
+                // Add CC emails if configured
+                $conferenceSetting = $submission->conference->conferenceSetting;
+                if ($conferenceSetting && !empty($conferenceSetting->reviewer_assignment_cc_emails)) {
+                    $ccEmails = getCcEmails($conferenceSetting->reviewer_assignment_cc_emails);
+                    if (!empty($ccEmails)) {
+                        $mail->cc($ccEmails);
+                    }
+                }
+                
+                $mail->send(new ExpertForwardMail($mailData, $subject, $body, $submission->conference->conference_name));
                 $validated['review_status'] = 0;
                 $submission->update($validated);
                 logActivity($submission->conference_id, 'Assign Expert', $expert->fullName($expert).'is assign as a expert to '.$submission->title);
@@ -508,7 +521,19 @@ class SubmissionController extends Controller
             $subject = "Multiple Submissions Assigned For Review - {$conference->conference_name}";
             $body = $template?->body ?? '';
 
-            Mail::to($expertUser->email)->send(new \App\Mail\Submission\BulkExpertForwardMail($mailData, $subject, $body, $conference->conference_name));
+            // Send email with CC if configured
+            $mail = Mail::to($expertUser->email);
+            
+            // Add CC emails if configured
+            $conferenceSetting = $conference->conferenceSetting;
+            if ($conferenceSetting && !empty($conferenceSetting->reviewer_assignment_cc_emails)) {
+                $ccEmails = getCcEmails($conferenceSetting->reviewer_assignment_cc_emails);
+                if (!empty($ccEmails)) {
+                    $mail->cc($ccEmails);
+                }
+            }
+            
+            $mail->send(new \App\Mail\Submission\BulkExpertForwardMail($mailData, $subject, $body, $conference->conference_name));
 
             DB::commit();
         } catch (Exception $e) {
