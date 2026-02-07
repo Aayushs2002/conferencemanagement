@@ -113,6 +113,11 @@ Route::middleware('auth')->group(function () {
         Route::get('/generate-individual-pass/{conferenceRegistration}', 'generateIndividualPass')->name('generateIndividualPass');
         Route::get('/download-voucher/{conferenceRegistration}', 'downloadVoucher')->name('downloadVoucher');
         Route::post('/generate-dummy-pass', 'generateDummyPass')->name('generateDummyPass');
+        Route::post('/update-registration-ids', 'updateRegistrationIds')->name('updateRegistrationIds');
+        Route::get('/bulk-email', 'showBulkEmailForm')->name('bulkEmail');
+        Route::post('/bulk-email', 'sendBulkEmail')->name('sendBulkEmail');
+        Route::get('/registrant/{registrant}/send-email', 'showIndividualEmailForm')->name('showIndividualEmail');
+        Route::post('/registrant/{registrant}/send-email', 'sendIndividualEmail')->name('sendIndividualEmail');
         Route::delete('/registrant/destroy/{registrant}', 'destroy')->name('registrant.destroy');
     });
 
