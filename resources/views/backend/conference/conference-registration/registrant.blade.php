@@ -173,6 +173,26 @@
                                         <i class="ti tabler-user-plus me-2"></i> Generate Dummy Pass
                                     </a>
                                 </li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <a class="dropdown-item" href="{{ route('conference.conference-registration.bulkEmail', [$society, $conference]) }}">
+                                        <i class="ti tabler-mail me-2"></i> Send Bulk Email
+                                    </a>
+                                </li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <form id="updateRegistrationIdsForm" 
+                                          action="{{ route('conference.conference-registration.updateRegistrationIds', [$society, $conference]) }}" 
+                                          method="POST" 
+                                          style="display: inline;">
+                                        @csrf
+                                        <button type="button" 
+                                                class="dropdown-item" 
+                                                onclick="confirmUpdateRegistrationIds()">
+                                            <i class="ti tabler-refresh me-2"></i> Update Registration IDs
+                                        </button>
+                                    </form>
+                                </li>
                             </ul>
                         </div> 
 
@@ -191,6 +211,7 @@
                         <th>Registraton Type</th>
                         <th>No. of people</th>
                         <th>Is Verified?</th>
+                        <th>Registration ID</th>
                         <th>Action</th>
                     </tr>
                 </thead>
@@ -314,6 +335,7 @@
                                         title="Verify Registrant"><span class="badge bg-warning">Unverified</span></a>
                                 @endif
                             </td>
+                            <td>{{ $registrant->registration_id ?? 'N/A' }}</td>
 
                             <td>
                                 <div class="dropdown">
@@ -345,6 +367,12 @@
                                         <a class="dropdown-item"
                                             href="{{ route('conference.conference-registration.generateCertificate', [$society, $conference, $registrant->id]) }}"><i
                                                 class="icon-base ti tabler-ticket me-1"></i>Generate Certificate</a>
+                                        @if($registrant->user)
+                                            <hr>
+                                            <a class="dropdown-item"
+                                                href="{{ route('conference.conference-registration.showIndividualEmail', [$society, $conference, $registrant->id]) }}"><i
+                                                    class="icon-base ti tabler-mail me-1"></i> Send Email</a>
+                                        @endif
                                         @if (is_super_admin())
                                             <hr>
                                             <form
@@ -585,5 +613,16 @@
                 form.submit();
             });
         });
+
+        // Function to confirm and submit registration ID update
+        function confirmUpdateRegistrationIds() {
+            if (confirm('This will update registration IDs for all registrants in this conference. This process may take a few minutes for large datasets. Do you want to continue?')) {
+                const form = document.getElementById('updateRegistrationIdsForm');
+                const button = form.querySelector('button');
+                button.disabled = true;
+                button.innerHTML = '<i class="ti tabler-loader me-2"></i> Updating...';
+                form.submit();
+            }
+        }
     </script>
 @endsection

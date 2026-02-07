@@ -169,7 +169,7 @@
                         <div
                             style="padding:5px; font-size:12px; border-radius:5px; height:110px; width:100px; margin:10px auto 5px; overflow:hidden; background:#fff;">
                             {!! QrCode::size(100)->generate(config('app.url') . '/participant/profile/' . $participant->token) !!}
-                            <br />Serial No: ORG001
+                            <br />Serial No: {{ $participant->registration_id ?? 'N/A' }}
 
                         </div>
 

@@ -24,6 +24,7 @@ class ConferenceRegistration extends Model
         'verified_status',
         'token',
         'total_attendee',
+        'registration_id',
         'is_invited',
         'is_featured',
         'meal_type',
@@ -352,5 +353,285 @@ GROUP BY MT.id, MT.delegate, MT.type";
             'international_participants' => (int) ($stats->international_participants ?? 0),
             'total_participants' => (int) ($stats->total_participants ?? 0),
         ];
+    }
+
+    /**
+     * Update registration IDs for all registrants in a conference efficiently
+     * Handles large datasets by processing in groups
+     * Real users sorted alphabetically, then dummy users by creation date
+     * 
+     * @param int $conferenceId
+     * @return array Statistics about the update
+     */
+    public static function updateRegistrationIds($conferenceId): array
+    {
+        DB::beginTransaction();
+        
+        try {
+            $stats = [
+                'invited' => 0,
+                'participant' => 0,
+                'speaker' => 0,
+                'session_chair' => 0,
+                'special_guest' => 0,
+                'organizer' => 0,
+                'total' => 0
+            ];
+
+            // 1. Invited Participants (is_invited = 1) - both real and dummy
+            $invitedReal = self::where('conference_id', $conferenceId)
+                ->where('status', 1)
+                ->where('is_invited', 1)
+                ->whereNotNull('user_id')
+                ->with(['user' => function($q) {
+                    $q->select('id', 'f_name', 'm_name', 'l_name');
+                }])
+                ->get()
+                ->sortBy(function($registration) {
+                    return $registration->user ? 
+                        $registration->user->f_name . ' ' . $registration->user->m_name . ' ' . $registration->user->l_name : 
+                        '';
+                });
+
+            $invitedDummy = self::where('conference_id', $conferenceId)
+                ->where('status', 1)
+                ->where('is_invited', 1)
+                ->whereNull('user_id')
+                ->orderBy('created_at')
+                ->get();
+
+            $counter = 1;
+            foreach ($invitedReal as $registration) {
+                $registration->registration_id = 'INV_' . str_pad($counter, 3, '0', STR_PAD_LEFT);
+                $registration->save();
+                $counter++;
+                $stats['invited']++;
+            }
+            foreach ($invitedDummy as $registration) {
+                $registration->registration_id = 'INV_' . str_pad($counter, 3, '0', STR_PAD_LEFT);
+                $registration->save();
+                $counter++;
+                $stats['invited']++;
+            }
+
+            // 2. Participants (registrant_type = 1, not invited) - real then dummy
+            $participantsReal = self::where('conference_id', $conferenceId)
+                ->where('status', 1)
+                ->where('registrant_type', self::REGISTRANT_ATTENDEE)
+                ->where('is_invited', 0)
+                ->whereNotNull('user_id')
+                ->with(['user' => function($q) {
+                    $q->select('id', 'f_name', 'm_name', 'l_name');
+                }])
+                ->get()
+                ->sortBy(function($registration) {
+                    return $registration->user ? 
+                        $registration->user->f_name . ' ' . $registration->user->m_name . ' ' . $registration->user->l_name : 
+                        '';
+                });
+
+            $participantsDummy = self::where('conference_id', $conferenceId)
+                ->where('status', 1)
+                ->where('registrant_type', self::REGISTRANT_ATTENDEE)
+                ->where('is_invited', 0)
+                ->whereNull('user_id')
+                ->orderBy('created_at')
+                ->get();
+
+            $counter = 1;
+            foreach ($participantsReal as $registration) {
+                $registration->registration_id = 'PAR_' . str_pad($counter, 3, '0', STR_PAD_LEFT);
+                $registration->save();
+                $counter++;
+                $stats['participant']++;
+            }
+            foreach ($participantsDummy as $registration) {
+                $registration->registration_id = 'PAR_' . str_pad($counter, 3, '0', STR_PAD_LEFT);
+                $registration->save();
+                $counter++;
+                $stats['participant']++;
+            }
+
+            // 3. Speakers (registrant_type = 2, not invited) - real then dummy
+            $speakersReal = self::where('conference_id', $conferenceId)
+                ->where('status', 1)
+                ->where('registrant_type', self::REGISTRANT_SPEAKER)
+                ->where('is_invited', 0)
+                ->whereNotNull('user_id')
+                ->with(['user' => function($q) {
+                    $q->select('id', 'f_name', 'm_name', 'l_name');
+                }])
+                ->get()
+                ->sortBy(function($registration) {
+                    return $registration->user ? 
+                        $registration->user->f_name . ' ' . $registration->user->m_name . ' ' . $registration->user->l_name : 
+                        '';
+                });
+
+            $speakersDummy = self::where('conference_id', $conferenceId)
+                ->where('status', 1)
+                ->where('registrant_type', self::REGISTRANT_SPEAKER)
+                ->where('is_invited', 0)
+                ->whereNull('user_id')
+                ->orderBy('created_at')
+                ->get();
+
+            $counter = 1;
+            foreach ($speakersReal as $registration) {
+                $registration->registration_id = 'SPE_' . str_pad($counter, 3, '0', STR_PAD_LEFT);
+                $registration->save();
+                $counter++;
+                $stats['speaker']++;
+            }
+            foreach ($speakersDummy as $registration) {
+                $registration->registration_id = 'SPE_' . str_pad($counter, 3, '0', STR_PAD_LEFT);
+                $registration->save();
+                $counter++;
+                $stats['speaker']++;
+            }
+
+            // 4. Session Chairs (registrant_type = 3, not invited) - real then dummy
+            $sessionChairsReal = self::where('conference_id', $conferenceId)
+                ->where('status', 1)
+                ->where('registrant_type', self::REGISTRANT_SESSION_CHAIR)
+                ->where('is_invited', 0)
+                ->whereNotNull('user_id')
+                ->with(['user' => function($q) {
+                    $q->select('id', 'f_name', 'm_name', 'l_name');
+                }])
+                ->get()
+                ->sortBy(function($registration) {
+                    return $registration->user ? 
+                        $registration->user->f_name . ' ' . $registration->user->m_name . ' ' . $registration->user->l_name : 
+                        '';
+                });
+
+            $sessionChairsDummy = self::where('conference_id', $conferenceId)
+                ->where('status', 1)
+                ->where('registrant_type', self::REGISTRANT_SESSION_CHAIR)
+                ->where('is_invited', 0)
+                ->whereNull('user_id')
+                ->orderBy('created_at')
+                ->get();
+
+            $counter = 1;
+            foreach ($sessionChairsReal as $registration) {
+                $registration->registration_id = 'SCH_' . str_pad($counter, 3, '0', STR_PAD_LEFT);
+                $registration->save();
+                $counter++;
+                $stats['session_chair']++;
+            }
+            foreach ($sessionChairsDummy as $registration) {
+                $registration->registration_id = 'SCH_' . str_pad($counter, 3, '0', STR_PAD_LEFT);
+                $registration->save();
+                $counter++;
+                $stats['session_chair']++;
+            }
+
+            // 5. Special Guests (registrant_type = 4, not invited) - real then dummy
+            $specialGuestsReal = self::where('conference_id', $conferenceId)
+                ->where('status', 1)
+                ->where('registrant_type', self::REGISTRANT_SPECIAL_GUEST)
+                ->where('is_invited', 0)
+                ->whereNotNull('user_id')
+                ->with(['user' => function($q) {
+                    $q->select('id', 'f_name', 'm_name', 'l_name');
+                }])
+                ->get()
+                ->sortBy(function($registration) {
+                    return $registration->user ? 
+                        $registration->user->f_name . ' ' . $registration->user->m_name . ' ' . $registration->user->l_name : 
+                        '';
+                });
+
+            $specialGuestsDummy = self::where('conference_id', $conferenceId)
+                ->where('status', 1)
+                ->where('registrant_type', self::REGISTRANT_SPECIAL_GUEST)
+                ->where('is_invited', 0)
+                ->whereNull('user_id')
+                ->orderBy('created_at')
+                ->get();
+
+            $counter = 1;
+            foreach ($specialGuestsReal as $registration) {
+                $registration->registration_id = 'SGU_' . str_pad($counter, 3, '0', STR_PAD_LEFT);
+                $registration->save();
+                $counter++;
+                $stats['special_guest']++;
+            }
+            foreach ($specialGuestsDummy as $registration) {
+                $registration->registration_id = 'SGU_' . str_pad($counter, 3, '0', STR_PAD_LEFT);
+                $registration->save();
+                $counter++;
+                $stats['special_guest']++;
+            }
+
+            // 6. Organizers (registrant_type = 5, not invited) - real then dummy
+            $organizersReal = self::where('conference_id', $conferenceId)
+                ->where('status', 1)
+                ->where('registrant_type', self::REGISTRANT_ORGANIZER)
+                ->where('is_invited', 0)
+                ->whereNotNull('user_id')
+                ->with(['user' => function($q) {
+                    $q->select('id', 'f_name', 'm_name', 'l_name');
+                }])
+                ->get()
+                ->sortBy(function($registration) {
+                    return $registration->user ? 
+                        $registration->user->f_name . ' ' . $registration->user->m_name . ' ' . $registration->user->l_name : 
+                        '';
+                });
+
+            $organizersDummy = self::where('conference_id', $conferenceId)
+                ->where('status', 1)
+                ->where('registrant_type', self::REGISTRANT_ORGANIZER)
+                ->where('is_invited', 0)
+                ->whereNull('user_id')
+                ->orderBy('created_at')
+                ->get();
+
+            $counter = 1;
+            foreach ($organizersReal as $registration) {
+                $registration->registration_id = 'ORG_' . str_pad($counter, 3, '0', STR_PAD_LEFT);
+                $registration->save();
+                $counter++;
+                $stats['organizer']++;
+            }
+            foreach ($organizersDummy as $registration) {
+                $registration->registration_id = 'ORG_' . str_pad($counter, 3, '0', STR_PAD_LEFT);
+                $registration->save();
+                $counter++;
+                $stats['organizer']++;
+            }
+
+            $stats['total'] = $stats['invited'] + $stats['participant'] + $stats['speaker'] + 
+                             $stats['session_chair'] + $stats['special_guest'] + $stats['organizer'];
+
+            DB::commit();
+            
+            return $stats;
+        } catch (\Exception $e) {
+            DB::rollBack();
+            throw $e;
+        }
+    }
+
+    /**
+     * Get registration ID prefix based on type
+     */
+    public function getRegistrationIdPrefix(): string
+    {
+        if ($this->is_invited) {
+            return 'INV';
+        }
+
+        return match ($this->registrant_type) {
+            self::REGISTRANT_ATTENDEE => 'PAR',
+            self::REGISTRANT_SPEAKER => 'SPE',
+            self::REGISTRANT_SESSION_CHAIR => 'SCH',
+            self::REGISTRANT_SPECIAL_GUEST => 'SGU',
+            self::REGISTRANT_ORGANIZER => 'ORG',
+            default => 'REG'
+        };
     }
 }

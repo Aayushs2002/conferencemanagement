@@ -6,6 +6,8 @@ use App\Exports\ConferenceRegistrationExport;
 use App\Exports\ImportLogExport;
 use App\Http\Controllers\Controller;
 use App\Imports\ConferenceRegistationImport;
+use App\Jobs\SendRegistrantEmailJob;
+use App\Mail\Conference\CustomRegistrantMail;
 use App\Mail\Conference\ExceptionalRegistrationMail;
 use App\Mail\Conference\RegistrantAcceptMail;
 use App\Mail\Conference\RegistrantRejectMail;
@@ -2059,5 +2061,281 @@ class ConferenceRegistrationController extends Controller
         } catch (\Exception $e) {
             return redirect()->back()->with('delete', 'Internal Server Error.');
         }
+    }
+
+    /**
+     * Update registration IDs for all registrants
+     */
+    public function updateRegistrationIds(Request $request, $society, $conference)
+    {
+        try {
+            // Increase limits for large datasets
+            ini_set('memory_limit', '1024M');
+            ini_set('max_execution_time', '600');
+            set_time_limit(600);
+
+            $stats = ConferenceRegistration::updateRegistrationIds($conference->id);
+
+            return redirect()
+                ->back()
+                ->with('status', "Registration IDs updated successfully! Total: {$stats['total']} 
+                    (Invited: {$stats['invited']}, Participants: {$stats['participant']}, 
+                    Speakers: {$stats['speaker']}, Session Chairs: {$stats['session_chair']}, 
+                    Special Guests: {$stats['special_guest']}, Organizers: {$stats['organizer']})");
+        } catch (\Exception $e) {
+            return redirect()
+                ->back()
+                ->with('delete', 'Error updating registration IDs: '.$e->getMessage());
+        }
+    }
+
+    /**
+     * Show bulk email form
+     */
+    public function showBulkEmailForm(Request $request, $society, $conference)
+    {
+        $name_prefiexs = NamePrefix::where('status', 1)->get();
+        $countries = \App\Models\User\Country::where('status', 1)->orderBy('country_name')->get();
+
+        return view('backend.conference.conference-registration.bulk-email', compact(
+            'society',
+            'conference',
+            'name_prefiexs',
+            'countries'
+        ));
+    }
+
+    /**
+     * Send bulk email to registrants
+     */
+    public function sendBulkEmail(Request $request, $society, $conference)
+    {
+        try {
+            $request->validate([
+                'subject' => 'required|string|max:255',
+                'message' => 'required|string',
+            ]);
+
+            // Increase limits for large datasets
+            ini_set('memory_limit', '1024M');
+            ini_set('max_execution_time', '600');
+            set_time_limit(600);
+
+            $society_id = $society->id;
+            $query = ConferenceRegistration::with([
+                'user' => function ($query) use ($society_id) {
+                    $query->with([
+                        'userDetail.namePrefix',
+                        'userDetail.country',
+                        'societies' => function ($q) use ($society_id) {
+                            $q->where('society_id', $society_id)
+                                ->withPivot('member_type_id');
+                        },
+                    ]);
+                },
+                'conference',
+            ])
+                ->where('conference_id', $conference->id)
+                ->where('status', 1)
+                ->whereNotNull('user_id'); // Only send to real users
+
+            // Apply filters
+            if ($request->filled('registrant_type')) {
+                $query->where('registrant_type', $request->registrant_type);
+            }
+
+            if ($request->filled('is_invited')) {
+                $query->where('is_invited', $request->is_invited);
+            }
+
+            if ($request->filled('verified_status')) {
+                $query->where('verified_status', $request->verified_status);
+            }
+
+            if ($request->filled('payment_type')) {
+                $query->where('payment_type', $request->payment_type);
+            }
+
+            if ($request->filled('from')) {
+                $query->whereDate('created_at', '>=', $request->from);
+            }
+
+            if ($request->filled('to')) {
+                $query->whereDate('created_at', '<=', $request->to);
+            }
+
+            if ($request->filled('country_id')) {
+                $query->whereHas('user.userDetail', function ($q) use ($request) {
+                    $q->where('country_id', $request->country_id);
+                });
+            }
+
+            if ($request->filled('prefix')) {
+                $query->whereHas('user.userDetail', function ($q) use ($request) {
+                    $q->where('name_prefix_id', $request->prefix);
+                });
+            }
+
+            $registrants = $query->get();
+            if ($registrants->isEmpty()) {
+                return redirect()
+                    ->back()
+                    ->withInput()
+                    ->with('delete', 'No registrants found matching the selected criteria.');
+            }
+
+            $queuedCount = 0;
+            $skippedCount = 0;
+
+            foreach ($registrants as $registrant) {
+                if (! $registrant->user || ! $registrant->user->email) {
+                    $skippedCount++;
+                    continue;
+                }
+
+                // Prepare data with placeholders
+                $messageContent = $this->replacePlaceholders(
+                    $request->message,
+                    $registrant,
+                    $conference
+                );
+
+                $data = [
+                    'name' => $registrant->user->fullName($registrant->user),
+                    'namePrefix' => $registrant->user->userDetail->namePrefix->prefix ?? '',
+                    'registrant_type' => $registrant->registrant_type,
+                    'registration_id' => $registrant->registration_id,
+                    'conference_name' => $conference->conference_name,
+                ];
+
+                // Dispatch job with delay to prevent rate limiting (3 seconds per email)
+                SendRegistrantEmailJob::dispatch(
+                    $registrant->id,
+                    $request->subject,
+                    $messageContent,
+                    $data,
+                    $conference->conference_name
+                )->delay(now()->addSeconds($queuedCount * 3));
+
+                $queuedCount++;
+            }
+
+            $message = "Email queued successfully for {$queuedCount} recipient(s). Emails will be sent with 3-second intervals.";
+            if ($skippedCount > 0) {
+                $message .= " Skipped {$skippedCount} recipient(s) with invalid data.";
+            }
+
+            return redirect()
+                ->back()
+                ->with('status', $message);
+        } catch (\Exception $e) {
+            return redirect()
+                ->back()
+                ->withInput()
+                ->with('delete', 'Error sending emails: '.$e->getMessage());
+        }
+    }
+
+    /**
+     * Show individual email form
+     */
+    public function showIndividualEmailForm($society, $conference, ConferenceRegistration $registrant)
+    {
+        if (! $registrant->user) {
+            return redirect()
+                ->back()
+                ->with('delete', 'Cannot send email to registrant without user account.');
+        }
+
+        return view('backend.conference.conference-registration.individual-email', compact(
+            'society',
+            'conference',
+            'registrant'
+        ));
+    }
+
+    /**
+     * Send individual email to registrant
+     */
+    public function sendIndividualEmail(Request $request, $society, $conference, ConferenceRegistration $registrant)
+    {
+        try {
+            $request->validate([
+                'subject' => 'required|string|max:255',
+                'message' => 'required|string',
+            ]);
+
+            if (! $registrant->user || ! $registrant->user->email) {
+                return redirect()
+                    ->back()
+                    ->withInput()
+                    ->with('delete', 'Cannot send email to registrant without valid email address.');
+            }
+
+            // Prepare data with placeholders
+            $messageContent = $this->replacePlaceholders(
+                $request->message,
+                $registrant,
+                $conference
+            );
+
+            $data = [
+                'name' => $registrant->user->fullName($registrant->user),
+                'namePrefix' => $registrant->user->userDetail->namePrefix->prefix ?? '',
+                'registrant_type' => $registrant->registrant_type,
+                'registration_id' => $registrant->registration_id,
+                'conference_name' => $conference->conference_name,
+            ];
+
+            // Dispatch job to queue
+            SendRegistrantEmailJob::dispatch(
+                $registrant->id,
+                $request->subject,
+                $messageContent,
+                $data,
+                $conference->conference_name
+            );
+
+            return redirect()
+                ->route('conference.conference-registration.index', [$society, $conference])
+                ->with('status', 'Email queued successfully for '.$registrant->user->email);
+        } catch (\Exception $e) {
+            return redirect()
+                ->back()
+                ->withInput()
+                ->with('delete', 'Error queueing email: '.$e->getMessage());
+        }
+    }
+
+    /**
+     * Replace placeholders in message with actual values
+     */
+    private function replacePlaceholders($message, $registrant, $conference)
+    {
+        $registrantTypes = [
+            1 => 'Attendee',
+            2 => 'Speaker/Presenter',
+            3 => 'Session Chair',
+            4 => 'Special Guest',
+            5 => 'Organizer',
+        ];
+
+        $placeholders = [
+            '{name}' => $registrant->user->fullName($registrant->user),
+            '{first_name}' => $registrant->user->f_name,
+            '{last_name}' => $registrant->user->l_name,
+            '{prefix}' => $registrant->user->userDetail->namePrefix->prefix ?? '',
+            '{email}' => $registrant->user->email,
+            '{registrant_type}' => $registrantTypes[$registrant->registrant_type] ?? 'N/A',
+            '{registration_id}' => $registrant->registration_id ?? 'N/A',
+            '{conference_name}' => $conference->conference_name,
+            '{conference_theme}' => $conference->conference_theme,
+            '{conference_start_date}' => $conference->start_date ? \Carbon\Carbon::parse($conference->start_date)->format('jS F, Y') : 'N/A',
+            '{conference_end_date}' => $conference->end_date ? \Carbon\Carbon::parse($conference->end_date)->format('jS F, Y') : 'N/A',
+            '{venue}' => $conference->ConferenceVenueDetail->venue_name ?? 'N/A',
+            '{venue_address}' => $conference->ConferenceVenueDetail->venue_address ?? 'N/A',
+        ];
+
+        return str_replace(array_keys($placeholders), array_values($placeholders), $message);
     }
 }
