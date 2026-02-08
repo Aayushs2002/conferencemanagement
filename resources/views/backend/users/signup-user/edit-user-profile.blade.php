@@ -219,139 +219,141 @@
 </div>
 
 <script>
-    $("#editRegistrant").on('click', function(e) {
-        e.preventDefault();
-        var data = new FormData($('#verifyForm')[0]);
-        $.ajaxSetup({
-            headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-            }
-        });
-        $.ajax({
-            type: "POST",
-            url: '{{ route('signup-user.editProfileSubmit', [$society, $conference]) }}',
-            data: data,
-            dataType: "json",
-            processData: false,
-            contentType: false,
-            beforeSend: function() {
-                $('#editRegistrant').attr('disabled', true);
-                $('#editRegistrant').append(
-                    '<span class="spinner spinner-danger ml-2" style="height: 17px; width: 17px;"></span>'
-                );
-            },
-            success: function(response) {
-                $('#editRegistrant').attr('disabled', false);
-                $('#editRegistrant').text('Submit');
-                if (response.type == 'success') {
-                    $(".modal").modal("hide");
-                    notyf.success(response.message);
-                    setTimeout(function() {
-                        window.location.reload();
-                    }, 1000);
-                } else {
-                    notyf.error(response.message);
+    $(document).ready(function() {
+        $("#editRegistrant").on('click', function(e) {
+            e.preventDefault();
+            var data = new FormData($('#verifyForm')[0]);
+            $.ajaxSetup({
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 }
-            },
-            error: function(response) {
-                console.log(response.responseJSON, 'dad');
-                var errors = response.responseJSON.errors;
-                $.each(errors, function(key, val) {
-                    $('.' + key).html('');
-                    $('.' + key).append(val);
-                    $('#' + key).addClass('border-danger');
-                    $('#' + key).on('input', function() {
+            });
+            $.ajax({
+                type: "POST",
+                url: '{{ route('signup-user.editProfileSubmit', [$society, $conference]) }}',
+                data: data,
+                dataType: "json",
+                processData: false,
+                contentType: false,
+                beforeSend: function() {
+                    $('#editRegistrant').attr('disabled', true);
+                    $('#editRegistrant').append(
+                        '<span class="spinner spinner-danger ml-2" style="height: 17px; width: 17px;"></span>'
+                    );
+                },
+                success: function(response) {
+                    $('#editRegistrant').attr('disabled', false);
+                    $('#editRegistrant').text('Submit');
+                    if (response.type == 'success') {
+                        $(".modal").modal("hide");
+                        notyf.success(response.message);
+                        setTimeout(function() {
+                            window.location.reload();
+                        }, 1000);
+                    } else {
+                        notyf.error(response.message);
+                    }
+                },
+                error: function(response) {
+                    console.log(response.responseJSON, 'dad');
+                    var errors = response.responseJSON.errors;
+                    $.each(errors, function(key, val) {
                         $('.' + key).html('');
-                        $('#' + key).removeClass('border-danger');
+                        $('.' + key).append(val);
+                        $('#' + key).addClass('border-danger');
+                        $('#' + key).on('input', function() {
+                            $('.' + key).html('');
+                            $('#' + key).removeClass('border-danger');
+                        });
                     });
-                });
-                $('#editRegistrant').attr('disabled', false);
-                $('#editRegistrant').text('Submit');
-            }
-        });
-    });
-
-    // Toggle other institution field
-    const $institutionSelect = $('#institution_id');
-    const $otherInstitutionWrapper = $('#otherInstitutionWrapper');
-
-    function toggleOtherInstitution() {
-        if ($institutionSelect.val() === 'other') {
-            $otherInstitutionWrapper.show();
-        } else {
-            $otherInstitutionWrapper.hide();
-        }
-    }
-
-    $institutionSelect.on('change', toggleOtherInstitution);
-    toggleOtherInstitution();
-
-    // Toggle other designation field
-    const $designationSelect = $('#designation_id');
-    const $otherDesignationWrapper = $('#otherDesignationWrapper');
-
-    function toggleOtherDesignation() {
-        if ($designationSelect.val() === 'other') {
-            $otherDesignationWrapper.show();
-        } else {
-            $otherDesignationWrapper.hide();
-        }
-    }
-
-    $designationSelect.on('change', toggleOtherDesignation);
-    toggleOtherDesignation();
-
-    // Toggle other department field
-    const $departmentSelect = $('#department_id');
-    const $otherDepartmentWrapper = $('#otherDepartmentWrapper');
-
-    function toggleOtherDepartment() {
-        if ($departmentSelect.val() === 'other') {
-            $otherDepartmentWrapper.show();
-        } else {
-            $otherDepartmentWrapper.hide();
-        }
-    }
-
-    $departmentSelect.on('change', toggleOtherDepartment);
-    toggleOtherDepartment();
-
-    $('#country_id').on('change', function() {
-        var country_id = $(this).val();
-        var memberTypeId = '{{ old('member_type_id', $memberType?->id ?? '') }}';
-        if (!country_id) return;
-        $.ajax({
-            type: 'GET',
-            url: '{{ route('memberType', [$society, $conference]) }}',
-            data: {
-                country_id: country_id
-            },
-            success: function(response) {
-                $('#member_type_id').empty().append(
-                    '<option value=""  hidden>-- Select Member Type --</option>');
-                var optionsHtml = '';
-                if (response.type === 'success' && response.data.length > 0) {
-                    $.each(response.data, function(index, item) {
-                        var selected = (item.id ==
-                            memberTypeId) ? 'selected' : '';
-                        optionsHtml += '<option value="' + item
-                            .id + '" ' + selected + '>' + item
-                            .type + '</option>';
-                    });
-                    $('#member_type_id').append(optionsHtml);
-                } else {
-                    $('#member_type_id').append(
-                        '<option disabled>No Member Types Found</option>');
+                    $('#editRegistrant').attr('disabled', false);
+                    $('#editRegistrant').text('Submit');
                 }
-            },
-            error: function(xhr) {
-                console.log('AJAX Error:', xhr);
-            }
+            });
         });
+
+        // Toggle other institution field
+        const $institutionSelect = $('#institution_id');
+        const $otherInstitutionWrapper = $('#otherInstitutionWrapper');
+
+        function toggleOtherInstitution() {
+            if ($institutionSelect.val() === 'other') {
+                $otherInstitutionWrapper.show();
+            } else {
+                $otherInstitutionWrapper.hide();
+            }
+        }
+
+        $institutionSelect.on('change', toggleOtherInstitution);
+        toggleOtherInstitution();
+
+        // Toggle other designation field
+        const $designationSelect = $('#designation_id');
+        const $otherDesignationWrapper = $('#otherDesignationWrapper');
+
+        function toggleOtherDesignation() {
+            if ($designationSelect.val() === 'other') {
+                $otherDesignationWrapper.show();
+            } else {
+                $otherDesignationWrapper.hide();
+            }
+        }
+
+        $designationSelect.on('change', toggleOtherDesignation);
+        toggleOtherDesignation();
+
+        // Toggle other department field
+        const $departmentSelect = $('#department_id');
+        const $otherDepartmentWrapper = $('#otherDepartmentWrapper');
+
+        function toggleOtherDepartment() {
+            if ($departmentSelect.val() === 'other') {
+                $otherDepartmentWrapper.show();
+            } else {
+                $otherDepartmentWrapper.hide();
+            }
+        }
+
+        $departmentSelect.on('change', toggleOtherDepartment);
+        toggleOtherDepartment();
+
+        $('#country_id').on('change', function() {
+            var country_id = $(this).val();
+            var memberTypeId = '{{ old('member_type_id', $memberType?->id ?? '') }}';
+            if (!country_id) return;
+            $.ajax({
+                type: 'GET',
+                url: '{{ route('memberType', [$society, $conference]) }}',
+                data: {
+                    country_id: country_id
+                },
+                success: function(response) {
+                    $('#member_type_id').empty().append(
+                        '<option value=""  hidden>-- Select Member Type --</option>');
+                    var optionsHtml = '';
+                    if (response.type === 'success' && response.data.length > 0) {
+                        $.each(response.data, function(index, item) {
+                            var selected = (item.id ==
+                                memberTypeId) ? 'selected' : '';
+                            optionsHtml += '<option value="' + item
+                                .id + '" ' + selected + '>' + item
+                                .type + '</option>';
+                        });
+                        $('#member_type_id').append(optionsHtml);
+                    } else {
+                        $('#member_type_id').append(
+                            '<option disabled>No Member Types Found</option>');
+                    }
+                },
+                error: function(xhr) {
+                    console.log('AJAX Error:', xhr);
+                }
+            });
+        });
+        
+        // Trigger change event after a short delay to ensure DOM is ready
+        setTimeout(function() {
+            $("#country_id").trigger('change');
+        }, 100);
     });
-    
-    // Trigger change event after a short delay to ensure DOM is ready
-    setTimeout(function() {
-        $("#country_id").trigger('change');
-    }, 100);
 </script>
