@@ -227,7 +227,7 @@ class SignupUserController extends Controller
                 'm_name' => 'nullable|string|max:255',
                 'l_name' => 'required|string|max:255',
                 'email' =>  'required|email|unique:users,email,' . $user->id,
-                'phone' => 'required|unique:user_details,phone,' . $user->id,
+                'phone' => 'required|unique:user_details,phone,' . $user->userDetail->id,
                 'institution_id' => 'required',
                 'designation_id' => 'required',
                 'department_id' => 'required',
