@@ -542,105 +542,148 @@ class SubmissionController extends Controller
     public function reviewSubmit(Request $request)
     {
         // dd($request->all());
-        try {
-            $submission = Submission::with('articleType.setting')->findOrFail($request->id);
-            
-            // Check if review deadline has passed
-            if ($submission->review_deadline) {
-                $deadline = \Carbon\Carbon::parse($submission->review_deadline);
-                if (\Carbon\Carbon::now()->greaterThan($deadline)) {
-                    return response()->json([
-                        'type' => 'error',
-                        'message' => 'Review deadline has expired. Reviews can no longer be submitted for this submission.'
-                    ]);
-                }
+        $submission = Submission::with('articleType.setting')->findOrFail($request->id);
+        
+        // Check if review deadline has passed
+        if ($submission->review_deadline) {
+            $deadline = \Carbon\Carbon::parse($submission->review_deadline);
+            if (\Carbon\Carbon::now()->greaterThan($deadline)) {
+                return response()->json([
+                    'type' => 'error',
+                    'message' => 'Review deadline has expired. Reviews can no longer be submitted for this submission.'
+                ], 422);
             }
-            
-            $setting = SubmissionSetting::where(['conference_id' => $submission->conference_id, 'status' => 1])->first();
+        } 
+        
+        $setting = SubmissionSetting::where(['conference_id' => $submission->conference_id, 'status' => 1])->first();
 
-            // Determine if scoring is required or nullable (changed to numeric to support decimal values)
-            $scoreRule = $setting->scoring_allowed == 1 ? 'required|numeric' : 'nullable|numeric';
+        // Determine if scoring is required or nullable (changed to numeric to support decimal values)
+        $scoreRule = $setting->scoring_allowed == 1 ? 'required|numeric' : 'nullable|numeric';
 
-            // Check if article type has sections for section-based rating
-            $hasSectionRatings = $submission->articleType &&
-                $submission->articleType->setting &&
-                !empty($submission->articleType->setting->sections);
+        // Check if article type has sections for section-based rating
+        $hasSectionRatings = $submission->articleType &&
+            $submission->articleType->setting &&
+            !empty($submission->articleType->setting->sections);
 
-            $rules = [];
+        $rules = [];
 
-            // Build validation rules based on structure type
-            if ($request->requestType == 1) {
-                $rules['remarks'] = 'required';
-                if ($request->has('sections') && is_array($request->sections)) {
-                    // Validate sections
-                    foreach ($request->sections as $index => $section) {
-                        $rules["sections.{$index}.content"] = 'required|string';
-                    }
-                } else {
-                    // Validate abstract content
-                    $rules['abstract_content'] = 'required';
+        // Build validation rules based on structure type
+        if ($request->requestType == 1) {
+            $rules['remarks'] = 'required';
+            if ($request->has('sections') && is_array($request->sections)) {
+                // Validate sections
+                foreach ($request->sections as $index => $section) {
+                    $rules["sections.{$index}.content"] = 'required|string';
                 }
+            } else {
+                // Validate abstract content
+                $rules['abstract_content'] = 'required';
+            }
 
-                // Validate ratings based on section-based or default structure
-                if ($hasSectionRatings) {
-                    // Title rating validation (if title scoring is enabled)
-                    if ($submission->articleType->setting->title_scoring_enabled ?? false) {
-                        $titleMaxMarks = $submission->articleType->setting->title_max_marks ?? 0;
-                        $rules['title_rating'] = $scoreRule . "|min:0|max:{$titleMaxMarks}";
-                    }
-                    
-                    // Section-based ratings validation with dynamic max marks
-                    if ($request->has('section_ratings') && is_array($request->section_ratings)) {
-                        $sections = $submission->articleType->setting->sections ?? [];
-                        foreach ($request->section_ratings as $index => $rating) {
-                            // Get max marks for this specific section
-                            $sectionMaxMarks = $sections[$index]['max_marks'] ?? 2;
-                            $rules["section_ratings.{$index}.rating"] = $scoreRule . "|min:0|max:{$sectionMaxMarks}";
-                        }
-                    }
-
-                    // Get total marks from article type setting (default 10)
-                    $totalMarks = $submission->articleType->setting->total_marks ?? 10;
-                    
-                    // Calculate maximum possible score based on sum of section max_marks and title marks
-                    $maxPossibleScore = 0;
-                    
-                    // Add title marks if enabled
-                    if ($submission->articleType->setting->title_scoring_enabled ?? false) {
-                        $maxPossibleScore += $submission->articleType->setting->title_max_marks ?? 0;
-                    }
-                    
-                    // Add section marks
+            // Validate ratings based on section-based or default structure
+            if ($hasSectionRatings) {
+                // Title rating validation (if title scoring is enabled)
+                if ($submission->articleType->setting->title_scoring_enabled ?? false) {
+                    $titleMaxMarks = $submission->articleType->setting->title_max_marks ?? 0;
+                    $rules['title_rating'] = $scoreRule . "|min:0|max:{$titleMaxMarks}";
+                }
+                
+                // Section-based ratings validation with dynamic max marks
+                if ($request->has('section_ratings') && is_array($request->section_ratings)) {
                     $sections = $submission->articleType->setting->sections ?? [];
-                    foreach ($sections as $section) {
-                        $maxPossibleScore += $section['max_marks'] ?? 2;
-                    }
-
-                    // Overall rating is required only if maximum possible score < total marks
-                    if ($maxPossibleScore < $totalMarks) {
-                        $remaining = $totalMarks - $maxPossibleScore;
-                        $rules['overall_rating'] = "required|numeric|min:0|max:{$remaining}";
-                    }
-                } else {
-                    // Default rating structure
-                    if ($request->structure) {
-                        // Structured review: single overall rating
-                        $rules['overall_rating'] = $scoreRule;
-                    } else {
-                        // Detailed review: individual scores
-                        $rules['introduction'] = $scoreRule;
-                        $rules['method'] = $scoreRule;
-                        $rules['result'] = $scoreRule;
-                        $rules['conclusion'] = $scoreRule;
-                        $rules['grammar'] = $scoreRule;
+                    foreach ($request->section_ratings as $index => $rating) {
+                        // Get max marks for this specific section
+                        $sectionMaxMarks = $sections[$index]['max_marks'] ?? 2;
+                        $rules["section_ratings.{$index}.rating"] = $scoreRule . "|min:0|max:{$sectionMaxMarks}";
                     }
                 }
-            } elseif ($request->requestType == 2) {
-                // Rejection requires only reject remarks
-                $rules['reject_remarks'] = 'required';
-            }
 
-            $validated = $request->validate($rules);
+                // Get total marks from article type setting (default 10)
+                $totalMarks = $submission->articleType->setting->total_marks ?? 10;
+                
+                // Calculate maximum possible score based on sum of section max_marks and title marks
+                $maxPossibleScore = 0;
+                
+                // Add title marks if enabled
+                if ($submission->articleType->setting->title_scoring_enabled ?? false) {
+                    $maxPossibleScore += $submission->articleType->setting->title_max_marks ?? 0;
+                }
+                
+                // Add section marks
+                $sections = $submission->articleType->setting->sections ?? [];
+                foreach ($sections as $section) {
+                    $maxPossibleScore += $section['max_marks'] ?? 2;
+                }
+
+                // Overall rating is required only if maximum possible score < total marks
+                if ($maxPossibleScore < $totalMarks) {
+                    $remaining = $totalMarks - $maxPossibleScore;
+                    $rules['overall_rating'] = "required|numeric|min:0|max:{$remaining}";
+                }
+            } else {
+                // Default rating structure
+                if ($request->structure) {
+                    // Structured review: single overall rating
+                    $rules['overall_rating'] = $scoreRule;
+                } else {
+                    // Detailed review: individual scores
+                    $rules['introduction'] = $scoreRule;
+                    $rules['method'] = $scoreRule;
+                    $rules['result'] = $scoreRule;
+                    $rules['conclusion'] = $scoreRule;
+                    $rules['grammar'] = $scoreRule;
+                }
+            }
+        } elseif ($request->requestType == 2) {
+            // Rejection requires only reject remarks
+            $rules['reject_remarks'] = 'required';
+        }
+
+        // Build custom validation messages with actual section names
+        $customMessages = [];
+        if ($hasSectionRatings && $request->has('section_ratings') && is_array($request->section_ratings)) {
+            $sections = $submission->articleType->setting->sections ?? [];
+            foreach ($request->section_ratings as $index => $rating) {
+                $sectionName = $sections[$index]['name'] ?? 'Section ' . ($index + 1);
+                $sectionMaxMarks = $sections[$index]['max_marks'] ?? 2;
+                $customMessages["section_ratings.{$index}.rating.required"] = "The {$sectionName} rating is required.";
+                $customMessages["section_ratings.{$index}.rating.numeric"] = "The {$sectionName} rating must be a number.";
+                $customMessages["section_ratings.{$index}.rating.min"] = "The {$sectionName} rating must be at least 0.";
+                $customMessages["section_ratings.{$index}.rating.max"] = "The {$sectionName} rating must not exceed {$sectionMaxMarks}.";
+            }
+        }
+
+        // Add custom message for title rating if enabled
+        if ($hasSectionRatings && ($submission->articleType->setting->title_scoring_enabled ?? false)) {
+            $titleMaxMarks = $submission->articleType->setting->title_max_marks ?? 0;
+            $customMessages['title_rating.required'] = 'The Title rating is required.';
+            $customMessages['title_rating.numeric'] = 'The Title rating must be a number.';
+            $customMessages['title_rating.min'] = 'The Title rating must be at least 0.';
+            $customMessages['title_rating.max'] = "The Title rating must not exceed {$titleMaxMarks}.";
+        }
+
+        // Add custom message for overall rating if required
+        if ($hasSectionRatings && isset($rules['overall_rating'])) {
+            $totalMarks = $submission->articleType->setting->total_marks ?? 10;
+            $maxPossibleScore = 0;
+            if ($submission->articleType->setting->title_scoring_enabled ?? false) {
+                $maxPossibleScore += $submission->articleType->setting->title_max_marks ?? 0;
+            }
+            $sections = $submission->articleType->setting->sections ?? [];
+            foreach ($sections as $section) {
+                $maxPossibleScore += $section['max_marks'] ?? 2;
+            }
+            $remaining = $totalMarks - $maxPossibleScore;
+            $customMessages['overall_rating.required'] = 'The Overall Rating is required.';
+            $customMessages['overall_rating.numeric'] = 'The Overall Rating must be a number.';
+            $customMessages['overall_rating.min'] = 'The Overall Rating must be at least 0.';
+            $customMessages['overall_rating.max'] = "The Overall Rating must not exceed {$remaining}.";
+        }
+
+        // Validate the request - this will automatically return 422 with errors if validation fails
+        $validated = $request->validate($rules, $customMessages);
+        
+        try {
 
 
             // Manually add overall_rating to validated array if it exists (for section-based scoring)

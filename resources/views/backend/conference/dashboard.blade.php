@@ -15,7 +15,7 @@
                             </div> 
                             <a href="{{ route('conference.conference-registration.index', [$society, $conference]) }}">
                                 <h3 class="fw-bold text-dark mb-2">{{ $conferenceRegistrationCount }}</h3>
-                            </a> 
+                            </a>  
                             <p class="text-muted mb-0 fw-medium">Total Registrations</p>
                             <div class="progress mt-3" style="height: 4px;">
                                 <div class="progress-bar bg-primary" style="width: 85%"></div>
@@ -645,6 +645,30 @@
                         </div>
                     </div>
                 @endif
+                
+                <!-- Review Assignments Card -->
+                @if ($reviewAssignmentCount > 0)
+                    <div class="col-lg-4 col-md-6">
+                        <div class="card border-0 shadow-sm h-100 hover-shadow transition-all" style="transition: all 0.3s ease;">
+                            <div class="card-body p-4">
+                                <div class="d-flex align-items-center justify-content-between mb-3">
+                                    <div class="bg-danger bg-opacity-10 rounded-circle p-3">
+                                        <i class="icon-base ti tabler-clipboard-check text-danger fs-4"></i>
+                                    </div>
+                                    <span class="badge bg-danger bg-opacity-10 text-danger rounded-pill px-3 py-2">
+                                        {{ $reviewAssignmentCount }} Total
+                                    </span>
+                                </div>
+                                <h6 class="fw-semibold text-muted mb-2">Review Assignments</h6>
+                                <h3 class="fw-bold text-dark mb-3">{{ $reviewAssignmentCount }}</h3>
+                                <a href="{{ route('my-society.conference.submission.submissionReview', [$society, $conference]) }}" 
+                                   class="btn btn-sm btn-danger rounded-pill px-3">
+                                    <i class="icon-base ti tabler-eye me-1"></i>View Reviews
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                @endif
             </div>
 
             <!-- Activity Overview Chart -->
@@ -663,7 +687,7 @@
                                     <p class="text-muted small mb-0 ms-5 ps-3">Your participation summary</p>
                                 </div>
                                 @php
-                                    $totalActivities = (checkRegistrations($conference) ? 1 : 0) + $submissionCount + (feature_enabled('workshop-management', getSociety(request()->segment(2))) ? $workshopRegistrationCount : 0);
+                                    $totalActivities = (checkRegistrations($conference) ? 1 : 0) + $submissionCount + (feature_enabled('workshop-management', getSociety(request()->segment(2))) ? $workshopRegistrationCount : 0) + $reviewAssignmentCount;
                                 @endphp
                                 <div class="text-center">
                                     <h3 class="fw-bold text-primary mb-0">{{ $totalActivities }}</h3>
@@ -724,6 +748,22 @@
                                                 </div>
                                                 <div class="text-end">
                                                     <h3 class="fw-bold text-info mb-0">{{ $workshopRegistrationCount }}</h3>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        @endif
+                                        @if ($reviewAssignmentCount > 0)
+                                        <div class="col-12">
+                                            <div class="d-flex align-items-center p-3 rounded-3 hover-shadow transition-all" style="background: linear-gradient(135deg, rgba(220, 53, 69, 0.1) 0%, rgba(220, 53, 69, 0.05) 100%); border-left: 4px solid #dc3545;">
+                                                <div class="bg-danger rounded-circle p-3 me-3">
+                                                    <i class="icon-base ti tabler-clipboard-check text-white fs-4"></i>
+                                                </div>
+                                                <div class="flex-grow-1">
+                                                    <p class="text-muted small mb-1">Review Assignments</p>
+                                                    <h5 class="fw-bold text-danger mb-0">{{ $reviewAssignmentCount > 0 ? 'Active' : 'None' }}</h5>
+                                                </div>
+                                                <div class="text-end">
+                                                    <h3 class="fw-bold text-danger mb-0">{{ $reviewAssignmentCount }}</h3>
                                                 </div>
                                             </div>
                                         </div>
@@ -1393,7 +1433,10 @@
                             'Registration', 
                             'Submissions', 
                             @if (feature_enabled('workshop-management', getSociety(request()->segment(2))))
-                            'Workshops'
+                            'Workshops',
+                            @endif
+                            @if ($reviewAssignmentCount > 0)
+                            'Reviews'
                             @endif
                         ],
                         datasets: [{
@@ -1401,14 +1444,20 @@
                                 {{ checkRegistrations($conference) ? 1 : 0 }}, 
                                 {{ $submissionCount }}, 
                                 @if (feature_enabled('workshop-management', getSociety(request()->segment(2))))
-                                {{ $workshopRegistrationCount }}
+                                {{ $workshopRegistrationCount }},
+                                @endif
+                                @if ($reviewAssignmentCount > 0)
+                                {{ $reviewAssignmentCount }}
                                 @endif
                             ],
                             backgroundColor: [
                                 'rgba(13, 110, 253, 0.9)',
                                 'rgba(255, 193, 7, 0.9)',
                                 @if (feature_enabled('workshop-management', getSociety(request()->segment(2))))
-                                'rgba(13, 202, 240, 0.9)'
+                                'rgba(13, 202, 240, 0.9)',
+                                @endif
+                                @if ($reviewAssignmentCount > 0)
+                                'rgba(220, 53, 69, 0.9)'
                                 @endif
                             ],
                             borderColor: '#fff',

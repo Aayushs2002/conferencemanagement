@@ -652,37 +652,50 @@
             error: function(response) {
                 var errors = response.responseJSON.errors;
                 $.each(errors, function(key, val) {
-                    // Handle nested keys like section_ratings.0.rating
-                    var sanitizedKey = key.replace(/\./g, '-');
-                    var fieldId = '#' + key.replace(/\./g, '_');
-
-                    $('.' + key).html('');
-                    $('.' + key).append(val);
+                    // Laravel returns errors as arrays, get the first message
+                    var errorMessage = Array.isArray(val) ? val[0] : val;
                     
-                    // Handle title rating error
+                    // Determine the correct error container and field selector
+                    var errorContainer = null;
+                    var fieldSelector = null;
+                    
+                    // Map field names to error containers
                     if (key === 'title_rating') {
-                        $('.title-rating-error').html(val);
+                        errorContainer = $('.title-rating-error');
+                        fieldSelector = $('#title_rating');
+                    } else if (key.includes('section_ratings')) {
+                        // Handle section_ratings.0.rating format
+                        var parts = key.split('.');
+                        if (parts.length >= 2) {
+                            var index = parts[1];
+                            errorContainer = $('.section-rating-error-' + index);
+                            fieldSelector = $('#section_rating_' + index);
+                        }
+                    } else {
+                        // For direct matches: remarks, abstract_content, overall_rating, reject_remarks, etc.
+                        errorContainer = $('.' + key);
+                        fieldSelector = $('#' + key);
                     }
                     
-                    $('.section-rating-error-' + key.split('.')[1]).html(val);
-
-                    $(fieldId).addClass('border-danger');
-                    $('#' + key).addClass('border-danger');
-
-                    $(fieldId).on('input change', function() {
-                        $('.' + key).html('');
-                        $('.section-rating-error-' + key.split('.')[1]).html('');
-                        $('.title-rating-error').html('');
-                        $(this).removeClass('border-danger');
-                    });
-
-                    $('#' + key).on('input change', function() {
-                        $('.' + key).html('');
-                        $('.title-rating-error').html('');
-                        $(this).removeClass('border-danger');
-                    });
+                    // Display the error message
+                    if (errorContainer && errorContainer.length > 0) {
+                        errorContainer.html(errorMessage);
+                    }
+                    
+                    // Add border-danger class to the field
+                    if (fieldSelector && fieldSelector.length > 0) {
+                        fieldSelector.addClass('border-danger');
+                        
+                        // Clear error on input/change
+                        fieldSelector.off('input change').on('input change', function() {
+                            if (errorContainer && errorContainer.length > 0) {
+                                errorContainer.html('');
+                            }
+                            $(this).removeClass('border-danger');
+                        });
+                    }
                 });
-                // }
+                
                 $('#decideRequest').attr('disabled', false);
                 $('#decideRequest').text('Send');
             }
