@@ -99,7 +99,7 @@
                             <option value="{{ $institution->id }}" @selected(old('institution_id', $user->userDetail->institution_id) == $institution->id)>
                                 {{ $institution->name }}</option>
                         @endforeach
-                        <option value="other" @selected(old('institution_id') == 'other')>Others</option>
+                        <option value="other" @selected(old('institution_id', $userInstitution ? 'other' : $user->userDetail->institution_id) == 'other')>Others</option>
                     </select>
                     @error('institution_id')
                         <p class="text-danger">{{ $message }}</p>
@@ -110,7 +110,7 @@
                     <label for="other_institution_name" class="form-label">Other Institution Name</label>
                     <input type="text" class="form-control" name="other_institution_name"
                         id="other_institution_name" placeholder="Enter Institution Name"
-                        value="{{ old('other_institution_name') }}">
+                        value="{{ old('other_institution_name', $userInstitution?->institution_name) }}">
                     @error('other_institution_name')
                         <p class="text-danger">{{ $message }}</p>
                     @enderror
@@ -124,8 +124,19 @@
                             <option value="{{ $designation->id }}" @selected(old('designation_id', $user->userDetail->designation_id) == $designation->id)>
                                 {{ $designation->designation }}</option>
                         @endforeach
+                        <option value="other" @selected(old('designation_id', $userDesignation ? 'other' : $user->userDetail->designation_id) == 'other')>Others</option>
                     </select>
                     @error('designation_id')
+                        <p class="text-danger">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <div class="col-md-4 form-group mb-3" id="otherDesignationWrapper" style="display: none;">
+                    <label for="other_designation" class="form-label">Other Designation</label>
+                    <input type="text" class="form-control" name="other_designation"
+                        id="other_designation" placeholder="Enter Designation"
+                        value="{{ old('other_designation', $userDesignation?->designation_name) }}">
+                    @error('other_designation')
                         <p class="text-danger">{{ $message }}</p>
                     @enderror
                 </div>
@@ -138,8 +149,19 @@
                             <option value="{{ $department->id }}" @selected(old('department_id', $user->userDetail->department_id) == $department->id)>
                                 {{ $department->name }}</option>
                         @endforeach
+                        <option value="other" @selected(old('department_id', $userDepartment ? 'other' : $user->userDetail->department_id) == 'other')>Others</option>
                     </select>
                     @error('department_id')
+                        <p class="text-danger">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <div class="col-md-4 form-group mb-3" id="otherDepartmentWrapper" style="display: none;">
+                    <label for="other_department" class="form-label">Other Department</label>
+                    <input type="text" class="form-control" name="other_department"
+                        id="other_department" placeholder="Enter Department"
+                        value="{{ old('other_department', $userDepartment?->department_name) }}">
+                    @error('other_department')
                         <p class="text-danger">{{ $message }}</p>
                     @enderror
                 </div>
@@ -249,9 +271,54 @@
         });
     });
 
+    // Toggle other institution field
+    const $institutionSelect = $('#institution_id');
+    const $otherInstitutionWrapper = $('#otherInstitutionWrapper');
+
+    function toggleOtherInstitution() {
+        if ($institutionSelect.val() === 'other') {
+            $otherInstitutionWrapper.show();
+        } else {
+            $otherInstitutionWrapper.hide();
+        }
+    }
+
+    $institutionSelect.on('change', toggleOtherInstitution);
+    toggleOtherInstitution();
+
+    // Toggle other designation field
+    const $designationSelect = $('#designation_id');
+    const $otherDesignationWrapper = $('#otherDesignationWrapper');
+
+    function toggleOtherDesignation() {
+        if ($designationSelect.val() === 'other') {
+            $otherDesignationWrapper.show();
+        } else {
+            $otherDesignationWrapper.hide();
+        }
+    }
+
+    $designationSelect.on('change', toggleOtherDesignation);
+    toggleOtherDesignation();
+
+    // Toggle other department field
+    const $departmentSelect = $('#department_id');
+    const $otherDepartmentWrapper = $('#otherDepartmentWrapper');
+
+    function toggleOtherDepartment() {
+        if ($departmentSelect.val() === 'other') {
+            $otherDepartmentWrapper.show();
+        } else {
+            $otherDepartmentWrapper.hide();
+        }
+    }
+
+    $departmentSelect.on('change', toggleOtherDepartment);
+    toggleOtherDepartment();
+
     $('#country_id').on('change', function() {
         var country_id = $(this).val();
-        var memberTypeId = '{{ old('member_type_id', $memberType->id) }}';
+        var memberTypeId = '{{ old('member_type_id', $memberType?->id ?? '') }}';
         if (!country_id) return;
         $.ajax({
             type: 'GET',
@@ -282,5 +349,9 @@
             }
         });
     });
-    $("#country_id").trigger('change');
+    
+    // Trigger change event after a short delay to ensure DOM is ready
+    setTimeout(function() {
+        $("#country_id").trigger('change');
+    }, 100);
 </script>

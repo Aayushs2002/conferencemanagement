@@ -20,6 +20,9 @@ use App\Models\User\MemberType;
 use App\Models\User\NamePrefix;
 use App\Models\User\Society;
 use App\Models\User\UserDetail;
+use App\Models\User\UserInstitution;
+use App\Models\User\UserDesignation;
+use App\Models\User\UserDepartment;
 use App\Models\Workshop\Workshop;
 use App\Models\Workshop\WorkshopRegistration;
 use Exception;
@@ -198,34 +201,127 @@ class SignupUserController extends Controller
         $departments = $loadData('departments', Department::class); 
         $prefixesAll = $loadData('namePrefixes', NamePrefix::class);
 
-        return view('backend.users.signup-user.edit-user-profile', compact('user', 'prefixesAll', 'society', 'conference', 'institutions', 'designations', 'departments'));
+        // Get countries
+        $countries = \App\Models\User\Country::where('status', 1)->get();
+
+        // Get user's member type
+        $userSociety = $user->societies->first();
+        $memberType = $userSociety?->pivot?->memberType;
+
+        // Check for custom institution, designation, department
+        $userInstitution = UserInstitution::where('user_id', $user->id)->first();
+        $userDesignation = UserDesignation::where('user_id', $user->id)->first();
+        $userDepartment = UserDepartment::where('user_id', $user->id)->first();
+
+        return view('backend.users.signup-user.edit-user-profile', compact('user', 'prefixesAll', 'society', 'conference', 'institutions', 'designations', 'departments', 'countries', 'memberType', 'userInstitution', 'userDesignation', 'userDepartment'));
     }
 
     public function editProfileSubmit(Request $request, $society, $conference)
     {
         try {
             $user = User::whereId($request->user_id)->first();
-            $validated = $request->validate([
+            
+            $rules = [
                 'gender' => 'required',
                 'f_name' => 'required|string|max:255',
                 'm_name' => 'nullable|string|max:255',
                 'l_name' => 'required|string|max:255',
                 'email' =>  'required|email|unique:users,email,' . $user->id,
-                'unique:user_details,phone,' . $user->id . ',user_id',
+                'phone' => 'required|unique:user_details,phone,' . $user->id,
                 'institution_id' => 'required',
                 'designation_id' => 'required',
                 'department_id' => 'required',
-                'institute_address' => 'required|string:255',
+                'institute_address' => 'required|string|max:255',
                 'country_id' => 'required',
                 'council_number' => 'nullable',
                 'name_prefix_id' => 'required',
                 'member_type_id' => 'required'
-            ]);
+            ];
+
+            // Add validation for "other" options
+            if ($request->institution_id == 'other') {
+                $rules['other_institution_name'] = 'required';
+            }
+            if ($request->designation_id == 'other') {
+                $rules['other_designation'] = 'required';
+            }
+            if ($request->department_id == 'other') {
+                $rules['other_department'] = 'required';
+            }
+
+            $validated = $request->validate($rules);
+
+            // Handle "other" options before updating user
+            if ($request->institution_id == 'other') {
+                unset($validated['institution_id']);
+            }
+            if ($request->designation_id == 'other') {
+                unset($validated['designation_id']);
+            }
+            if ($request->department_id == 'other') {
+                unset($validated['department_id']);
+            }
+
             DB::beginTransaction();
 
-            $user->update($validated);
-            $user->userDetail->update($validated);
+            // Update user basic info
+            $user->update([
+                'f_name' => $validated['f_name'],
+                'm_name' => $validated['m_name'],
+                'l_name' => $validated['l_name'],
+                'email' => $validated['email'],
+            ]);
 
+            // Update user details with null for "other" options
+            $user->userDetail->update([
+                'gender' => $validated['gender'],
+                'phone' => $validated['phone'],
+                'name_prefix_id' => $validated['name_prefix_id'],
+                'institution_id' => $validated['institution_id'] ?? null,
+                'designation_id' => $validated['designation_id'] ?? null,
+                'department_id' => $validated['department_id'] ?? null,
+                'institute_address' => $validated['institute_address'],
+                'country_id' => $validated['country_id'],
+                'council_number' => $validated['council_number'],
+            ]);
+
+            // Handle custom institution
+            if ($request->institution_id == 'other') {
+                UserInstitution::where('user_id', $user->id)->delete();
+                UserInstitution::create([
+                    'user_id' => $user->id,
+                    'institution_name' => $request->other_institution_name,
+                ]);
+            } else {
+                // Delete custom institution if switching back to standard option
+                UserInstitution::where('user_id', $user->id)->delete();
+            }
+
+            // Handle custom designation
+            if ($request->designation_id == 'other') {
+                UserDesignation::where('user_id', $user->id)->delete();
+                UserDesignation::create([
+                    'user_id' => $user->id,
+                    'designation_name' => $request->other_designation,
+                ]);
+            } else {
+                // Delete custom designation if switching back to standard option
+                UserDesignation::where('user_id', $user->id)->delete();
+            }
+
+            // Handle custom department
+            if ($request->department_id == 'other') {
+                UserDepartment::where('user_id', $user->id)->delete();
+                UserDepartment::create([
+                    'user_id' => $user->id,
+                    'department_name' => $request->other_department,
+                ]);
+            } else {
+                // Delete custom department if switching back to standard option
+                UserDepartment::where('user_id', $user->id)->delete();
+            }
+
+            // Update society membership
             $user->societies()->updateExistingPivot($society->id, [
                 'member_type_id' => $validated['member_type_id'],
             ]);

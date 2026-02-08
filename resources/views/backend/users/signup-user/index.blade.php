@@ -193,6 +193,11 @@
                 }
             });
 
+            // Clear modal content when modal is hidden
+            $('#pricingModal').on('hidden.bs.modal', function () {
+                $('#modalContent').html('');
+            });
+
             $(document).on('click', '.makeExpert', function(e) {
                 e.preventDefault();
                 var name = $(this).data('name');
