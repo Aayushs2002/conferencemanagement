@@ -105,7 +105,7 @@
 
        {{-- Video Modal for Submission and Expert Guidelines --}}
        <div class="modal fade" id="videoGuideModal" tabindex="-1" aria-labelledby="videoGuideModalLabel"
-           aria-hidden="true" data-bs-backdrop="true" data-bs-keyboard="true">
+           aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
            <div class="modal-dialog modal-xl modal-dialog-centered">
                <div class="modal-content">
                    <div class="modal-header">
@@ -411,7 +411,7 @@
 
            </table>
        </div>
-       <div class="modal fade" id="pricingModal" tabindex="-1" aria-hidden="true">
+       <div class="modal fade" id="pricingModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
            <div class="modal-dialog modal-lg modal-simple modal-pricing">
                <div class="modal-content" id="modalData">
                </div>
