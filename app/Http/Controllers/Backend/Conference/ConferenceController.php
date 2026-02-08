@@ -357,6 +357,8 @@ class ConferenceController extends Controller
         $submissionCount = Submission::where(['conference_id' => $conference->id, 'user_id' => current_user()->id, 'status' => 1])->count();
         $workshop = Workshop::where(['conference_id' => $conference->id, 'status' => 1])->pluck('id');
         $workshopRegistrationCount = WorkshopRegistration::where(['user_id' => current_user()->id, 'registrant_type' => 1, 'status' => 1])->whereIn('workshop_id', $workshop)->count();
+        // Count submissions where current user is assigned as expert/reviewer
+        $reviewAssignmentCount = Submission::where(['conference_id' => $conference->id, 'expert_id' => current_user()->id, 'status' => 1])->count();
         $submissionCategoryMajorTracks = SubmissionCategoryMajorTrack::where(['conference_id' => $conference->id, 'status' => 1])->get();
 
         // Get current user's addon and accompanying person info (for participants)
@@ -379,7 +381,7 @@ class ConferenceController extends Controller
                 ->get();
         }
 
-        return view('backend.conference.dashboard', compact('conferenceRegistrationCount', 'totalNationalRegistrants', 'totalInternationalRegistrants', 'mealCounts', 'conference', 'society', 'data', 'dates', 'workshops', 'workshopMealCounts', 'submissionCount', 'workshopRegistrationCount', 'submissionCategoryMajorTracks', 'addonStats', 'totalAddons', 'totalAccompanyingPersons', 'userAddons', 'userAccompanyingPersons'));
+        return view('backend.conference.dashboard', compact('conferenceRegistrationCount', 'totalNationalRegistrants', 'totalInternationalRegistrants', 'mealCounts', 'conference', 'society', 'data', 'dates', 'workshops', 'workshopMealCounts', 'submissionCount', 'workshopRegistrationCount', 'submissionCategoryMajorTracks', 'addonStats', 'totalAddons', 'totalAccompanyingPersons', 'userAddons', 'userAccompanyingPersons', 'reviewAssignmentCount'));
     }
 
     public function submissionsChart(Request $request, $society, $conference)
