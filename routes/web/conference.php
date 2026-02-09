@@ -358,6 +358,7 @@ Route::middleware('auth')->group(function () {
         Route::resource('sponsor/sponsor-category', SponsorCategoryController::class)->except('show');
         Route::resource('/sponsor', SponsorController::class)->except('show');
         Route::get('generate-pass', [SponsorController::class, 'generatePass'])->name('sponsor.generaate-pass');
+        Route::get('/sponsor/export-excel', [SponsorController::class, 'exportExcel'])->name('sponsor.export.excel');
     });
 
     Route::controller(SponsorController::class)->name('sponsor.')->group(function () {

@@ -13,14 +13,14 @@ class WorkshopController extends BaseConferenceController
     {
         return view('frontend.conference.workshop.index');
     }
-
+ 
     public function singlePage($conference, $workshop)
     {
         // dd($workshop); 
         $workshop = Workshop::with([
             'WorkshopVenueDetail',
             'registrations' => function ($query) {
-                $query->where('registrant_type', 2);
+                $query->where('registrant_type', 2)->where('status', 1);
             }
         ])->where('is_published', true)->where('slug', $workshop)->first();
 

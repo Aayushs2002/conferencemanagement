@@ -121,8 +121,9 @@
                     @foreach ($workshop->registrations as $registration)
                         <div class="col-md-4">
                             <div class="prof-card p-3 d-flex flex-column h-100 ">
-                                <img src="{{ Storage::url('profile/image/' . $registration?->user?->userDetail->image) }}"
-                                    alt="{{ $registration->user?->fullName($registration->user) }}" class="profile-img mb-3">
+                                <img src="{{ $registration?->user?->userDetail->image ? Storage::url('profile/image/' . $registration?->user?->userDetail->image) : asset('frontend/assets/img/user.jpg') }}"
+                                    alt="{{ $registration->user?->fullName($registration->user) }}"
+                                    class="profile-img mb-3">
                                 <h6 class="card-title mb-1">{{ $registration->user?->userDetail->namePrefix->prefix }}
                                     {{ $registration->user?->fullName($registration->user) }}
                                 </h6>
@@ -174,7 +175,8 @@
                             <img src="{{ $workshop->image
                                 ? Storage::url('workshop/workshop/image/' . $workshop->image)
                                 : Storage::url('society/logo/' . $conference->society->logo) }}"
-                                class="img-fluid {{ !$workshop->image ? 'logo-img-sidebar' : '' }}" alt="{{ $workshop->title }}">
+                                class="img-fluid {{ !$workshop->image ? 'logo-img-sidebar' : '' }}"
+                                alt="{{ $workshop->title }}">
                             <div class="p-2">
                                 <div class="d-flex align-items-center mb-1">
                                     <i class="fa-regular fa-calendar me-1"></i>
