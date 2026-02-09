@@ -317,4 +317,18 @@ class SponsorController extends Controller
             return redirect()->back()->with('error', 'Failed to export sponsors: ' . $e->getMessage());
         }
     }
+
+    /**
+     * Update registration IDs for all sponsors in a conference
+     */
+    public function updateRegistrationIds(Request $request, $society, $conference)
+    {
+        try {
+            $stats = Sponsor::updateRegistrationIds($conference->id);
+            
+            return redirect()->back()->with('status', "Registration IDs updated successfully! Total sponsors updated: {$stats['total']}");
+        } catch (Exception $e) {
+            return redirect()->back()->with('error', 'Failed to update registration IDs: ' . $e->getMessage());
+        }
+    }
 }

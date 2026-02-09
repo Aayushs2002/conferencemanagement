@@ -41,8 +41,25 @@ class PassSettingController extends Controller
         $committees = Committee::where('society_id', $society->id)->where('status', 1)->get();
         $committeeDesignations = CommitteeDesignation::where('society_id', $society->id)->where('status', 1)->get();
 
-        $passNameTags = ConferenceMemberTypeNameTag::where('conference_id', $conference->id)->get();
-        $committeePassDesignations = ConferenceCommitteePassDesignation::where('conference_id', $conference->id)->get();
+        // Group pass name tags by registrant_type and name_tag to handle multiple member types
+        $passNameTagsRaw = ConferenceMemberTypeNameTag::where('conference_id', $conference->id)->get();
+        $passNameTags = $passNameTagsRaw->groupBy(function($item) {
+            return $item->registrant_type . '_' . $item->name_tag . '_' . $item->color;
+        })->map(function($group) {
+            $first = $group->first();
+            $first->member_type_id = $group->pluck('member_type_id')->toArray();
+            return $first;
+        })->values();
+
+        // Group committee pass designations by designation_id and name_tag
+        $committeePassDesignationsRaw = ConferenceCommitteePassDesignation::where('conference_id', $conference->id)->get();
+        $committeePassDesignations = $committeePassDesignationsRaw->groupBy(function($item) {
+            return $item->designation_id . '_' . $item->name_tag . '_' . $item->color;
+        })->map(function($group) {
+            $first = $group->first();
+            $first->committee_id = $group->pluck('committee_id')->toArray();
+            return $first;
+        })->values();
         
         return view('backend.conference.conference-pass.create', compact('society', 'conference', 'memberTypes', 'passNameTags', 'committees', 'committeeDesignations', 'committeePassDesignations'));
     }
@@ -64,7 +81,7 @@ class PassSettingController extends Controller
                 'workshop_trainer_name_tag' => 'nullable|string|max:255',
                 'workshop_trainer_color' => 'nullable|string|max:7',
                 'member_type_id' => 'required|array',
-                'member_type_id.*' => 'required|integer',
+                'member_type_id.*' => 'required',
                 'registrant_type' => 'required|array',
                 'name_tag' => 'required|array',
                 'color' => 'nullable|array',
@@ -79,19 +96,47 @@ class PassSettingController extends Controller
             // dd($validated);
             PassSetting::create($validated);
 
+            // Handle multiple member types - create a row for each selected member type
             $arrayData = [];
-            foreach ($request->member_type_id as $index => $memberTypeId) {
-                $arrayData[] = [
-                    'conference_id' => $conference->id,
-                    'member_type_id' => $memberTypeId,
-                    'registrant_type' => $request->registrant_type[$index],
-                    'name_tag' => $request->name_tag[$index],
-                    'color' => $request->color[$index] ?? null,
-                    'created_at' => now(),
-                    'updated_at' => now(),
-                ];
+            foreach ($request->member_type_id as $index => $memberTypeIds) {
+                // Convert to array if it's a single value
+                $memberTypeIdsArray = is_array($memberTypeIds) ? $memberTypeIds : [$memberTypeIds];
+                
+                foreach ($memberTypeIdsArray as $memberTypeId) {
+                    $arrayData[] = [
+                        'conference_id' => $conference->id,
+                        'member_type_id' => $memberTypeId,
+                        'registrant_type' => $request->registrant_type[$index],
+                        'name_tag' => $request->name_tag[$index],
+                        'color' => $request->color[$index] ?? null,
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ];
+                }
             }
             ConferenceMemberTypeNameTag::insert($arrayData);
+
+            // Handle committee pass designations
+            if ($request->has('committee_id') && !empty($request->committee_id)) {
+                $committeeData = [];
+                foreach ($request->committee_id as $index => $committeeIds) {
+                    // Convert to array if it's a single value
+                    $committeeIdsArray = is_array($committeeIds) ? $committeeIds : [$committeeIds];
+                    
+                    foreach ($committeeIdsArray as $committeeId) {
+                        $committeeData[] = [
+                            'conference_id' => $conference->id,
+                            'committee_id' => $committeeId,
+                            'designation_id' => $request->committee_designation_id[$index],
+                            'name_tag' => $request->committee_name_tag[$index],
+                            'color' => $request->committee_color[$index] ?? null,
+                            'created_at' => now(),
+                            'updated_at' => now(),
+                        ];
+                    }
+                }
+                ConferenceCommitteePassDesignation::insert($committeeData);
+            }
 
 
             return redirect()->route('pass-setting.index', [$society, $conference])->with('status', 'Pass Setting Added Successfully');
@@ -117,8 +162,25 @@ class PassSettingController extends Controller
         $committees = Committee::where('society_id', $society->id)->where('status', 1)->get();
         $committeeDesignations = CommitteeDesignation::where('society_id', $society->id)->where('status', 1)->get();
 
-        $passNameTags = ConferenceMemberTypeNameTag::where('conference_id', $conference->id)->get();
-        $committeePassDesignations = ConferenceCommitteePassDesignation::where('conference_id', $conference->id)->get();
+        // Group pass name tags by registrant_type and name_tag to handle multiple member types
+        $passNameTagsRaw = ConferenceMemberTypeNameTag::where('conference_id', $conference->id)->get();
+        $passNameTags = $passNameTagsRaw->groupBy(function($item) {
+            return $item->registrant_type . '_' . $item->name_tag . '_' . $item->color;
+        })->map(function($group) {
+            $first = $group->first();
+            $first->member_type_id = $group->pluck('member_type_id')->toArray();
+            return $first;
+        })->values();
+
+        // Group committee pass designations by designation_id and name_tag
+        $committeePassDesignationsRaw = ConferenceCommitteePassDesignation::where('conference_id', $conference->id)->get();
+        $committeePassDesignations = $committeePassDesignationsRaw->groupBy(function($item) {
+            return $item->designation_id . '_' . $item->name_tag . '_' . $item->color;
+        })->map(function($group) {
+            $first = $group->first();
+            $first->committee_id = $group->pluck('committee_id')->toArray();
+            return $first;
+        })->values();
         
         return view('backend.conference.conference-pass.create', compact(
             'society',
@@ -148,8 +210,8 @@ class PassSettingController extends Controller
                 'workshop_participant_color' => 'nullable|string|max:7',
                 'workshop_trainer_name_tag' => 'nullable|string|max:255',
                 'workshop_trainer_color' => 'nullable|string|max:7',
-                'member_ids' => 'array',
-                'member_type_id.*' => 'required|integer',
+                'member_type_id' => 'required|array',
+                'member_type_id.*' => 'required',
                 'registrant_type' => 'required|array',
                 'name_tag' => 'required|array',
                 'color' => 'nullable|array',
@@ -163,91 +225,58 @@ class PassSettingController extends Controller
             }
             $pass_setting->update($validated);
 
+            // Delete existing records for this conference
+            ConferenceMemberTypeNameTag::where('conference_id', $conference->id)->delete();
 
+            // Insert new records - handle multiple member types
             $dataToInsert = [];
-            $dataToUpdate = [];
-
-            foreach ($request->member_type_id as $index => $memberTypeId) {
-                $row = [
-                    'conference_id'   => $conference->id,
-                    'member_type_id'  => $memberTypeId,
-                    'registrant_type' => $request->registrant_type[$index],
-                    'name_tag'        => $request->name_tag[$index],
-                    'color'           => $request->color[$index] ?? null,
-                    'updated_at'      => now(),
-                ];
-
-                $id = $request->member_ids[$index] ?? null;
-
-                if ($id) {
-                    $row['id'] = $id;
-                    $dataToUpdate[] = $row;
-                } else {
-                    $row['created_at'] = now();
-                    $dataToInsert[] = $row;
-                }
-            }
-
-            if (!empty($dataToUpdate)) {
-                foreach ($dataToUpdate as $row) {
-                    \DB::table('conference_member_type_name_tags')
-                        ->where('id', $row['id'])
-                        ->update([
-                            'member_type_id'  => $row['member_type_id'],
-                            'registrant_type' => $row['registrant_type'],
-                            'name_tag'        => $row['name_tag'],
-                            'color'           => $row['color'],
-                            'updated_at'      => $row['updated_at'],
-                        ]);
+            foreach ($request->member_type_id as $index => $memberTypeIds) {
+                // Convert to array if it's a single value
+                $memberTypeIdsArray = is_array($memberTypeIds) ? $memberTypeIds : [$memberTypeIds];
+                
+                foreach ($memberTypeIdsArray as $memberTypeId) {
+                    $dataToInsert[] = [
+                        'conference_id'   => $conference->id,
+                        'member_type_id'  => $memberTypeId,
+                        'registrant_type' => $request->registrant_type[$index],
+                        'name_tag'        => $request->name_tag[$index],
+                        'color'           => $request->color[$index] ?? null,
+                        'created_at'      => now(),
+                        'updated_at'      => now(),
+                    ];
                 }
             }
 
             if (!empty($dataToInsert)) {
-                \DB::table('conference_member_type_name_tags')->insert($dataToInsert);
+                ConferenceMemberTypeNameTag::insert($dataToInsert);
             }
 
             // Handle committee pass designations
             if ($request->has('committee_id') && !empty($request->committee_id)) {
+                // Delete existing committee designations
+                ConferenceCommitteePassDesignation::where('conference_id', $conference->id)->delete();
+
                 $committeeDataToInsert = [];
-                $committeeDataToUpdate = [];
 
-                foreach ($request->committee_id as $index => $committeeId) {
-                    $row = [
-                        'conference_id'   => $conference->id,
-                        'committee_id'  => $committeeId,
-                        'designation_id' => $request->committee_designation_id[$index],
-                        'name_tag'        => $request->committee_name_tag[$index],
-                        'color'           => $request->committee_color[$index] ?? null,
-                        'updated_at'      => now(),
-                    ];
-
-                    $id = $request->committee_ids[$index] ?? null;
-
-                    if ($id) {
-                        $row['id'] = $id;
-                        $committeeDataToUpdate[] = $row;
-                    } else {
-                        $row['created_at'] = now();
-                        $committeeDataToInsert[] = $row;
-                    }
-                }
-
-                if (!empty($committeeDataToUpdate)) {
-                    foreach ($committeeDataToUpdate as $row) {
-                        \DB::table('conference_committee_pass_designations')
-                            ->where('id', $row['id'])
-                            ->update([
-                                'committee_id'  => $row['committee_id'],
-                                'designation_id' => $row['designation_id'],
-                                'name_tag'        => $row['name_tag'],
-                                'color'           => $row['color'],
-                                'updated_at'      => $row['updated_at'],
-                            ]);
+                foreach ($request->committee_id as $index => $committeeIds) {
+                    // Convert to array if it's a single value
+                    $committeeIdsArray = is_array($committeeIds) ? $committeeIds : [$committeeIds];
+                    
+                    foreach ($committeeIdsArray as $committeeId) {
+                        $committeeDataToInsert[] = [
+                            'conference_id'   => $conference->id,
+                            'committee_id'    => $committeeId,
+                            'designation_id'  => $request->committee_designation_id[$index],
+                            'name_tag'        => $request->committee_name_tag[$index],
+                            'color'           => $request->committee_color[$index] ?? null,
+                            'created_at'      => now(),
+                            'updated_at'      => now(),
+                        ];
                     }
                 }
 
                 if (!empty($committeeDataToInsert)) {
-                    \DB::table('conference_committee_pass_designations')->insert($committeeDataToInsert);
+                    ConferenceCommitteePassDesignation::insert($committeeDataToInsert);
                 }
             }
 

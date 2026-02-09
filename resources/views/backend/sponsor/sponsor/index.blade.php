@@ -22,10 +22,17 @@
                             <i class="icon-base ti tabler-id-badge icon-xs me-sm-1"></i>
                             <span class="d-none d-sm-inline-block">Generate Pass</span>
                         </a>
+                            <a href="{{ route('sponsor.update-registration-ids', [$society, $conference]) }}" 
+                                class="btn btn-warning me-2" 
+                                tabindex="0"
+                                onclick="return confirm('This will update registration IDs for all sponsors based on alphabetical order. Continue?')">
+                                <i class="icon-base ti tabler-refresh icon-xs me-sm-1"></i>
+                                <span class="d-none d-sm-inline-block">Update Registration IDs</span>
+                            </a>
                         @if (auth()->user()->hasConferencePermissionBlade(getConference(request()->segment(4)), 'Add Sponsor'))
                             <a href="{{ route('sponsor.create', [$society, $conference]) }}" class="btn btn-primary"
                                 tabindex="0">
-                                <i class="icon-base ti tabler-plus icon-xs me-sm-1"></i>
+                                <i class="icon-base ti tabler-plus icon-xs me-sm-1"></i> 
                                 <span class="d-none d-sm-inline-block">Add New</span>
                             </a>
                         @endif
@@ -38,6 +45,7 @@
                         <th>#</th>
                         <th>Category</th>
                         <th>Name</th>
+                        <th>Registration ID</th>
                         <th>Amount</th>
                         @if (auth()->user()->hasConferencePermissionBlade(getConference(request()->segment(4)), 'Change Publish Sponsor'))
                             <th>Publish</th>
@@ -52,6 +60,7 @@
                             <th scope="row">{{ $loop->iteration }}</th>
                             <td>{{ $sponsor->category->category_name }}</td>
                             <td>{{ $sponsor->name }}</td>
+                            <td>{{ $sponsor->registration_id ?? 'N/A' }}</td>
                             <td>{{ $sponsor->amount }}</td>
                             <td>
                                 @if (auth()->user()->hasConferencePermissionBlade(getConference(request()->segment(4)), 'Change Publish Sponsor'))

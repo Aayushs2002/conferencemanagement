@@ -2076,7 +2076,7 @@ class ConferenceRegistrationController extends Controller
 
             $stats = ConferenceRegistration::updateRegistrationIds($conference->id);
 
-            return redirect()
+            return redirect() 
                 ->back()
                 ->with('status', "Registration IDs updated successfully! Total: {$stats['total']} 
                     (Invited: {$stats['invited']}, Participants: {$stats['participant']}, 
@@ -2213,7 +2213,7 @@ class ConferenceRegistrationController extends Controller
                     $registrant->id,
                     $request->subject,
                     $messageContent,
-                    $data,
+                    $data, 
                     $conference->conference_name
                 )->delay(now()->addSeconds($queuedCount * 3));
 

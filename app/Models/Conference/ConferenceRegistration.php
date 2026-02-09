@@ -2,6 +2,7 @@
 
 namespace App\Models\Conference;
 
+use App\Models\Committee\CommitteeMember;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
@@ -370,26 +371,57 @@ GROUP BY MT.id, MT.delegate, MT.type";
         try {
             $stats = [
                 'invited' => 0,
-                'participant' => 0,
+                'participant' => 0, 
                 'speaker' => 0,
                 'session_chair' => 0,
                 'special_guest' => 0,
                 'organizer' => 0,
+                'committee_member' => 0,
                 'total' => 0
             ];
 
-            // 1. Invited Participants (is_invited = 1) - both real and dummy
-            $invitedReal = self::where('conference_id', $conferenceId)
+            // Get all committee member user IDs for this conference
+            $committeeMemberUserIds = CommitteeMember::where('conference_id', $conferenceId)
                 ->where('status', 1)
-                ->where('is_invited', 1)
-                ->whereNotNull('user_id')
+                ->pluck('user_id')
+                ->toArray();
+
+            // 1. Committee Members (all users who are committee members) - get ORG_ prefix
+            $committeeMembersReal = self::where('conference_id', $conferenceId)
+                ->where('status', 1)
+                ->whereIn('user_id', $committeeMemberUserIds)
                 ->with(['user' => function($q) {
                     $q->select('id', 'f_name', 'm_name', 'l_name');
                 }])
                 ->get()
                 ->sortBy(function($registration) {
                     return $registration->user ? 
-                        $registration->user->f_name . ' ' . $registration->user->m_name . ' ' . $registration->user->l_name : 
+                        strtolower($registration->user->f_name . ' ' . $registration->user->m_name . ' ' . $registration->user->l_name) : 
+                        '';
+                });
+
+            $orgCounter = 1;
+            foreach ($committeeMembersReal as $registration) {
+                $registration->registration_id = 'ORG_' . str_pad($orgCounter, 3, '0', STR_PAD_LEFT);
+                $registration->save();
+                $orgCounter++;
+                $stats['committee_member']++;
+                $stats['organizer']++;
+            }
+
+            // 2. Invited Participants (is_invited = 1, not committee members) - both real and dummy
+            $invitedReal = self::where('conference_id', $conferenceId)
+                ->where('status', 1)
+                ->where('is_invited', 1)
+                ->whereNotNull('user_id')
+                ->whereNotIn('user_id', $committeeMemberUserIds)
+                ->with(['user' => function($q) {
+                    $q->select('id', 'f_name', 'm_name', 'l_name');
+                }])
+                ->get()
+                ->sortBy(function($registration) {
+                    return $registration->user ? 
+                        strtolower($registration->user->f_name . ' ' . $registration->user->m_name . ' ' . $registration->user->l_name) : 
                         '';
                 });
 
@@ -414,19 +446,20 @@ GROUP BY MT.id, MT.delegate, MT.type";
                 $stats['invited']++;
             }
 
-            // 2. Participants (registrant_type = 1, not invited) - real then dummy
+            // 3. Participants (registrant_type = 1, not invited, not committee members) - real then dummy
             $participantsReal = self::where('conference_id', $conferenceId)
                 ->where('status', 1)
                 ->where('registrant_type', self::REGISTRANT_ATTENDEE)
                 ->where('is_invited', 0)
                 ->whereNotNull('user_id')
+                ->whereNotIn('user_id', $committeeMemberUserIds)
                 ->with(['user' => function($q) {
                     $q->select('id', 'f_name', 'm_name', 'l_name');
                 }])
                 ->get()
                 ->sortBy(function($registration) {
                     return $registration->user ? 
-                        $registration->user->f_name . ' ' . $registration->user->m_name . ' ' . $registration->user->l_name : 
+                        strtolower($registration->user->f_name . ' ' . $registration->user->m_name . ' ' . $registration->user->l_name) : 
                         '';
                 });
 
@@ -452,19 +485,20 @@ GROUP BY MT.id, MT.delegate, MT.type";
                 $stats['participant']++;
             }
 
-            // 3. Speakers (registrant_type = 2, not invited) - real then dummy
+            // 4. Speakers (registrant_type = 2, not invited, not committee members) - real then dummy
             $speakersReal = self::where('conference_id', $conferenceId)
                 ->where('status', 1)
                 ->where('registrant_type', self::REGISTRANT_SPEAKER)
                 ->where('is_invited', 0)
                 ->whereNotNull('user_id')
+                ->whereNotIn('user_id', $committeeMemberUserIds)
                 ->with(['user' => function($q) {
                     $q->select('id', 'f_name', 'm_name', 'l_name');
                 }])
                 ->get()
                 ->sortBy(function($registration) {
                     return $registration->user ? 
-                        $registration->user->f_name . ' ' . $registration->user->m_name . ' ' . $registration->user->l_name : 
+                        strtolower($registration->user->f_name . ' ' . $registration->user->m_name . ' ' . $registration->user->l_name) : 
                         '';
                 });
 
@@ -490,19 +524,20 @@ GROUP BY MT.id, MT.delegate, MT.type";
                 $stats['speaker']++;
             }
 
-            // 4. Session Chairs (registrant_type = 3, not invited) - real then dummy
+            // 5. Session Chairs (registrant_type = 3, not invited, not committee members) - real then dummy
             $sessionChairsReal = self::where('conference_id', $conferenceId)
                 ->where('status', 1)
                 ->where('registrant_type', self::REGISTRANT_SESSION_CHAIR)
                 ->where('is_invited', 0)
                 ->whereNotNull('user_id')
+                ->whereNotIn('user_id', $committeeMemberUserIds)
                 ->with(['user' => function($q) {
                     $q->select('id', 'f_name', 'm_name', 'l_name');
                 }])
                 ->get()
                 ->sortBy(function($registration) {
                     return $registration->user ? 
-                        $registration->user->f_name . ' ' . $registration->user->m_name . ' ' . $registration->user->l_name : 
+                        strtolower($registration->user->f_name . ' ' . $registration->user->m_name . ' ' . $registration->user->l_name) : 
                         '';
                 });
 
@@ -528,19 +563,20 @@ GROUP BY MT.id, MT.delegate, MT.type";
                 $stats['session_chair']++;
             }
 
-            // 5. Special Guests (registrant_type = 4, not invited) - real then dummy
+            // 6. Special Guests (registrant_type = 4, not invited, not committee members) - real then dummy
             $specialGuestsReal = self::where('conference_id', $conferenceId)
                 ->where('status', 1)
                 ->where('registrant_type', self::REGISTRANT_SPECIAL_GUEST)
                 ->where('is_invited', 0)
                 ->whereNotNull('user_id')
+                ->whereNotIn('user_id', $committeeMemberUserIds)
                 ->with(['user' => function($q) {
                     $q->select('id', 'f_name', 'm_name', 'l_name');
                 }])
                 ->get()
                 ->sortBy(function($registration) {
                     return $registration->user ? 
-                        $registration->user->f_name . ' ' . $registration->user->m_name . ' ' . $registration->user->l_name : 
+                        strtolower($registration->user->f_name . ' ' . $registration->user->m_name . ' ' . $registration->user->l_name) : 
                         '';
                 });
 
@@ -566,19 +602,21 @@ GROUP BY MT.id, MT.delegate, MT.type";
                 $stats['special_guest']++;
             }
 
-            // 6. Organizers (registrant_type = 5, not invited) - real then dummy
+            // 7. Organizers (registrant_type = 5, not invited, not committee members) - real then dummy
+            // Continue using $orgCounter from committee members
             $organizersReal = self::where('conference_id', $conferenceId)
                 ->where('status', 1)
                 ->where('registrant_type', self::REGISTRANT_ORGANIZER)
                 ->where('is_invited', 0)
                 ->whereNotNull('user_id')
+                ->whereNotIn('user_id', $committeeMemberUserIds)
                 ->with(['user' => function($q) {
                     $q->select('id', 'f_name', 'm_name', 'l_name');
                 }])
                 ->get()
                 ->sortBy(function($registration) {
                     return $registration->user ? 
-                        $registration->user->f_name . ' ' . $registration->user->m_name . ' ' . $registration->user->l_name : 
+                        strtolower($registration->user->f_name . ' ' . $registration->user->m_name . ' ' . $registration->user->l_name) : 
                         '';
                 });
 
@@ -590,17 +628,16 @@ GROUP BY MT.id, MT.delegate, MT.type";
                 ->orderBy('created_at')
                 ->get();
 
-            $counter = 1;
             foreach ($organizersReal as $registration) {
-                $registration->registration_id = 'ORG_' . str_pad($counter, 3, '0', STR_PAD_LEFT);
+                $registration->registration_id = 'ORG_' . str_pad($orgCounter, 3, '0', STR_PAD_LEFT);
                 $registration->save();
-                $counter++;
+                $orgCounter++;
                 $stats['organizer']++;
             }
             foreach ($organizersDummy as $registration) {
-                $registration->registration_id = 'ORG_' . str_pad($counter, 3, '0', STR_PAD_LEFT);
+                $registration->registration_id = 'ORG_' . str_pad($orgCounter, 3, '0', STR_PAD_LEFT);
                 $registration->save();
-                $counter++;
+                $orgCounter++;
                 $stats['organizer']++;
             }
 
