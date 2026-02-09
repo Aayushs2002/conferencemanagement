@@ -8,7 +8,7 @@ class ConferenceMemberTypeNameTag extends Model
 {
     protected $fillable = [
         'conference_id',
-        'memper_type_id',
+        'member_type_id',
         'registrant_type',
         'name_tag',
         'color',

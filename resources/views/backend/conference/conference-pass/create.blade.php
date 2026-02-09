@@ -205,8 +205,8 @@
                                     <tr id="row{{ $i + 1 }}">
                                         <td>{{ $i + 1 }}.</td>
                                         <td>
-                                            <select name="member_type_id[{{ $i }}]"
-                                                class="form-control member-select" required>
+                                            <select name="member_type_id[{{ $i }}][]" 
+                                                class="form-control member-select" multiple required>
                                                 @foreach ($memberTypes as $memberType)
                                                     <option value="{{ $memberType->id }}"
                                                         {{ in_array($memberType->id, $selectedMemberTypes) ? 'selected' : '' }}>
@@ -231,7 +231,7 @@
                                                     Organizer</option>
 
                                             </select>
-                                        </td>
+                                        </td> 
                                         <td>
                                             <input type="text" name="name_tag[{{ $i }}]" class="form-control"
                                                 placeholder="Enter Name Tag" value="{{ $nameTag }}" required>
@@ -249,8 +249,6 @@
                                                     class="btn btn-danger btn_remove">Remove</button>
                                             @endif
                                         </td>
-                                        <input type="hidden" name="member_ids[{{ $i }}]"
-                                            value="{{ $id }}">
                                     </tr>
                                 @endfor
 
@@ -258,7 +256,7 @@
                                     <tr id="row1">
                                         <td>1.</td>
                                         <td>
-                                            <select name="member_type_id[0]" class="form-control member-select" required>
+                                            <select name="member_type_id[0][]" class="form-control member-select" multiple required>
                                                 <option value="" hidden>-- Select Member Type --</option>
                                                 @foreach ($memberTypes as $memberType)
                                                     <option value="{{ $memberType->id }}">{{ $memberType->type }}
@@ -322,14 +320,21 @@
                                 @endphp
 
                                 @for ($i = 0; $i < $committeeRows; $i++)
+                                    @php
+                                        $selectedCommitteeIds =
+                                            old("committee_id.$i") ??
+                                            (isset($committeePassDesignations[$i]) ? $committeePassDesignations[$i]->committee_id : []);
+                                        if (!is_array($selectedCommitteeIds)) {
+                                            $selectedCommitteeIds = explode(',', $selectedCommitteeIds);
+                                        }
+                                    @endphp
                                     <tr id="committee_row{{ $i + 1 }}">
                                         <td>{{ $i + 1 }}.</td>
                                         <td>
-                                            <select name="committee_id[{{ $i }}]" class="form-control committee-select" required>
-                                                <option value="" hidden>-- Select Committee --</option>
+                                            <select name="committee_id[{{ $i }}][]" class="form-control committee-select" multiple required>
                                                 @foreach ($committees as $committee)
                                                     <option value="{{ $committee->id }}"
-                                                        {{ old("committee_id.$i", isset($committeePassDesignations[$i]) ? $committeePassDesignations[$i]->committee_id : '') == $committee->id ? 'selected' : '' }}>
+                                                        {{ in_array($committee->id, $selectedCommitteeIds) ? 'selected' : '' }}>
                                                         {{ $committee->committee_name }}
                                                     </option>
                                                 @endforeach
@@ -365,8 +370,6 @@
                                                 <button type="button" class="btn btn-danger btn_remove_committee">Remove</button>
                                             @endif
                                         </td>
-                                        <input type="hidden" name="committee_ids[{{ $i }}]" 
-                                            value="{{ old("committee_ids.$i", isset($committeePassDesignations[$i]) ? $committeePassDesignations[$i]->id : '') }}">
                                     </tr>
                                 @endfor
 
@@ -374,7 +377,7 @@
                                     <tr id="committee_row1">
                                         <td>1.</td>
                                         <td>
-                                            <select name="committee_id[0]" class="form-control committee-select" required>
+                                            <select name="committee_id[0][]" class="form-control committee-select" multiple required>
                                                 <option value="" hidden>-- Select Committee --</option>
                                                 @foreach ($committees as $committee)
                                                     <option value="{{ $committee->id }}">{{ $committee->committee_name }}</option>
@@ -401,7 +404,6 @@
                                             <button type="button" name="add_committee" id="add_committee"
                                                 class="btn btn-success">Add</button>
                                         </td>
-                                        <input type="hidden" name="committee_ids[0]" value="">
                                     </tr>
                                 @endif
                             </tbody>
@@ -473,8 +475,7 @@
         <tr id="row${i}">
             <td>${i}.</td>
             <td>
-                <select name="member_type_id[${i - 1}]" class="form-control member-select" required>
-                    <option value="" hidden>-- Select Member Type --</option>
+                <select name="member_type_id[${i - 1}][]" class="form-control member-select" multiple required>
                     @foreach ($memberTypes as $memberType)
                         <option value="{{ $memberType->id }}">{{ $memberType->type }}</option>
                     @endforeach
@@ -499,7 +500,6 @@
             <td>
                 <button type="button" name="remove" class="btn btn-danger btn_remove">Remove</button>
             </td>
-              <input type="hidden" name="member_ids[${i - 1}]" value="">
         </tr>
     `;
             $('#dynamic_field tbody').append(newRow);
@@ -515,7 +515,7 @@
                 $(this).attr('id', 'row' + rowIndex);
                 $(this).find('td:first').text(rowIndex + '.');
 
-                $(this).find('select.member-select').attr('name', `member_type_id[${index}]`);
+                $(this).find('select.member-select').attr('name', `member_type_id[${index}][]`);
                 $(this).find('select[name^="registrant_type"]').attr('name', `registrant_type[${index}]`);
                 $(this).find('input[name^="name_tag"]').attr('name', `name_tag[${index}]`);
             });
@@ -543,8 +543,7 @@
         <tr id="committee_row${j}">
             <td>${j}.</td>
             <td>
-                <select name="committee_id[${j - 1}]" class="form-control committee-select" required>
-                    <option value="" hidden>-- Select Committee --</option>
+                <select name="committee_id[${j - 1}][]" class="form-control committee-select" multiple required>
                     @foreach ($committees as $committee)
                         <option value="{{ $committee->id }}">{{ $committee->committee_name }}</option>
                     @endforeach
@@ -567,7 +566,6 @@
             <td>
                 <button type="button" name="remove" class="btn btn-danger btn_remove_committee">Remove</button>
             </td>
-            <input type="hidden" name="committee_ids[${j - 1}]" value="">
         </tr>
     `;
             $('#committee_dynamic_field tbody').append(newCommitteeRow);
@@ -583,11 +581,10 @@
                 $(this).attr('id', 'committee_row' + rowIndex);
                 $(this).find('td:first').text(rowIndex + '.');
 
-                $(this).find('select.committee-select').attr('name', `committee_id[${index}]`);
+                $(this).find('select.committee-select').attr('name', `committee_id[${index}][]`);
                 $(this).find('select[name^="committee_designation_id"]').attr('name', `committee_designation_id[${index}]`);
                 $(this).find('input[name^="committee_name_tag"]').attr('name', `committee_name_tag[${index}]`);
                 $(this).find('input[name^="committee_color"]').attr('name', `committee_color[${index}]`);
-                $(this).find('input[name^="committee_ids"]').attr('name', `committee_ids[${index}]`);
             });
 
             j = $('#committee_dynamic_field tbody tr').length;
