@@ -12,23 +12,11 @@
                 </div>
                 <div class="d-md-flex justify-content-between align-items-center dt-layout-end col-md-auto ms-auto mt-0">
                     <div class="dt-buttons btn-group flex-wrap mb-0">
-                        <div class="btn-group me-2">
-                            <button type="button" class="btn btn-success dropdown-toggle" data-bs-toggle="dropdown"
-                                aria-expanded="false">
-                                <i class="icon-base ti tabler-upload icon-xs me-sm-1"></i> 
-                                <span class="d-none d-sm-inline-block">Export</span>
-                            </button>
-                            <ul class="dropdown-menu">
-                                <li><a class="dropdown-item" href="#" onclick="exportTo('excel')">Export to Excel</a>
-                                </li>
-                                <li><a class="dropdown-item" href="#" onclick="exportTo('pdf')">Export to PDF</a></li>
-                                <li><a class="dropdown-item" href="#" onclick="exportTo('csv')">Export to CSV</a></li>
-                                <li>
-                                    <hr class="dropdown-divider">
-                                </li>
-                                <li><a class="dropdown-item" href="#" onclick="window.print()">Print</a></li>
-                            </ul>
-                        </div>
+                        <a href="{{ route('sponsor.export.excel', [$society, $conference]) }}" 
+                            class="btn btn-success me-2" tabindex="0">
+                            <i class="icon-base ti tabler-upload icon-xs me-sm-1"></i> 
+                            <span class="d-none d-sm-inline-block">Export to Excel</span>
+                        </a>
                         <a href="{{ route('sponsor.generaate-pass', [$society, $conference]) }}" target="_blank"
                             class="btn btn-info me-2" tabindex="0">
                             <i class="icon-base ti tabler-id-badge icon-xs me-sm-1"></i>

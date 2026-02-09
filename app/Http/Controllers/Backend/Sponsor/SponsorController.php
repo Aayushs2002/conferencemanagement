@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Backend\Sponsor;
 
+use App\Exports\SponsorExport;
 use App\Http\Controllers\Controller;
 use App\Models\Conference\PassSetting;
 use App\Models\Sponsor\Sponsor;
@@ -12,6 +13,7 @@ use App\Services\File\FileService;
 use Exception;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
+use Maatwebsite\Excel\Facades\Excel;
 
 class SponsorController extends Controller
 {
@@ -297,6 +299,22 @@ class SponsorController extends Controller
                 'success' => false,
                 'error' => $e->getMessage()
             ], 500);
+        }
+    }
+
+    public function exportExcel($society, $conference)
+    {
+        try {
+            $sponsors = Sponsor::with('category')
+                ->where(['conference_id' => $conference->id, 'status' => 1])
+                ->orderBy('id', 'DESC')
+                ->get();
+
+            $fileName = 'sponsors_' . date('Y-m-d_H-i-s') . '.xlsx';
+            
+            return Excel::download(new SponsorExport($sponsors), $fileName);
+        } catch (Exception $e) {
+            return redirect()->back()->with('error', 'Failed to export sponsors: ' . $e->getMessage());
         }
     }
 }
