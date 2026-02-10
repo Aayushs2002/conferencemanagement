@@ -72,7 +72,7 @@ class ConferenceRegistrationController extends Controller
                         $q->where('society_id', $society_id);
                     },
                 ]);
-            },
+            },  
             'conference',
             'accompanyPersons',
             'addons',
@@ -83,6 +83,7 @@ class ConferenceRegistrationController extends Controller
         if ($request->filled('registrant_type')) {
             $query->where('registrant_type', $request->registrant_type);
         }
+
         if ($request->filled('meal_type')) {
             $query->where('meal_type', $request->meal_type);
         }
@@ -128,19 +129,19 @@ class ConferenceRegistrationController extends Controller
         $dummyRegistrants = $registrants->whereNull('user_id');
         $realRegistrants = $registrants->whereNotNull('user_id');
 
-        // Sort real registrants alphabetically by user's full name
+        // Sort real registrants alphabetically by user's full name in ascending order
         $realRegistrants = $realRegistrants->sortBy(function ($registrant) {
             return strtolower($registrant->user->f_name.' '.$registrant->user->l_name);
-        });
+        })->values();
 
         // Merge: real registrants first (alphabetically), then dummy registrants
-        $registrants = $realRegistrants->merge($dummyRegistrants);
+        $registrants = $realRegistrants->merge($dummyRegistrants)->values();
 
         return view('backend.conference.conference-registration.registrant', [
             'registrants' => $registrants,
             'conference' => $conference,
             'society' => $society,
-            'filters' => $request->only(['registrant_type', 'is_invited', 'payment_type', 'from', 'to']),
+            'filters' => $request->only(['registrant_type', 'prefix', 'is_invited', 'payment_type', 'from', 'to', 'country_id', 'member_type_id']),
         ]);
     }
 
@@ -1355,11 +1356,30 @@ class ConferenceRegistrationController extends Controller
             });
         }
 
+        if ($request->filled('prefix')) {
+            $query->whereHas('user.userDetail', function ($q) use ($request) {
+                $q->where('name_prefix_id', $request->prefix);
+            });
+        }
+
         if ($request->filled('to')) {
             $query->whereDate('created_at', '<=', $request->to);
         }
 
-        $registrants = $query->latest()->get(); 
+        // Get all registrants
+        $registrants = $query->get();
+
+        // Separate dummy and real registrants
+        $dummyRegistrants = $registrants->whereNull('user_id');
+        $realRegistrants = $registrants->whereNotNull('user_id');
+
+        // Sort real registrants alphabetically by user's full name in ascending order
+        $realRegistrants = $realRegistrants->sortBy(function ($registrant) {
+            return strtolower($registrant->user->f_name.' '.$registrant->user->l_name);
+        })->values();
+
+        // Merge: real registrants first (alphabetically), then dummy registrants
+        $registrants = $realRegistrants->merge($dummyRegistrants)->values();
 
         return Excel::download(new ConferenceRegistrationExport($registrants), 'conferenceRegistration.xlsx');
     }
@@ -1404,11 +1424,30 @@ class ConferenceRegistrationController extends Controller
             });
         }
 
+        if ($request->filled('prefix')) {
+            $query->whereHas('user.userDetail', function ($q) use ($request) {
+                $q->where('name_prefix_id', $request->prefix);
+            });
+        }
+
         if ($request->filled('to')) {
             $query->whereDate('created_at', '<=', $request->to);
         }
 
+        // Get all registrants
         $registrants = $query->get();
+
+        // Separate dummy and real registrants
+        $dummyRegistrants = $registrants->whereNull('user_id');
+        $realRegistrants = $registrants->whereNotNull('user_id');
+
+        // Sort real registrants alphabetically by user's full name in ascending order
+        $realRegistrants = $realRegistrants->sortBy(function ($registrant) {
+            return strtolower($registrant->user->f_name.' '.$registrant->user->l_name);
+        })->values();
+
+        // Merge: real registrants first (alphabetically), then dummy registrants
+        $registrants = $realRegistrants->merge($dummyRegistrants)->values();
 
         $passSetting = PassSetting::where(['conference_id' => $conference->id, 'status' => 1])->first();
 
