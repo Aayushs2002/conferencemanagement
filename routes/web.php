@@ -11,6 +11,7 @@ use App\Http\Controllers\Backend\Cms\WhyChooseUsController;
 use App\Http\Controllers\Backend\Contact\ContactController as ContactContactController;
 use App\Http\Controllers\Backend\Dashboard\DashboardController;
 use App\Http\Controllers\Backend\Setting\SecurityController;
+use App\Http\Controllers\Backend\User\ConferenceUserPassDesignationController;
 use App\Http\Controllers\Backend\User\UserController;
 use App\Http\Controllers\Backend\UserManagement\PermissionController;
 use App\Http\Controllers\CommonController;
@@ -83,6 +84,10 @@ Route::middleware('auth')->group(function () {
     Route::delete('user/delete/{user}', [UserController::class, 'destroy'])->name('user.destroy');
     Route::post('user/join-society', [UserController::class, 'joinSociety'])->name('user.join-society');
     Route::post('user/join-society-submit', [UserController::class, 'joinSocietySubmit'])->name('user.joinSocietySubmit');
+
+    // Conference User Pass Designation Routes
+    Route::delete('conference-user-pass-designation/delete-all', [ConferenceUserPassDesignationController::class, 'deleteAll'])->name('conference-user-pass-designation.delete-all');
+    Route::get('conference-user-pass-designation/delete-all', [ConferenceUserPassDesignationController::class, 'deleteAll'])->name('conference-user-pass-designation.delete-all.get');
 
     Route::get('/setting/security', [SecurityController::class, 'index'])->name('security.index');
     Route::get('/society/{society}/setting/security', [SecurityController::class, 'index'])->name('security.index.society');
