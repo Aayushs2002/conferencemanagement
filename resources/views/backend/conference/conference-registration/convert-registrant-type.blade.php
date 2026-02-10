@@ -3,7 +3,7 @@
     <div class="">
         <h5 class=" mb-4 " style="background: white;">Convert Registrant Type <span class="text-danger">(Registrant
                 Name:
-                {{ $registration->user->fullName($registration->user) }})</span></h5>
+                {{ $registration->user?->fullName($registration->user) }})</span></h5>
         <form id="verifyForm">
             @csrf
             <div class="row">
