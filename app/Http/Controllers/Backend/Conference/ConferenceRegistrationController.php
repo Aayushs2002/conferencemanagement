@@ -81,7 +81,20 @@ class ConferenceRegistrationController extends Controller
             ->where('status', 1);
 
         if ($request->filled('registrant_type')) {
-            $query->where('registrant_type', $request->registrant_type);
+            // If filtering for Organizers (type 5), include committee members too since they get ORG_ IDs
+            if ($request->registrant_type == 5) {
+                $committeeMemberUserIds = \App\Models\Committee\CommitteeMember::where('conference_id', $conference->id)
+                    ->where('status', 1)
+                    ->pluck('user_id')
+                    ->toArray();
+                
+                $query->where(function($q) use ($request, $committeeMemberUserIds) {
+                    $q->where('registrant_type', $request->registrant_type)
+                      ->orWhereIn('user_id', $committeeMemberUserIds);
+                });
+            } else {
+                $query->where('registrant_type', $request->registrant_type);
+            }
         }
 
         if ($request->filled('meal_type')) {
@@ -1336,7 +1349,20 @@ class ConferenceRegistrationController extends Controller
             ->where('status', 1);
 
         if ($request->filled('registrant_type')) {
-            $query->where('registrant_type', $request->registrant_type);
+            // If filtering for Organizers (type 5), include committee members too since they get ORG_ IDs
+            if ($request->registrant_type == 5) {
+                $committeeMemberUserIds = \App\Models\Committee\CommitteeMember::where('conference_id', $conference->id)
+                    ->where('status', 1)
+                    ->pluck('user_id')
+                    ->toArray();
+                
+                $query->where(function($q) use ($request, $committeeMemberUserIds) {
+                    $q->where('registrant_type', $request->registrant_type)
+                      ->orWhereIn('user_id', $committeeMemberUserIds);
+                });
+            } else {
+                $query->where('registrant_type', $request->registrant_type);
+            }
         }
 
         if ($request->filled('is_invited')) {
@@ -1405,7 +1431,20 @@ class ConferenceRegistrationController extends Controller
             ->where('status', 1);
 
         if ($request->filled('registrant_type')) {
-            $query->where('registrant_type', $request->registrant_type);
+            // If filtering for Organizers (type 5), include committee members too since they get ORG_ IDs
+            if ($request->registrant_type == 5) {
+                $committeeMemberUserIds = \App\Models\Committee\CommitteeMember::where('conference_id', $conference->id)
+                    ->where('status', 1)
+                    ->pluck('user_id')
+                    ->toArray();
+                
+                $query->where(function($q) use ($request, $committeeMemberUserIds) {
+                    $q->where('registrant_type', $request->registrant_type)
+                      ->orWhereIn('user_id', $committeeMemberUserIds);
+                });
+            } else {
+                $query->where('registrant_type', $request->registrant_type);
+            }
         }
 
         if ($request->filled('is_invited')) {
