@@ -1359,7 +1359,7 @@ class ConferenceRegistrationController extends Controller
             $query->whereDate('created_at', '<=', $request->to);
         }
 
-        $registrants = $query->latest()->get();
+        $registrants = $query->latest()->get(); 
 
         return Excel::download(new ConferenceRegistrationExport($registrants), 'conferenceRegistration.xlsx');
     }
@@ -1379,7 +1379,7 @@ class ConferenceRegistrationController extends Controller
             },
             'user.userDetail',
         ])
-            ->where('conference_id', $conference->id)
+            ->where('conference_id', $conference->id) 
             ->where('status', 1);
 
         if ($request->filled('registrant_type')) {
@@ -1408,7 +1408,7 @@ class ConferenceRegistrationController extends Controller
             $query->whereDate('created_at', '<=', $request->to);
         }
 
-        $registrants = $query->latest()->get();
+        $registrants = $query->get();
 
         $passSetting = PassSetting::where(['conference_id' => $conference->id, 'status' => 1])->first();
 
@@ -1829,7 +1829,7 @@ class ConferenceRegistrationController extends Controller
                     'dinner_taken' => $isDinner ? 1 : 0,
                 ];
 
-                Meal::create($mealData);
+                Meal::create($mealData); 
                 $remaining = $participant->total_attendee - 1;
             } else {
                 // Update existing record
@@ -2072,7 +2072,7 @@ class ConferenceRegistrationController extends Controller
             // Increase limits for large datasets
             ini_set('memory_limit', '1024M');
             ini_set('max_execution_time', '600');
-            set_time_limit(600);
+            set_time_limit(600); 
 
             $stats = ConferenceRegistration::updateRegistrationIds($conference->id);
 

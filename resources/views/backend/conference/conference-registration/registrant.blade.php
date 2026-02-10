@@ -187,7 +187,7 @@
                                           style="display: inline;">
                                         @csrf
                                         <button type="button" 
-                                                class="dropdown-item" 
+                                                class="dropdown-item"  
                                                 onclick="confirmUpdateRegistrationIds()">
                                             <i class="ti tabler-refresh me-2"></i> Update Registration IDs
                                         </button>

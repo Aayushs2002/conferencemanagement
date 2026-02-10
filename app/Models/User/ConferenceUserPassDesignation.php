@@ -13,4 +13,4 @@ class ConferenceUserPassDesignation extends Model
         'color',
     ];
 }
- 
+  
