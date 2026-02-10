@@ -180,17 +180,17 @@
 
                     <div
                         style="background-color:{{ $participant->designation_color ?? '#e31e26' }}; height:auto; float:left; width:100%; overflow:hidden;">
-                        @if (strlen($participant->designation) > 21)
+                        {{-- @if (strlen($participant->designation) > 21)
                             <h1
                                 style="color:#fff;  font-size: 37px; padding:0px 30px 8px; margin:0px; weight:bold; text-align:center;">
                                 {{ $participant->designation }}
                             </h1>
-                        @else
+                        @else --}}
                             <h1
                                 style="color:#fff;  font-size: 40px; padding:0px 30px 8px; margin:0px; weight:bold; text-align:center;">
                                 {{ $participant->designation }}
                             </h1>
-                        @endif
+                        {{-- @endif --}}
                     </div>
                     <div style="width:92%; font-size:15px; padding:12px 25px; color:#fff; float:left;">
                         <p style="text-align:center; text-shadow:1px 1px 1px #000; "><b>Hosted by:</b><br />
