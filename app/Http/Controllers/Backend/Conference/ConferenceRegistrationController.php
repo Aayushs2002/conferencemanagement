@@ -129,13 +129,13 @@ class ConferenceRegistrationController extends Controller
         $dummyRegistrants = $registrants->whereNull('user_id');
         $realRegistrants = $registrants->whereNotNull('user_id');
 
-        // Sort real registrants by registration_id for serial ordering
+        // Sort real registrants alphabetically by user's full name in ascending order
         $realRegistrants = $realRegistrants->sortBy(function ($registrant) {
-            // Convert registration_id to integer for proper numeric sorting
-            return (int) $registrant->registration_id;
+            $middleName = !empty($registrant->user->m_name) ? ' ' . $registrant->user->m_name : '';
+            return strtolower($registrant->user->f_name . $middleName . ' ' . $registrant->user->l_name);
         })->values();
 
-        // Merge: real registrants first (serially by registration_id), then dummy registrants
+        // Merge: real registrants first (alphabetically), then dummy registrants
         $registrants = $realRegistrants->merge($dummyRegistrants)->values();
 
         return view('backend.conference.conference-registration.registrant', [
@@ -1374,13 +1374,13 @@ class ConferenceRegistrationController extends Controller
         $dummyRegistrants = $registrants->whereNull('user_id');
         $realRegistrants = $registrants->whereNotNull('user_id');
 
-        // Sort real registrants by registration_id for serial ordering
+        // Sort real registrants alphabetically by user's full name in ascending order
         $realRegistrants = $realRegistrants->sortBy(function ($registrant) {
-            // Convert registration_id to integer for proper numeric sorting
-            return (int) $registrant->registration_id;
+            $middleName = !empty($registrant->user->m_name) ? ' ' . $registrant->user->m_name : '';
+            return strtolower($registrant->user->f_name . $middleName . ' ' . $registrant->user->l_name);
         })->values();
 
-        // Merge: real registrants first (serially by registration_id), then dummy registrants
+        // Merge: real registrants first (alphabetically), then dummy registrants
         $registrants = $realRegistrants->merge($dummyRegistrants)->values();
 
         return Excel::download(new ConferenceRegistrationExport($registrants), 'conferenceRegistration.xlsx');
@@ -1443,13 +1443,13 @@ class ConferenceRegistrationController extends Controller
         $dummyRegistrants = $registrants->whereNull('user_id');
         $realRegistrants = $registrants->whereNotNull('user_id');
 
-        // Sort real registrants by registration_id for serial ordering
+        // Sort real registrants alphabetically by user's full name in ascending order
         $realRegistrants = $realRegistrants->sortBy(function ($registrant) {
-            // Convert registration_id to integer for proper numeric sorting
-            return (int) $registrant->registration_id;
+            $middleName = !empty($registrant->user->m_name) ? ' ' . $registrant->user->m_name : '';
+            return strtolower($registrant->user->f_name . $middleName . ' ' . $registrant->user->l_name);
         })->values(); 
 
-        // Merge: real registrants first (serially by registration_id), then dummy registrants
+        // Merge: real registrants first (alphabetically), then dummy registrants
         $registrants = $realRegistrants->merge($dummyRegistrants)->values();
 
         $passSetting = PassSetting::where(['conference_id' => $conference->id, 'status' => 1])->first();
