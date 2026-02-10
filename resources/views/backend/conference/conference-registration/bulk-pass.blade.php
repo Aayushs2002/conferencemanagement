@@ -171,25 +171,31 @@
                             style="padding:5px; font-size:10px; border-radius:5px; height:110px; width:100px; margin:10px auto 5px; overflow:hidden; background:#fff;">
                             {!! QrCode::size(100)->generate(config('app.url') . '/participant/profile/' . $participant->token) !!}
                             <br />Serial No: {{ $participant->registration_id ?? 'N/A' }}
- 
+
                         </div>
 
- 
+
 
                     </div>
 
                     <div
                         style="background-color:{{ $participant->designation_color ?? '#e31e26' }}; height:auto; float:left; width:100%; overflow:hidden;">
-                        <h1
-                            style="color:#fff;  font-size:40px; padding:0px 30px 8px; margin:0px; weight:bold; text-align:center;">
-                            {{ $participant->designation }}
-                        </h1>
-                    </div> 
+                        @if (strlen($participant->designation) > 21)
+                            <h1
+                                style="color:#fff;  font-size: 37px; padding:0px 30px 8px; margin:0px; weight:bold; text-align:center;">
+                                {{ $participant->designation }}
+                            </h1>
+                        @else
+                            <h1
+                                style="color:#fff;  font-size: 40px; padding:0px 30px 8px; margin:0px; weight:bold; text-align:center;">
+                                {{ $participant->designation }}
+                            </h1>
+                        @endif
+                    </div>
                     <div style="width:92%; font-size:15px; padding:12px 25px; color:#fff; float:left;">
                         <p style="text-align:center; text-shadow:1px 1px 1px #000; "><b>Hosted by:</b><br />
-                             {{ $conference->society->users->where('type', 2)->value('f_name') }}
-                            (<span
-                                style="text-transform:uppercase;">{{ $conference->society->abbreviation }}</span>)
+                            {{ $conference->society->users->where('type', 2)->value('f_name') }}
+                            (<span style="text-transform:uppercase;">{{ $conference->society->abbreviation }}</span>)
                         </p>
                         <p
                             style="text-align:right; margin:10px 0px 12px 0px; color:#fff; text-shadow:1px 1px 1px #000; font-weight:bold; font-size:14px;">

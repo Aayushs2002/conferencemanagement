@@ -679,7 +679,7 @@
 </head>
 
 <body>
-    @if (Auth::check() && (current_user()->type == 1 || current_user()->type == 2))
+    @if (Auth::check() && (current_user()->type == 1 || current_user()->type == 2 || auth()->user()->hasConferencePermissionBlade($conference, 'View Pass Setting')))
         <div class="floating-particles">
             <div class="particle"></div>
             <div class="particle"></div>
