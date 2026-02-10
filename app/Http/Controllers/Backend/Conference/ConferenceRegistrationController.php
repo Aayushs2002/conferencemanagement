@@ -131,7 +131,7 @@ class ConferenceRegistrationController extends Controller
 
         // Sort real registrants alphabetically by user's full name in ascending order
         $realRegistrants = $realRegistrants->sortBy(function ($registrant) {
-            return strtolower($registrant->user->f_name.' '.$registrant->user->l_name);
+            return strtolower($registrant->user->f_name.' '.$registrant->user->m_name.' '.$registrant->user->l_name);
         })->values();
 
         // Merge: real registrants first (alphabetically), then dummy registrants
@@ -1375,7 +1375,7 @@ class ConferenceRegistrationController extends Controller
 
         // Sort real registrants alphabetically by user's full name in ascending order
         $realRegistrants = $realRegistrants->sortBy(function ($registrant) {
-            return strtolower($registrant->user->f_name.' '.$registrant->user->l_name);
+            return strtolower($registrant->user->f_name.' '.$registrant->user->m_name.' '.$registrant->user->l_name);
         })->values();
 
         // Merge: real registrants first (alphabetically), then dummy registrants
@@ -1397,7 +1397,7 @@ class ConferenceRegistrationController extends Controller
             'user.societies' => function ($query) use ($society_id) {
                 $query->where('society_id', $society_id);
             },
-            'user.userDetail',
+            'user.userDetail', 
         ])
             ->where('conference_id', $conference->id) 
             ->where('status', 1);
@@ -1433,7 +1433,7 @@ class ConferenceRegistrationController extends Controller
         if ($request->filled('to')) {
             $query->whereDate('created_at', '<=', $request->to);
         }
-
+ 
         // Get all registrants
         $registrants = $query->get();
 
@@ -1443,8 +1443,8 @@ class ConferenceRegistrationController extends Controller
 
         // Sort real registrants alphabetically by user's full name in ascending order
         $realRegistrants = $realRegistrants->sortBy(function ($registrant) {
-            return strtolower($registrant->user->f_name.' '.$registrant->user->l_name);
-        })->values();
+            return strtolower($registrant->user->f_name.' '.$registrant->user->m_name.' '.$registrant->user->l_name);
+        })->values(); 
 
         // Merge: real registrants first (alphabetically), then dummy registrants
         $registrants = $realRegistrants->merge($dummyRegistrants)->values();

@@ -40,6 +40,7 @@ class ConferenceRegistrationExport implements FromCollection, WithHeadings, Shou
                 'councilNumber' => $registrant->user?->userDetail->council_number ?? '-',
                 'totalAttendee' => $registrant->total_attendee,
                 'country' => $registrant->user?->userDetail->country->country_name ?? '-',
+                'registration_id' => $registrant->registration_id, // Add registrant ID for reference
             ];
         }
         return collect($arrayData);
@@ -47,6 +48,6 @@ class ConferenceRegistrationExport implements FromCollection, WithHeadings, Shou
 
     public function headings(): array
     {
-        return ["S.No.", "Name", "Email", "Phone", "Medical Council Number", "No. of People", "Country"];
+        return ["S.No.", "Name", "Email", "Phone", "Medical Council Number", "No. of People", "Country", "Registration ID"];
     }
 }
