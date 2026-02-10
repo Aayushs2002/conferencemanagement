@@ -131,7 +131,7 @@ class ConferenceRegistrationController extends Controller
 
         // Sort real registrants alphabetically by user's full name in ascending order
         $realRegistrants = $realRegistrants->sortBy(function ($registrant) {
-            return strtolower($registrant->user->f_name.' '.$registrant->user->m_name.' '.$registrant->user->l_name);
+            return strtolower($registrant->user->f_name . ' ' . $registrant->user->m_name . ' ' . $registrant->user->l_name);
         })->values();
 
         // Merge: real registrants first (alphabetically), then dummy registrants
@@ -1375,7 +1375,7 @@ class ConferenceRegistrationController extends Controller
 
         // Sort real registrants alphabetically by user's full name in ascending order
         $realRegistrants = $realRegistrants->sortBy(function ($registrant) {
-            return strtolower($registrant->user->f_name.' '.$registrant->user->m_name.' '.$registrant->user->l_name);
+            return strtolower($registrant->user->f_name . ' ' . $registrant->user->m_name . ' ' . $registrant->user->l_name);
         })->values();
 
         // Merge: real registrants first (alphabetically), then dummy registrants
@@ -1443,7 +1443,7 @@ class ConferenceRegistrationController extends Controller
 
         // Sort real registrants alphabetically by user's full name in ascending order
         $realRegistrants = $realRegistrants->sortBy(function ($registrant) {
-            return strtolower($registrant->user->f_name.' '.$registrant->user->m_name.' '.$registrant->user->l_name);
+            return strtolower($registrant->user->f_name . ' ' . $registrant->user->m_name . ' ' . $registrant->user->l_name);
         })->values(); 
 
         // Merge: real registrants first (alphabetically), then dummy registrants

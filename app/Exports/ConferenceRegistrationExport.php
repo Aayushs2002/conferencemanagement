@@ -34,7 +34,7 @@ class ConferenceRegistrationExport implements FromCollection, WithHeadings, Shou
         foreach ($sortedRegistrants as $key => $registrant) {
             $arrayData[] = [
                 'S.No.' => $key + 1,
-                'Name' => $registrant->user?->fullName($registrant->user),
+                'Name' =>  $registrant->user?->fullName($registrant->user),
                 'Email' => $registrant->user?->email ?? '-',
                 'Phone' => $registrant->user?->userDetail->phone ?? '-',
                 'councilNumber' => $registrant->user?->userDetail->council_number ?? '-',
