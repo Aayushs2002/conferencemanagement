@@ -13,7 +13,7 @@ class ConferenceUserPassDesignationController extends Controller
      *
      * @return \Illuminate\Http\RedirectResponse|\Illuminate\Http\JsonResponse
      */
-    public function deleteAll(Request $request)
+    public function deleteAll(Request $request)  
     {
         try {
             // Delete all records

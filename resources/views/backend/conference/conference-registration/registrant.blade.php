@@ -192,7 +192,7 @@
                                             <i class="ti tabler-refresh me-2"></i> Update Registration IDs
                                         </button>
                                     </form>
-                                </li>
+                                </li> 
                             </ul>
                         </div> 
 
