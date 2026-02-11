@@ -297,7 +297,7 @@
                                        class="btn btn-sm btn-success"
                                        {{ $submission->expert_id == current_user()->id ? 'hidden' : '' }}>Authors</a>
 
-                                   @if ($submission->discussions->isNotEmpty())
+                                   @if ($submission->discussions->isNotEmpty() && $submission->request_status === 2)
                                        <span class="mt-1">
                                            <a href="{{ route('my-society.conference.submission.viewDiscussion', [$society, $conference, $submission]) }}"
                                                class="btn btn-sm btn-info">Discussion</a>

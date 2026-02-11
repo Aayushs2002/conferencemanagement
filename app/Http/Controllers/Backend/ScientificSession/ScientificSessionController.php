@@ -10,6 +10,7 @@ use App\Models\Conference\ScientificSessionCategory;
 use App\Models\Conference\Submission;
 use App\Models\User;
 use App\Models\User\Society;
+use App\Services\File\FileService;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
@@ -18,6 +19,8 @@ use Illuminate\Http\Request;
 class ScientificSessionController extends Controller
 {
     use AuthorizesRequests;
+
+    public function __construct(protected FileService $file_service) {}
     /**
      * Display a listing of the resource.
      */
@@ -219,5 +222,77 @@ class ScientificSessionController extends Controller
     public function scheduleSession($society, $conference)
     {
         return view('backend.schedule-plan.scientific-session.schedule-session');
+    }
+
+    /**
+     * Upload PDF file for scientific session schedule
+     */
+    public function uploadPdf(Request $request, $society, $conference)
+    {
+        try {
+            $validated = $request->validate([
+                'pdf_file' => 'required|mimes:pdf|max:10240'
+            ], [
+                'pdf_file.required' => 'Please select a PDF file to upload.',
+                'pdf_file.mimes' => 'Only PDF files are allowed.',
+                'pdf_file.max' => 'File size should not exceed 10MB.'
+            ]);
+
+            // Delete old PDF if exists
+            if ($conference->scientific_session_pdf) {
+                $this->file_service->deleteFile($conference->scientific_session_pdf, 'scientific-session/pdf');
+            }
+
+            // Upload new PDF
+            $pdfFile = $this->file_service->fileUpload($request->file('pdf_file'), 'scientific-session-schedule', 'scientific-session/pdf');
+            
+            $conference->update(['scientific_session_pdf' => $pdfFile]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'PDF uploaded successfully',
+                'pdf_url' => asset('storage/scientific-session/pdf/' . $pdfFile),
+                'pdf_name' => $pdfFile
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+                'errors' => $e->errors()
+            ], 422);
+        } catch (Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error uploading PDF: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Delete PDF file from scientific session schedule
+     */
+    public function deletePdf($society, $conference)
+    {
+        try {
+            if ($conference->scientific_session_pdf) {
+                $this->file_service->deleteFile($conference->scientific_session_pdf, 'scientific-session/pdf');
+                $conference->update(['scientific_session_pdf' => null]);
+
+                return response()->json([
+                    'success' => true,
+                    'message' => 'PDF deleted successfully'
+                ]);
+            }
+
+            return response()->json([
+                'success' => false,
+                'message' => 'No PDF file found'
+            ], 404);
+        } catch (Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error deleting PDF: ' . $e->getMessage()
+            ], 500);
+        }
     }
 }

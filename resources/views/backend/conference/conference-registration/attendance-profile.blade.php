@@ -675,6 +675,58 @@
             margin-bottom: 1.5rem;
             border-left: 4px solid #667eea;
         }
+
+        .pdf-download-section {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
+            border: 2px solid rgba(102, 126, 234, 0.2);
+            border-radius: 20px;
+            padding: 3rem 2rem;
+            transition: all 0.3s ease;
+        }
+
+        .pdf-download-section:hover {
+            border-color: #667eea;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.15);
+            transform: translateY(-3px);
+        }
+
+        .pdf-icon-wrapper {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto;
+            background: var(--primary-gradient);
+            color: white;
+            font-size: 2rem;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+                box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+            }
+            50% {
+                transform: scale(1.05);
+                box-shadow: 0 12px 25px rgba(102, 126, 234, 0.4);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .pdf-download-section {
+                padding: 2rem 1rem;
+            }
+
+            .pdf-icon-wrapper {
+                width: 60px;
+                height: 60px;
+                font-size: 1.5rem;
+            }
+        }
     </style> 
 </head>
 
@@ -1002,9 +1054,35 @@
                         @endforeach
                     </div>
                 @else
-                    <div class="no-polls-message">
-                        <i class="fas fa-calendar-times me-2"></i>No scientific sessions scheduled for today
-                    </div>
+                    @if ($participant->conference && $participant->conference->scientific_session_pdf)
+                        <!-- PDF Download Section -->
+                        <div class="pdf-download-section">
+                            <div class="mb-4">
+                                <div class="pdf-icon-wrapper">
+                                    <i class="fas fa-file-pdf"></i>
+                                </div>
+                            </div>
+                            <h4 class="mb-3" style="color: #667eea; font-weight: 700;">
+                                Scientific Session Schedule Available
+                            </h4>
+                            <p class="text-muted mb-4">
+                                No live sessions scheduled for today. Download the complete scientific session schedule to view all sessions.
+                            </p>
+                            <a href="{{ asset('storage/scientific-session/pdf/' . $participant->conference->scientific_session_pdf) }}" 
+                               target="_blank" 
+                               class="modern-btn" 
+                               style="padding: 1rem 2.5rem; font-size: 1rem; box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);">
+                                <i class="fas fa-download me-2"></i>Download PDF Schedule
+                            </a>
+                            <p class="mt-3" style="font-size: 0.85rem; color: #6c757d;">
+                                <i class="fas fa-info-circle me-1"></i>PDF will open in a new tab
+                            </p>
+                        </div>
+                    @else
+                        <div class="no-polls-message">
+                            <i class="fas fa-calendar-times me-2"></i>No scientific sessions scheduled for today
+                        </div>
+                    @endif
                 @endif
             </div>
         </div>
@@ -1018,7 +1096,7 @@
                 <div class="attendance-required-message">
                     <i class="fas fa-exclamation-circle me-2"></i>
                     Please mark your attendance first to participate in polls
-                </div>
+                </div> 
             @endif
 
             @if ($halls->count() > 0)
@@ -1204,9 +1282,35 @@
                     @endforeach
                 </div>
             @else
-                <div class="no-polls-message">
-                    <i class="fas fa-calendar-times me-2"></i>No scientific sessions scheduled for today
-                </div>
+                @if ($participant->conference && $participant->conference->scientific_session_pdf)
+                    <!-- PDF Download Section -->
+                    <div class="pdf-download-section text-center">
+                        <div class="mb-4">
+                            <div class="pdf-icon-wrapper">
+                                <i class="fas fa-file-pdf"></i>
+                            </div>
+                        </div>
+                        <h4 class="mb-3" style="color: #667eea; font-weight: 700;">
+                            Scientific Session Schedule Available
+                        </h4>
+                        <p class="text-muted mb-4">
+                            No live sessions scheduled for today. Download the complete scientific session schedule to view all sessions.
+                        </p>
+                        <a href="{{ asset('storage/scientific-session/pdf/' . $participant->conference->scientific_session_pdf) }}" 
+                           target="_blank" 
+                           class="modern-btn" 
+                           style="padding: 1rem 2.5rem; font-size: 1rem; box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);">
+                            <i class="fas fa-download me-2"></i>Download PDF Schedule
+                        </a>
+                        <p class="mt-3" style="font-size: 0.85rem; color: #6c757d;">
+                            <i class="fas fa-info-circle me-1"></i>PDF will open in a new tab
+                        </p>
+                    </div>
+                @else
+                    <div class="no-polls-message">
+                        <i class="fas fa-calendar-times me-2"></i>No scientific sessions scheduled for today
+                    </div>
+                @endif
             @endif
         </div>
     @endif

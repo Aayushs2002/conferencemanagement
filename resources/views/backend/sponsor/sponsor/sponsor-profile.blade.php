@@ -474,6 +474,7 @@
         <div class="particle"></div>
         <div class="particle"></div>
     </div>
+    @if (Auth::check() && (current_user()->type == 1 || current_user()->type == 2 || auth()->user()->hasConferencePermissionBlade($sponsor->conference, 'View Pass Setting')))
 
     <div class="main-container">
         <!-- Profile Section -->
@@ -573,6 +574,101 @@
             </div>
         </div>
     </div>
+    @else
+        <!-- Welcome Screen for Non-Authenticated Users -->
+        <div class="main-container" style="max-width: 600px; max-height: none; height: auto;">
+            <div class="content-card" style="border-radius: 24px; padding: 3rem 2rem; text-align: center;">
+                <!-- Welcome Icon -->
+                <div class="mb-4">
+                    <div style="width: 100px; height: 100px; margin: 0 auto; background: var(--primary-gradient); color: white; font-size: 3rem; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3); animation: pulse 2s ease-in-out infinite;">
+                        <i class="fas fa-handshake"></i>
+                    </div>
+                </div>
+
+                <!-- Welcome Message -->
+                <h2 class="mb-3" style="color: #667eea; font-weight: 700; font-size: 2rem;">
+                    Welcome, Sponsor!
+                </h2>
+                <h4 class="mb-4" style="color: #333; font-weight: 600;">
+                    {{ $sponsor->name }}
+                </h4>
+
+                <div class="mb-4" style="background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%); padding: 1.5rem; border-radius: 16px; border-left: 4px solid #667eea;">
+                    <p style="color: #6c757d; margin: 0; font-size: 1rem; line-height: 1.6;">
+                        Thank you for your valuable support! To access attendance tracking and meal services, please contact the conference administrator or scan your QR code at the registration desk.
+                    </p>
+                </div>
+
+                <!-- Sponsor Info Cards -->
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 2rem;">
+                    <div style="background: linear-gradient(135deg, rgba(79, 172, 254, 0.1) 0%, rgba(0, 242, 254, 0.1) 100%); padding: 1.5rem; border-radius: 16px; border: 2px solid rgba(79, 172, 254, 0.2);">
+                        <div style="font-size: 2rem; color: #4facfe; margin-bottom: 0.5rem;">
+                            <i class="fas fa-utensils"></i>
+                        </div>
+                        <div style="font-weight: 600; color: #333; margin-bottom: 0.3rem;">Meals Included</div>
+                        <div style="font-size: 0.85rem; color: #6c757d;">Lunch & Dinner</div>
+                    </div>
+
+                    <div style="background: linear-gradient(135deg, rgba(67, 233, 123, 0.1) 0%, rgba(56, 249, 215, 0.1) 100%); padding: 1.5rem; border-radius: 16px; border: 2px solid rgba(67, 233, 123, 0.2);">
+                        <div style="font-size: 2rem; color: #43e97b; margin-bottom: 0.5rem;">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <div style="font-weight: 600; color: #333; margin-bottom: 0.3rem;">Total Attendees</div>
+                        <div style="font-size: 0.85rem; color: #6c757d;">{{ $sponsor->total_attendee ?? 'N/A' }}</div>
+                    </div>
+                </div>
+
+                <!-- Additional Info -->
+                <div class="mt-4" style="padding: 1rem; background: rgba(248, 249, 250, 0.8); border-radius: 12px;">
+                    <p style="margin: 0; font-size: 0.85rem; color: #6c757d;">
+                        <i class="fas fa-info-circle me-2" style="color: #667eea;"></i>
+                        For assistance, please visit the registration desk or contact conference support.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <style>
+            @keyframes pulse {
+                0%, 100% {
+                    transform: scale(1);
+                    box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+                }
+                50% {
+                    transform: scale(1.05);
+                    box-shadow: 0 15px 35px rgba(102, 126, 234, 0.4);
+                }
+            }
+
+            @media (max-width: 768px) {
+                .main-container {
+                    padding: 1rem;
+                }
+                
+                .content-card {
+                    padding: 2rem 1.5rem !important;
+                }
+
+                .content-card h2 {
+                    font-size: 1.5rem !important;
+                }
+
+                .content-card h4 {
+                    font-size: 1.1rem !important;
+                }
+
+                .content-card > div:first-child > div {
+                    width: 80px !important;
+                    height: 80px !important;
+                    font-size: 2.5rem !important;
+                }
+
+                .content-card > div:nth-child(4) {
+                    grid-template-columns: 1fr !important;
+                }
+            }
+        </style>
+    @endif
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
     <script>

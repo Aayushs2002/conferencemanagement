@@ -27,6 +27,7 @@ class Conference extends Model
         'regular_registration_deadline',
         'early_bird_registration_deadline',
         'conference_description',
+        'scientific_session_pdf',
         'primary_color',
         'secendary_color',
         'tags',

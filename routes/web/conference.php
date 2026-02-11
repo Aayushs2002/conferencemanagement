@@ -224,6 +224,8 @@ Route::middleware('auth')->group(function () {
     Route::prefix('/society/{society}/conference/{conference}')->middleware(['auto.conf.permission', 'feature:scientific-session-management'])->group(function () {
         Route::resource('/scientific-session', ScientificSessionController::class)->except('show');
         Route::get('/schedule-session', [ScientificSessionController::class, 'scheduleSession'])->name('scheduleSession');
+        Route::post('/scientific-session/upload-pdf', [ScientificSessionController::class, 'uploadPdf'])->name('scientific-session.upload-pdf');
+        Route::delete('/scientific-session/delete-pdf', [ScientificSessionController::class, 'deletePdf'])->name('scientific-session.delete-pdf');
     });
     //Scientific Session route ended
 
