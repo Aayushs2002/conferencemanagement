@@ -545,6 +545,84 @@ class SubmissionController extends Controller
         return response()->json(['type' => $type, 'message' => $message]);
     }
 
+    public function bulkUpdateDeadlineForm(Request $request, $society, $conference)
+    {
+        try {
+            $submissionIds = $request->ids;
+            
+            if (empty($submissionIds) || !is_array($submissionIds)) {
+                return response()->json(['type' => 'error', 'message' => 'No submissions selected']);
+            }
+
+            $submissions = Submission::whereIn('id', $submissionIds)
+                ->where('conference_id', $conference->id)
+                ->where('status', 1)
+                ->get();
+
+            if ($submissions->isEmpty()) {
+                return response()->json(['type' => 'error', 'message' => 'No valid submissions found']);
+            }
+
+            return view('backend.submission.submission.bulk-deadline-update-modal', compact('submissions', 'submissionIds', 'society', 'conference'));
+        } catch (Exception $e) {
+            return response()->json(['type' => 'error', 'message' => $e->getMessage()]);
+        }
+    }
+
+    public function bulkUpdateDeadline(Request $request)
+    {
+        try {
+            $type = 'success';
+            $message = 'Review deadlines successfully updated.';
+
+            $validated = $request->validate([
+                'ids' => 'required|json',
+                'review_deadline' => 'required|date|after:now'
+            ]);
+
+            $submissionIds = json_decode($validated['ids'], true);
+            
+            if (empty($submissionIds) || !is_array($submissionIds)) {
+                throw new Exception('Invalid submission IDs');
+            }
+
+            $submissions = Submission::whereIn('id', $submissionIds)
+                ->where('status', 1)
+                ->get();
+
+            if ($submissions->isEmpty()) {
+                throw new Exception('No valid submissions found');
+            }
+
+            DB::beginTransaction();
+
+            $updatedCount = 0;
+            $conferenceId = null;
+
+            foreach ($submissions as $submission) {
+                // Update review deadline
+                $submission->update([
+                    'review_deadline' => $validated['review_deadline']
+                ]);
+
+                $updatedCount++;
+                $conferenceId = $submission->conference_id;
+
+                logActivity($submission->conference_id, 'Bulk Update Review Deadline', 'Review deadline updated to '.$validated['review_deadline'].' for submission: '.$submission->title);
+            }
+
+            DB::commit();
+
+            $message = "Successfully updated review deadline for {$updatedCount} submission(s).";
+        } catch (Exception $e) {
+            $type = 'error';
+            $message = $e->getMessage();
+            DB::rollBack();
+        }
+
+        return response()->json(['type' => $type, 'message' => $message]);
+    }
+
     public function sentToAuthorForm(Request $request, $society, $conference)
     {
         $submission = Submission::whereId($request->id)->first();

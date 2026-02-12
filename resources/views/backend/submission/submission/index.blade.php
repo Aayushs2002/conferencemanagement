@@ -64,7 +64,7 @@
                                 {{ $submissionTrack->title }}</option>
                         @endforeach
                     </select>
-                </div>
+                </div> 
                 <div class="col-md-3 form-group mb-3">
                     <label for="from" class="mb-2">From</label>
                     <input type="date" value="{{ request('from') }}"
@@ -136,6 +136,13 @@
                                 <span class="badge bg-white text-success ms-1" id="selectedCount">0</span>
                             </button>
                         @endif
+                        {{-- @if (auth()->user()->hasConferencePermissionBlade($conference, 'Update Review Deadline')) --}}
+                            <button type="button" class="btn btn-warning" id="bulkDeadlineBtn" style="display: none;">
+                                <i class="icon-base ti tabler-calendar icon-xs me-sm-1"></i>
+                                <span class="d-none d-sm-inline-block">Bulk Update Deadline</span>
+                                <span class="badge bg-white text-warning ms-1" id="selectedDeadlineCount">0</span>
+                            </button>
+                        {{-- @endif --}}
                         @if (auth()->user()->hasConferencePermissionBlade($conference, 'Send Mail'))
                             <a href="" class="btn btn-primary sendMail" data-bs-toggle="modal"
                                 data-bs-target="#pricingModal" tabindex="0">
@@ -278,6 +285,11 @@
                                         <button class="btn btn-sm btn-success expertForward"
                                             data-id="{{ $submission->id }}" data-bs-toggle="modal"
                                             data-bs-target="#pricingModal">Assigned</button>
+                                        <br>
+                                        <small class="text-success">
+                                            <i class="ti tabler-user-check"></i>
+                                            {{ $submission->expert?->fullName($submission->expert) ?? 'Expert' }}
+                                        </small>
                                     @endif
                                 </td>
                             @endif
@@ -652,11 +664,14 @@
             function updateBulkAssignButton() {
                 var selectedCount = Object.keys(selectedSubmissions).length;
                 $('#selectedCount').text(selectedCount);
+                $('#selectedDeadlineCount').text(selectedCount);
                 
                 if (selectedCount > 0) {
                     $('#bulkAssignBtn').fadeIn();
+                    $('#bulkDeadlineBtn').fadeIn();
                 } else {
                     $('#bulkAssignBtn').fadeOut();
+                    $('#bulkDeadlineBtn').fadeOut();
                 }
             }
 
@@ -670,6 +685,41 @@
                 }
 
                 var url = '{{ route('submission.bulkExpertForwardForm', [$society, $conference]) }}';
+                var _token = '{{ csrf_token() }}';
+                
+                $('#modalContent').html(`
+                    <div class="modal-body text-center">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                `);
+                
+                var data = {
+                    _token: _token,
+                    ids: selectedIds,
+                    titles: selectedTitles
+                };
+                
+                $.post(url, data, function(response) {
+                    $('#pricingModal .modal-dialog').removeClass('modal-lg').addClass('modal-xl');
+                    setTimeout(function() {
+                        $('#modalContent').html(response);
+                        $('#pricingModal').modal('show');
+                    }, 500);
+                });
+            });
+
+            $('#bulkDeadlineBtn').on('click', function() {
+                var selectedIds = Object.keys(selectedSubmissions);
+                var selectedTitles = Object.values(selectedSubmissions);
+                
+                if (selectedIds.length === 0) {
+                    notyf.error('Please select at least one submission');
+                    return;
+                }
+
+                var url = '{{ route('submission.bulkUpdateDeadlineForm', [$society, $conference]) }}';
                 var _token = '{{ csrf_token() }}';
                 
                 $('#modalContent').html(`
