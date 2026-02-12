@@ -37,6 +37,8 @@ return [
         'submission.expertForward' => 'Expert Assign',
         'submission.bulkExpertForwardForm' => 'Expert Assign',
         'submission.bulkExpertForward' => 'Expert Assign',
+        // 'submission.bulkUpdateDeadlineForm' => 'Update Review Deadline',
+        // 'submission.bulkUpdateDeadline' => 'Update Review Deadline',
         'submission.sentToAuthorForm' => 'Change Request Status',
         'submission.sentToAuthor' => 'Change Request Status',
         'submission.viewDiscussion' => 'View Discussion',
