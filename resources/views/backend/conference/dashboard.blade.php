@@ -468,7 +468,17 @@
                                                 <i class="icon-base ti tabler-users text-success fs-3"></i>
                                             </div>
                                             <h3 class="fw-bold text-success mb-1" id="attendance-count">0</h3>
-                                            <p class="text-muted mb-0 fw-medium">Attendance</p>
+                                            <p class="text-muted mb-2 fw-medium">Total Attendance</p>
+                                            <div class="d-flex justify-content-around text-center mt-2 pt-2 border-top">
+                                                <div>
+                                                    <small class="text-muted d-block">Registrants</small>
+                                                    <span class="badge bg-success bg-opacity-25 text-success" id="registrant-attendance">0</span>
+                                                </div>
+                                                <div>
+                                                    <small class="text-muted d-block">Sponsors</small>
+                                                    <span class="badge bg-success bg-opacity-25 text-success" id="sponsor-attendance">0</span>
+                                                </div>
+                                            </div>
                                             <!-- Individual loading spinner -->
                                             <div class="position-absolute top-50 start-50 translate-middle d-none"
                                                 id="attendance-loading">
@@ -487,7 +497,17 @@
                                                 <i class="icon-base ti tabler-sun text-warning fs-3"></i>
                                             </div>
                                             <h3 class="fw-bold text-warning mb-1" id="lunch-count">0</h3>
-                                            <p class="text-muted mb-0 fw-medium">Lunch</p>
+                                            <p class="text-muted mb-2 fw-medium">Total Lunch</p>
+                                            <div class="d-flex justify-content-around text-center mt-2 pt-2 border-top">
+                                                <div>
+                                                    <small class="text-muted d-block">Registrants</small>
+                                                    <span class="badge bg-warning bg-opacity-25 text-warning" id="registrant-lunch">0</span>
+                                                </div>
+                                                <div>
+                                                    <small class="text-muted d-block">Sponsors</small>
+                                                    <span class="badge bg-warning bg-opacity-25 text-warning" id="sponsor-lunch">0</span>
+                                                </div>
+                                            </div>
                                             <!-- Individual loading spinner -->
                                             <div class="position-absolute top-50 start-50 translate-middle d-none"
                                                 id="lunch-loading">
@@ -506,7 +526,17 @@
                                                 <i class="icon-base ti tabler-moon text-info fs-3"></i>
                                             </div>
                                             <h3 class="fw-bold text-info mb-1" id="dinner-count">0</h3>
-                                            <p class="text-muted mb-0 fw-medium">Dinner</p>
+                                            <p class="text-muted mb-2 fw-medium">Total Dinner</p>
+                                            <div class="d-flex justify-content-around text-center mt-2 pt-2 border-top">
+                                                <div>
+                                                    <small class="text-muted d-block">Registrants</small>
+                                                    <span class="badge bg-info bg-opacity-25 text-info" id="registrant-dinner">0</span>
+                                                </div>
+                                                <div>
+                                                    <small class="text-muted d-block">Sponsors</small>
+                                                    <span class="badge bg-info bg-opacity-25 text-info" id="sponsor-dinner">0</span>
+                                                </div>
+                                            </div>
                                             <!-- Individual loading spinner -->
                                             <div class="position-absolute top-50 start-50 translate-middle d-none"
                                                 id="dinner-loading">
@@ -685,7 +715,7 @@
                                         <h5 class="fw-bold text-dark mb-0">My Activity Overview</h5>
                                     </div>
                                     <p class="text-muted small mb-0 ms-5 ps-3">Your participation summary</p>
-                                </div>
+                                </div> 
                                 @php
                                     $totalActivities = (checkRegistrations($conference) ? 1 : 0) + $submissionCount + (feature_enabled('workshop-management', getSociety(request()->segment(2))) ? $workshopRegistrationCount : 0) + $reviewAssignmentCount;
                                 @endphp
@@ -1283,6 +1313,14 @@
                     animateNumber(document.getElementById('attendance-count'), data.attendance_count ?? 0);
                     animateNumber(document.getElementById('lunch-count'), data.lunch_count ?? 0);
                     animateNumber(document.getElementById('dinner-count'), data.dinner_count ?? 0);
+                    
+                    // Update breakdown for registrants and sponsors
+                    document.getElementById('registrant-attendance').textContent = data.registrant_attendance_count ?? 0;
+                    document.getElementById('sponsor-attendance').textContent = data.sponsor_attendance_count ?? 0;
+                    document.getElementById('registrant-lunch').textContent = data.registrant_lunch_count ?? 0;
+                    document.getElementById('sponsor-lunch').textContent = data.sponsor_lunch_count ?? 0;
+                    document.getElementById('registrant-dinner').textContent = data.registrant_dinner_count ?? 0;
+                    document.getElementById('sponsor-dinner').textContent = data.sponsor_dinner_count ?? 0;
                 })
                 .catch(error => {
                     console.error('Error loading data:', error);
@@ -1317,6 +1355,15 @@
                                     data.lunch_count ?? 0);
                                 animateNumber(document.getElementById('dinner-count'),
                                     data.dinner_count ?? 0);
+                                
+                                // Update breakdown for registrants and sponsors
+                                document.getElementById('registrant-attendance').textContent = data.registrant_attendance_count ?? 0;
+                                document.getElementById('sponsor-attendance').textContent = data.sponsor_attendance_count ?? 0;
+                                document.getElementById('registrant-lunch').textContent = data.registrant_lunch_count ?? 0;
+                                document.getElementById('sponsor-lunch').textContent = data.sponsor_lunch_count ?? 0;
+                                document.getElementById('registrant-dinner').textContent = data.registrant_dinner_count ?? 0;
+                                document.getElementById('sponsor-dinner').textContent = data.sponsor_dinner_count ?? 0;
+                                
                                 updateFilterButtonText(selectedText);
                             })
                             .catch(error => {

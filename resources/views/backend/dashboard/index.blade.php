@@ -383,7 +383,7 @@
                     </div>
                 `);
                 var data = {
-                    _token: _token,
+                    _token: _token,     
                 };
                 $.post(url, data, function(response) {
                     setTimeout(function() {
