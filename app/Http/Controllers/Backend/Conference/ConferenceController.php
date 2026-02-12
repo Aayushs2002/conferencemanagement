@@ -331,6 +331,19 @@ class ConferenceController extends Controller
             ->where('conference_registrations.conference_id', $conferenceId)
             ->first();
 
+        // Get sponsor attendance and meal data
+        $sponsorData = DB::table('sponsors')
+            ->leftJoin('sponsor_attendances', 'sponsors.id', '=', 'sponsor_attendances.sponsor_id')
+            ->leftJoin('sponsor_meals', 'sponsors.id', '=', 'sponsor_meals.sponsor_id')
+            ->select(
+                DB::raw('COUNT(DISTINCT sponsor_attendances.id) as sponsor_attendance_count'),
+                DB::raw('COALESCE(SUM(sponsor_meals.lunch_taken), 0) as sponsor_lunch_count'),
+                DB::raw('COALESCE(SUM(sponsor_meals.dinner_taken), 0) as sponsor_dinner_count')
+            )
+            ->where('sponsors.conference_id', $conferenceId)
+            ->where('sponsors.status', 1)
+            ->first();
+
         $startDate = Carbon::parse($conference->start_date);
         $endDate = Carbon::parse($conference->end_date);
 
@@ -381,7 +394,7 @@ class ConferenceController extends Controller
                 ->get();
         }
 
-        return view('backend.conference.dashboard', compact('conferenceRegistrationCount', 'totalNationalRegistrants', 'totalInternationalRegistrants', 'mealCounts', 'conference', 'society', 'data', 'dates', 'workshops', 'workshopMealCounts', 'submissionCount', 'workshopRegistrationCount', 'submissionCategoryMajorTracks', 'addonStats', 'totalAddons', 'totalAccompanyingPersons', 'userAddons', 'userAccompanyingPersons', 'reviewAssignmentCount'));
+        return view('backend.conference.dashboard', compact('conferenceRegistrationCount', 'totalNationalRegistrants', 'totalInternationalRegistrants', 'mealCounts', 'conference', 'society', 'data', 'sponsorData', 'dates', 'workshops', 'workshopMealCounts', 'submissionCount', 'workshopRegistrationCount', 'submissionCategoryMajorTracks', 'addonStats', 'totalAddons', 'totalAccompanyingPersons', 'userAddons', 'userAccompanyingPersons', 'reviewAssignmentCount'));
     }
 
     public function submissionsChart(Request $request, $society, $conference)
@@ -448,6 +461,7 @@ class ConferenceController extends Controller
         $conferenceId = $request->conference_id;
         $date = $request->date;
 
+        // Query for conference registrations
         $query = DB::table('conference_registrations')
             ->leftJoin('attendances', 'conference_registrations.id', '=', 'attendances.conference_registration_id')
             ->leftJoin('meals', 'conference_registrations.id', '=', 'meals.conference_registration_id')
@@ -465,11 +479,41 @@ class ConferenceController extends Controller
             DB::raw('COALESCE(SUM(meals.dinner_taken), 0) as dinner_count')
         )->first();
 
-        // Return zeros if null
+        // Query for sponsor data
+        $sponsorQuery = DB::table('sponsors')
+            ->leftJoin('sponsor_attendances', 'sponsors.id', '=', 'sponsor_attendances.sponsor_id')
+            ->leftJoin('sponsor_meals', 'sponsors.id', '=', 'sponsor_meals.sponsor_id')
+            ->where('sponsors.conference_id', $conferenceId)
+            ->where('sponsors.status', 1);
+
+        // Filter by date if not 'all'
+        if ($date && $date !== 'all') {
+            $sponsorQuery->whereDate('sponsor_attendances.created_at', $date)
+                ->whereDate('sponsor_meals.created_at', $date);
+        }
+
+        $sponsorData = $sponsorQuery->select(
+            DB::raw('COUNT(DISTINCT sponsor_attendances.id) as sponsor_attendance_count'),
+            DB::raw('COALESCE(SUM(sponsor_meals.lunch_taken), 0) as sponsor_lunch_count'),
+            DB::raw('COALESCE(SUM(sponsor_meals.dinner_taken), 0) as sponsor_dinner_count')
+        )->first();
+
+        // Combine conference registrants and sponsors counts
+        $totalAttendance = ($data->attendance_count ?? 0) + ($sponsorData->sponsor_attendance_count ?? 0);
+        $totalLunch = ($data->lunch_count ?? 0) + ($sponsorData->sponsor_lunch_count ?? 0);
+        $totalDinner = ($data->dinner_count ?? 0) + ($sponsorData->sponsor_dinner_count ?? 0);
+
+        // Return combined totals with breakdown
         return response()->json([
-            'attendance_count' => $data->attendance_count ?? 0,
-            'lunch_count' => $data->lunch_count ?? 0,
-            'dinner_count' => $data->dinner_count ?? 0,
+            'attendance_count' => $totalAttendance, 
+            'lunch_count' => $totalLunch,
+            'dinner_count' => $totalDinner,
+            'registrant_attendance_count' => $data->attendance_count ?? 0,
+            'registrant_lunch_count' => $data->lunch_count ?? 0,
+            'registrant_dinner_count' => $data->dinner_count ?? 0,
+            'sponsor_attendance_count' => $sponsorData->sponsor_attendance_count ?? 0,
+            'sponsor_lunch_count' => $sponsorData->sponsor_lunch_count ?? 0,
+            'sponsor_dinner_count' => $sponsorData->sponsor_dinner_count ?? 0,
         ]);
     }
 
