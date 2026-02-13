@@ -462,16 +462,24 @@ class ConferenceController extends Controller
         $date = $request->date;
 
         // Query for conference registrations
-        $query = DB::table('conference_registrations')
-            ->leftJoin('attendances', 'conference_registrations.id', '=', 'attendances.conference_registration_id')
-            ->leftJoin('meals', 'conference_registrations.id', '=', 'meals.conference_registration_id')
-            ->where('conference_registrations.conference_id', $conferenceId);
-
+        $query = DB::table('conference_registrations');
+        
         // Filter by date if not 'all'
         if ($date && $date !== 'all') {
-            $query->whereDate('attendances.created_at', $date)
-                ->whereDate('meals.created_at', $date);
+            $query->leftJoin('attendances', function($join) use ($date) {
+                $join->on('conference_registrations.id', '=', 'attendances.conference_registration_id')
+                     ->whereDate('attendances.created_at', '=', $date);
+            })
+            ->leftJoin('meals', function($join) use ($date) {
+                $join->on('conference_registrations.id', '=', 'meals.conference_registration_id')
+                     ->whereDate('meals.created_at', '=', $date);
+            });
+        } else {
+            $query->leftJoin('attendances', 'conference_registrations.id', '=', 'attendances.conference_registration_id')
+                  ->leftJoin('meals', 'conference_registrations.id', '=', 'meals.conference_registration_id');
         }
+        
+        $query->where('conference_registrations.conference_id', $conferenceId);
 
         $data = $query->select(
             DB::raw('COUNT(DISTINCT attendances.id) as attendance_count'),
@@ -480,17 +488,25 @@ class ConferenceController extends Controller
         )->first();
 
         // Query for sponsor data
-        $sponsorQuery = DB::table('sponsors')
-            ->leftJoin('sponsor_attendances', 'sponsors.id', '=', 'sponsor_attendances.sponsor_id')
-            ->leftJoin('sponsor_meals', 'sponsors.id', '=', 'sponsor_meals.sponsor_id')
-            ->where('sponsors.conference_id', $conferenceId)
-            ->where('sponsors.status', 1);
-
+        $sponsorQuery = DB::table('sponsors');
+        
         // Filter by date if not 'all'
         if ($date && $date !== 'all') {
-            $sponsorQuery->whereDate('sponsor_attendances.created_at', $date)
-                ->whereDate('sponsor_meals.created_at', $date);
+            $sponsorQuery->leftJoin('sponsor_attendances', function($join) use ($date) {
+                $join->on('sponsors.id', '=', 'sponsor_attendances.sponsor_id')
+                     ->whereDate('sponsor_attendances.created_at', '=', $date);
+            })
+            ->leftJoin('sponsor_meals', function($join) use ($date) {
+                $join->on('sponsors.id', '=', 'sponsor_meals.sponsor_id')
+                     ->whereDate('sponsor_meals.created_at', '=', $date);
+            });
+        } else {
+            $sponsorQuery->leftJoin('sponsor_attendances', 'sponsors.id', '=', 'sponsor_attendances.sponsor_id')
+                         ->leftJoin('sponsor_meals', 'sponsors.id', '=', 'sponsor_meals.sponsor_id');
         }
+        
+        $sponsorQuery->where('sponsors.conference_id', $conferenceId)
+                     ->where('sponsors.status', 1);
 
         $sponsorData = $sponsorQuery->select(
             DB::raw('COUNT(DISTINCT sponsor_attendances.id) as sponsor_attendance_count'),

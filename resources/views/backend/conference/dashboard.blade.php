@@ -427,7 +427,7 @@
                                                     data-date="{{ $date }}">
                                                     <i class="icon-base ti tabler-calendar-event me-2"></i>
                                                     Day {{ $loop->iteration }}
-                                                </a>
+                                                </a> 
                                             </li>
                                         @endforeach
                                         <li>
@@ -651,7 +651,7 @@
                             </a>
                         </div>
                     </div>
-                </div>
+                </div> 
 
                 <!-- Workshop Registration Card -->
                 @if (feature_enabled('workshop-management', getSociety(request()->segment(2))))
