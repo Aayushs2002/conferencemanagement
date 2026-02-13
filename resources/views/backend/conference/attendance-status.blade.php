@@ -18,7 +18,7 @@
                         <th scope="col">Meal</th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody> 
                     @foreach ($registrants as $registrant)
                         <tr>
                             <th scope="row">{{ $loop->iteration }}</th>
@@ -30,7 +30,7 @@
                             <td>
                                 <ul>
                                     @foreach ($registrant->attendences as $attendance)
-                                        <li>{{ Carbon\Carbon::parse($attendance->created_at)->format('d M') }}
+                                        <li>{{ Carbon\Carbon::parse($attendance->created_at)->format('d M, h:i A') }}
                                         </li>
                                     @endforeach
                                 </ul>
@@ -50,7 +50,7 @@
                                         $totalDinner += $meal->dinner_taken; 
                                     @endphp
 
-                                    <li>{{ \Carbon\Carbon::parse($meal->created_at)->format('d M') }}</li>
+                                    <li>{{ \Carbon\Carbon::parse($meal->created_at)->format('d M, h:i A') }}</li>
                                     <ul style="margin-left: 1rem">
                                         <li>Lunch: {{ $meal->lunch_taken > 0 ? 'Taken' : 'Not Taken' }} (Remaining:
                                             {{ $remainingLunch }})</li>

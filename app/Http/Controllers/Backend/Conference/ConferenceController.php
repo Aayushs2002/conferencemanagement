@@ -425,10 +425,21 @@ class ConferenceController extends Controller
                 'CR.status',
                 'CR.conference_id',
                 'CR.total_attendee',
-                'CR.verified_status', 
+                'CR.verified_status',
+                'CR.registrant_type',
+                'CR.attend_type',
+                'CR.meal_type',
+                'CR.registration_id',
+                'CR.created_at as registration_date',
                 'U.f_name',
                 'U.m_name',
-                'U.l_name'
+                'U.l_name',
+                'U.email',
+                'UD.phone',
+                'UD.country_id',
+                'UD.institution_id',
+                'C.name as country_name',
+                'I.name as institution_name'
             )
             ->where([
                 'CR.verified_status' => 1,
@@ -437,24 +448,35 @@ class ConferenceController extends Controller
             ])
             ->join('users as U', 'CR.user_id', '=', 'U.id')
             ->join('user_details as UD', 'U.id', '=', 'UD.user_id')
-            ->orderBy('U.f_name', 'asc')
+            ->leftJoin('countries as C', 'UD.country_id', '=', 'C.id')
+            ->leftJoin('institutions as I', 'UD.institution_id', '=', 'I.id')
+            ->orderBy('U.f_name', 'asc') 
             ->get();
 
-        // Attach meals
+        // Attach meals and attendance with additional statistics
         foreach ($registrants as $registrant) {
             $meals = DB::table('meals')
                 ->where('conference_registration_id', $registrant->id)
-                ->select('lunch_taken', 'dinner_taken', 'created_at')
+                ->select('id', 'lunch_taken', 'dinner_taken', 'created_at', 'updated_at')
+                ->orderBy('created_at', 'desc')
                 ->get();
 
             $attendences = DB::table('attendances')
                 ->where('conference_registration_id', $registrant->id)
+                ->select('id', 'status', 'created_at', 'updated_at')
+                ->orderBy('created_at', 'desc')
                 ->get();
 
             $registrant->meals = $meals;
             $registrant->attendences = $attendences;
+            
+            // Calculate total meals consumed
+            $registrant->total_lunch_consumed = $meals->sum('lunch_taken');
+            $registrant->total_dinner_consumed = $meals->sum('dinner_taken');
+            $registrant->total_attendance_count = $attendences->count();
         }
-        return view('backend.conference.attendance-status', compact('registrants'));
+        
+        return view('backend.conference.attendance-status', compact('registrants', 'conference', 'society'));
     }
     public function getStats(Request $request)
     {
