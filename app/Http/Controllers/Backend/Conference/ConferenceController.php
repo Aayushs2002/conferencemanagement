@@ -425,7 +425,7 @@ class ConferenceController extends Controller
                 'CR.status',
                 'CR.conference_id',
                 'CR.total_attendee',
-                'CR.verified_status',
+                'CR.verified_status', 
                 'U.f_name',
                 'U.m_name',
                 'U.l_name'

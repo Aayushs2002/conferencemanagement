@@ -13,7 +13,7 @@
                 <thead>
                     <tr>
                         <th scope="col">#</th>
-                        <th scope="col">Applicant Name</th>
+                        <th scope="col">Applicant Name</th> 
                         <th scope="col">Attendance</th>
                         <th scope="col">Meal</th>
                     </tr>
@@ -47,10 +47,10 @@
                                         $remainingDinner = $registrant->total_attendee - $meal->dinner_taken;
 
                                         $totalLunch += $meal->lunch_taken;
-                                        $totalDinner += $meal->dinner_taken;
+                                        $totalDinner += $meal->dinner_taken; 
                                     @endphp
 
-                                    <li>{{ \Carbon\Carbon::parse($meal->meal_date)->format('d M') }}</li>
+                                    <li>{{ \Carbon\Carbon::parse($meal->created_at)->format('d M') }}</li>
                                     <ul style="margin-left: 1rem">
                                         <li>Lunch: {{ $meal->lunch_taken > 0 ? 'Taken' : 'Not Taken' }} (Remaining:
                                             {{ $remainingLunch }})</li>
