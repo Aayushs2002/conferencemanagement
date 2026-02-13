@@ -438,7 +438,7 @@ class ConferenceController extends Controller
                 'UD.phone',
                 'UD.country_id',
                 'UD.institution_id',
-                'C.name as country_name',
+                'C.country_name as country_name',
                 'I.name as institution_name'
             )
             ->where([
