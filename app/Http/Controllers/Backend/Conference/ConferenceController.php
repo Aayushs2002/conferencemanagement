@@ -444,7 +444,7 @@ class ConferenceController extends Controller
         foreach ($registrants as $registrant) {
             $meals = DB::table('meals')
                 ->where('conference_registration_id', $registrant->id)
-                ->select('lunch_taken', 'dinner_taken')
+                ->select('lunch_taken', 'dinner_taken', 'created_at')
                 ->get();
 
             $attendences = DB::table('attendances')
