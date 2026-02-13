@@ -57,7 +57,7 @@
                                         <li>Dinner: {{ $meal->dinner_taken > 0 ? 'Taken' : 'Not Taken' }} (Remaining:
                                             {{ $remainingDinner }})</li>
                                     </ul>
-                                @endforeach
+                                @endforeach 
                             </td>
                             {{-- <td>
                                             Attendance: @if ($registrant->attendance_status_2 == 0) <span class="badge bg-warning">Not Taken</span> @else <span class="badge bg-success">Taken</span> @endif <br>
