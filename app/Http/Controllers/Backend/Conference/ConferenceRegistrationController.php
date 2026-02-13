@@ -97,7 +97,7 @@ class ConferenceRegistrationController extends Controller
             }
         }
 
-        if ($request->filled('meal_type')) {
+        if ($request->filled('meal_type')) { 
             $query->where('meal_type', $request->meal_type);
         }
 
@@ -645,7 +645,9 @@ class ConferenceRegistrationController extends Controller
 
     public function registerForExceptionalCase($society, $conference)
     {
-        $registeredUserIds = ConferenceRegistration::where('conference_id', $conference->id)->pluck('user_id');
+        $registeredUserIds = ConferenceRegistration::where('conference_id', $conference->id)
+            ->whereNotNull('user_id')
+            ->pluck('user_id');
         $society = Society::with(['users' => function ($query) use ($registeredUserIds) {
             $query->where('type', 3)
                 ->whereNotIn('users.id', $registeredUserIds)
