@@ -15,4 +15,4 @@ class Meal extends Model
     {
         return $this->belongsTo(ConferenceRegistration::class);
     }
-}
+} 

@@ -651,6 +651,28 @@
             </div>
         </div>
     </div>
+
+    <!-- Conference Closing Message Modal -->
+    <div class="modal fade" id="conferenceclosingMessageModal" tabindex="-1" aria-labelledby="closingMessageModalLabel"
+        aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="closingMessageModalLabel">Conference Closing Message</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="closingModalMessage" class="text-justify">
+                        {!! $conference->conferenceSetting?->closing_message ?? '' !!}
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
         // Official Message Modal Handler
         document.addEventListener('DOMContentLoaded', function() {
@@ -672,6 +694,35 @@
                     // document.getElementById('modalImage').alt = name;
                 });
             }
+
+            // Conference Closing Message Modal Handler
+            @if($conference->conferenceSetting?->closing_message && $conference->end_date)
+                const conferenceEndDate = new Date('{{ $conference->end_date }}');
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                conferenceEndDate.setHours(0, 0, 0, 0);
+                
+                // Calculate the day after conference end date
+                const dayAfterEnd = new Date(conferenceEndDate);
+                dayAfterEnd.setDate(dayAfterEnd.getDate() + 1);
+                
+                // Show popup if today is on or after the day after conference end date
+                if (today >= dayAfterEnd) {
+                    // Check if the user has already seen the closing message (using session storage)
+                    const closingMessageSeen = sessionStorage.getItem('closingMessageSeen_{{ $conference->id }}');
+                    
+                    if (!closingMessageSeen) {
+                        // Show the modal after a short delay
+                        setTimeout(function() {
+                            const closingModal = new bootstrap.Modal(document.getElementById('conferenceclosingMessageModal'));
+                            closingModal.show();
+                            
+                            // Mark as seen in session storage (will reset when browser tab is closed)
+                            sessionStorage.setItem('closingMessageSeen_{{ $conference->id }}', 'true');
+                        }, 1000);
+                    }
+                }
+            @endif
         });
     </script>
 @endsection

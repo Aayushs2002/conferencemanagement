@@ -12,3 +12,4 @@ class AccompanyPerson extends Model
         'status'
     ];
 }
+ 

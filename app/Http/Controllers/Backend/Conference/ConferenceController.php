@@ -417,66 +417,565 @@ class ConferenceController extends Controller
         ]);
     }
 
-    public function viewAttendanceStatus($society, $conference)
+    public function viewAttendanceStatus(Request $request, $society, $conference)
     {
-        $registrants = DB::table('conference_registrations as CR')
-            ->select(
-                'CR.id',
-                'CR.status',
-                'CR.conference_id',
-                'CR.total_attendee',
-                'CR.verified_status',
-                'CR.registrant_type',
-                'CR.attend_type',
-                'CR.meal_type',
-                'CR.registration_id',
-                'CR.created_at as registration_date',
-                'U.f_name',
-                'U.m_name',
-                'U.l_name',
-                'U.email',
-                'UD.phone',
-                'UD.country_id',
-                'UD.institution_id',
-                'C.country_name as country_name',
-                'I.name as institution_name'
-            )
-            ->where([
-                'CR.verified_status' => 1,
-                'CR.status' => 1,
-                'CR.conference_id' => $conference->id,
-            ])
-            ->join('users as U', 'CR.user_id', '=', 'U.id')
-            ->join('user_details as UD', 'U.id', '=', 'UD.user_id')
-            ->leftJoin('countries as C', 'UD.country_id', '=', 'C.id')
-            ->leftJoin('institutions as I', 'UD.institution_id', '=', 'I.id')
-            ->orderBy('U.f_name', 'asc') 
-            ->get();
+        $viewType = $request->get('view_type', 'registrants'); // registrants, sponsors, or both
+        $registrants = collect();
+        $sponsors = collect();
 
-        // Attach meals and attendance with additional statistics
+        // Fetch Registrants Data
+        if (in_array($viewType, ['registrants', 'both'])) {
+            $query = DB::table('conference_registrations as CR')
+                ->select(
+                    'CR.id',
+                    'CR.status',
+                    'CR.conference_id',
+                    'CR.total_attendee',
+                    'CR.verified_status',
+                    'CR.registrant_type',
+                    'CR.attend_type',
+                    'CR.meal_type',
+                    'CR.registration_id',
+                    'CR.created_at as registration_date',
+                    'U.f_name',
+                    'U.m_name',
+                    'U.l_name',
+                    'U.email',
+                    'UD.phone',
+                    'UD.country_id',
+                    'UD.institution_id',
+                    'C.country_name as country_name',
+                    'I.name as institution_name',
+                    DB::raw("'registrant' as record_type")
+                )
+                ->where([
+                    'CR.verified_status' => 1,
+                    'CR.status' => 1,
+                    'CR.conference_id' => $conference->id,
+                ])
+                ->join('users as U', 'CR.user_id', '=', 'U.id')
+                ->join('user_details as UD', 'U.id', '=', 'UD.user_id')
+                ->leftJoin('countries as C', 'UD.country_id', '=', 'C.id')
+                ->leftJoin('institutions as I', 'UD.institution_id', '=', 'I.id');
+
+        // Apply filters
+        if ($request->filled('date') && $request->date !== 'all') {
+            $query->where(function($q) use ($request) {
+                $q->whereExists(function($subQuery) use ($request) {
+                    $subQuery->select(DB::raw(1))
+                        ->from('attendances')
+                        ->whereColumn('attendances.conference_registration_id', 'CR.id')
+                        ->whereDate('attendances.created_at', $request->date);
+                })
+                ->orWhereExists(function($subQuery) use ($request) {
+                    $subQuery->select(DB::raw(1))
+                        ->from('meals')
+                        ->whereColumn('meals.conference_registration_id', 'CR.id')
+                        ->whereDate('meals.created_at', $request->date);
+                });
+            });
+        }
+
+        if ($request->filled('country') && $request->country !== 'all') {
+            $query->where('UD.country_id', $request->country);
+        }
+
+        if ($request->filled('kit_status') && $request->kit_status !== 'all') {
+            if ($request->kit_status == 'taken') {
+                $query->whereExists(function($subQuery) {
+                    $subQuery->select(DB::raw(1))
+                        ->from('conference_registration_kits')
+                        ->whereColumn('conference_registration_kits.conference_registration_id', 'CR.id')
+                        ->where('conference_registration_kits.status', 1);
+                });
+            } else {
+                $query->whereNotExists(function($subQuery) {
+                    $subQuery->select(DB::raw(1))
+                        ->from('conference_registration_kits')
+                        ->whereColumn('conference_registration_kits.conference_registration_id', 'CR.id')
+                        ->where('conference_registration_kits.status', 1);
+                });
+            }
+        }
+
+        if ($request->filled('registrant_type') && $request->registrant_type !== 'all') {
+            $query->where('CR.registrant_type', $request->registrant_type);
+        }
+
+        if ($request->filled('has_accompany') && $request->has_accompany !== 'all') {
+            if ($request->has_accompany == 'yes') {
+                $query->where('CR.total_attendee', '>', 1);
+            } else {
+                $query->where('CR.total_attendee', '=', 1);
+            }
+        }
+
+            if ($request->filled('search')) {
+                $search = $request->search;
+                $query->where(function($q) use ($search) {
+                    $q->where('U.f_name', 'ILIKE', "%{$search}%")
+                      ->orWhere('U.l_name', 'ILIKE', "%{$search}%")
+                      ->orWhere('U.email', 'ILIKE', "%{$search}%")
+                      ->orWhere('CR.registration_id', 'ILIKE', "%{$search}%");
+                });
+            }
+
+            $query->orderBy('U.f_name', 'asc'); 
+            
+            $registrants = $query->get();
+        }
+
+        // Fetch Sponsors Data
+        if (in_array($viewType, ['sponsors', 'both'])) {
+            $sponsorQuery = DB::table('sponsors as S')
+                ->select(
+                    'S.id',
+                    'S.name as sponsor_name',
+                    'S.email',
+                    'S.phone',
+                    'S.contact_person',
+                    'S.total_attendee',
+                    'S.registration_id',
+                    'S.lunch_access',
+                    'S.dinner_access',
+                    'S.created_at as registration_date',
+                    'SC.category_name as category_name',
+                    DB::raw("'N/A' as country_name"),
+                    DB::raw("'sponsor' as record_type")
+                )
+                ->where([
+                    'S.status' => 1,
+                    'S.conference_id' => $conference->id,
+                ])
+                ->leftJoin('sponsor_categories as SC', 'S.sponsor_category_id', '=', 'SC.id');
+
+            // Apply filters for sponsors
+            if ($request->filled('date') && $request->date !== 'all') {
+                $sponsorQuery->where(function($q) use ($request) {
+                    $q->whereExists(function($subQuery) use ($request) {
+                        $subQuery->select(DB::raw(1))
+                            ->from('sponsor_attendances')
+                            ->whereColumn('sponsor_attendances.sponsor_id', 'S.id')
+                            ->whereDate('sponsor_attendances.created_at', $request->date);
+                    })
+                    ->orWhereExists(function($subQuery) use ($request) {
+                        $subQuery->select(DB::raw(1))
+                            ->from('sponsor_meals')
+                            ->whereColumn('sponsor_meals.sponsor_id', 'S.id')
+                            ->whereDate('sponsor_meals.created_at', $request->date);
+                    });
+                });
+            }
+
+            // Kit status filter (sponsors don't have kits, so exclude them if filtering by kit)
+            if ($request->filled('kit_status') && $request->kit_status !== 'all') {
+                // Skip sponsors when filtering by kit status as they don't have kits
+                if ($viewType === 'sponsors') {
+                    $sponsorQuery->whereRaw('1 = 0'); // Return no results
+                }
+            }
+
+            if ($request->filled('has_accompany') && $request->has_accompany !== 'all') {
+                if ($request->has_accompany == 'yes') {
+                    $sponsorQuery->where('S.total_attendee', '>', 1);
+                } else {
+                    $sponsorQuery->where('S.total_attendee', '=', 1);
+                }
+            }
+
+            if ($request->filled('search')) {
+                $search = $request->search;
+                $sponsorQuery->where(function($q) use ($search) {
+                    $q->where('S.name', 'ILIKE', "%{$search}%")
+                      ->orWhere('S.email', 'ILIKE', "%{$search}%")
+                      ->orWhere('S.contact_person', 'ILIKE', "%{$search}%")
+                      ->orWhere('S.registration_id', 'ILIKE', "%{$search}%");
+                });
+            }
+
+            $sponsorQuery->orderBy('S.name', 'asc');
+            
+            $sponsors = $sponsorQuery->get();
+        }
+
+        // Attach meals, attendance, kit and accompanying persons for REGISTRANTS
         foreach ($registrants as $registrant) {
-            $meals = DB::table('meals')
+            // Meals
+            $mealsQuery = DB::table('meals')
                 ->where('conference_registration_id', $registrant->id)
                 ->select('id', 'lunch_taken', 'dinner_taken', 'created_at', 'updated_at')
-                ->orderBy('created_at', 'desc')
-                ->get();
+                ->orderBy('created_at', 'desc');
+            
+            if ($request->filled('date') && $request->date !== 'all') {
+                $mealsQuery->whereDate('created_at', $request->date);
+            }
+            
+            $meals = $mealsQuery->get();
 
-            $attendences = DB::table('attendances')
+            // Attendances
+            $attendancesQuery = DB::table('attendances')
                 ->where('conference_registration_id', $registrant->id)
                 ->select('id', 'status', 'created_at', 'updated_at')
-                ->orderBy('created_at', 'desc')
+                ->orderBy('created_at', 'desc');
+            
+            if ($request->filled('date') && $request->date !== 'all') {
+                $attendancesQuery->whereDate('created_at', $request->date);
+            }
+            
+            $attendences = $attendancesQuery->get();
+
+            // Accompanying Persons
+            $accompanyPersons = DB::table('accompany_people')
+                ->where('conference_registration_id', $registrant->id)
+                ->where('status', 1)
+                ->select('id', 'person_name', 'created_at')
                 ->get();
+
+            // Conference Kit
+            $conferenceRegistrationKit = DB::table('conference_registration_kits')
+                ->where('conference_registration_id', $registrant->id)
+                ->where('status', 1)
+                ->first();
 
             $registrant->meals = $meals;
             $registrant->attendences = $attendences;
+            $registrant->accompanyPersons = $accompanyPersons;
+            $registrant->conferenceRegistrationKit = $conferenceRegistrationKit;
             
             // Calculate total meals consumed
             $registrant->total_lunch_consumed = $meals->sum('lunch_taken');
             $registrant->total_dinner_consumed = $meals->sum('dinner_taken');
             $registrant->total_attendance_count = $attendences->count();
         }
+
+        // Attach meals and attendance for SPONSORS
+        foreach ($sponsors as $sponsor) {
+            // Meals
+            $mealsQuery = DB::table('sponsor_meals')
+                ->where('sponsor_id', $sponsor->id)
+                ->select('id', 'lunch_taken', 'dinner_taken', 'created_at', 'updated_at')
+                ->orderBy('created_at', 'desc');
+            
+            if ($request->filled('date') && $request->date !== 'all') {
+                $mealsQuery->whereDate('created_at', $request->date);
+            }
+            
+            $meals = $mealsQuery->get();
+
+            // Attendances
+            $attendancesQuery = DB::table('sponsor_attendances')
+                ->where('sponsor_id', $sponsor->id)
+                ->select('id', 'created_at', 'updated_at')
+                ->orderBy('created_at', 'desc');
+            
+            if ($request->filled('date') && $request->date !== 'all') {
+                $attendancesQuery->whereDate('created_at', $request->date);
+            }
+            
+            $attendences = $attendancesQuery->get();
+
+            $sponsor->meals = $meals;
+            $sponsor->attendences = $attendences;
+            $sponsor->accompanyPersons = []; // Sponsors don't have accompanying persons
+            $sponsor->conferenceRegistrationKit = null; // Sponsors don't have kits
+            
+            // Calculate total meals consumed
+            $sponsor->total_lunch_consumed = $meals->sum('lunch_taken');
+            $sponsor->total_dinner_consumed = $meals->sum('dinner_taken');
+            $sponsor->total_attendance_count = $attendences->count();
+        }
+
+        // Merge data for view
+        $allData = $registrants->merge($sponsors);
+
+        // Get unique countries for filter
+        $countries = DB::table('conference_registrations as CR')
+            ->join('users as U', 'CR.user_id', '=', 'U.id')
+            ->join('user_details as UD', 'U.id', '=', 'UD.user_id')
+            ->join('countries as C', 'UD.country_id', '=', 'C.id')
+            ->where('CR.conference_id', $conference->id)
+            ->where('CR.status', 1)
+            ->where('CR.verified_status', 1)
+            ->select('C.id', 'C.country_name')
+            ->distinct()
+            ->orderBy('C.country_name')
+            ->get();
+
+        // Get conference dates for daily filter
+        $dates = [];
+        $startDate = \Carbon\Carbon::parse($conference->start_date);
+        $endDate = \Carbon\Carbon::parse($conference->end_date);
         
-        return view('backend.conference.attendance-status', compact('registrants', 'conference', 'society'));
+        for ($date = $startDate; $date->lte($endDate); $date->addDay()) {
+            $dates[] = $date->format('Y-m-d');
+        }
+        
+        return view('backend.conference.attendance-status', compact('allData', 'registrants', 'sponsors', 'conference', 'society', 'countries', 'dates', 'viewType'));
+    }
+
+    public function exportAttendanceStatus(Request $request, $society, $conference)
+    {
+        $viewType = $request->get('view_type', 'registrants');
+        $registrants = collect();
+        $sponsors = collect();
+
+        // Fetch Registrants (same filtering logic as viewAttendanceStatus)
+        if (in_array($viewType, ['registrants', 'both'])) {
+            $query = DB::table('conference_registrations as CR')
+                ->select(
+                    'CR.id',
+                    'CR.status',
+                    'CR.conference_id',
+                    'CR.total_attendee',
+                    'CR.verified_status',
+                    'CR.registrant_type',
+                    'CR.attend_type',
+                    'CR.meal_type',
+                    'CR.registration_id',
+                    'CR.created_at as registration_date',
+                    'U.f_name',
+                    'U.m_name',
+                    'U.l_name',
+                    'U.email',
+                    'UD.phone',
+                    'UD.country_id',
+                    'UD.institution_id',
+                    'C.country_name as country_name',
+                    'I.name as institution_name',
+                    DB::raw("'registrant' as record_type")
+                )
+                ->where([
+                    'CR.verified_status' => 1,
+                    'CR.status' => 1,
+                    'CR.conference_id' => $conference->id,
+                ])
+                ->join('users as U', 'CR.user_id', '=', 'U.id')
+                ->join('user_details as UD', 'U.id', '=', 'UD.user_id')
+                ->leftJoin('countries as C', 'UD.country_id', '=', 'C.id')
+                ->leftJoin('institutions as I', 'UD.institution_id', '=', 'I.id');
+
+            // Apply filters
+            if ($request->filled('date') && $request->date !== 'all') {
+                $query->where(function($q) use ($request) {
+                    $q->whereExists(function($subQuery) use ($request) {
+                        $subQuery->select(DB::raw(1))
+                            ->from('attendances')
+                            ->whereColumn('attendances.conference_registration_id', 'CR.id')
+                            ->whereDate('attendances.created_at', $request->date);
+                    })
+                    ->orWhereExists(function($subQuery) use ($request) {
+                        $subQuery->select(DB::raw(1))
+                            ->from('meals')
+                            ->whereColumn('meals.conference_registration_id', 'CR.id')
+                            ->whereDate('meals.created_at', $request->date);
+                    });
+                });
+            }
+
+            if ($request->filled('country') && $request->country !== 'all') {
+                $query->where('UD.country_id', $request->country);
+            }
+
+            if ($request->filled('kit_status') && $request->kit_status !== 'all') {
+                if ($request->kit_status == 'taken') {
+                    $query->whereExists(function($subQuery) {
+                        $subQuery->select(DB::raw(1))
+                            ->from('conference_registration_kits')
+                            ->whereColumn('conference_registration_kits.conference_registration_id', 'CR.id')
+                            ->where('conference_registration_kits.status', 1);
+                    });
+                } else {
+                    $query->whereNotExists(function($subQuery) {
+                        $subQuery->select(DB::raw(1))
+                            ->from('conference_registration_kits')
+                            ->whereColumn('conference_registration_kits.conference_registration_id', 'CR.id')
+                            ->where('conference_registration_kits.status', 1);
+                    });
+                }
+            }
+
+            if ($request->filled('registrant_type') && $request->registrant_type !== 'all') {
+                $query->where('CR.registrant_type', $request->registrant_type);
+            }
+
+            if ($request->filled('has_accompany') && $request->has_accompany !== 'all') {
+                if ($request->has_accompany == 'yes') {
+                    $query->where('CR.total_attendee', '>', 1);
+                } else {
+                    $query->where('CR.total_attendee', '=', 1);
+                }
+            }
+
+            if ($request->filled('search')) {
+                $search = $request->search;
+                $query->where(function($q) use ($search) {
+                    $q->where('U.f_name', 'ILIKE', "%{$search}%")
+                      ->orWhere('U.l_name', 'ILIKE', "%{$search}%")
+                      ->orWhere('U.email', 'ILIKE', "%{$search}%")
+                      ->orWhere('CR.registration_id', 'ILIKE', "%{$search}%");
+                });
+            }
+
+            $query->orderBy('U.f_name', 'asc');
+            $registrants = $query->get();
+
+            // Attach data for registrants
+            foreach ($registrants as $registrant) {
+                $mealsQuery = DB::table('meals')
+                    ->where('conference_registration_id', $registrant->id)
+                    ->select('id', 'lunch_taken', 'dinner_taken', 'created_at', 'updated_at')
+                    ->orderBy('created_at', 'desc');
+                
+                if ($request->filled('date') && $request->date !== 'all') {
+                    $mealsQuery->whereDate('created_at', $request->date);
+                }
+                
+                $meals = $mealsQuery->get();
+
+                $attendancesQuery = DB::table('attendances')
+                    ->where('conference_registration_id', $registrant->id)
+                    ->select('id', 'status', 'created_at', 'updated_at')
+                    ->orderBy('created_at', 'desc');
+                
+                if ($request->filled('date') && $request->date !== 'all') {
+                    $attendancesQuery->whereDate('created_at', $request->date);
+                }
+                
+                $attendences = $attendancesQuery->get();
+
+                $accompanyPersons = DB::table('accompany_people')
+                    ->where('conference_registration_id', $registrant->id)
+                    ->where('status', 1)
+                    ->select('id', 'person_name', 'created_at')
+                    ->get();
+
+                $conferenceRegistrationKit = DB::table('conference_registration_kits')
+                    ->where('conference_registration_id', $registrant->id)
+                    ->where('status', 1)
+                    ->first();
+
+                $registrant->meals = $meals;
+                $registrant->attendences = $attendences;
+                $registrant->accompanyPersons = $accompanyPersons;
+                $registrant->conferenceRegistrationKit = $conferenceRegistrationKit;
+                
+                $registrant->total_lunch_consumed = $meals->sum('lunch_taken');
+                $registrant->total_dinner_consumed = $meals->sum('dinner_taken');
+                $registrant->total_attendance_count = $attendences->count();
+            }
+        }
+
+        // Fetch Sponsors (if needed)
+        if (in_array($viewType, ['sponsors', 'both'])) {
+            $sponsorQuery = DB::table('sponsors as S')
+                ->select(
+                    'S.id',
+                    'S.name as sponsor_name',
+                    'S.email',
+                    'S.phone',
+                    'S.contact_person',
+                    'S.total_attendee',
+                    'S.registration_id',
+                    'S.created_at as registration_date',
+                    'SC.category_name as category_name',
+                    DB::raw("'N/A' as country_name"),
+                    DB::raw("'sponsor' as record_type")
+                )
+                ->where([
+                    'S.status' => 1,
+                    'S.conference_id' => $conference->id,
+                ])
+                ->leftJoin('sponsor_categories as SC', 'S.sponsor_category_id', '=', 'SC.id');
+
+            // Apply filters
+            if ($request->filled('date') && $request->date !== 'all') {
+                $sponsorQuery->where(function($q) use ($request) {
+                    $q->whereExists(function($subQuery) use ($request) {
+                        $subQuery->select(DB::raw(1))
+                            ->from('sponsor_attendances')
+                            ->whereColumn('sponsor_attendances.sponsor_id', 'S.id')
+                            ->whereDate('sponsor_attendances.created_at', $request->date);
+                    })
+                    ->orWhereExists(function($subQuery) use ($request) {
+                        $subQuery->select(DB::raw(1))
+                            ->from('sponsor_meals')
+                            ->whereColumn('sponsor_meals.sponsor_id', 'S.id')
+                            ->whereDate('sponsor_meals.created_at', $request->date);
+                    });
+                });
+            }
+
+            if ($request->filled('kit_status') && $request->kit_status !== 'all') {
+                if ($viewType === 'sponsors') {
+                    $sponsorQuery->whereRaw('1 = 0');
+                }
+            }
+
+            if ($request->filled('has_accompany') && $request->has_accompany !== 'all') {
+                if ($request->has_accompany == 'yes') {
+                    $sponsorQuery->where('S.total_attendee', '>', 1);
+                } else {
+                    $sponsorQuery->where('S.total_attendee', '=', 1);
+                }
+            }
+
+            if ($request->filled('search')) {
+                $search = $request->search;
+                $sponsorQuery->where(function($q) use ($search) {
+                    $q->where('S.name', 'ILIKE', "%{$search}%")
+                      ->orWhere('S.email', 'ILIKE', "%{$search}%")
+                      ->orWhere('S.contact_person', 'ILIKE', "%{$search}%")
+                      ->orWhere('S.registration_id', 'ILIKE', "%{$search}%");
+                });
+            }
+
+            $sponsorQuery->orderBy('S.name', 'asc');
+            $sponsors = $sponsorQuery->get();
+
+            // Attach data for sponsors
+            foreach ($sponsors as $sponsor) {
+                $mealsQuery = DB::table('sponsor_meals')
+                    ->where('sponsor_id', $sponsor->id)
+                    ->select('id', 'lunch_taken', 'dinner_taken', 'created_at', 'updated_at')
+                    ->orderBy('created_at', 'desc');
+                
+                if ($request->filled('date') && $request->date !== 'all') {
+                    $mealsQuery->whereDate('created_at', $request->date);
+                }
+                
+                $meals = $mealsQuery->get();
+
+                $attendancesQuery = DB::table('sponsor_attendances')
+                    ->where('sponsor_id', $sponsor->id)
+                    ->select('id', 'created_at', 'updated_at')
+                    ->orderBy('created_at', 'desc');
+                
+                if ($request->filled('date') && $request->date !== 'all') {
+                    $attendancesQuery->whereDate('created_at', $request->date);
+                }
+                
+                $attendences = $attendancesQuery->get();
+
+                $sponsor->meals = $meals;
+                $sponsor->attendences = $attendences;
+                $sponsor->accompanyPersons = [];
+                $sponsor->conferenceRegistrationKit = null;
+                
+                $sponsor->total_lunch_consumed = $meals->sum('lunch_taken');
+                $sponsor->total_dinner_consumed = $meals->sum('dinner_taken');
+                $sponsor->total_attendance_count = $attendences->count();
+            }
+        }
+
+        // Merge both collections
+        $allData = $registrants->merge($sponsors);
+
+        $fileName = 'attendance_status_' . $conference->abbreviation . '_' . now()->format('Y-m-d_His') . '.xlsx';
+        
+        return \Maatwebsite\Excel\Facades\Excel::download(
+            new \App\Exports\AttendanceStatusExport($allData),
+            $fileName
+        );
     }
     public function getStats(Request $request)
     {
@@ -508,6 +1007,20 @@ class ConferenceController extends Controller
             DB::raw('COALESCE(SUM(meals.lunch_taken), 0) as lunch_count'),
             DB::raw('COALESCE(SUM(meals.dinner_taken), 0) as dinner_count')
         )->first();
+
+        // Query for kit distribution
+        $kitQuery = DB::table('conference_registration_kits');
+        
+        // Filter by date if not 'all'
+        if ($date && $date !== 'all') {
+            $kitQuery->whereDate('conference_registration_kits.created_at', '=', $date);
+        }
+        
+        $kitQuery->join('conference_registrations', 'conference_registration_kits.conference_registration_id', '=', 'conference_registrations.id')
+                 ->where('conference_registrations.conference_id', $conferenceId)
+                 ->where('conference_registration_kits.status', 1);
+
+        $kitData = $kitQuery->count();
 
         // Query for sponsor data
         $sponsorQuery = DB::table('sponsors');
@@ -546,6 +1059,7 @@ class ConferenceController extends Controller
             'attendance_count' => $totalAttendance, 
             'lunch_count' => $totalLunch,
             'dinner_count' => $totalDinner,
+            'kit_count' => $kitData,
             'registrant_attendance_count' => $data->attendance_count ?? 0,
             'registrant_lunch_count' => $data->lunch_count ?? 0,
             'registrant_dinner_count' => $data->dinner_count ?? 0,

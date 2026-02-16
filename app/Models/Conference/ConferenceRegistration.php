@@ -95,6 +95,11 @@ class ConferenceRegistration extends Model
         return $this->hasOne(\App\Models\Accomodation\InternationalAccommodation::class);
     }
 
+    public function conferenceRegistrationKit()
+    {
+        return $this->hasOne(ConferenceRegistrationKit::class, 'conference_registration_id', 'id');
+    }
+
     /**
      * Scopes
      */

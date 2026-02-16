@@ -60,6 +60,7 @@ Route::middleware('auth')->group(function () {
     Route::prefix('/society/{society}/conference/{conference}')->group(function () {
         Route::get('/dashboard', [ConferenceController::class, 'openConferencePortal'])->name('conference.openConferencePortal');
         Route::get('/dashboard/attendance-status', [ConferenceController::class, 'viewAttendanceStatus'])->name('conference.viewAttendanceStatus');
+        Route::get('/dashboard/attendance-status/export', [ConferenceController::class, 'exportAttendanceStatus'])->name('conference.exportAttendanceStatus');
         Route::get('/dashboard/submissions-chart', [ConferenceController::class, 'submissionsChart'])->name('conference.submissionsChart');
 
         // Accommodation Management Routes
