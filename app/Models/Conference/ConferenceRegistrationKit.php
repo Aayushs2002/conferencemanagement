@@ -15,3 +15,4 @@ class ConferenceRegistrationKit extends Model
         return $this->belongsTo(ConferenceRegistration::class);
     }
 }
+ 

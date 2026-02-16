@@ -402,7 +402,7 @@
 
                 {{-- <div class="row mt-5"> --}}
                 <!-- Attendance & Meal Count Card -->
-                <div class="col-lg-7 col-12">
+                <div class="col-lg-10 col-12">
                     <div class="card border-0 shadow-sm h-100">
                         <div class="card-header bg-transparent border-0 pt-4 px-4 pb-0">
                             <div class="d-flex justify-content-between align-items-start">
@@ -428,7 +428,7 @@
                                                     <i class="icon-base ti tabler-calendar-event me-2"></i>
                                                     Day {{ $loop->iteration }}
                                                 </a> 
-                                            </li>
+                                            </li> 
                                         @endforeach
                                         <li>
                                             <hr class="dropdown-divider mx-2">
@@ -449,99 +449,137 @@
                             <div class="position-relative">
                                 <!-- Loading Overlay -->
                                 <div id="attendanceLoadingOverlay"
-                                    class="position-absolute top-0 start-0 w-100 h-100 bg-white bg-opacity-75 d-none rounded-4 d-flex align-items-center justify-content-center"
-                                    style="z-index: 10;">
+                                    class="position-absolute top-0 start-0 w-100 h-100 bg-white bg-opacity-90 d-none rounded-4 d-flex align-items-center justify-content-center"
+                                    style="z-index: 10; backdrop-filter: blur(4px);">
                                     <div class="text-center">
-                                        <div class="spinner-border text-primary mb-2" role="status">
+                                        <div class="spinner-border text-primary mb-3" style="width: 3rem; height: 3rem;" role="status">
                                             <span class="visually-hidden">Loading...</span>
                                         </div>
-                                        <p class="text-muted small mb-0">Updating data...</p>
+                                        <p class="text-dark fw-semibold mb-0">Updating data...</p>
                                     </div>
                                 </div>
 
-                                <div class="row g-3" id="attendanceStatsContainer">
+                                <div class="row g-4" id="attendanceStatsContainer">
                                     <!-- Attendance Stat -->
-                                    <div class="col-md-4">
-                                        <div class="bg-success bg-opacity-10 rounded-4 p-4 text-center position-relative">
-                                            <div class="bg-success bg-opacity-25 rounded-circle d-inline-flex align-items-center justify-content-center mb-3"
-                                                style="width: 60px; height: 60px;">
-                                                <i class="icon-base ti tabler-users text-success fs-3"></i>
-                                            </div>
-                                            <h3 class="fw-bold text-success mb-1" id="attendance-count">0</h3>
-                                            <p class="text-muted mb-2 fw-medium">Total Attendance</p>
-                                            <div class="d-flex justify-content-around text-center mt-2 pt-2 border-top">
-                                                <div>
-                                                    <small class="text-muted d-block">Registrants</small>
-                                                    <span class="badge bg-success bg-opacity-25 text-success" id="registrant-attendance">0</span>
+                                    <div class="col-md-3">
+                                        <div class="attendance-stat-card position-relative overflow-hidden rounded-4 p-4 text-center h-100"
+                                            style="background: linear-gradient(135deg, rgba(25, 135, 84, 0.1) 0%, rgba(25, 135, 84, 0.05) 100%); border: 2px solid rgba(25, 135, 84, 0.2); transition: all 0.3s ease;">
+                                            <!-- Decorative Circle -->
+                                            <div class="position-absolute" style="top: -20px; right: -20px; width: 100px; height: 100px; background: rgba(25, 135, 84, 0.05); border-radius: 50%;"></div>
+                                            
+                                            <div class="position-relative" style="z-index: 2;">
+                                                <div class="d-inline-flex align-items-center justify-content-center mb-3 rounded-circle"
+                                                    style="width: 70px; height: 70px; background: linear-gradient(135deg, #198754 0%, #20c997 100%); box-shadow: 0 8px 16px rgba(25, 135, 84, 0.3);">
+                                                    <i class="icon-base ti tabler-users text-white fs-2"></i>
                                                 </div>
-                                                <div>
-                                                    <small class="text-muted d-block">Sponsors</small>
-                                                    <span class="badge bg-success bg-opacity-25 text-success" id="sponsor-attendance">0</span>
-                                                </div>
-                                            </div>
-                                            <!-- Individual loading spinner -->
-                                            <div class="position-absolute top-50 start-50 translate-middle d-none"
-                                                id="attendance-loading">
-                                                <div class="spinner-border spinner-border-sm text-success" role="status">
-                                                    <span class="visually-hidden">Loading...</span>
+                                                <h2 class="fw-bold mb-1" style="color: #198754; font-size: 2.5rem;" id="attendance-count">0</h2>
+                                                <p class="text-muted mb-3 fw-semibold" style="font-size: 0.95rem;">Total Attendance</p>
+                                                
+                                                <div class="d-flex justify-content-around gap-2 mt-3 pt-3" style="border-top: 2px dashed rgba(25, 135, 84, 0.2);">
+                                                    <div class="flex-fill">
+                                                        <div class="bg-white rounded-3 p-2 shadow-sm">
+                                                            <small class="text-muted d-block mb-1" style="font-size: 0.7rem;">Registrants</small>
+                                                            <span class="badge rounded-pill px-3 py-2 fw-bold" style="background: linear-gradient(135deg, #198754 0%, #20c997 100%); font-size: 0.9rem;" id="registrant-attendance">0</span>
+                                                        </div>
+                                                    </div>
+                                                    <div class="flex-fill">
+                                                        <div class="bg-white rounded-3 p-2 shadow-sm">
+                                                            <small class="text-muted d-block mb-1" style="font-size: 0.7rem;">Sponsors</small>
+                                                            <span class="badge rounded-pill px-3 py-2 fw-bold" style="background: linear-gradient(135deg, #198754 0%, #20c997 100%); font-size: 0.9rem;" id="sponsor-attendance">0</span>
+                                                        </div>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
 
                                     <!-- Lunch Stat -->
-                                    <div class="col-md-4">
-                                        <div class="bg-warning bg-opacity-10 rounded-4 p-4 text-center position-relative">
-                                            <div class="bg-warning bg-opacity-25 rounded-circle d-inline-flex align-items-center justify-content-center mb-3"
-                                                style="width: 60px; height: 60px;">
-                                                <i class="icon-base ti tabler-sun text-warning fs-3"></i>
-                                            </div>
-                                            <h3 class="fw-bold text-warning mb-1" id="lunch-count">0</h3>
-                                            <p class="text-muted mb-2 fw-medium">Total Lunch</p>
-                                            <div class="d-flex justify-content-around text-center mt-2 pt-2 border-top">
-                                                <div>
-                                                    <small class="text-muted d-block">Registrants</small>
-                                                    <span class="badge bg-warning bg-opacity-25 text-warning" id="registrant-lunch">0</span>
+                                    <div class="col-md-3">
+                                        <div class="attendance-stat-card position-relative overflow-hidden rounded-4 p-4 text-center h-100"
+                                            style="background: linear-gradient(135deg, rgba(255, 193, 7, 0.1) 0%, rgba(255, 193, 7, 0.05) 100%); border: 2px solid rgba(255, 193, 7, 0.2); transition: all 0.3s ease;">
+                                            <!-- Decorative Circle -->
+                                            <div class="position-absolute" style="top: -20px; right: -20px; width: 100px; height: 100px; background: rgba(255, 193, 7, 0.05); border-radius: 50%;"></div>
+                                            
+                                            <div class="position-relative" style="z-index: 2;">
+                                                <div class="d-inline-flex align-items-center justify-content-center mb-3 rounded-circle"
+                                                    style="width: 70px; height: 70px; background: linear-gradient(135deg, #ffc107 0%, #ffb300 100%); box-shadow: 0 8px 16px rgba(255, 193, 7, 0.3);">
+                                                    <i class="icon-base ti tabler-sun text-white fs-2"></i>
                                                 </div>
-                                                <div>
-                                                    <small class="text-muted d-block">Sponsors</small>
-                                                    <span class="badge bg-warning bg-opacity-25 text-warning" id="sponsor-lunch">0</span>
-                                                </div>
-                                            </div>
-                                            <!-- Individual loading spinner -->
-                                            <div class="position-absolute top-50 start-50 translate-middle d-none"
-                                                id="lunch-loading">
-                                                <div class="spinner-border spinner-border-sm text-warning" role="status">
-                                                    <span class="visually-hidden">Loading...</span>
+                                                <h2 class="fw-bold mb-1" style="color: #ffc107; font-size: 2.5rem;" id="lunch-count">0</h2>
+                                                <p class="text-muted mb-3 fw-semibold" style="font-size: 0.95rem;">Total Lunch</p>
+                                                
+                                                <div class="d-flex justify-content-around gap-2 mt-3 pt-3" style="border-top: 2px dashed rgba(255, 193, 7, 0.2);">
+                                                    <div class="flex-fill">
+                                                        <div class="bg-white rounded-3 p-2 shadow-sm">
+                                                            <small class="text-muted d-block mb-1" style="font-size: 0.7rem;">Registrants</small>
+                                                            <span class="badge rounded-pill px-3 py-2 fw-bold" style="background: linear-gradient(135deg, #ffc107 0%, #ffb300 100%); font-size: 0.9rem;" id="registrant-lunch">0</span>
+                                                        </div>
+                                                    </div>
+                                                    <div class="flex-fill">
+                                                        <div class="bg-white rounded-3 p-2 shadow-sm">
+                                                            <small class="text-muted d-block mb-1" style="font-size: 0.7rem;">Sponsors</small>
+                                                            <span class="badge rounded-pill px-3 py-2 fw-bold" style="background: linear-gradient(135deg, #ffc107 0%, #ffb300 100%); font-size: 0.9rem;" id="sponsor-lunch">0</span>
+                                                        </div>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
 
                                     <!-- Dinner Stat -->
-                                    <div class="col-md-4">
-                                        <div class="bg-info bg-opacity-10 rounded-4 p-4 text-center position-relative">
-                                            <div class="bg-info bg-opacity-25 rounded-circle d-inline-flex align-items-center justify-content-center mb-3"
-                                                style="width: 60px; height: 60px;">
-                                                <i class="icon-base ti tabler-moon text-info fs-3"></i>
-                                            </div>
-                                            <h3 class="fw-bold text-info mb-1" id="dinner-count">0</h3>
-                                            <p class="text-muted mb-2 fw-medium">Total Dinner</p>
-                                            <div class="d-flex justify-content-around text-center mt-2 pt-2 border-top">
-                                                <div>
-                                                    <small class="text-muted d-block">Registrants</small>
-                                                    <span class="badge bg-info bg-opacity-25 text-info" id="registrant-dinner">0</span>
+                                    <div class="col-md-3">
+                                        <div class="attendance-stat-card position-relative overflow-hidden rounded-4 p-4 text-center h-100"
+                                            style="background: linear-gradient(135deg, rgba(13, 202, 240, 0.1) 0%, rgba(13, 202, 240, 0.05) 100%); border: 2px solid rgba(13, 202, 240, 0.2); transition: all 0.3s ease;">
+                                            <!-- Decorative Circle -->
+                                            <div class="position-absolute" style="top: -20px; right: -20px; width: 100px; height: 100px; background: rgba(13, 202, 240, 0.05); border-radius: 50%;"></div>
+                                            
+                                            <div class="position-relative" style="z-index: 2;">
+                                                <div class="d-inline-flex align-items-center justify-content-center mb-3 rounded-circle"
+                                                    style="width: 70px; height: 70px; background: linear-gradient(135deg, #0dcaf0 0%, #0891b2 100%); box-shadow: 0 8px 16px rgba(13, 202, 240, 0.3);">
+                                                    <i class="icon-base ti tabler-moon text-white fs-2"></i>
                                                 </div>
-                                                <div>
-                                                    <small class="text-muted d-block">Sponsors</small>
-                                                    <span class="badge bg-info bg-opacity-25 text-info" id="sponsor-dinner">0</span>
+                                                <h2 class="fw-bold mb-1" style="color: #0dcaf0; font-size: 2.5rem;" id="dinner-count">0</h2>
+                                                <p class="text-muted mb-3 fw-semibold" style="font-size: 0.95rem;">Total Dinner</p>
+                                                
+                                                <div class="d-flex justify-content-around gap-2 mt-3 pt-3" style="border-top: 2px dashed rgba(13, 202, 240, 0.2);">
+                                                    <div class="flex-fill">
+                                                        <div class="bg-white rounded-3 p-2 shadow-sm">
+                                                            <small class="text-muted d-block mb-1" style="font-size: 0.7rem;">Registrants</small>
+                                                            <span class="badge rounded-pill px-3 py-2 fw-bold" style="background: linear-gradient(135deg, #0dcaf0 0%, #0891b2 100%); font-size: 0.9rem;" id="registrant-dinner">0</span>
+                                                        </div>
+                                                    </div>
+                                                    <div class="flex-fill">
+                                                        <div class="bg-white rounded-3 p-2 shadow-sm">
+                                                            <small class="text-muted d-block mb-1" style="font-size: 0.7rem;">Sponsors</small>
+                                                            <span class="badge rounded-pill px-3 py-2 fw-bold" style="background: linear-gradient(135deg, #0dcaf0 0%, #0891b2 100%); font-size: 0.9rem;" id="sponsor-dinner">0</span>
+                                                        </div>
+                                                    </div>
                                                 </div>
                                             </div>
-                                            <!-- Individual loading spinner -->
-                                            <div class="position-absolute top-50 start-50 translate-middle d-none"
-                                                id="dinner-loading">
-                                                <div class="spinner-border spinner-border-sm text-info" role="status">
-                                                    <span class="visually-hidden">Loading...</span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Conference Kit Stat -->
+                                    <div class="col-md-3">
+                                        <div class="attendance-stat-card position-relative overflow-hidden rounded-4 p-4 text-center h-100"
+                                            style="background: linear-gradient(135deg, rgba(138, 43, 226, 0.1) 0%, rgba(138, 43, 226, 0.05) 100%); border: 2px solid rgba(138, 43, 226, 0.2); transition: all 0.3s ease;">
+                                            <!-- Decorative Circle -->
+                                            <div class="position-absolute" style="top: -20px; right: -20px; width: 100px; height: 100px; background: rgba(138, 43, 226, 0.05); border-radius: 50%;"></div>
+                                            
+                                            <div class="position-relative" style="z-index: 2;">
+                                                <div class="d-inline-flex align-items-center justify-content-center mb-3 rounded-circle"
+                                                    style="width: 70px; height: 70px; background: linear-gradient(135deg, #8a2be2 0%, #9333ea 100%); box-shadow: 0 8px 16px rgba(138, 43, 226, 0.3);">
+                                                    <i class="icon-base ti tabler-gift text-white fs-2"></i>
+                                                </div>
+                                                <h2 class="fw-bold mb-1" style="color: #8a2be2; font-size: 2.5rem;" id="kit-count">0</h2>
+                                                <p class="text-muted mb-3 fw-semibold" style="font-size: 0.95rem;">Conference Kits</p>
+                                                
+                                                <div class="mt-3 pt-3" style="border-top: 2px dashed rgba(138, 43, 226, 0.2);">
+                                                    <div class="bg-white rounded-3 p-2 shadow-sm">
+                                                        <small class="text-muted d-block mb-1" style="font-size: 0.8rem;">
+                                                            <i class="icon-base ti tabler-circle-check me-1"></i>Distributed Kits
+                                                        </small>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
@@ -549,11 +587,18 @@
                                 </div>
                             </div>
 
-                            <div class="text-center mt-10">
+                            <!-- Enhanced View Report Section -->
+                            <div class="text-center mt-5 pt-4" style="border-top: 1px solid rgba(0,0,0,0.08);">
+                                <p class="text-muted mb-3 small">
+                                    <i class="icon-base ti tabler-info-circle me-1"></i>
+                                    View comprehensive attendance and meal distribution details
+                                </p>
                                 <a href="{{ route('conference.viewAttendanceStatus', [$society, $conference]) }}"
-                                    class="btn btn-primary btn-lg rounded-pill px-5">
-                                    <i class="icon-base ti tabler-eye me-2"></i>
-                                    View Detailed Report
+                                    class="btn btn-lg rounded-pill px-5 py-3 shadow-lg attendance-report-btn"
+                                    style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; font-weight: 600; letter-spacing: 0.5px;">
+                                    <i class="icon-base ti tabler-chart-dots me-2"></i>
+                                    View Detailed Analytics Report
+                                    <i class="icon-base ti tabler-arrow-right ms-2"></i>
                                 </a>
                             </div>
                         </div>
@@ -1099,7 +1144,7 @@
                                                 <li class="mb-0">
                                                     <strong>Note:</strong> In case of abstract rejection, you must complete the regular registration process to attend the conference.
                                                 </li>
-                                            </ul>
+                                            </ul> 
                                         </div>
                                     </div>
                                 </div>
@@ -1135,6 +1180,111 @@
         }
         .transition-all {
             transition: all 0.3s ease;
+        }
+        
+        /* Custom purple color utilities */
+        .text-purple {
+            color: #8a2be2 !important;
+        }
+        
+        .bg-purple {
+            background-color: #8a2be2 !important;
+        }
+        
+        /* Attendance Stats Card Enhancements */
+        .attendance-stat-card {
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+        }
+        
+        .attendance-stat-card:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12) !important;
+        }
+        
+        .attendance-stat-card:hover .rounded-circle {
+            transform: rotate(10deg) scale(1.1);
+        }
+        
+        .attendance-stat-card .rounded-circle {
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        /* Number animation */
+        @keyframes countUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .attendance-stat-card h2 {
+            animation: countUp 0.6s ease-out;
+        }
+        
+        /* View Report Button Enhancement */
+        .attendance-report-btn {
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            color: white !important;
+        }
+        
+        .attendance-report-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transition: left 0.5s;
+        }
+        
+        .attendance-report-btn:hover::before {
+            left: 100%;
+        }
+        
+        .attendance-report-btn:hover {
+            transform: translateY(-3px) scale(1.03);
+            box-shadow: 0 15px 35px rgba(102, 126, 234, 0.4) !important;
+            color: white !important;
+        }
+        
+        .attendance-report-btn:active {
+            transform: translateY(-1px) scale(1.01);
+        }
+        
+        /* Badge pulse effect */
+        @keyframes badgePulse {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.05);
+            }
+        }
+        
+        .attendance-stat-card:hover .badge {
+            animation: badgePulse 1s ease-in-out infinite;
+        }
+        
+        /* Smooth loading overlay */
+        #attendanceLoadingOverlay {
+            animation: fadeIn 0.3s ease-in;
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
         }
     </style>
 @endsection
@@ -1313,6 +1463,7 @@
                     animateNumber(document.getElementById('attendance-count'), data.attendance_count ?? 0);
                     animateNumber(document.getElementById('lunch-count'), data.lunch_count ?? 0);
                     animateNumber(document.getElementById('dinner-count'), data.dinner_count ?? 0);
+                    animateNumber(document.getElementById('kit-count'), data.kit_count ?? 0);
                     
                     // Update breakdown for registrants and sponsors
                     document.getElementById('registrant-attendance').textContent = data.registrant_attendance_count ?? 0;
@@ -1328,6 +1479,7 @@
                     document.getElementById('attendance-count').textContent = '--';
                     document.getElementById('lunch-count').textContent = '--';
                     document.getElementById('dinner-count').textContent = '--';
+                    document.getElementById('kit-count').textContent = '--';
                 })
                 .finally(() => {
                     setTimeout(hideLoading, 500); // Small delay to show loading state
@@ -1355,6 +1507,8 @@
                                     data.lunch_count ?? 0);
                                 animateNumber(document.getElementById('dinner-count'),
                                     data.dinner_count ?? 0);
+                                animateNumber(document.getElementById('kit-count'),
+                                    data.kit_count ?? 0);
                                 
                                 // Update breakdown for registrants and sponsors
                                 document.getElementById('registrant-attendance').textContent = data.registrant_attendance_count ?? 0;

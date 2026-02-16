@@ -47,6 +47,7 @@ class ConferenceSettingController extends Controller
                 'reviewer_assignment_cc_emails' => 'nullable|string',
                 'conference_registration_cc_emails' => 'nullable|string',
                 'workshop_registration_cc_emails' => 'nullable|string',
+                'closing_message' => 'nullable|string',
 
             ]);
 
@@ -103,6 +104,7 @@ class ConferenceSettingController extends Controller
                 'reviewer_assignment_cc_emails' => $request->reviewer_assignment_cc_emails,
                 'conference_registration_cc_emails' => $request->conference_registration_cc_emails,
                 'workshop_registration_cc_emails' => $request->workshop_registration_cc_emails,
+                'closing_message' => $request->closing_message,
             ];
 
             if ($conferenceSetting) {

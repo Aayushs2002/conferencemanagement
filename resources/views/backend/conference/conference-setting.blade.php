@@ -264,7 +264,7 @@
                 <small class="text-muted">
                     <i class="ti tabler-info-circle"></i>
                     These emails will receive CC when a user registers for the conference
-                </small>
+                </small> 
             </div>
             {{-- @if (feature_enabled('workshop-management', getSociety(request()->segment(2)))) --}}
                 <div class="col-md-6 mb-4">
@@ -277,6 +277,21 @@
                     </small>
                 </div>
             {{-- @endif --}}
+
+            <div class="col-12 mt-3">
+                <h6>12. Conference Closing Message</h6>
+                <hr class="mt-0" style="height:1px;border:none;color:#333;background-color:#333;" />
+                <p class="text-muted small">This message will be displayed as a popup on the conference home page from the day after the conference end date.</p>
+            </div>
+
+            <div class="col-md-12 mb-4">
+                <label>Closing Message</label>
+                <textarea class="form-control ckeditor" name="closing_message" id="closing_message" rows="8">{{ $conferenceSetting?->closing_message }}</textarea>
+                <small class="text-muted">
+                    <i class="ti tabler-info-circle"></i>
+                    This message will be shown to visitors after the conference has ended
+                </small>
+            </div>
 
         </div>
         <div class="text-end mt-4">
@@ -316,9 +331,12 @@
         if (CKEDITOR.instances['privacy_policy']) {
             CKEDITOR.instances['privacy_policy'].destroy(true);
         }
+        if (CKEDITOR.instances['closing_message']) {
+            CKEDITOR.instances['closing_message'].destroy(true);
+        }
 
         // Initialize CKEditor for all textareas
-        ['payment_instruction', 'terms_conditions', 'privacy_policy'].forEach(function(editorId) {
+        ['payment_instruction', 'terms_conditions', 'privacy_policy', 'closing_message'].forEach(function(editorId) {
             CKEDITOR.replace(editorId, {
                 filebrowserUploadUrl: '{{ route('ckeditor.fileUpload', ['_token' => csrf_token()]) }}',
                 filebrowserUploadMethod: "form",
@@ -409,6 +427,9 @@
         }
         if (CKEDITOR.instances['privacy_policy']) {
             CKEDITOR.instances['privacy_policy'].updateElement();
+        }
+        if (CKEDITOR.instances['closing_message']) {
+            CKEDITOR.instances['closing_message'].updateElement();
         }
 
         var data = new FormData($('#conferenceSettingForm')[0]);

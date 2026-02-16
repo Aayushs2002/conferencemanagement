@@ -15,7 +15,7 @@ class SpeakerController extends BaseConferenceController
                 'conference_id' => $this->conference->id,
                 'registrant_type' => 2, 
                 'status' => 1
-            ])
+            ])->whereNotNull('user_id')
             ->get();
 
 
