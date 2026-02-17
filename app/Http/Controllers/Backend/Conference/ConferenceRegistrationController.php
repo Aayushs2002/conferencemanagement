@@ -1701,7 +1701,47 @@ class ConferenceRegistrationController extends Controller
 
     public function generateCertificate($society, $conference, ConferenceRegistration $conferenceRegistration)
     {
-        return view('backend.conference.conference-registration.generate-certificate');
+        // Load relationships
+        $conference->load('conferenceCertificate', 'ConferenceVenueDetail', 'conferenceSetting');
+        $conferenceRegistration->load('user.userDetail.namePrefix');
+        
+        // Get registrant name with prefix
+        $user = $conferenceRegistration->user;
+        $registrantName = '';
+        if ($user && $user->userDetail) {
+            $prefix = $user->userDetail->namePrefix->prefix ?? '';
+            $registrantName = trim($prefix . ' ' . $user->fullName($user));
+        }
+        
+        // Get registrant type text
+        $registrantType = '';
+        switch ($conferenceRegistration->registrant_type) {
+            case ConferenceRegistration::REGISTRANT_ATTENDEE:
+                $registrantType = 'Attendee';
+                break;
+            case ConferenceRegistration::REGISTRANT_SPEAKER:
+                $registrantType = 'Speaker';
+                break;
+            case ConferenceRegistration::REGISTRANT_SESSION_CHAIR:
+                $registrantType = 'Session Chair';
+                break;
+            case ConferenceRegistration::REGISTRANT_SPECIAL_GUEST:
+                $registrantType = 'Special Guest';
+                break;
+            case ConferenceRegistration::REGISTRANT_ORGANIZER:
+                $registrantType = 'Organizer';
+                break;
+            case ConferenceRegistration::REGISTRANT_FACULTY:
+                $registrantType = 'Faculty';
+                break;
+        }
+        
+        return view('backend.conference.conference-registration.generate-certificate', compact(
+            'conference',
+            'conferenceRegistration',
+            'registrantName',
+            'registrantType'
+        ));
     }
 
     public function downloadVoucher($society, $conference, ConferenceRegistration $conferenceRegistration)

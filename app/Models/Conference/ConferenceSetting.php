@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class ConferenceSetting extends Model
 {
     protected $fillable = [
-        'conference_id',
+        'conference_id',    
         'name',
         'signature',
         'registration_guideline',
@@ -22,6 +22,7 @@ class ConferenceSetting extends Model
         'registration_open_date',
         'workshop_registration_open_date',
         'workshop_application_deadline',
+        'cpd_points_required',
         'show_stats_dashboard',
         'addon_availability',
         'submission_cc_emails',

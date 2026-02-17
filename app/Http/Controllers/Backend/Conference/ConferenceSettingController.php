@@ -48,6 +48,7 @@ class ConferenceSettingController extends Controller
                 'conference_registration_cc_emails' => 'nullable|string',
                 'workshop_registration_cc_emails' => 'nullable|string',
                 'closing_message' => 'nullable|string',
+                'cpd_points_required' => 'required|in:0,1',
 
             ]);
 
@@ -98,6 +99,7 @@ class ConferenceSettingController extends Controller
                 'registration_open_date' => $request->registration_open_date,
                 'workshop_registration_open_date' => $request->workshop_registration_open_date,
                 'workshop_application_deadline' => $request->workshop_application_deadline,
+                'cpd_points_required' => $request->cpd_points_required,
                 'show_stats_dashboard' => $request->show_stats_dashboard,
                 'addon_availability' => $request->addon_availability,
                 'submission_cc_emails' => $request->submission_cc_emails,
