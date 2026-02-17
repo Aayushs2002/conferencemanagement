@@ -66,6 +66,17 @@
                 <small class="text-muted">Users cannot apply for workshops after this date</small>
             </div>
 
+            <div class="col-md-4 mb-4">
+                <label>CPD Points Required <code>*</code></label>
+                <select class="form-control" name="cpd_points_required" required>
+                    <option value="1"
+                        {{ ($conferenceSetting?->cpd_points_required ?? 1) == 1 ? 'selected' : '' }}>Yes</option>
+                    <option value="0"
+                        {{ $conferenceSetting?->cpd_points_required == 0 ? 'selected' : '' }}>No</option>
+                </select>
+                <small class="text-muted">Enable or disable CPD points for conference registrants</small>
+            </div>
+
             <div class="col-12 mt-3">
                 <h6>3. Conference Registration Guideline</h6>
                 <hr class="mt-0" style="height:1px;border:none;color:#333;background-color:#333;" />

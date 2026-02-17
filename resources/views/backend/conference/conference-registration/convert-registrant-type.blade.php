@@ -33,6 +33,10 @@
                             {{ old('registrant_type', optional($registration)->registrant_type) == 5 ? 'selected' : '' }}>
                             Organizer
                         </option>
+                        <option value="6"
+                            {{ old('registrant_type', optional($registration)->registrant_type) == 6 ? 'selected' : '' }}>
+                            Faculty
+                        </option>
                     </select>
 
                     @error('registrant_type')

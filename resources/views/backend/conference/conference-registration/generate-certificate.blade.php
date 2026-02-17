@@ -27,9 +27,6 @@ header('Access-Control-Allow-Origin: *');
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <title>Untitled Document</title>
-    <link href="https://fonts.googleapis.com/css2?family=Josefin+Sans:ital,wght@0,100..700;1,100..700&display=swap"
-        rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Tangerine:wght@400;700&display=swap" rel="stylesheet">
     <!--[CSS/JS Files - Start]-->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.6.0/css/bootstrap.min.css">
@@ -40,7 +37,9 @@ header('Access-Control-Allow-Origin: *');
     <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.6.0/js/bootstrap.min.js"></script>
 
 
-    <script src="{{ asset('certificate/af.min.js') }}"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Josefin+Sans:ital,wght@0,100..700;1,100..700&display=swap"
+        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Tangerine:wght@400;700&display=swap" rel="stylesheet">
     <style>
         body {
             font-family: "Josefin Sans", sans-serif;
@@ -136,6 +135,36 @@ header('Access-Control-Allow-Origin: *');
 
 </head>
 
+@php
+    // Format dates
+    $startDate = \Carbon\Carbon::parse($conference->start_date);
+    $endDate = \Carbon\Carbon::parse($conference->end_date);
+    
+    // Check if dates are same day, same month, or different
+    $dateDisplay = '';
+    if ($startDate->isSameDay($endDate)) {
+        $dateDisplay = $startDate->format('jS F, Y');
+    } elseif ($startDate->month === $endDate->month && $startDate->year === $endDate->year) {
+        $dateDisplay = $startDate->format('jS') . ' and ' . $endDate->format('jS F, Y');
+    } else {
+        $dateDisplay = $startDate->format('jS F') . ' and ' . $endDate->format('jS F, Y');
+    }
+    
+    // Get venue location
+    $venueLocation = $conference->ConferenceVenueDetail ? $conference->ConferenceVenueDetail->venue_name : 'Conference Venue';
+    
+    // Get certificate settings
+    $certificateBg = '';
+    if ($conference->conferenceCertificate && $conference->conferenceCertificate->background_image) {
+        $certificateBg = 'background:url(' . asset('storage/conference/conference/certificate/background/' . $conference->conferenceCertificate->background_image) . ') no-repeat center top; background-size:100%;';
+    } else {
+        $certificateBg = 'background:url(\'frame_1.png\') no-repeat center top; background-size:100%;';
+    }
+    
+    // Check if CPD points should be shown
+    $showCpdPoints = $conference->conferenceSetting && $conference->conferenceSetting->cpd_points_required == 1;
+@endphp
+
 <body>
     <div class="text-center" style="padding:20px;">
         <input type="button" id="rep" value="Download" class="btn btn-info btn_print">
@@ -143,73 +172,55 @@ header('Access-Control-Allow-Origin: *');
     <div class="container_content" id="container_content">
         <div class="invoice-box">
 
-            <table width="1400" border="0" cellspacing="0" cellpadding="0"
-                style="
-              font-size: 18px;
-              background: url('{{ asset('certificate/deafult/frame.png') }}') no-repeat center top;
-              background-size: 100%;
-              padding-bottom: 40px;
-            ">
+            <table width="1300" border="0" cellspacing="0" cellpadding="0"
+                style="font-size:18px; {{ $certificateBg }} padding-bottom:0px;">
+
                 <tr>
                     <td>
-                        <table width="1670" border="0" cellspacing="0" cellpadding="0"
-                            style="text-align: center; margin-top: 80px">
+                        <table width="1600" border="0" cellspacing="0" cellpadding="0"
+                            style="text-align:center; height:180px; margin-top:70px;">
                             <tr>
-                                <td width="210">&nbsp;</td>
-                                <td width="150">
-                                    <img src="{{ asset('certificate/deafult/san.jpg') }}"
-                                        style="
-                          height: 130px;
-                          width: 133px;
-                          margin-left: 30px;
-                          border-radius: 100%;
-                          background: #fff;
-                          padding: 6px;
-                          border: 2px red solid;
-                        "
-                                        alt="" />
-                                </td>
-                                <td width="470"
-                                    style="
-                        text-align: left;
-                        font-size: 60px;
-                        font-weight: bold;
-                        color: red;
-                      ">
-                                    SANCON-ASPA 2025
+
+
+                                <td width="1670"
+                                    style="text-align:center; font-size:60px; font-weight:bold; color:red;">&nbsp;</td>
+
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+
+                <tr>
+                    <td align="center">
+                        <table width="1670" border="0" cellspacing="0" cellpadding="0"
+                            style="text-align:center; margin-top:10px;">
+                            <tr>
+                                <td width="500">&nbsp;</td>
+
+                                <td width="550" style="text-align:left; font-size:80px; font-weight:bold;color:red;">
+                                    {{ $conference->abbreviation ?? 'CONFERENCE' }}</td>
+
+                                <td width="450" style="text-align:left;">&nbsp;
                                 </td>
 
-                                <td width="350" style="text-align: left">
-                                    <img src="{{ asset('frontend/assets/images/logo/ASPN.png') }}" alt=""
-                                        style="
-                          height: 140px;
-                          border-radius: 100%;
-                          padding: 6px;
-                          border: 2px red solid;
-                        " />
-                                </td>
                             </tr>
                         </table>
                     </td>
                 </tr>
                 <tr>
                     <td>
+
                         <table width="1698" border="0" cellspacing="0" cellpadding="0"
-                            style="padding-top: 0px; text-align: center; line-height: 0px">
+                            style="padding-top:0px; text-align:center; line-height:0px;">
                             <tr>
+
                                 <td width="248">&nbsp;</td>
                                 <td width="900">
+                                    @if($conference->conference_theme)
                                     <h1
-                                        style="
-                          font-size: 35px;
-                          width: auto;
-                          height: 45px;
-                          line-height: 50px;
-                          padding: 10px 0px;
-                          margin: 5px 0px;
-                        ">
-                                        "Scaling new heights in Pediatric Anesthesia and beyond"
-                                    </h1>
+                                        style="font-size:35px; width:auto; height:45px; line-height:50px; padding: 0px; margin:5px 0px;">
+                                        "{{ $conference->conference_theme }}"</h1>
+                                    @endif
                                 </td>
                                 <td width="255">&nbsp;</td>
                             </tr>
@@ -218,26 +229,16 @@ header('Access-Control-Allow-Origin: *');
                 </tr>
                 <tr>
                     <td>
+
                         <table width="1698" border="0" cellspacing="0" cellpadding="0"
-                            style="padding-top: 0px; text-align: center; line-height: 0px">
+                            style="padding-top:0px; text-align:center; line-height:0px;">
                             <tr>
+
                                 <td width="348">&nbsp;</td>
                                 <td width="700">
                                     <h1
-                                        style="
-                          text-transform: uppercase;
-                          font-size: 40px;
-                          background-color: #26268e;
-                          width: auto;
-                          height: 60px;
-                          line-height: 50px;
-                          padding: 10px 0px;
-                          margin: 20px 0px;
-                          overflow: hidden;
-                          color: #fff;
-                        ">
-                                        certificate of Appreciation
-                                    </h1>
+                                        style="text-transform:uppercase; font-size:48px; background-color:#0c72b4; width:auto; height:60px; line-height:50px; padding:12px 0px; margin:5px 0px; overflow:hidden; color:#fff;">
+                                        Certificate of Appreciation</h1>
                                 </td>
                                 <td width="355">&nbsp;</td>
                             </tr>
@@ -247,264 +248,104 @@ header('Access-Control-Allow-Origin: *');
 
                 <tr>
                     <td>
-                        <table width="1698" border="0" cellspacing="0" cellpadding="0"
-                            style="padding-top: 10px; text-align: center; line-height: 0px">
-                            <tr>
-                                <td width="300">&nbsp;</td>
-                                <td width="1098">
-                                    <h2 style="font-weight: 500; font-size: 60px;padding-top:20px;">
-                                        This Certificate has been awarded
-                                    </h2>
-                                </td>
-                                <td width="300">&nbsp;</td>
-                            </tr>
-                        </table>
-                    </td>
-                </tr>
-                <tr>
-                    <td>
-                        <table width="1698" border="0" cellspacing="0" cellpadding="0"
-                            style="text-align: center; line-height: 0px">
-                            <tr>
-                                <td width="215">&nbsp;</td>
-                                <td width="980">
-                                    <h6 style="font-size: 40px; margin: 0px; padding: 10px 0px">
-                                        to
-                                    </h6>
-                                    <h3
-                                        style="
-                          font-weight: 500;
-                          font-size: 80px;
-                          margin-bottom: 15px;
-                          color: red;
-                        ">
-                                        {{-- {{ $participant->user->namePrefix->prefix ?? null }}
-                                        {{ $participant->user->fullname($participant, 'user') }} --}}
-                                    </h3>
-                                </td>
-                                <td width="215">&nbsp;</td>
-                            </tr>
-                        </table>
-                    </td>
-                </tr>
-                <tr>
-                    <td>
-                        <table width="1698" border="0" cellspacing="0" cellpadding="0"
-                            style="text-align: center; font-size: 22px; line-height: 32px">
-                            <tr>
-                                <td width="260">&nbsp;</td>
-                                <td width="1210">
-                                    <h1 style="line-height: 60px; margin-bottom: 0px">
-                                        for participating as
-                                        {{-- <strong>{{ $participant->registrant_type == 2 ? ' a Speaker' : 'an Attendee' }}</strong> --}}
-                                        <strong>
-                                            {{-- @if ($participant->registrant_type == 1)
-                                                an Attendee
-                                            @elseif ($participant->registrant_type == 3)
-                                                a Session Chair
-                                            @elseif (
-                                                ($participant->registrant_type == 2 && $participant->user->userDetail->country->country_name != 'Nepal') ||
-                                                    $participant->user->userDetail->member_type_id == 1)
-                                                a Faculty
-                                            @elseif(
-                                                $participant->registrant_type == 2 &&
-                                                    ($participant->user->userDetail->member_type_id == 2 || $participant->user->userDetail->member_type_id == 4))
-                                                a Speaker
-                                            @endif --}}
 
-                                        </strong>
-                                        in the <br />
-                                        <small><b
-                                                style="
-                              font-size: 60px;
-                              line-height: 80px;
-                              margin: 20px 0px;
-                              color: red;
-                            ">SANCON-ASPA
-                                                2025</b>
-                                            <br />held on 4<sup>th</sup> and 5<sup>th</sup> April, 2025,
-                                            Kathmandu,
-                                            Nepal</small><br /><i
-                                            style="font-size:20px; margin:0px; padding:0px">Accredited by NMC for CPD
-                                            Points</i>
+                        <table width="1698" border="0" cellspacing="0" cellpadding="0"
+                            style="padding-top:40px; text-align:center; line-height:40px;">
+                            <tr>
+
+                                <td width="300">&nbsp;</td>
+                                <td width="1098" style="margin-top: 20px;">
+
+                                    <h2 style="font-weight:500; font-size:60px; padding-top:28px;">This Certificate has been awarded </h2>
+                                </td>
+                                <td width="300">&nbsp;</td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <table width="1698" border="0" cellspacing="0" cellpadding="0"
+                            style="text-align:center; line-height:0px;">
+                            <tr>
+                                <td width="315">&nbsp;</td>
+                                <td width="780">
+                                    <h6 style="font-size:40px; margin:0px; padding:10px 0px;">to</h6>
+                                    <h3 style="font-weight:500; font-size:80px; margin-bottom:15px; color:red;">{{ $registrantName }}</h3>
+                                </td>
+                                <td width="315">&nbsp;</td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <table width="1698" border="0" cellspacing="0" cellpadding="0"
+                            style="text-align:center; font-size:22px; line-height:32px;">
+                            <tr>
+                                <td width="160">&nbsp;</td>
+                                <td width="1410">
+                                    <h1 style="line-height:60px; margin-bottom:10px; font-weight:bold;">for the Participating as a
+                                        <u>{{ $registrantType }}</u> in <br />
+                                        <small style="font-weight:400;"><b
+                                                style="font-size:35px; font-weight:400; line-height:40px;  margin:0px 0px; color:red;">{{ $conference->conference_name }}</b>
+                                            <br />held on {{ $dateDisplay }}, {{ $venueLocation }}</small><br /> 
+                                            @if($showCpdPoints)
+                                            <i style="font-weight:bold; font-size:20px; margin:0px; display:block; height:60px; padding:0px">NMC CPD Point Awarded</i>
+                                            @endif
                                     </h1>
-                                </td>
-
-                                <td width="200"></td>
+                                <td width="100">&nbsp;</td>
                             </tr>
                         </table>
                     </td>
                 </tr>
 
+                @if($conference->conferenceCertificate && !empty($conference->conferenceCertificate->signature))
                 <tr>
                     <td>
                         <table width="1600" border="0" cellspacing="0" cellpadding="0"
-                            style="margin-top: 10px; margin-bottom: 100px">
+                            style="margin-top:5px; margin-bottom:50px;">
                             <tbody>
                                 <tr>
-                                    <td style="padding: 0px 0px 0px 50px; text-align: center">
-                                        <table border="0" width="250" cellspacing="0" cellpadding="0">
+                                    @php
+                                        $signatures = $conference->conferenceCertificate->signature;
+                                        $signatureCount = count($signatures);
+                                        $paddingLeft = 150;
+                                        $cellWidth = 300;
+                                    @endphp
+                                    
+                                    @foreach($signatures as $index => $signature)
+                                    <td style="padding:0px {{ $index < $signatureCount - 1 ? '50px' : '15px' }} 0px {{ $index === 0 ? $paddingLeft . 'px' : '10px' }}; text-align:center;">
+                                        <table width="{{ $cellWidth }}" border="0" cellspacing="0" cellpadding="0">
                                             <tbody>
-                                                <tr></tr>
                                                 <tr>
-                                                    <td width="250" align="center">
-                                                        <img src="{{ asset('certificate/deafult/basu.png') }}"
-                                                            alt="" style="height: 75px" />
-                                                    </td>
-                                                </tr>
-
-                                                <tr>
-                                                    <td width="250" style="border-bottom: #000 2px dotted">
-                                                        &nbsp;
+                                                    <td width="{{ $cellWidth }}" align="center">
+                                                        <img src="{{ asset('storage/conference/conference/certificate/signature/' . $signature['fileName']) }}" 
+                                                             alt="{{ $signature['name'] }}" 
+                                                             style="height:75px; max-width:100%; object-fit:contain;">
                                                     </td>
                                                 </tr>
                                                 <tr>
-                                                    <td width="250" align="center">
-                                                        <span
-                                                            style="
-                                    text-align: center;
-                                    line-height: 35px;
-                                    padding: 12px 0px;
-                                    font-size: 22px;
-                                  "><b>Dr.
-                                                                Bashu Dev Parajuli </b><br />(Organizing
-                                                            Secretary)
+                                                    <td width="{{ $cellWidth }}" style="border-bottom:#000 2px dotted;">&nbsp;</td>
+                                                </tr>
+                                                <tr>
+                                                    <td width="{{ $cellWidth }}" align="center">
+                                                        <span style="text-align:center; line-height:35px; padding:12px 0px; font-size:22px;">
+                                                            <b>{{ $signature['name'] }}</b><br />
+                                                            ({{ $signature['designation'] }})
                                                         </span>
                                                     </td>
                                                 </tr>
                                             </tbody>
                                         </table>
                                     </td>
-
-                                    <td style="padding: 0px 0px 0px 0px; text-align: center">
-                                        <table border="0" width="240" cellspacing="0" cellpadding="0">
-                                            <tbody>
-                                                <tr>
-                                                    <td width="260" align="center">
-                                                        <img src="{{ asset('certificate/deafult/ponde.png') }}"
-                                                            alt="" style="height: 75px" />
-                                                    </td>
-                                                </tr>
-                                                <tr>
-                                                    <td width="260" style="border-bottom: #000 2px dotted">
-                                                        &nbsp;
-                                                    </td>
-                                                </tr>
-                                                <tr>
-                                                    <td width="260" align="center">
-                                                        <span
-                                                            style="
-                                    text-align: center;
-                                    line-height: 35px;
-                                    padding: 12px 0px;
-                                    font-size: 22px;
-                                  "><b>Dr.
-                                                                Vrushali Ponde</b><br />
-                                                            (ASPA Scientific chair)</span>
-                                                    </td>
-                                                </tr>
-                                            </tbody>
-                                        </table>
-                                    </td>
-
-                                    <td style="padding: 0px 0px 0px 10px; text-align: center">
-                                        <table width="250" border="0" cellspacing="0" cellpadding="0">
-                                            <tbody>
-                                                <tr>
-                                                    <td width="260" align="center">
-                                                        <img src="{{ asset('certificate/deafult/anil.png') }}"
-                                                            alt="" style="height: 75px" />
-                                                    </td>
-                                                </tr>
-                                                <tr>
-                                                    <td width="260" style="border-bottom: #000 2px dotted">
-                                                        &nbsp;
-                                                    </td>
-                                                </tr>
-                                                <tr>
-                                                    <td width="260" align="center">
-                                                        <span
-                                                            style="
-                                    text-align: center;
-                                    line-height: 35px;
-                                    padding: 12px 0px;
-                                    font-size: 22px;
-                                  "><b>Prof.
-                                                                Dr. Anil Shrestha </b><br />
-                                                            (Scientific Chairperson)</span>
-                                                    </td>
-                                                </tr>
-                                            </tbody>
-                                        </table>
-                                    </td>
-
-                                    <td style="padding: 0px 0px 0px 10px; text-align: center">
-                                        <table border="0" width="280" cellspacing="0" cellpadding="0">
-                                            <tbody>
-                                                <tr>
-                                                    <td width="260" align="center">
-                                                        <img src="{{ asset('certificate/deafult/aspa.png') }}"
-                                                            alt="" style="height: 75px" />
-                                                    </td>
-                                                </tr>
-                                                <tr>
-                                                    <td width="260" style="border-bottom: #000 2px dotted">
-                                                        &nbsp;
-                                                    </td>
-                                                </tr>
-                                                <tr>
-                                                    <td width="260" align="center">
-                                                        <span
-                                                            style="
-                                    text-align: center;
-                                    line-height: 35px;
-                                    padding: 12px 0px;
-                                    font-size: 22px;
-                                  "><b>Dr
-                                                                Z Serpil Ustalar Ozgen</b><br />
-                                                            (ASPA President)</span>
-                                                    </td>
-                                                </tr>
-                                            </tbody>
-                                        </table>
-                                    </td>
-
-                                    <td style="padding: 0px 15px 0px 0px; text-align: center">
-                                        <table width="310" border="0" cellspacing="0" cellpadding="0">
-                                            <tbody>
-                                                <tr>
-                                                    <td width="260" align="center">
-                                                        <img src="{{ asset('certificate/deafult/amir.png') }}"
-                                                            alt="" style="height: 75px" />
-                                                    </td>
-                                                </tr>
-                                                <tr>
-                                                    <td width="260" style="border-bottom: #000 2px dotted">
-                                                        &nbsp;
-                                                    </td>
-                                                </tr>
-                                                <tr>
-                                                    <td width="260" align="center">
-                                                        <span
-                                                            style="
-                                    text-align: center;
-                                    line-height: 35px;
-                                    padding: 12px 0px;
-                                    font-size: 22px;
-                                  "><b>Prof.
-                                                                Dr. Amir Babu Shrestha </b><br />(Organizing
-                                                            Chairperson)
-                                                        </span>
-                                                    </td>
-                                                </tr>
-                                            </tbody>
-                                        </table>
-                                    </td>
+                                    @endforeach
                                 </tr>
                             </tbody>
                         </table>
                     </td>
                 </tr>
+                @endif
             </table>
         </div>
     </div>
