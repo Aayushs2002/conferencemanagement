@@ -232,7 +232,7 @@
         @endif
         {{-- <li class="menu-item {{ request()->segment(1) == 'hotel' ? 'active' : '' }}">
             <a href="{{ route('my-society.conference.index', [request()->segment(2), request()->segment(4)]) }}"
-                class="menu-link ">
+                class="menu-link "> 
                 <i class="menu-icon icon-base ti tabler-building-skyscraper"></i>
                 <div data-i18n="Submission">Submission</div>
             </a>
@@ -331,6 +331,13 @@
                                 </a>
                             </li>
                         @endif
+                        {{-- <li
+                            class="menu-item {{ request()->segment(6) == 'workshop-certificate' ? 'active' : '' }}">
+                            <a href="{{ route('workshop-certificate.index', [request()->segment(2), request()->segment(4)]) }}"
+                                class="menu-link">
+                                <div data-i18n="Certificate Setting">Certificate Setting</div>
+                            </a>
+                        </li> --}}
                     </ul>
                 </li>
             @endif

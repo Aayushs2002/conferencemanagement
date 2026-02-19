@@ -2320,7 +2320,8 @@ class ConferenceRegistrationController extends Controller
                 $messageContent = $this->replacePlaceholders(
                     $request->message,
                     $registrant,
-                    $conference
+                    $conference,
+                    $society
                 );
 
                 $data = [
@@ -2399,7 +2400,8 @@ class ConferenceRegistrationController extends Controller
             $messageContent = $this->replacePlaceholders(
                 $request->message,
                 $registrant,
-                $conference
+                $conference,
+                $society
             );
 
             $data = [
@@ -2433,7 +2435,7 @@ class ConferenceRegistrationController extends Controller
     /**
      * Replace placeholders in message with actual values
      */
-    private function replacePlaceholders($message, $registrant, $conference)
+    private function replacePlaceholders($message, $registrant, $conference, $society)
     {
         $registrantTypes = [
             1 => 'Attendee',
@@ -2442,6 +2444,12 @@ class ConferenceRegistrationController extends Controller
             4 => 'Special Guest',
             5 => 'Organizer',
         ];
+
+        $certificateUrl = route('conference.conference-registration.generateCertificate', [
+            $society,
+            $conference,
+            $registrant->id
+        ]);
 
         $placeholders = [
             '{name}' => $registrant->user->fullName($registrant->user),
@@ -2457,6 +2465,7 @@ class ConferenceRegistrationController extends Controller
             '{conference_end_date}' => $conference->end_date ? \Carbon\Carbon::parse($conference->end_date)->format('jS F, Y') : 'N/A',
             '{venue}' => $conference->ConferenceVenueDetail->venue_name ?? 'N/A',
             '{venue_address}' => $conference->ConferenceVenueDetail->venue_address ?? 'N/A',
+            '{certificate_link}' => $certificateUrl,
         ];
 
         return str_replace(array_keys($placeholders), array_values($placeholders), $message);
