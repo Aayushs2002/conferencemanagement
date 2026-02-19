@@ -3,6 +3,8 @@
 use App\Http\Controllers\Backend\Committee\CommitteeController;
 use App\Http\Controllers\Backend\Committee\CommitteeDesignationController;
 use App\Http\Controllers\Backend\Committee\CommitteeMemberController;
+use App\Http\Controllers\Backend\Conference\AccommodationManagementController;
+use App\Http\Controllers\Backend\Conference\ArticleTypeController;
 use App\Http\Controllers\Backend\Conference\ConferenceAddonController;
 use App\Http\Controllers\Backend\Conference\ConferenceCertificateController;
 use App\Http\Controllers\Backend\Conference\ConferenceController;
@@ -10,7 +12,6 @@ use App\Http\Controllers\Backend\Conference\ConferenceMemberTypePriceController;
 use App\Http\Controllers\Backend\Conference\ConferenceRegistrationController;
 use App\Http\Controllers\Backend\Conference\ConferenceSettingController;
 use App\Http\Controllers\Backend\Conference\PassSettingController;
-use App\Http\Controllers\Backend\Conference\AccommodationManagementController;
 use App\Http\Controllers\Backend\Dashboard\ConferenceDashboardController;
 use App\Http\Controllers\Backend\Download\DownloadController;
 use App\Http\Controllers\Backend\Faq\FaqCategoryController;
@@ -28,26 +29,24 @@ use App\Http\Controllers\Backend\Submission\AuthorController;
 use App\Http\Controllers\Backend\Submission\SubmissionCategoryMajorTrackContoller;
 use App\Http\Controllers\Backend\Submission\SubmissionController;
 use App\Http\Controllers\Backend\Submission\SubmissionSettingController;
-use App\Http\Controllers\Backend\Conference\ArticleTypeController;
 use App\Http\Controllers\Backend\Template\EmailTemplateController;
 use App\Http\Controllers\Backend\User\SignupUserController;
 use App\Http\Controllers\Backend\UserManagement\RoleController;
 use App\Http\Controllers\Backend\Workshop\PassSetting\WorkshopPassSettingController;
 use App\Http\Controllers\Backend\Workshop\Workshop\WorkshopController;
+use App\Http\Controllers\Backend\Workshop\WorkshopCertificateController;
 use App\Http\Controllers\Backend\Workshop\WorkshopRegistration\WorkshopRegistrationController;
 use App\Http\Controllers\Backend\Workshop\WorkshopTrainer\WorkshopTrainerController;
-use App\Http\Controllers\Backend\Workshop\WorkshopCertificateController;
-use App\Models\Sponsor\Sponsor;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('auth')->group(function () {
 
-    //conference dashboard
+    // conference dashboard
     Route::controller(ConferenceDashboardController::class)->name('dashboard.')->group(function () {
         Route::get('/registration-data', 'registrationData')->name('registrationData');
     });
 
-    //conference route started
+    // conference route started
 
     Route::prefix('/society/{society}')->group(function () {
         Route::resource('/conference', ConferenceController::class)->except('show', 'destroy');
@@ -56,7 +55,7 @@ Route::middleware('auth')->group(function () {
     });
     Route::post('/conference/show', [ConferenceController::class, 'view'])->name('conference.show');
 
-    //conference open portal route 
+    // conference open portal route
     Route::prefix('/society/{society}/conference/{conference}')->group(function () {
         Route::get('/dashboard', [ConferenceController::class, 'openConferencePortal'])->name('conference.openConferencePortal');
         Route::get('/dashboard/attendance-status', [ConferenceController::class, 'viewAttendanceStatus'])->name('conference.viewAttendanceStatus');
@@ -75,11 +74,11 @@ Route::middleware('auth')->group(function () {
     });
     Route::get('/conference/stats', [ConferenceController::class, 'getStats'])->name('conference.stats');
 
-    //conference route ended
-    //conference member type price route started
+    // conference route ended
+    // conference member type price route started
     Route::post('/conference/price-form', [ConferenceMemberTypePriceController::class, 'priceForm'])->name('conference.priceForm');
     Route::post('/conference/price-submit', [ConferenceMemberTypePriceController::class, 'priceSubmit'])->name('conference.priceSubmit');
-    //conference member type price route ended
+    // conference member type price route ended
 
     Route::post('conference-setting', [ConferenceSettingController::class, 'conferenceSetting'])->name('conference.setting');
     Route::post('conference-setting-submit', [ConferenceSettingController::class, 'conferenceSettingSubmit'])->name('conference.setting.submit');
@@ -89,7 +88,7 @@ Route::middleware('auth')->group(function () {
 
     Route::controller(ConferenceRegistrationController::class)->name('conference.conference-registration.')->middleware(['auto.conf.permission', 'feature:conference-registration-management'])->prefix('/society/{society}/conference/{conference}/conference-registration')->group(function () {
         Route::get('/registrant', 'index')->name('index');
-        Route::post('/view-data', 'show')->name('show'); 
+        Route::post('/view-data', 'show')->name('show');
         Route::get('/registrant/{registrant}/edit', 'edit')->name('edit');
         Route::put('/registrant/{registrant}', 'update')->name('update');
         Route::delete('/registrant/{registrant}/delete-voucher', 'deleteVoucher')->name('deleteVoucher');
@@ -108,9 +107,8 @@ Route::middleware('auth')->group(function () {
         Route::post('/verify-registrant-submit', 'verifyRegistrant')->name('verifyRegistrant');
         Route::get('/registration-or-invitation', 'registrationOrInvitation')->name('registrationOrInvitation');
         Route::post('/registration-or-invitation-submit', 'registrationOrInvitationSubmit')->name('registrationOrInvitationSubmit');
-        Route::get('/exportExcel',  'excelExport')->name('excelExport');
-        Route::get('/generate-pass',  'generatePass')->name('generatePass');
-        Route::get('/generate-certificate/{conferenceRegistration}',  'generateCertificate')->name('generateCertificate');
+        Route::get('/exportExcel', 'excelExport')->name('excelExport');
+        Route::get('/generate-pass', 'generatePass')->name('generatePass');
         Route::get('/generate-individual-pass/{conferenceRegistration}', 'generateIndividualPass')->name('generateIndividualPass');
         Route::get('/download-voucher/{conferenceRegistration}', 'downloadVoucher')->name('downloadVoucher');
         Route::post('/generate-dummy-pass', 'generateDummyPass')->name('generateDummyPass');
@@ -137,7 +135,7 @@ Route::middleware('auth')->group(function () {
         Route::resource('conference-certificate', ConferenceCertificateController::class);
     });
 
-    //offical message
+    // offical message
     Route::prefix('/society/{society}/conference/{conference}/')->group(function () {
         Route::post('official-message/update-order', [OfficialMessageController::class, 'updateOrder'])->name('official-message.update-order');
         Route::resource('official-message', OfficialMessageController::class);
@@ -145,15 +143,14 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/conference-certificate/{conferenceCertificate}/signature/{signature}', [ConferenceCertificateController::class, 'deleteImage'])->name('conference-certificate.signature.remove');
 
-
-    //submission setting route started
+    // submission setting route started
     Route::controller(SubmissionSettingController::class)->middleware(['auto.conf.permission', 'feature:abstract-submission-management'])->prefix('/society/{society}/conference/{conference}/submission')->name('submission.')->group(function () {
         Route::get('/submission-setting', 'index')->name('setting');
         Route::post('/setting-submit', 'store')->name('settingSubmit');
     });
-    //submission setting route ended
+    // submission setting route ended
 
-    //submission category/major track route start
+    // submission category/major track route start
     Route::controller(SubmissionCategoryMajorTrackContoller::class)->middleware(['auto.conf.permission', 'feature:abstract-submission-management'])->prefix('/society/{society}/conference/{conference}/submission/submission-cateogry-majortrack')->name('submission.category-majortrack.')->group(function () {
         Route::get('/', 'index')->name('index');
         Route::get('/create', 'create')->name('create');
@@ -163,7 +160,7 @@ Route::middleware('auth')->group(function () {
         Route::delete('/destroy/{submissionCategoryMajortrack}', 'destroy')->name('destroy');
     });
 
-    //article type route start
+    // article type route start
     Route::controller(ArticleTypeController::class)->middleware(['auto.conf.permission', 'feature:abstract-submission-management'])->prefix('/society/{society}/conference/{conference}/submission/article-type')->name('articleType.')->group(function () {
         Route::get('/', 'index')->name('index');
         Route::get('/create', 'create')->name('create');
@@ -175,9 +172,9 @@ Route::middleware('auth')->group(function () {
         Route::post('/setting-submit', 'settingSubmit')->name('settingSubmit');
         Route::post('/update-order', 'updateOrder')->name('update-order');
     });
-    //article type route end
+    // article type route end
 
-    //contribution route start
+    // contribution route start
     Route::controller(\App\Http\Controllers\Backend\Submission\ContributionController::class)->middleware(['auto.conf.permission', 'feature:abstract-submission-management'])->prefix('/society/{society}/conference/{conference}/submission/contribution')->name('contribution.')->group(function () {
         Route::get('/', 'index')->name('index');
         Route::get('/create', 'create')->name('create');
@@ -185,10 +182,9 @@ Route::middleware('auth')->group(function () {
         Route::patch('/update/{contribution}', 'update')->name('update');
         Route::delete('/destroy/{contribution}', 'destroy')->name('destroy');
     });
-    //contribution route end
+    // contribution route end
 
-
-    //Submission Route Started
+    // Submission Route Started
     Route::controller(SubmissionController::class)->middleware(['auto.conf.permission', 'feature:abstract-submission-management'])->prefix('/society/{society}/conference/{conference}/submission')->name('submission.')->group(function () {
         Route::get('/', 'index')->name('index');
         Route::get('/view-submissions', 'viewSubmissions')->name('viewSubmissions');
@@ -214,25 +210,24 @@ Route::middleware('auth')->group(function () {
         Route::get('/get-author/{id}', 'getAuthors')->name('getAuthors');
         Route::delete('/submission/destroy/{submission}', 'destroy')->name('submission.destroy');
     });
-    
 
     Route::prefix('/society/{society}/conference/{conference}')->group(function () {
         Route::controller(AuthorController::class)->middleware(['auto.conf.permission', 'feature:abstract-submission-management'])->prefix('/submission/{submission}')->name('submission.author.')->group(function () {
             Route::get('/author', 'index')->name('index');
         });
     });
-    //Submission Route Ended
+    // Submission Route Ended
 
-    //Scientific Session route started
+    // Scientific Session route started
     Route::prefix('/society/{society}/conference/{conference}')->middleware(['auto.conf.permission', 'feature:scientific-session-management'])->group(function () {
         Route::resource('/scientific-session', ScientificSessionController::class)->except('show');
         Route::get('/schedule-session', [ScientificSessionController::class, 'scheduleSession'])->name('scheduleSession');
         Route::post('/scientific-session/upload-pdf', [ScientificSessionController::class, 'uploadPdf'])->name('scientific-session.upload-pdf');
         Route::delete('/scientific-session/delete-pdf', [ScientificSessionController::class, 'deletePdf'])->name('scientific-session.delete-pdf');
     });
-    //Scientific Session route ended
+    // Scientific Session route ended
 
-    //Scientific Session Poll route started
+    // Scientific Session Poll route started
     Route::prefix('/society/{society}/conference/{conference}')->middleware(['auto.conf.permission', 'feature:scientific-session-management'])->group(function () {
         Route::controller(PollController::class)->prefix('/scientific-session/poll')->name('poll.')->group(function () {
             Route::get('/{id}', 'index')->name('index');
@@ -244,17 +239,17 @@ Route::middleware('auth')->group(function () {
         });
     });
 
-    //Scientific Session category route Started
+    // Scientific Session category route Started
     Route::prefix('/society/{society}/conference/{conference}')->middleware(['auto.conf.permission', 'feature:scientific-session-management'])->group(function () {
         Route::resource('/scientific-session/category', ScientificSessionCategoryController::class)->except('show');
     });
-    //Scientific Session category route  End
+    // Scientific Session category route  End
 
-    //Hall route started
+    // Hall route started
     Route::prefix('/society/{society}/conference/{conference}')->middleware(['auto.conf.permission', 'feature:scientific-session-management'])->group(function () {
         Route::resource('/scientific-session/hall', HallController::class)->except('show');
     });
-    //Hall route ended
+    // Hall route ended
     Route::prefix('/society/{society}/conference/{conference}')->middleware('auto.conf.permission')->group(function () {
         Route::controller(SignupUserController::class)->prefix('/user')->name('signup-user.')->group(function () {
             Route::get('/signup-users', 'index')->name('index');
@@ -309,7 +304,6 @@ Route::middleware('auth')->group(function () {
             Route::delete('/destroy/{workshop}/{registration}', 'destroy')->name('destroy');
         });
 
-
         Route::controller(WorkshopTrainerController::class)->name('workshop.workshop-trainer.')->prefix('/workshop/workshop-trainer')->group(function () {
             Route::get('/{workshop}', 'index')->name('index');
             Route::get('{workshop}/create', 'create')->name('create');
@@ -329,7 +323,6 @@ Route::middleware('auth')->group(function () {
         });
 
         Route::resource('workshop/workshop-pass-settings', WorkshopPassSettingController::class)->middleware('auto.conf.permission');
-
 
         Route::resource('/committee/committe-designation', CommitteeDesignationController::class)->except('show');
 
@@ -372,7 +365,6 @@ Route::middleware('auth')->group(function () {
         Route::post('/take-meal', 'takeMeal')->name('takeMeal');
     });
 
-
     Route::get('sponsor/change-status/{sponsor}', [SponsorController::class, 'changeStatus'])->middleware('auto.conf.permission')->name('sponsor.changeStatus');
     Route::post('/sponsor/add-participant', [SponsorController::class, 'addParticipant'])->name('sponsor.addParticipant');
     Route::post('/sponsor/add-participant-submit', [SponsorController::class, 'addParticipantSubmit'])->name('sponsor.addParticipantSubmit');
@@ -403,7 +395,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/remove-role-form-submit', [RoleController::class, 'removeRoleFormSubmit'])->name('removeRoleFormSubmit');
         Route::post('/roles/get-user-activity-log', [RoleController::class, 'getUserActivityLog'])->name('roles.getUserActivityLog');
 
-        //Activity log
+        // Activity log
         Route::get('/activity-log', [logActivityController::class, 'index'])->name('activity-log.index');
     });
 
@@ -429,3 +421,4 @@ Route::group(['middleware' => ['auth']], function () {
 Route::get('/participant/profile/{token}', [ConferenceRegistrationController::class, 'participantProfile']);
 Route::get('workshop/participant/profile/{token}', [WorkshopRegistrationController::class, 'participantProfile']);
 Route::get('/sponsor/profile/{token}', [SponsorController::class, 'sponsorProfile']);
+Route::get('/society/{society}/conference/{conference}/conference-registration/generate-certificate/{conferenceRegistration}', [ConferenceRegistrationController::class, 'generateCertificate'])->name('conference.conference-registration.generateCertificate');
