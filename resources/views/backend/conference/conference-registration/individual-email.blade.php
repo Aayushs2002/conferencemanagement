@@ -63,22 +63,23 @@
                             <li><code>{first_name}</code> - First Name</li>
                             <li><code>{last_name}</code> - Last Name</li>
                             <li><code>{prefix}</code> - Name Prefix</li>
+                            <li><code>{email}</code> - Email Address</li>
                         </ul>
                     </div>
                     <div class="col-md-4">
                         <ul class="list-unstyled small">
-                            <li><code>{email}</code> - Email Address</li>
                             <li><code>{registrant_type}</code> - Registrant Type</li>
                             <li><code>{registration_id}</code> - Registration ID</li>
                             <li><code>{conference_name}</code> - Conference Name</li>
+                            <li><code>{conference_theme}</code> - Conference Theme</li>
                         </ul>
                     </div>
                     <div class="col-md-4">
                         <ul class="list-unstyled small">
-                            <li><code>{conference_theme}</code> - Conference Theme</li>
                             <li><code>{conference_start_date}</code> - Start Date</li>
                             <li><code>{conference_end_date}</code> - End Date</li>
                             <li><code>{venue}</code> - Venue Name</li>
+                            <li><code>{certificate_link}</code> - Certificate Link</li>
                         </ul>
                     </div>
                 </div>
@@ -118,6 +119,7 @@
                                 <button type="button" class="btn btn-sm btn-outline-primary insert-placeholder" data-placeholder="{conference_start_date}">Start Date</button>
                                 <button type="button" class="btn btn-sm btn-outline-primary insert-placeholder" data-placeholder="{conference_end_date}">End Date</button>
                                 <button type="button" class="btn btn-sm btn-outline-primary insert-placeholder" data-placeholder="{venue}">Venue</button>
+                                <button type="button" class="btn btn-sm btn-outline-primary insert-placeholder" data-placeholder="{certificate_link}">Certificate Link</button>
                             </div>
                         </div>
                         <textarea class="form-control ckeditor @error('message') is-invalid @enderror" 

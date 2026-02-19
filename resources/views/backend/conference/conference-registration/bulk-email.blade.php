@@ -75,7 +75,7 @@
                             @endforeach
                         </select>
                     </div>
-                    <div class="col-md-3 mb-3">
+                    <div class="col-md-3 mb-3"> 
                         <label for="country_id" class="form-label">Country</label>
                         <select class="form-control select2" name="country_id" id="country_id">
                             <option value="">-- All Countries --</option>
@@ -140,6 +140,7 @@
                                 <button type="button" class="btn btn-sm btn-outline-primary insert-placeholder" data-placeholder="{conference_end_date}">End Date</button>
                                 <button type="button" class="btn btn-sm btn-outline-primary insert-placeholder" data-placeholder="{venue}">Venue</button>
                                 <button type="button" class="btn btn-sm btn-outline-primary insert-placeholder" data-placeholder="{venue_address}">Address</button>
+                                <button type="button" class="btn btn-sm btn-outline-primary insert-placeholder" data-placeholder="{certificate_link}">Certificate Link</button>
                             </div>
                         </div>
                         <textarea class="form-control ckeditor @error('message') is-invalid @enderror" 
