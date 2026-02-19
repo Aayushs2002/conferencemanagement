@@ -50,6 +50,11 @@ header('Access-Control-Allow-Origin: *');
         h3 {
             font-family: "Tangerine", cursive;
         }
+
+        .superscript {
+            font-size: 60%;
+            vertical-align: super;
+        }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.3/html2pdf.bundle.min.js"></script>
 
@@ -139,28 +144,60 @@ header('Access-Control-Allow-Origin: *');
     // Format dates
     $startDate = \Carbon\Carbon::parse($conference->start_date);
     $endDate = \Carbon\Carbon::parse($conference->end_date);
-    
+
     // Check if dates are same day, same month, or different
-    $dateDisplay = '';
-    if ($startDate->isSameDay($endDate)) {
-        $dateDisplay = $startDate->format('jS F, Y');
-    } elseif ($startDate->month === $endDate->month && $startDate->year === $endDate->year) {
-        $dateDisplay = $startDate->format('jS') . ' and ' . $endDate->format('jS F, Y');
-    } else {
-        $dateDisplay = $startDate->format('jS F') . ' and ' . $endDate->format('jS F, Y');
+    function formatDateWithSup($date)
+    {
+        $day = $date->format('j');
+        $suffix = $date->format('S');
+
+        return $day . '<span class="superscript">' . $suffix . '</span> ' . $date->format('F, Y');
     }
-    
+
+    function formatDayWithSup($date)
+    {
+        $day = $date->format('j');
+        $suffix = $date->format('S');
+
+        return $day . '<span class="superscript">' . $suffix . '</span>';
+    }
+
+    $dateDisplay = '';
+
+    if ($startDate->isSameDay($endDate)) {
+        $dateDisplay = formatDateWithSup($startDate);
+    } elseif ($startDate->month === $endDate->month && $startDate->year === $endDate->year) {
+        $dateDisplay = formatDayWithSup($startDate) . ' and ' . formatDateWithSup($endDate);
+    } else {
+        $dateDisplay =
+            $startDate->format('j') .
+            '<sup>' .
+            $startDate->format('S') .
+            '</sup> ' .
+            $startDate->format('F') .
+            ' and ' .
+            formatDateWithSup($endDate);
+    }
+
     // Get venue location
-    $venueLocation = $conference->ConferenceVenueDetail ? $conference->ConferenceVenueDetail->venue_name : 'Conference Venue';
-    
+    $venueLocation = $conference->ConferenceVenueDetail
+        ? $conference->ConferenceVenueDetail->venue_name
+        : 'Conference Venue';
+
     // Get certificate settings
     $certificateBg = '';
     if ($conference->conferenceCertificate && $conference->conferenceCertificate->background_image) {
-        $certificateBg = 'background:url(' . asset('storage/conference/conference/certificate/background/' . $conference->conferenceCertificate->background_image) . ') no-repeat center top; background-size:100%;';
+        $certificateBg =
+            'background:url(' .
+            asset(
+                'storage/conference/conference/certificate/background/' .
+                    $conference->conferenceCertificate->background_image,
+            ) .
+            ') no-repeat center top; background-size:100%;';
     } else {
         $certificateBg = 'background:url(\'frame_1.png\') no-repeat center top; background-size:100%;';
     }
-    
+
     // Check if CPD points should be shown
     $showCpdPoints = $conference->conferenceSetting && $conference->conferenceSetting->cpd_points_required == 1;
 @endphp
@@ -178,7 +215,7 @@ header('Access-Control-Allow-Origin: *');
                 <tr>
                     <td>
                         <table width="1600" border="0" cellspacing="0" cellpadding="0"
-                            style="text-align:center; height:180px; margin-top:70px;">
+                            style="text-align:center; height:180px; margin-top:60px;">
                             <tr>
 
 
@@ -216,10 +253,10 @@ header('Access-Control-Allow-Origin: *');
 
                                 <td width="248">&nbsp;</td>
                                 <td width="900">
-                                    @if($conference->conference_theme)
-                                    <h1
-                                        style="font-size:35px; width:auto; height:45px; line-height:50px; padding: 0px; margin:5px 0px;">
-                                        "{{ $conference->conference_theme }}"</h1>
+                                    @if ($conference->conference_theme)
+                                        <h1
+                                            style="font-size:35px; width:auto; height:45px; line-height:50px; padding: 0px; margin:5px 0px;">
+                                            "{{ $conference->conference_theme }}"</h1>
                                     @endif
                                 </td>
                                 <td width="255">&nbsp;</td>
@@ -254,9 +291,10 @@ header('Access-Control-Allow-Origin: *');
                             <tr>
 
                                 <td width="300">&nbsp;</td>
-                                <td width="1098" style="margin-top: 20px;">
+                                <td width="1098" style="margin-top: 13px;">
 
-                                    <h2 style="font-weight:500; font-size:60px; padding-top:28px;">This Certificate has been awarded </h2>
+                                    <h2 style="font-weight:500; font-size:60px; padding-top:28px;">This Certificate has
+                                        been awarded </h2>
                                 </td>
                                 <td width="300">&nbsp;</td>
                             </tr>
@@ -271,7 +309,8 @@ header('Access-Control-Allow-Origin: *');
                                 <td width="315">&nbsp;</td>
                                 <td width="780">
                                     <h6 style="font-size:40px; margin:0px; padding:10px 0px;">to</h6>
-                                    <h3 style="font-weight:500; font-size:80px; margin-bottom:15px; color:red;">{{ $registrantName }}</h3>
+                                    <h3 style="font-weight:500; font-size:80px; margin-bottom:15px; color:red;">
+                                        {{ $registrantName }}</h3>
                                 </td>
                                 <td width="315">&nbsp;</td>
                             </tr>
@@ -285,14 +324,17 @@ header('Access-Control-Allow-Origin: *');
                             <tr>
                                 <td width="160">&nbsp;</td>
                                 <td width="1410">
-                                    <h1 style="line-height:60px; margin-bottom:10px; font-weight:bold;">for the Participating as a
-                                        <u>{{ $registrantType }}</u> in <br />
+                                    <h1 style="line-height:60px; margin-bottom:10px; font-weight:bold;">for
+                                        Participating as a
+                                        {{ $registrantType }} in <br />
                                         <small style="font-weight:400;"><b
                                                 style="font-size:35px; font-weight:400; line-height:40px;  margin:0px 0px; color:red;">{{ $conference->conference_name }}</b>
-                                            <br />held on {{ $dateDisplay }}, {{ $venueLocation }}</small><br /> 
-                                            @if($showCpdPoints)
-                                            <i style="font-weight:bold; font-size:20px; margin:0px; display:block; height:60px; padding:0px">NMC CPD Point Awarded</i>
-                                            @endif
+                                            <br />held on {!! $dateDisplay !!}, {{ $venueLocation }}</small><br />
+                                        @if ($showCpdPoints)
+                                            <i
+                                                style="font-weight:bold; font-size:20px; margin:0px; display:block; height:60px; padding:0px">NMC
+                                                CPD Point Awarded</i>
+                                        @endif
                                     </h1>
                                 <td width="100">&nbsp;</td>
                             </tr>
@@ -300,51 +342,55 @@ header('Access-Control-Allow-Origin: *');
                     </td>
                 </tr>
 
-                @if($conference->conferenceCertificate && !empty($conference->conferenceCertificate->signature))
-                <tr>
-                    <td>
-                        <table width="1600" border="0" cellspacing="0" cellpadding="0"
-                            style="margin-top:5px; margin-bottom:50px;">
-                            <tbody>
-                                <tr>
-                                    @php
-                                        $signatures = $conference->conferenceCertificate->signature;
-                                        $signatureCount = count($signatures);
-                                        $paddingLeft = 150;
-                                        $cellWidth = 300;
-                                    @endphp
-                                    
-                                    @foreach($signatures as $index => $signature)
-                                    <td style="padding:0px {{ $index < $signatureCount - 1 ? '50px' : '15px' }} 0px {{ $index === 0 ? $paddingLeft . 'px' : '10px' }}; text-align:center;">
-                                        <table width="{{ $cellWidth }}" border="0" cellspacing="0" cellpadding="0">
-                                            <tbody>
-                                                <tr>
-                                                    <td width="{{ $cellWidth }}" align="center">
-                                                        <img src="{{ asset('storage/conference/conference/certificate/signature/' . $signature['fileName']) }}" 
-                                                             alt="{{ $signature['name'] }}" 
-                                                             style="height:75px; max-width:100%; object-fit:contain;">
-                                                    </td>
-                                                </tr>
-                                                <tr>
-                                                    <td width="{{ $cellWidth }}" style="border-bottom:#000 2px dotted;">&nbsp;</td>
-                                                </tr>
-                                                <tr>
-                                                    <td width="{{ $cellWidth }}" align="center">
-                                                        <span style="text-align:center; line-height:35px; padding:12px 0px; font-size:22px;">
-                                                            <b>{{ $signature['name'] }}</b><br />
-                                                            ({{ $signature['designation'] }})
-                                                        </span>
-                                                    </td>
-                                                </tr>
-                                            </tbody>
-                                        </table>
-                                    </td>
-                                    @endforeach
-                                </tr>
-                            </tbody>
-                        </table>
-                    </td>
-                </tr>
+                @if ($conference->conferenceCertificate && !empty($conference->conferenceCertificate->signature))
+                    <tr>
+                        <td>
+                            <table width="1600" border="0" cellspacing="0" cellpadding="0"
+                                style="margin-top:5px; margin-bottom:50px;">
+                                <tbody>
+                                    <tr>
+                                        @php
+                                            $signatures = $conference->conferenceCertificate->signature;
+                                            $signatureCount = count($signatures);
+                                            $paddingLeft = 150;
+                                            $cellWidth = 300;
+                                        @endphp
+
+                                        @foreach ($signatures as $index => $signature)
+                                            <td
+                                                style="padding:0px {{ $index < $signatureCount - 1 ? '50px' : '15px' }} 0px {{ $index === 0 ? $paddingLeft . 'px' : '10px' }}; text-align:center;">
+                                                <table width="{{ $cellWidth }}" border="0" cellspacing="0"
+                                                    cellpadding="0">
+                                                    <tbody>
+                                                        <tr>
+                                                            <td width="{{ $cellWidth }}" align="center">
+                                                                <img src="{{ asset('storage/conference/conference/certificate/signature/' . $signature['fileName']) }}"
+                                                                    alt="{{ $signature['name'] }}"
+                                                                    style="height:75px; max-width:100%; object-fit:contain;">
+                                                            </td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td width="{{ $cellWidth }}"
+                                                                style="border-bottom:#000 2px dotted;">&nbsp;</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td width="{{ $cellWidth }}" align="center">
+                                                                <span
+                                                                    style="text-align:center; line-height:35px; padding:12px 0px; font-size:22px;">
+                                                                    <b>{{ $signature['name'] }}</b><br />
+                                                                    ({{ $signature['designation'] }})
+                                                                </span>
+                                                            </td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                            </td>
+                                        @endforeach
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </td>
+                    </tr>
                 @endif
             </table>
         </div>
