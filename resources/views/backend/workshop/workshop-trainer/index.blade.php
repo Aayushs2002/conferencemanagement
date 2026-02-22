@@ -121,6 +121,9 @@
                                                 href="{{ route('workshop.workshop-trainer.edit', [$society, $conference, $workshop, $trainer->id]) }}"><i
                                                     class="icon-base ti tabler-user-edit me-1"></i> Edit Trainer Profile</a>
                                         @endif
+                                        <a class="dropdown-item"
+                                            href="{{ route('workshop-certificate.generateCertificate', [$society, $conference, $workshop, $trainer->id]) }}" target="_blank"><i
+                                                class="icon-base ti tabler-certificate me-1"></i> Generate Certificate</a>
                                         <hr>
                                         {{-- @if (auth()->user()->hasConferencePermissionBlade(getConference(request()->segment(4)), 'Delete Workshop Trainer')) --}}
                                             <form

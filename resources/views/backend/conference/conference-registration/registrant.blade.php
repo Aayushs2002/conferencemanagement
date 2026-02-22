@@ -32,6 +32,9 @@
                         <option {{ request()->registrant_type == 6 ? 'selected' : '' }} value="6">
                             Faculty
                         </option>
+                        <option {{ request()->registrant_type == 7 ? 'selected' : '' }} value="7">
+                            Volunteer
+                        </option>
                     </select>
                 </div>
                 <div class="col-md-3 form-group mb-3">
@@ -311,6 +314,8 @@
                                     Organizer
                                 @elseif ($registrant->registrant_type == 6)
                                     Faculty
+                                @elseif ($registrant->registrant_type == 7)
+                                    Volunteer
                                 @endif
                                 @if ($registrant->is_invited == 1)
                                     <span title="Invited"

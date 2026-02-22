@@ -9,6 +9,9 @@ class WorkshopCertificate extends Model
     protected $fillable = [
         'workshop_id',
         'background_image',
+        'signature_image',
+        'signature_name',
+        'signature_designation',
     ];
 
     public function workshop()

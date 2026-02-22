@@ -1717,7 +1717,7 @@ class ConferenceRegistrationController extends Controller
         $registrantType = '';
         switch ($conferenceRegistration->registrant_type) {
             case ConferenceRegistration::REGISTRANT_ATTENDEE:
-                $registrantType = 'Attendee';
+                $registrantType = 'Delegate';
                 break;
             case ConferenceRegistration::REGISTRANT_SPEAKER:
                 $registrantType = 'Speaker';
@@ -1733,6 +1733,9 @@ class ConferenceRegistrationController extends Controller
                 break;
             case ConferenceRegistration::REGISTRANT_FACULTY:
                 $registrantType = 'Faculty';
+                break;
+            case ConferenceRegistration::REGISTRANT_VOLUNTEER:
+                $registrantType = 'Volunteer';
                 break;
         }
         
@@ -2443,6 +2446,8 @@ class ConferenceRegistrationController extends Controller
             3 => 'Session Chair',
             4 => 'Special Guest',
             5 => 'Organizer',
+            6 => 'Faculty',
+            7 => 'Volunteer',
         ];
 
         $certificateUrl = route('conference.conference-registration.generateCertificate', [

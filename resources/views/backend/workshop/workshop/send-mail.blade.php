@@ -19,7 +19,7 @@
                             </option>
                         @endforeach
                     </select>
-                    <p class="text-danger workshop_id"></p>
+                    <p class="text-danger workshop_id"></p> 
                 </div>
                 <div class="col-md-6 form-group mb-3">
                     <label for="recipient_type" class="mb-2">Recipient Type <code>*</code></label>
@@ -48,6 +48,32 @@
                 </div>
                 <div class="mb-6">
                     <label class="form-label" for="mail_content">Mail Content <code>*</code></label>
+                    <div class="mb-2">
+                        <small class="text-muted d-block mb-2"><i class="ti tabler-info-circle me-1"></i>Click buttons below to insert placeholders:</small>
+                        <div class="btn-group flex-wrap" role="group">
+                            <button type="button" class="btn btn-sm btn-outline-primary insert-placeholder" data-placeholder="{name}">Name</button>
+                            <button type="button" class="btn btn-sm btn-outline-primary insert-placeholder" data-placeholder="{first_name}">First Name</button>
+                            <button type="button" class="btn btn-sm btn-outline-primary insert-placeholder" data-placeholder="{middle_name}">Middle Name</button>
+                            <button type="button" class="btn btn-sm btn-outline-primary insert-placeholder" data-placeholder="{last_name}">Last Name</button>
+                            <button type="button" class="btn btn-sm btn-outline-primary insert-placeholder" data-placeholder="{prefix}">Prefix</button>
+                            <button type="button" class="btn btn-sm btn-outline-primary insert-placeholder" data-placeholder="{email}">Email</button>
+                            <button type="button" class="btn btn-sm btn-outline-primary insert-placeholder" data-placeholder="{registrant_type}">Type</button>
+                            <button type="button" class="btn btn-sm btn-outline-primary insert-placeholder" data-placeholder="{registration_id}">Reg ID</button>
+                            <button type="button" class="btn btn-sm btn-outline-primary insert-placeholder" data-placeholder="{workshop_title}">Workshop Title</button>
+                            <button type="button" class="btn btn-sm btn-outline-primary insert-placeholder" data-placeholder="{workshop_slogan}">Workshop Slogan</button>
+                            <button type="button" class="btn btn-sm btn-outline-primary insert-placeholder" data-placeholder="{workshop_start_date}">Workshop Start</button>
+                            <button type="button" class="btn btn-sm btn-outline-primary insert-placeholder" data-placeholder="{workshop_end_date}">Workshop End</button>
+                            <button type="button" class="btn btn-sm btn-outline-primary insert-placeholder" data-placeholder="{workshop_start_time}">Start Time</button>
+                            <button type="button" class="btn btn-sm btn-outline-primary insert-placeholder" data-placeholder="{workshop_end_time}">End Time</button>
+                            <button type="button" class="btn btn-sm btn-outline-primary insert-placeholder" data-placeholder="{venue}">Venue</button>
+                            <button type="button" class="btn btn-sm btn-outline-primary insert-placeholder" data-placeholder="{venue_address}">Address</button>
+                            <button type="button" class="btn btn-sm btn-outline-primary insert-placeholder" data-placeholder="{conference_name}">Conference</button>
+                            <button type="button" class="btn btn-sm btn-outline-primary insert-placeholder" data-placeholder="{conference_theme}">Theme</button>
+                            <button type="button" class="btn btn-sm btn-outline-primary insert-placeholder" data-placeholder="{conference_start_date}">Conf Start</button>
+                            <button type="button" class="btn btn-sm btn-outline-primary insert-placeholder" data-placeholder="{conference_end_date}">Conf End</button>
+                            <button type="button" class="btn btn-sm btn-outline-primary insert-placeholder" data-placeholder="{certificate_link}">Certificate Link</button>
+                        </div>
+                    </div>
                     <textarea class="form-control ckeditor" id="mail_content" name="mail_content" rows="5" cols="30"></textarea>
                     <p class="text-danger mail_content"></p>
                     @error('mail_content')
@@ -63,20 +89,60 @@
     </div>
 </div>
 <script>
-    $(document).ready(function() {
+    // Initialize immediately when modal content is loaded (not in document.ready)
+    (function() {
+        let editorInstance;
 
-        CKEDITOR.replace('mail_content', {
-            filebrowserUploadUrl: '{{ route('ckeditor.fileUpload', ['_token' => csrf_token()]) }}',
-            filebrowserUploadMethod: "form",
-            extraPlugins: 'wordcount',
-            wordcount: {
-                showWordCount: true,
+        // Slight delay to ensure DOM is fully rendered
+        setTimeout(function() {
+            if (typeof CKEDITOR !== 'undefined' && $('#mail_content').length) {
+                CKEDITOR.replace('mail_content', {
+                    filebrowserUploadUrl: '{{ route('ckeditor.fileUpload', ['_token' => csrf_token()]) }}',
+                    filebrowserUploadMethod: "form",
+                    extraPlugins: 'wordcount',
+                    wordcount: {
+                        showWordCount: true,
+                    },
+                    height: 400,
+                    toolbar: [
+                        { name: 'document', items: ['Source'] },
+                        { name: 'clipboard', items: ['Undo', 'Redo'] },
+                        { name: 'styles', items: ['Format', 'Font', 'FontSize'] },
+                        { name: 'basicstyles', items: ['Bold', 'Italic', 'Underline', 'Strike'] },
+                        { name: 'colors', items: ['TextColor', 'BGColor'] },
+                        { name: 'paragraph', items: ['NumberedList', 'BulletedList', '-', 'Outdent', 'Indent', '-', 'Blockquote'] },
+                        { name: 'links', items: ['Link', 'Unlink'] },
+                        { name: 'insert', items: ['Image', 'Table', 'HorizontalRule'] },
+                        { name: 'tools', items: ['Maximize'] }
+                    ],
+                    allowedContent: true,
+                    protectedSource: [/<span[^>]*contenteditable="false"[^>]*>.*?<\/span>/gi]
+                });
+
+                // Wait for editor to be ready
+                setTimeout(function() {
+                    editorInstance = CKEDITOR.instances['mail_content'];
+                    
+                    // Insert placeholder into CKEditor
+                    $(document).off('click', '.insert-placeholder').on('click', '.insert-placeholder', function() {
+                        const placeholder = $(this).data('placeholder');
+                        const editor = CKEDITOR.instances['mail_content'];
+                        if (editor) {
+                            const placeholderHTML = '<span style="font-weight: bold; color: #000;" contenteditable="false">' + placeholder + '</span> ';
+                            editor.insertHtml(placeholderHTML);
+                            editor.focus();
+                        }
+                    });
+                }, 500);
             }
-        });
+        }, 100);
 
+        // Initialize other components
         const getUsersUrl = @json(route('workshop.get.users', [$society, $conference]));
         const UserEl = document.querySelector('#User');
         let User;
+
+        setTimeout(function() {
 
         function tagTemplate(tagData) {
             return `
@@ -258,5 +324,6 @@
                 }
             });
         });
-    });
+        }, 100); // End setTimeout for other components
+    })(); // End IIFE
 </script>

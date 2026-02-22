@@ -960,7 +960,7 @@ class SubmissionController extends Controller
 
     public function exportExcel(Request $request, $society, $conference)
     {
-        $query = Submission::with(['authors', 'presenter.userDetail', 'submissionCategoryMajorTrack', 'articleType', 'expert.userDetail'])
+        $query = Submission::with(['authors', 'presenter.userDetail', 'submissionCategoryMajorTrack', 'articleType', 'expert.userDetail', 'submissionRating', 'articleType.setting'])
             ->where(['conference_id' => $conference->id, 'status' => 1]);
 
         if ($request->filled('article_type_id')) {

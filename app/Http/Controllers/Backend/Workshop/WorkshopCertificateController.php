@@ -39,12 +39,18 @@ class WorkshopCertificateController extends Controller
     {
         try {
             $rules = [
-                'background_image' => 'required|mimes:jpg,png',
+                'background_image' => 'nullable|mimes:jpg,png',
+                'signature_image' => 'nullable|mimes:jpg,png',
+                'signature_name' => 'nullable|string|max:255',
             ];
             $validated = $request->validate($rules);
 
             if (!empty($validated['background_image'])) {
                 $validated['background_image'] = $this->file_service->fileUpload($validated['background_image'], 'certificate_background_image', 'workshop/certificate/background/');
+            }
+            
+            if (!empty($validated['signature_image'])) {
+                $validated['signature_image'] = $this->file_service->fileUpload($validated['signature_image'], 'certificate_signature_image', 'workshop/certificate/signature/');
             }
             
             $validated['workshop_id'] = $workshop->id;
@@ -79,6 +85,9 @@ class WorkshopCertificateController extends Controller
         try {
             $rules = [
                 'background_image' => 'nullable|mimes:jpg,png',
+                'signature_image' => 'nullable|mimes:jpg,png',
+                'signature_name' => 'nullable|string|max:255',
+                'signature_designation' => 'nullable|string|max:255',
             ];
             $validated = $request->validate($rules);
             
@@ -87,12 +96,60 @@ class WorkshopCertificateController extends Controller
 
                 $validated['background_image'] = $this->file_service->fileUpload($validated['background_image'], 'certificate_background_image', 'workshop/certificate/background/');
             }
+            
+            if (!empty($validated['signature_image'])) {
+                $this->file_service->deleteFile($workshop_certificate->signature_image, 'workshop/certificate/signature/');
+
+                $validated['signature_image'] = $this->file_service->fileUpload($validated['signature_image'], 'certificate_signature_image', 'workshop/certificate/signature/');
+            }
 
             $workshop_certificate->update($validated);
             return redirect()->route('workshop-certificate.index', [$society, $conference, $workshop])->with('status', 'Certificate Setting Updated Successfully');
         } catch (\Exception $e) {
             throw $e;
         }
+    }
+
+    /**
+     * Generate certificate for workshop registration
+     */
+    public function generateCertificate($society, $conference, $workshop, $workshopRegistrationId)
+    {
+        $workshopRegistration = \App\Models\Workshop\WorkshopRegistration::findOrFail($workshopRegistrationId);
+        
+        // Load relationships
+        $workshop->load('workshopCertificate', 'WorkshopVenueDetail', 'conference.conferenceCertificate', 'conference.conferenceSetting');
+        $workshopRegistration->load('user.userDetail.namePrefix');
+        
+        // Get registrant name with prefix
+        $user = $workshopRegistration->user;
+        $registrantName = '';
+        if ($user && $user->userDetail) {
+            $prefix = $user->userDetail->namePrefix->prefix ?? '';
+            $registrantName = trim($prefix . ' ' . $user->fullName($user));
+        }
+        
+        // Get registrant type text (1 = Participant, 2 = Trainer)
+        $registrantType = '';
+        switch ($workshopRegistration->registrant_type) {
+            case 1:
+                $registrantType = 'Attendee';
+                break;
+            case 2:
+                $registrantType = 'Faculty';
+                break;
+            default:
+                $registrantType = 'Attendee';
+                break;
+        }
+        
+        return view('backend.workshop.generate-certificate', compact(
+            'workshop',
+            'conference',
+            'workshopRegistration',
+            'registrantName',
+            'registrantType'
+        ));
     }
 
     /**

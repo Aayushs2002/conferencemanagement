@@ -50,6 +50,8 @@ class ConferenceRegistration extends Model
     public const REGISTRANT_SPECIAL_GUEST = 4;
     public const REGISTRANT_ORGANIZER = 5;
     public const REGISTRANT_FACULTY = 6; 
+    public const REGISTRANT_VOLUNTEER = 7; 
+    
 
     public const ATTEND_PHYSICAL = 1;
     public const ATTEND_ONLINE = 2;
