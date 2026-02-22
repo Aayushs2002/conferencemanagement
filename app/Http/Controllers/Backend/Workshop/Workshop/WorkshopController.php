@@ -501,9 +501,49 @@ class WorkshopController extends Controller
                 throw new Exception('No recipients selected');
             }
 
-            foreach ($users as $user) {
-                SendWorkshopBulkMailJob::dispatch($user, $validated['subject'], $validated['mail_content'], $conference->conference_name);
+            // Get workshop details
+            $workshop = Workshop::with(['WorkshopVenueDetail', 'conference'])->findOrFail($validated['workshop_id']);
+
+            $queuedCount = 0;
+            foreach ($users as $userObj) {
+                // Get full user with registration details
+                $workshopRegistration = WorkshopRegistration::where('workshop_id', $workshop->id)
+                    ->where('user_id', $userObj->value)
+                    ->with(['user.userDetail.namePrefix', 'workshop'])
+                    ->first();
+
+                if (!$workshopRegistration || !$workshopRegistration->user) {
+                    continue;
+                }
+
+                // Replace placeholders in message
+                $messageContent = $this->replacePlaceholders(
+                    $validated['mail_content'],
+                    $workshopRegistration,
+                    $workshop,
+                    $society
+                );
+
+                $data = [
+                    'name' => $workshopRegistration->user->fullName($workshopRegistration->user),
+                    'namePrefix' => $workshopRegistration->user->userDetail->namePrefix->prefix ?? '',
+                    'registrant_type' => $workshopRegistration->registrant_type,
+                    'workshop_title' => $workshop->workshop_title,
+                    'conference_name' => $conference->conference_name,
+                ];
+
+                SendWorkshopBulkMailJob::dispatch(
+                    $workshopRegistration->user,
+                    $validated['subject'],
+                    $messageContent,
+                    $data,
+                    $conference->conference_name
+                )->delay(now()->addSeconds($queuedCount * 3));
+
+                $queuedCount++;
             }
+
+            $message = "Email queued successfully for {$queuedCount} recipient(s).";
         } catch (Exception $e) {
             $type = 'error';
             $message = $e->getMessage();
@@ -641,6 +681,50 @@ class WorkshopController extends Controller
         } catch (Exception $e) {
             return redirect()->back()->with('delete', 'Export failed: ' . $e->getMessage());
         }
+    }
+
+    /**
+     * Replace placeholders in message with actual values for workshop
+     */
+    private function replacePlaceholders($message, $registration, $workshop, $society)
+    {
+        $registrantTypes = [
+            1 => 'Attendee',
+            2 => 'Faculty',
+        ];
+
+        $certificateUrl = route('workshop-certificate.generateCertificate', [
+            $society,
+            $workshop->conference,
+            $workshop,
+            $registration->id
+        ]);
+
+        $placeholders = [
+            '{name}' => $registration->user->fullName($registration->user),
+            '{first_name}' => $registration->user->f_name,
+            '{middle_name}' => $registration->user->m_name ?? '',
+            '{last_name}' => $registration->user->l_name,
+            '{prefix}' => $registration->user->userDetail->namePrefix->prefix ?? '',
+            '{email}' => $registration->user->email,
+            '{registrant_type}' => $registrantTypes[$registration->registrant_type] ?? 'Participant',
+            '{registration_id}' => $registration->id ?? 'N/A',
+            '{workshop_title}' => $workshop->workshop_title,
+            '{workshop_slogan}' => $workshop->workshop_slogan ?? '',
+            '{workshop_start_date}' => $workshop->start_date ? \Carbon\Carbon::parse($workshop->start_date)->format('jS F, Y') : 'N/A',
+            '{workshop_end_date}' => $workshop->end_date ? \Carbon\Carbon::parse($workshop->end_date)->format('jS F, Y') : 'N/A',
+            '{workshop_start_time}' => $workshop->start_time ?? 'N/A',
+            '{workshop_end_time}' => $workshop->end_time ?? 'N/A',
+            '{venue}' => $workshop->WorkshopVenueDetail->venue_name ?? 'N/A',
+            '{venue_address}' => $workshop->WorkshopVenueDetail->venue_address ?? 'N/A',
+            '{conference_name}' => $workshop->conference->conference_name ?? 'N/A',
+            '{conference_theme}' => $workshop->conference->conference_theme ?? '',
+            '{conference_start_date}' => $workshop->conference->start_date ? \Carbon\Carbon::parse($workshop->conference->start_date)->format('jS F, Y') : 'N/A',
+            '{conference_end_date}' => $workshop->conference->end_date ? \Carbon\Carbon::parse($workshop->conference->end_date)->format('jS F, Y') : 'N/A',
+            '{certificate_link}' => $certificateUrl,
+        ];
+
+        return str_replace(array_keys($placeholders), array_values($placeholders), $message);
     }
 }
 

@@ -161,6 +161,9 @@
                                         <a class="dropdown-item"
                                             href="{{ route('workshop.workshop-registration.downloadVoucher', [$society, $conference, $registration->id]) }}"><i
                                                 class="icon-base ti tabler-ticket me-1"></i> Downlaod Payment Voucher</a>
+                                        <a class="dropdown-item"
+                                            href="{{ route('workshop-certificate.generateCertificate', [$society, $conference, $workshop, $registration->id]) }}" target="_blank"><i
+                                                class="icon-base ti tabler-certificate me-1"></i> Generate Certificate</a>
                                         {{-- @if ($registration->is_dummy == 1) --}}
                                             <hr>
                                             <form action="{{ route('workshop.workshop-registration.destroy', [$society, $conference, $workshop, $registration->id]) }}"

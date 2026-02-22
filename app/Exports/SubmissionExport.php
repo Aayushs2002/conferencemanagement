@@ -19,6 +19,48 @@ class SubmissionExport implements FromCollection, WithHeadings, ShouldAutoSize, 
         $this->includeExpertInfo = $includeExpertInfo;
     }
 
+    /**
+     * Calculate total score based on rating type
+     */
+    protected function calculateTotalScore($submission)
+    {
+        if (!$submission->submissionRating) {
+            return 'N/A';
+        }
+
+        $rating = $submission->submissionRating;
+        
+        // Check if section-based ratings exist
+        $articleTypeSections = null;
+        if ($submission->articleType && $submission->articleType->setting) {
+            $articleTypeSections = $submission->articleType->setting->sections ?? null;
+        }
+
+        if (!empty($articleTypeSections) && is_array($articleTypeSections) && !empty($rating->section_ratings)) {
+            // Section-based ratings
+            $total = collect($rating->section_ratings)->sum('rating') +
+                     ($rating->title_rating ?? 0) +
+                     ($rating->grammar ?? 0) +
+                     ($rating->overall_rating ?? 0);
+            return $total;
+        } elseif ($rating->overall_rating !== null && 
+                  $rating->introduction === null && 
+                  $rating->method === null && 
+                  $rating->result === null && 
+                  $rating->conclusion === null) {
+            // Overall rating only (structure checkbox)
+            return $rating->overall_rating;
+        } else {
+            // Default ratings (Introduction, Method, Result, Conclusion, Grammar)
+            $total = ($rating->introduction ?? 0) +
+                     ($rating->method ?? 0) +
+                     ($rating->result ?? 0) +
+                     ($rating->conclusion ?? 0) +
+                     ($rating->grammar ?? 0);
+            return $total;
+        }
+    }
+
     public function collection()
     {
         $arrayData = [];
@@ -93,6 +135,38 @@ class SubmissionExport implements FromCollection, WithHeadings, ShouldAutoSize, 
                     break;
             }
             
+            // Get individual scores
+            $rating = $submission->submissionRating;
+            $introduction = 'N/A';
+            $method = 'N/A';
+            $result = 'N/A';
+            $conclusion = 'N/A';
+            $grammar = 'N/A';
+            $titleRating = 'N/A';
+            $overallRating = 'N/A';
+            $sectionRatings = 'N/A';
+
+            if ($rating) {
+                $introduction = $rating->introduction ?? 'N/A';
+                $method = $rating->method ?? 'N/A';
+                $result = $rating->result ?? 'N/A';
+                $conclusion = $rating->conclusion ?? 'N/A';
+                $grammar = $rating->grammar ?? 'N/A';
+                $titleRating = $rating->title_rating ?? 'N/A';
+                $overallRating = $rating->overall_rating ?? 'N/A';
+                
+                // Format section ratings if present
+                if (!empty($rating->section_ratings) && is_array($rating->section_ratings)) {
+                    $sectionParts = [];
+                    foreach ($rating->section_ratings as $section) {
+                        $sectionName = $section['name'] ?? 'Section';
+                        $sectionScore = $section['rating'] ?? 'N/A';
+                        $sectionParts[] = "{$sectionName}: {$sectionScore}";
+                    }
+                    $sectionRatings = implode(' | ', $sectionParts);
+                }
+            }
+            
             $rowData = [
                 'Author Name' => $authorName,
                 'Affiliation' => $affiliation ?: 'N/A',
@@ -104,6 +178,15 @@ class SubmissionExport implements FromCollection, WithHeadings, ShouldAutoSize, 
                 'Theme/Sub Theme' => $themeSub,
                 'Major Track' => $majorTrack,
                 'Status' => $status,
+                'Introduction' => $introduction,
+                'Method' => $method,
+                'Result' => $result,
+                'Conclusion' => $conclusion,
+                'Grammar' => $grammar,
+                'Title Rating' => $titleRating,
+                'Section Ratings' => $sectionRatings,
+                'Overall Rating' => $overallRating,
+                'Total Score' => $this->calculateTotalScore($submission),
             ];
 
             // Add expert information if filter is active
@@ -141,7 +224,16 @@ class SubmissionExport implements FromCollection, WithHeadings, ShouldAutoSize, 
             'Presentation Category',
             'Theme/Sub Theme',
             'Major Track',
-            'Status'
+            'Status',
+            'Introduction',
+            'Method',
+            'Result',
+            'Conclusion',
+            'Grammar',
+            'Title Rating',
+            'Section Ratings',
+            'Overall Rating',
+            'Total Score'
         ];
 
         // Add expert columns if filter is active

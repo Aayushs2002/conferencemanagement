@@ -156,7 +156,7 @@
 
                 <!-- Action Buttons -->
                 <div class="row">
-                    <div class="col-12 text-end">
+                    <div class="col-12 text-end"> 
                         <a href="{{ route('conference.conference-registration.index', [$society, $conference]) }}" 
                            class="btn btn-secondary">
                             <i class="ti tabler-x me-1"></i> Cancel

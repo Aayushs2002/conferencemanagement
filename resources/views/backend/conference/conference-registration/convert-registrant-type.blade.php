@@ -37,6 +37,10 @@
                             {{ old('registrant_type', optional($registration)->registrant_type) == 6 ? 'selected' : '' }}>
                             Faculty
                         </option>
+                        <option value="7"
+                            {{ old('registrant_type', optional($registration)->registrant_type) == 7 ? 'selected' : '' }}>
+                            Volunteer
+                        </option>
                     </select>
 
                     @error('registrant_type')

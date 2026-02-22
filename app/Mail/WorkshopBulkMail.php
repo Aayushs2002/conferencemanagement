@@ -14,15 +14,13 @@ class WorkshopBulkMail extends Mailable implements ShouldQueue
     use Queueable, SerializesModels;
 
     public array $mailData;
-    public $conferenceName;
 
     /**
      * Create a new message instance.
      */
-    public function __construct(array $mailData, $conferenceName = null)
+    public function __construct(array $mailData)
     {
         $this->mailData = $mailData;
-        $this->conferenceName = $conferenceName ?? config('mail.from.name');
     }
 
     /**
@@ -31,7 +29,10 @@ class WorkshopBulkMail extends Mailable implements ShouldQueue
     public function envelope(): Envelope
     {
         return new Envelope(
-            from: new \Illuminate\Mail\Mailables\Address(config('mail.from.address'), $this->conferenceName),
+            from: new \Illuminate\Mail\Mailables\Address(
+                config('mail.from.address'), 
+                $this->mailData['conferenceName'] ?? config('mail.from.name')
+            ),
             subject: $this->mailData['subject'] ?? 'Workshop Communication',
         );
     }
@@ -45,7 +46,9 @@ class WorkshopBulkMail extends Mailable implements ShouldQueue
             view: 'emails.workshop.bulk-mail',
             with: [
                 'name' => $this->mailData['name'],
-                'content' => $this->mailData['content'],
+                'messageContent' => $this->mailData['messageContent'],
+                'subject' => $this->mailData['subject'],
+                'conferenceName' => $this->mailData['conferenceName'] ?? config('mail.from.name'),
             ],
         );
     }

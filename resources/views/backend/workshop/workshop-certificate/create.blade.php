@@ -23,7 +23,7 @@
                             </h4>
                             <small class="opacity-75">Configure your workshop certificate design</small>
                         </div>
-                    </div>
+                    </div> 
                 </div>
             </div>
 
@@ -118,6 +118,115 @@
                             </div>
                         </div>
 
+                        <!-- Signature Section -->
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="d-flex align-items-center mb-4">
+                                    <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3"
+                                        style="width: 40px; height: 40px;">
+                                        <span class="fw-bold">2</span>
+                                    </div>
+                                    <div>
+                                        <h5 class="mb-1 text-primary fw-bold">Signature Details</h5>
+                                        <p class="text-muted mb-0 small">Upload signature image and provide name and designation</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row mb-5">
+                            <div class="col-lg-6">
+                                <div class="border rounded-3 p-4 bg-light">
+                                    <label class="form-label fw-semibold mb-3" for="signature_image">
+                                        <i class="ti tabler-writing-sign me-2"></i>Signature Image
+                                    </label>
+
+                                    <div class="mb-3">
+                                        <input type="file"
+                                            class="form-control form-control-lg @error('signature_image') is-invalid @enderror"
+                                            name="signature_image" id="signature_image" accept="image/*" />
+                                        <div class="form-text">
+                                            <i class="ti tabler-info-circle me-1"></i>
+                                            Recommended: PNG format with transparent background. Max size: 5MB
+                                        </div>
+                                        @error('signature_image')
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+
+                                    <!-- Signature Name -->
+                                    <div class="mb-3">
+                                        <label class="form-label fw-semibold" for="signature_name">
+                                            <i class="ti tabler-user me-2"></i>Name
+                                        </label>
+                                        <input type="text"
+                                            class="form-control @error('signature_name') is-invalid @enderror"
+                                            name="signature_name" id="signature_name"
+                                            value="{{ old('signature_name', $workshop_certificate->signature_name ?? '') }}"
+                                            placeholder="Enter name">
+                                        @error('signature_name')
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+
+                                    <!-- Signature Designation -->
+                                    <div class="mb-3">
+                                        <label class="form-label fw-semibold" for="signature_designation">
+                                            <i class="ti tabler-briefcase me-2"></i>Designation
+                                        </label>
+                                        <input type="text"
+                                            class="form-control @error('signature_designation') is-invalid @enderror"
+                                            name="signature_designation" id="signature_designation"
+                                            value="{{ old('signature_designation', $workshop_certificate->signature_designation ?? '') }}"
+                                            placeholder="Enter designation">
+                                        @error('signature_designation')
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+
+                                    <!-- Current Signature Preview -->
+                                    @if (isset($workshop_certificate) && $workshop_certificate->signature_image)
+                                        <div class="text-center">
+                                            <p class="text-muted mb-2 small">Current Signature:</p>
+                                            <div class="border rounded-3 p-2 bg-white d-inline-block">
+                                                <a href="{{ asset('storage/workshop/certificate/signature/' . $workshop_certificate->signature_image) }}"
+                                                    target="_blank" class="text-decoration-none">
+                                                    <img src="{{ asset('storage/workshop/certificate/signature/' . $workshop_certificate->signature_image) }}"
+                                                        class="img-fluid rounded" alt="Current Signature"
+                                                        style="max-height: 150px;">
+                                                    <div class="mt-2">
+                                                        <small class="text-primary">
+                                                            <i class="ti tabler-external-link me-1"></i>View Full Size
+                                                        </small>
+                                                    </div>
+                                                </a>
+                                            </div>
+                                        </div>
+                                    @endif
+                                </div>
+                            </div>
+
+                            <div class="col-lg-6">
+                                <div class="h-100 d-flex align-items-center justify-content-center">
+                                    <div id="signaturePreview" class="text-center">
+                                        @if (isset($workshop_certificate) && $workshop_certificate->signature_image)
+                                            <div class="border rounded-3 p-2 bg-white">
+                                                <img src="{{ asset('storage/workshop/certificate/signature/' . $workshop_certificate->signature_image) }}"
+                                                    class="img-fluid rounded" alt="Signature Preview"
+                                                    style="max-height: 200px; max-width: 100%;">
+                                            </div>
+                                        @else
+                                            <div class="text-muted">
+                                                <i class="ti tabler-writing-sign"
+                                                    style="font-size: 4rem; opacity: 0.3;"></i>
+                                                <p class="mt-3 mb-0">Signature preview will appear here</p>
+                                            </div>
+                                        @endif
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                         <!-- Submit Button -->
                         <div class="row">
                             <div class="col-12">
@@ -159,6 +268,32 @@
                     '<div class="text-muted">' +
                     '<i class="ti tabler-file-certificate" style="font-size: 4rem; opacity: 0.3;"></i>' +
                     '<p class="mt-3 mb-0">Background preview will appear here</p>' +
+                    '</div>'
+                );
+            }
+        });
+
+        // Signature image preview
+        $("#signature_image").change(function(e) {
+            const file = e.target.files[0];
+            const preview = $("#signaturePreview");
+
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    preview.html(
+                        '<div class="border rounded-3 p-2 bg-white">' +
+                        '<img src="' + e.target.result +
+                        '" class="img-fluid rounded" alt="Signature Preview" style="max-height: 200px; max-width: 100%;">' +
+                        '</div>'
+                    );
+                };
+                reader.readAsDataURL(file);
+            } else {
+                preview.html(
+                    '<div class="text-muted">' +
+                    '<i class="ti tabler-writing-sign" style="font-size: 4rem; opacity: 0.3;"></i>' +
+                    '<p class="mt-3 mb-0">Signature preview will appear here</p>' +
                     '</div>'
                 );
             }

@@ -316,10 +316,11 @@ Route::middleware('auth')->group(function () {
         Route::controller(WorkshopCertificateController::class)->name('workshop-certificate.')->prefix('/workshop/{workshop}/workshop-certificate')->group(function () {
             Route::get('/', 'index')->name('index');
             Route::get('/create', 'create')->name('create');
-            Route::post('/store', 'store')->name('store');
+            Route::post('/store', 'store')->name('store'); 
             Route::get('/{workshop_certificate}/edit', 'edit')->name('edit');
             Route::match(['put', 'patch'], '/{workshop_certificate}/update', 'update')->name('update');
             Route::delete('/{workshop_certificate}/destroy', 'destroy')->name('destroy');
+            // Route::get('/generate-certificate/{workshopRegistration}', 'generateCertificate')->name('generateCertificate');
         });
 
         Route::resource('workshop/workshop-pass-settings', WorkshopPassSettingController::class)->middleware('auto.conf.permission');
@@ -422,3 +423,4 @@ Route::get('/participant/profile/{token}', [ConferenceRegistrationController::cl
 Route::get('workshop/participant/profile/{token}', [WorkshopRegistrationController::class, 'participantProfile']);
 Route::get('/sponsor/profile/{token}', [SponsorController::class, 'sponsorProfile']);
 Route::get('/society/{society}/conference/{conference}/conference-registration/generate-certificate/{conferenceRegistration}', [ConferenceRegistrationController::class, 'generateCertificate'])->name('conference.conference-registration.generateCertificate');
+Route::get('/society/{society}/conference/{conference}/workshop/{workshop}/workshop-certificate/generate-certificate/{workshopRegistration}', [WorkshopCertificateController::class, 'generateCertificate'])->name('workshop-certificate.generateCertificate');
