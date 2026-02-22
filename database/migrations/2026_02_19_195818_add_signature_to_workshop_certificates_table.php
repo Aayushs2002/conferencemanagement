@@ -12,9 +12,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('workshop_certificates', function (Blueprint $table) {
-            $table->string('signature_image')->nullable()->after('background_image');
-            $table->string('signature_name')->nullable()->after('signature_image');
-            $table->string('signature_designation')->nullable()->after('signature_name');
+            $table->string('signature_image')->nullable();
+            $table->string('signature_name')->nullable();
+            $table->string('signature_designation')->nullable();
         });
     }
 
