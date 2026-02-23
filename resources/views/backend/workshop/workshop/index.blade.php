@@ -42,8 +42,7 @@
                             </ul>
                         </div>
                         @if (auth()->user()->hasConferencePermissionBlade(getConference(request()->segment(4)), 'Send Mail'))
-                            <a href="" class="btn btn-info sendMail me-2" data-bs-toggle="modal"
-                                data-bs-target="#pricingModal" tabindex="0">
+                            <a href="{{ route('workshop.sendMail', [$society, $conference]) }}" class="btn btn-info sendMail me-2" tabindex="0">
                                 <i class="icon-base ti tabler-mail icon-xs me-sm-1"></i>
                                 <span class="d-none d-sm-inline-block">Send Mail</span>
                             </a>
@@ -353,28 +352,6 @@
                 var data = {
                     _token: _token,
                     id: id
-                };
-                $.post(url, data, function(response) {
-                    setTimeout(function() {
-                        $('#modalContent').html(response);
-                    }, 1000);
-                });
-            });
-
-            $(document).on("click", ".sendMail", function(e) {
-                e.preventDefault();
-                $(".modal-dialog").removeClass('custom-modal-width');
-                var url = '{{ route('workshop.sendMail', [$society, $conference]) }}';
-                var _token = '{{ csrf_token() }}';
-                $('#modalContent').html(`
-                    <div class="modal-body text-center">
-                        <div class="spinner-border text-primary" role="status">
-                            <span class="visually-hidden">Loading...</span>
-                        </div>
-                    </div>
-                `);
-                var data = {
-                    _token: _token
                 };
                 $.post(url, data, function(response) {
                     setTimeout(function() {
