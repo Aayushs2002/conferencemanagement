@@ -128,7 +128,7 @@ header('Access-Control-Allow-Origin: *');
 
     // Get venue location
     $venueLocation = $workshop->WorkshopVenueDetail
-        ? $workshop->WorkshopVenueDetail->venue_name . ', ' . $workshop->WorkshopVenueDetail->venue_address
+        ?  $workshop->WorkshopVenueDetail->venue_address
         : 'Workshop Venue';
 
     // Get certificate background - prioritize workshop certificate, fallback to conference certificate
