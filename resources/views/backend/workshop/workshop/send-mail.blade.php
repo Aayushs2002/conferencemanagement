@@ -20,7 +20,7 @@
                         @endforeach
                     </select>
                     <p class="text-danger workshop_id"></p> 
-                </div>
+                </div> 
                 <div class="col-md-6 form-group mb-3">
                     <label for="recipient_type" class="mb-2">Recipient Type <code>*</code></label>
                     <select name="recipient_type" id="recipient_type"
@@ -88,6 +88,7 @@
         </form>
     </div>
 </div>
+
 <script>
     // Initialize immediately when modal content is loaded (not in document.ready)
     (function() {
@@ -104,36 +105,34 @@
                         showWordCount: true,
                     },
                     height: 400,
-                    toolbar: [
-                        { name: 'document', items: ['Source'] },
-                        { name: 'clipboard', items: ['Undo', 'Redo'] },
-                        { name: 'styles', items: ['Format', 'Font', 'FontSize'] },
-                        { name: 'basicstyles', items: ['Bold', 'Italic', 'Underline', 'Strike'] },
-                        { name: 'colors', items: ['TextColor', 'BGColor'] },
-                        { name: 'paragraph', items: ['NumberedList', 'BulletedList', '-', 'Outdent', 'Indent', '-', 'Blockquote'] },
-                        { name: 'links', items: ['Link', 'Unlink'] },
-                        { name: 'insert', items: ['Image', 'Table', 'HorizontalRule'] },
-                        { name: 'tools', items: ['Maximize'] }
-                    ],
                     allowedContent: true,
                     protectedSource: [/<span[^>]*contenteditable="false"[^>]*>.*?<\/span>/gi]
                 });
 
-                // Wait for editor to be ready
-                setTimeout(function() {
-                    editorInstance = CKEDITOR.instances['mail_content'];
+                editorInstance = CKEDITOR.instances['mail_content'];
+
+                // Wait for CKEditor to be fully ready in modal context
+                editorInstance.on('instanceReady', function() {
+                    console.log('CKEditor is ready in modal');
                     
-                    // Insert placeholder into CKEditor
-                    $(document).off('click', '.insert-placeholder').on('click', '.insert-placeholder', function() {
+                    // Use event delegation for modal - remove any previous handlers first
+                    $(document).off('click.mailContentPlaceholder', '.insert-placeholder');
+                    
+                    // Bind with namespaced event for this specific modal
+                    $(document).on('click.mailContentPlaceholder', '.insert-placeholder', function(e) {
+                        e.preventDefault();
                         const placeholder = $(this).data('placeholder');
                         const editor = CKEDITOR.instances['mail_content'];
-                        if (editor) {
-                            const placeholderHTML = '<span style="font-weight: bold; color: #000;" contenteditable="false">' + placeholder + '</span> ';
+                        
+                        if (editor && editor.status === 'ready') {
+                            const placeholderHTML = '<span style="font-weight: bold; color: #000;" contenteditable="false">' + placeholder + '</span>&nbsp;';
                             editor.insertHtml(placeholderHTML);
                             editor.focus();
+                        } else {
+                            console.warn('CKEditor not ready yet');
                         }
                     });
-                }, 500);
+                });
             }
         }, 100);
 
@@ -325,5 +324,15 @@
             });
         });
         }, 100); // End setTimeout for other components
+
+        // Cleanup when modal closes
+        $('.modal').on('hidden.bs.modal', function() {
+            // Destroy CKEditor instance
+            if (CKEDITOR.instances['mail_content']) {
+                CKEDITOR.instances['mail_content'].destroy();
+            }
+            // Remove event listener
+            $(document).off('click.mailContentPlaceholder', '.insert-placeholder');
+        });
     })(); // End IIFE
 </script>

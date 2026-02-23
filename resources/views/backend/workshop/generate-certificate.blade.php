@@ -128,7 +128,7 @@ header('Access-Control-Allow-Origin: *');
 
     // Get venue location
     $venueLocation = $workshop->WorkshopVenueDetail
-        ? $workshop->WorkshopVenueDetail->venue_name
+        ? $workshop->WorkshopVenueDetail->venue_name . ', ' . $workshop->WorkshopVenueDetail->venue_address
         : 'Workshop Venue';
 
     // Get certificate background - prioritize workshop certificate, fallback to conference certificate
@@ -276,7 +276,7 @@ header('Access-Control-Allow-Origin: *');
                                                 style="font-size:35px; font-weight:400; line-height:40px;  margin:0px 0px; color:red;">{{ $workshop->workshop_title }}</b>
                                             <br />held on {!! $dateDisplay !!}, {{ $venueLocation }}</small><br />
                                         @if ($showCpdPoints)
-                                            <i
+                                            <i 
                                                 style="font-weight:bold; font-size:20px; margin:0px; display:block; height:60px; padding:0px">NMC
                                                 CPD Point Awarded</i>
                                         @endif

@@ -478,7 +478,7 @@ class WorkshopController extends Controller
             ->orderBy('workshop_title', 'asc')
             ->get();
 
-        return view('backend.workshop.workshop.send-mail', compact('workshops', 'society', 'conference'));
+        return view('backend.workshop.workshop.send-mail-page', compact('workshops', 'society', 'conference'));
     }
 
     public function sendMailSubmit(Request $request, $society, $conference)

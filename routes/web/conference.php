@@ -282,7 +282,7 @@ Route::middleware('auth')->group(function () {
             Route::post('/{workshop_approve}/approve', 'approve')->name('approve');
             Route::post('/{workshop_reject}/reject', 'reject')->name('reject');
             Route::post('/{workshop_request_correction}/request-correction', 'requestCorrection')->name('requestCorrection');
-            Route::post('/send-mail', 'sendMail')->name('sendMail');
+            Route::get('/send-mail', 'sendMail')->name('sendMail');
             Route::post('/send-mail-submit', 'sendMailSubmit')->name('sendMailSubmit');
             Route::get('/get-users', 'getUsersByWorkshopAndType')->name('get.users');
             Route::get('/export-registrations', 'exportRegistrations')->name('export.registrations');

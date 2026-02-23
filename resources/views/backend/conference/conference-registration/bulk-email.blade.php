@@ -17,7 +17,7 @@
             <form method="POST" action="{{ route('conference.conference-registration.sendBulkEmail', [$society, $conference]) }}">
                 @csrf
 
-                <!-- Filters -->
+                <!-- Filters --> 
                 <div class="row mb-4">
                     <div class="col-12">
                         <h6 class="border-bottom pb-2 mb-3"><i class="ti tabler-filter me-2"></i>Filter Recipients (Optional)</h6>
