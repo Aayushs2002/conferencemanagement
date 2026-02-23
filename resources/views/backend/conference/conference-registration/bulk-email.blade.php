@@ -87,6 +87,14 @@
                         </select>
                     </div>
                     <div class="col-md-3 mb-3">
+                        <label for="attendance_status" class="form-label">Attendance Status</label>
+                        <select name="attendance_status" id="attendance_status" class="form-control">
+                            <option value="">-- All --</option>
+                            <option value="1" {{ old('attendance_status') == 1 ? 'selected' : '' }}>Attended</option>
+                            <option value="0" {{ old('attendance_status') === '0' ? 'selected' : '' }}>Not Attended</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3 mb-3">
                         <label for="from" class="form-label">From Date</label>
                         <input type="date" 
                                value="{{ old('from') }}" 
@@ -124,7 +132,7 @@
                     </div>
                     <div class="col-md-12 mb-3">
                         <label for="message" class="form-label">Message <code>*</code></label>
-                        <div class="mb-2">
+                        <div class="mb-2"> 
                             <small class="text-muted d-block mb-2"><i class="ti tabler-info-circle me-1"></i>Click buttons below to insert placeholders:</small>
                             <div class="btn-group flex-wrap" role="group">
                                 <button type="button" class="btn btn-sm btn-outline-primary insert-placeholder" data-placeholder="{name}">Name</button>

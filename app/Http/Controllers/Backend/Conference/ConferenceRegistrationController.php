@@ -2302,6 +2302,21 @@ class ConferenceRegistrationController extends Controller
                 });
             }
 
+            // Filter by attendance status
+            if ($request->filled('attendance_status')) {
+                if ($request->attendance_status == '1') {
+                    // Has attended - has attendance record with status 1
+                    $query->whereHas('attendances', function ($q) {
+                        $q->where('status', 1);
+                    });
+                } elseif ($request->attendance_status == '0') {
+                    // Not attended - no attendance record or status != 1
+                    $query->whereDoesntHave('attendances', function ($q) {
+                        $q->where('status', 1);
+                    });
+                }
+            }
+
             $registrants = $query->get();
             if ($registrants->isEmpty()) {
                 return redirect()
