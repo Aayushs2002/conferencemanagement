@@ -8,6 +8,7 @@ use App\Models\Conference\ConferenceMemberTypePrice;
 use App\Models\Payment\InternationalPayment;
 use App\Models\Payment\NationalPayment;
 use App\Models\Workshop\Workshop;
+use App\Models\ConferencePaymentStatus;
 use App\Services\HBL\Api\Payment;
 use App\Services\ConnectIPSService;
 use Exception;
@@ -66,7 +67,7 @@ class PaymentContoller extends Controller
             $transactionId = $request->UID;
             $amount = $request->P_AMT;
             $national_payemnt_setting = NationalPayment::where('society_id', $conference->society_id)->first();
-            $international_payemnt_setting = InternationalPayment::where('society_id', $conference->society_id)->first();
+            $international_payemnt_setting = InternationalPayment::with('countries')->where('society_id', $conference->society_id)->first();
             return view('backend.participant.conference-registration.payment-success', compact('transactionId', 'amount', 'society', 'conference', 'national_payemnt_setting', 'international_payemnt_setting'));
         }
     }
@@ -673,6 +674,21 @@ class PaymentContoller extends Controller
         }
         session(['onlinePayment' => $request->all()]);
 
+        // Create payment status record
+        try {
+            ConferencePaymentStatus::createOrUpdate([
+                'conference_id' => $conference->id,
+                'user_id' => current_user()->id,
+                'payment_status' => ConferencePaymentStatus::STATUS_PENDING,
+                'payment_method' => 'card',
+                'amount' => $request->amount,
+                'currency' => 'USD',
+                'payment_initiated_at' => now(),
+            ]);
+        } catch (Exception $e) {
+            Log::error('Failed to create payment status: ' . $e->getMessage());
+        }
+
         // $paymentSetting = InternationalPayment::where('society_id', $society->id)->first();
         // $form = '<form id="paymentForm" action="https://merchant.conference.nesog.org.np/payment_request.php" method="GET">
         //             <input type="hidden" name="formID" value="92921030145569">
@@ -750,13 +766,58 @@ class PaymentContoller extends Controller
         $decodedData = urldecode($data);
 
         $responseObject = json_decode($decodedData);
-        $transactionId = $responseObject->response->Data[0]->PspReferenceNo;
+        $transactionId = $responseObject->response->Data[0]->PspReferenceNo ?? null;
+        
+        // Update payment status to completed
+        try {
+            $latestPaymentStatus = ConferencePaymentStatus::where([
+                'conference_id' => $conference->id,
+                'user_id' => current_user()->id,
+                'payment_method' => 'card'
+            ])
+            ->orderBy('created_at', 'desc')
+            ->first();
+
+            if ($latestPaymentStatus && $transactionId) {
+                $latestPaymentStatus->update([
+                    'payment_status' => ConferencePaymentStatus::STATUS_COMPLETED,
+                    'transaction_id' => $transactionId,
+                    'payment_completed_at' => now(),
+                    'payment_response' => json_encode($responseObject)
+                ]);
+            }
+        } catch (Exception $e) {
+            Log::error('Failed to update payment status: ' . $e->getMessage());
+        }
+        
         return view('backend.participant.conference-registration.payment-success', compact('transactionId'));
     }
 
     public function internationalPaymentResultFail(Request $request, $society, $conference)
     {
         // dd($request);
+        
+        // Update payment status to failed
+        try {
+            $latestPaymentStatus = ConferencePaymentStatus::where([
+                'conference_id' => $conference->id,
+                'user_id' => current_user()->id,
+                'payment_method' => 'card'
+            ])
+            ->orderBy('created_at', 'desc')
+            ->first();
+
+            if ($latestPaymentStatus) {
+                $latestPaymentStatus->update([
+                    'payment_status' => ConferencePaymentStatus::STATUS_FAILED,
+                    'error_message' => 'Payment failed or was rejected by payment gateway',
+                    'payment_response' => json_encode($request->all())
+                ]);
+            }
+        } catch (Exception $e) {
+            Log::error('Failed to update payment status: ' . $e->getMessage());
+        }
+
         $checkPayment = 'failed';
         $membetType = current_user()->societies->where('id', $conference->society_id)->first()?->pivot?->memberType;
         $memberTypePrice = ConferenceMemberTypePrice::where(['conference_id' => $conference->id, 'member_type_id' => $membetType->id])->first();
@@ -823,6 +884,27 @@ class PaymentContoller extends Controller
 
     public function internationalPaymentResultCancel(Request $request, $society, $conference)
     {
+        // Update payment status to cancelled
+        try {
+            $latestPaymentStatus = ConferencePaymentStatus::where([
+                'conference_id' => $conference->id,
+                'user_id' => current_user()->id,
+                'payment_method' => 'card'
+            ])
+            ->orderBy('created_at', 'desc')
+            ->first();
+
+            if ($latestPaymentStatus) {
+                $latestPaymentStatus->update([
+                    'payment_status' => ConferencePaymentStatus::STATUS_CANCELLED,
+                    'error_message' => 'Payment was cancelled by user',
+                    'payment_response' => json_encode($request->all())
+                ]);
+            }
+        } catch (Exception $e) {
+            Log::error('Failed to update payment status: ' . $e->getMessage());
+        }
+
         $checkPayment = 'cancelled';
         $membetType = current_user()->societies->where('id', $conference->society_id)->first()?->pivot?->memberType;
         $memberTypePrice = ConferenceMemberTypePrice::where(['conference_id' => $conference->id, 'member_type_id' => $membetType->id])->first();
@@ -835,7 +917,7 @@ class PaymentContoller extends Controller
             }
         }
         $national_payemnt_setting = NationalPayment::where('society_id', $conference->society_id)->first();
-        $international_payemnt_setting = InternationalPayment::where('society_id', $conference->society_id)->first();
+        $international_payemnt_setting = InternationalPayment::with('countries')->where('society_id', $conference->society_id)->first();
         $workshops = Workshop::with(['registrations' => function ($q) {
             $q->where('status', 1);
         }])

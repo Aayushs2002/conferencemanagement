@@ -21,7 +21,7 @@
                                         id="national" style="transform: scale(2);" checked>
                                 </div>
                             </label>
-                        </div>
+                        </div> 
                     </div>
                     <div class="col-md-4">
                         <div class="card mb-4 position-relative p-3" style="background-color: #D9D8D4">
@@ -368,6 +368,57 @@
                                     <div class="row">
                                         <input type="hidden" name="international_id" id="international_id"
                                             value="{{ $internationalPayment ? $internationalPayment->id : '' }}">
+                                        
+                                        <!-- Country Selection Section -->
+                                        <div class="col-md-12 mb-4">
+                                            <div class="card">
+                                                <div class="card-body">
+                                                    <h5 class="card-title mb-3">
+                                                        <i class="fas fa-globe"></i> Country Selection for Payment Gateway
+                                                    </h5>
+                                                    <p class="text-muted small mb-3">
+                                                        Select which countries can use Himalayan Bank payment gateway. You can select all countries or specific countries.
+                                                    </p>
+                                                    
+                                                    <div class="form-group mb-3">
+                                                        <div class="custom-control custom-checkbox">
+                                                            <input type="checkbox" class="custom-control-input" id="selectAllCountries">
+                                                            <label class="custom-control-label" for="selectAllCountries">
+                                                                <strong>Select All Countries</strong>
+                                                            </label>
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="form-group mb-3">
+                                                        <label class="form-label">
+                                                            Available Countries <code>*</code>
+                                                            <span class="badge badge-info ml-2" id="selectedCountriesCount">0 selected</span>
+                                                        </label>
+                                                        <div class="border rounded p-3" style="max-height: 250px; overflow-y: auto; background-color: #f8f9fa;">
+                                                            <div class="row">
+                                                                @foreach($countries as $country)
+                                                                    <div class="col-md-4 mb-2">
+                                                                        <div class="custom-control custom-checkbox">
+                                                                            <input type="checkbox" 
+                                                                                   class="custom-control-input country-checkbox" 
+                                                                                   name="selected_countries[]" 
+                                                                                   id="country_{{ $country->id }}" 
+                                                                                   value="{{ $country->id }}"
+                                                                                   {{ in_array($country->id, $selectedCountries) ? 'checked' : '' }}>
+                                                                            <label class="custom-control-label" for="country_{{ $country->id }}">
+                                                                                {{ $country->country_name }}
+                                                                            </label>
+                                                                        </div>
+                                                                    </div>
+                                                                @endforeach
+                                                            </div>
+                                                        </div>
+                                                        <div class="text-danger mt-2" id="countriesError"></div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
                                         <div class="col-md-6 form-group mb-3">
                                             <label class="form-label" for="merchant_key">Merchant Key
                                                 <code>*</code></label>
@@ -503,6 +554,31 @@
     <script>
         $(document).ready(function() {
             $("#openModal").modal('show');
+
+            // Country selection functionality
+            function updateSelectedCount() {
+                let count = $('.country-checkbox:checked').length;
+                $('#selectedCountriesCount').text(count + ' selected');
+                
+                // Update select all checkbox state
+                let totalCountries = $('.country-checkbox').length;
+                $('#selectAllCountries').prop('checked', count === totalCountries);
+            }
+
+            // Initialize count on page load
+            updateSelectedCount();
+
+            // Select/Deselect all countries
+            $('#selectAllCountries').change(function() {
+                let isChecked = $(this).prop('checked');
+                $('.country-checkbox').prop('checked', isChecked);
+                updateSelectedCount();
+            });
+
+            // Update count when individual checkbox is changed
+            $('.country-checkbox').change(function() {
+                updateSelectedCount();
+            });
 
             // Update hidden inputs when tabs change
             $('a[data-bs-toggle="pill"]').on('shown.bs.tab', function(e) {
@@ -681,7 +757,15 @@
                         let merchantDecryptionPrivateKey = $('#merchant_decryption_private_key').val()
                             .trim();
                         let pacoSigningPublicKey = $('#paco_signing_public_key').val().trim();
+                        let selectedCountries = [];
+                        $('.country-checkbox:checked').each(function() {
+                            selectedCountries.push($(this).val());
+                        });
 
+                        if (selectedCountries.length === 0) {
+                            isValid = false;
+                            $('#countriesError').text('Please select at least one country.');
+                        }
                         if (!merchantKey) {
                             isValid = false;
                             $('#merchantKeyError').text('Merchant Key is required.');
@@ -769,6 +853,14 @@
                         id: $('#id').val(),
                         international_id: $('#international_id').val(),
                     };
+
+                    // Add selected countries for Himalayan Bank
+                    if (activeSection === 'international' && activeTab === 'himalayan_bank') {
+                        formData.selected_countries = [];
+                        $('.country-checkbox:checked').each(function() {
+                            formData.selected_countries.push($(this).val());
+                        });
+                    }
 
                     console.log('Form data being sent:', formData);
 

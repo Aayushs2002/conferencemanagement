@@ -200,7 +200,7 @@ class WorkshopRegistrationController extends Controller
                 Mail::to($user->email)->send(new RegistrationByAdminMail($mailData, $conference->conference_name));
 
                 WorkshopRegistration::create($validated);
-                logActivity($conference->id, 'Registered Workshop', $user->fullName($user).' is registered to workshop');
+                logActivity($conference->id, 'Registered Workshop', $user->fullName($user).' is registered to workshop' . ($user->userDetail->country ? ' from '.$user->userDetail->country->country_name : ''));
 
                 DB::commit();
 

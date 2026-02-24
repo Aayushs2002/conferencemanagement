@@ -17,7 +17,7 @@
         .step-indicator {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 30px;
+            margin-bottom: 30px; 
         }
 
         .step {
@@ -641,11 +641,14 @@
                                 </div>
                             @endif
 
-                            @if (current_user()->userDetail->country_id != 125 )
+                            @if (current_user()->userDetail->country_id != 125 && 
+                                 $international_payemnt_setting && 
+                                 $international_payemnt_setting->countries && 
+                                 $international_payemnt_setting->countries->contains('id', current_user()->userDetail->country_id))
                             {{-- && !in_array(current_user()->userDetail->country_id, [78, 134, 165]) --}}
                                 <div class="col-md-3 mb-3">
                                     <label class="card payment-method-card w-100" for="dollarCardRadio"
-                                        style="cursor:pointer;">
+                                        style="cursor:pointer;"> 
                                         <div class="card-body text-center">
                                             <h5 class="text-primary">💳 Card Payment</h5>
                                             <p class="small">We Accept</p>

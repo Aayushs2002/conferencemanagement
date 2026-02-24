@@ -46,7 +46,7 @@ class ConferenceRegistrationController extends Controller
             }
         }
         $national_payemnt_setting = NationalPayment::where('society_id', $conference->society_id)->first();
-        $international_payemnt_setting = InternationalPayment::where('society_id', $conference->society_id)->first();
+        $international_payemnt_setting = InternationalPayment::with('countries')->where('society_id', $conference->society_id)->first();
         $workshops = Workshop::with(['registrations' => function ($q) {
             $q->where('status', 1);
         }])
