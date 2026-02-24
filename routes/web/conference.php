@@ -89,6 +89,8 @@ Route::middleware('auth')->group(function () {
     Route::controller(ConferenceRegistrationController::class)->name('conference.conference-registration.')->middleware(['auto.conf.permission', 'feature:conference-registration-management'])->prefix('/society/{society}/conference/{conference}/conference-registration')->group(function () {
         Route::get('/registrant', 'index')->name('index');
         Route::post('/view-data', 'show')->name('show');
+        Route::get('/payment-statuses', 'allPaymentStatuses')->name('allPaymentStatuses');
+        Route::get('/registrant/{registrant}/payment-status', 'showPaymentStatus')->name('showPaymentStatus');
         Route::get('/registrant/{registrant}/edit', 'edit')->name('edit');
         Route::put('/registrant/{registrant}', 'update')->name('update');
         Route::delete('/registrant/{registrant}/delete-voucher', 'deleteVoucher')->name('deleteVoucher');

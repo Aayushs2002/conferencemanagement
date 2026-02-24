@@ -113,6 +113,30 @@
                         <p class="text-danger">{{ $message }}</p>
                     @enderror
                 </div>
+                <div class="col-md-3 form-group mb-3">
+                    <label for="sort_by" class="mb-2">Sort By</label>
+                    <select name="sort_by" id="sort_by" class="form-control @error('sort_by') is-invalid @enderror">
+                        <option value="">-- Select Sort Order --</option>
+                        <option {{ request()->sort_by == 'name_asc' ? 'selected' : '' }} value="name_asc">
+                            Name (A-Z)
+                        </option>
+                        <option {{ request()->sort_by == 'name_desc' ? 'selected' : '' }} value="name_desc">
+                            Name (Z-A)
+                        </option>
+                        <option {{ request()->sort_by == 'latest' ? 'selected' : '' }} value="latest">
+                            Latest Registration
+                        </option>
+                        <option {{ request()->sort_by == 'oldest' ? 'selected' : '' }} value="oldest">
+                            Oldest Registration
+                        </option>
+                        {{-- <option {{ request()->sort_by == 'amount_asc' ? 'selected' : '' }} value="amount_asc">
+                            Amount (Low to High)
+                        </option>
+                        <option {{ request()->sort_by == 'amount_desc' ? 'selected' : '' }} value="amount_desc">
+                            Amount (High to Low)
+                        </option> --}}
+                    </select>
+                </div>
                 <div class="row my-4">
                     <div class="col-12 text-end">
                         <a href="{{ route('conference.conference-registration.index', [$society, $conference]) }}"
@@ -187,11 +211,17 @@
                                 </li>
                                 <li><hr class="dropdown-divider"></li>
                                 <li>
+                                    <a class="dropdown-item" href="{{ route('conference.conference-registration.allPaymentStatuses', [$society, $conference]) }}">
+                                        <i class="ti tabler-credit-card me-2"></i> View All Payment Statuses
+                                    </a>
+                                </li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
                                     <form id="updateRegistrationIdsForm" 
                                           action="{{ route('conference.conference-registration.updateRegistrationIds', [$society, $conference]) }}" 
                                           method="POST" 
                                           style="display: inline;">
-                                        @csrf
+                                        @csrf 
                                         <button type="button" 
                                                 class="dropdown-item"  
                                                 onclick="confirmUpdateRegistrationIds()">
@@ -361,6 +391,10 @@
                                         <a class="dropdown-item viewData" data-id="{{ $registrant->id }}"
                                             data-bs-toggle="modal" data-bs-target="#pricingModal"><i
                                                 class="icon-base ti tabler-eye me-1 "></i> View</a>
+                                        @if($registrant->payment_type == 5)
+                                            <a class="dropdown-item" href="{{ route('conference.conference-registration.showPaymentStatus', [$society, $conference, $registrant->id]) }}"><i
+                                                    class="icon-base ti tabler-credit-card me-1 "></i> View Payment Status</a>
+                                        @endif
                                         @if (auth()->user()->hasConferencePermissionBlade(getConference(request()->segment(4)), 'Convert Registrant Type'))
                                             <a class="dropdown-item convertRegistrantType"
                                                 data-id="{{ $registrant->id }}" data-bs-toggle="modal"
@@ -585,6 +619,10 @@
                 let isAnyFilled = false;
 
                 $('#filterForm select, #filterForm input[type="date"]').each(function() {
+                    // Exclude the sort_by select from the filter button requirement
+                    if ($(this).attr('id') === 'sort_by') {
+                        return true; // continue to next iteration
+                    }
                     if ($(this).val() && $(this).val().trim() !== '') {
                         isAnyFilled = true;
                         return false;
@@ -598,6 +636,15 @@
 
             $('#filterForm select, #filterForm input[type="date"]').on('change input', function() {
                 toggleFilterButton();
+            });
+            
+            // Allow sort_by to work independently without requiring filter
+            $('#sort_by').on('change', function() {
+                if ($(this).val()) {
+                    $('#filterBtn').prop('disabled', false);
+                } else {
+                    toggleFilterButton();
+                }
             });
             var form = $('#filterForm');
 

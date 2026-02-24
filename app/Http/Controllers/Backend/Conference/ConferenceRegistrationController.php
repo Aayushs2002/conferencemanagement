@@ -142,20 +142,63 @@ class ConferenceRegistrationController extends Controller
         $dummyRegistrants = $registrants->whereNull('user_id');
         $realRegistrants = $registrants->whereNotNull('user_id');
 
-        // Sort real registrants alphabetically by user's full name in ascending order
-        $realRegistrants = $realRegistrants->sortBy(function ($registrant) {
-            $middleName = !empty($registrant->user->m_name) ? ' ' . $registrant->user->m_name : '';
-            return strtolower($registrant->user->f_name . $middleName . ' ' . $registrant->user->l_name);
-        })->values();
+        // Apply sorting based on request
+        $sortBy = $request->filled('sort_by') ? $request->sort_by : 'name_asc';
+        
+        switch ($sortBy) {
+            case 'name_asc':
+                // Sort alphabetically A-Z
+                $realRegistrants = $realRegistrants->sortBy(function ($registrant) {
+                    $middleName = !empty($registrant->user->m_name) ? ' ' . $registrant->user->m_name : '';
+                    return strtolower($registrant->user->f_name . $middleName . ' ' . $registrant->user->l_name);
+                })->values();
+                break;
+            
+            case 'name_desc':
+                // Sort alphabetically Z-A
+                $realRegistrants = $realRegistrants->sortByDesc(function ($registrant) {
+                    $middleName = !empty($registrant->user->m_name) ? ' ' . $registrant->user->m_name : '';
+                    return strtolower($registrant->user->f_name . $middleName . ' ' . $registrant->user->l_name);
+                })->values();
+                break;
+            
+            case 'latest':
+                // Sort by latest registration (newest first)
+                $realRegistrants = $realRegistrants->sortByDesc('created_at')->values();
+                break;
+            
+            case 'oldest':
+                // Sort by oldest registration (oldest first)
+                $realRegistrants = $realRegistrants->sortBy('created_at')->values();
+                break;
+            
+            case 'amount_asc':
+                // Sort by amount (low to high)
+                $realRegistrants = $realRegistrants->sortBy('amount')->values();
+                break;
+            
+            case 'amount_desc':
+                // Sort by amount (high to low)
+                $realRegistrants = $realRegistrants->sortByDesc('amount')->values();
+                break;
+            
+            default:
+                // Default to alphabetical A-Z
+                $realRegistrants = $realRegistrants->sortBy(function ($registrant) {
+                    $middleName = !empty($registrant->user->m_name) ? ' ' . $registrant->user->m_name : '';
+                    return strtolower($registrant->user->f_name . $middleName . ' ' . $registrant->user->l_name);
+                })->values();
+                break;
+        }
 
-        // Merge: real registrants first (alphabetically), then dummy registrants
+        // Merge: real registrants first (with applied sorting), then dummy registrants
         $registrants = $realRegistrants->merge($dummyRegistrants)->values();
 
         return view('backend.conference.conference-registration.registrant', [
             'registrants' => $registrants,
             'conference' => $conference,
             'society' => $society,
-            'filters' => $request->only(['registrant_type', 'prefix', 'is_invited', 'payment_type', 'from', 'to', 'country_id', 'member_type_id']),
+            'filters' => $request->only(['registrant_type', 'prefix', 'is_invited', 'payment_type', 'from', 'to', 'country_id', 'member_type_id', 'sort_by']),
         ]);
     }
 
@@ -164,6 +207,29 @@ class ConferenceRegistrationController extends Controller
         $registrant = ConferenceRegistration::whereId($request->id)->first();
 
         return view('backend.conference.conference-registration.view', compact('registrant'));
+    }
+
+    public function allPaymentStatuses($society, $conference)
+    {
+        $paymentStatuses = \App\Models\ConferencePaymentStatus::where('conference_id', $conference->id)
+            ->with(['conference', 'user.userDetail.namePrefix', 'user.userDetail.country'])
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return view('backend.conference.conference-registration.all-payment-statuses', compact('paymentStatuses', 'society', 'conference'));
+    }
+
+    public function showPaymentStatus($society, $conference, ConferenceRegistration $registrant)
+    {
+        $paymentStatuses = \App\Models\ConferencePaymentStatus::where([
+            'conference_id' => $conference->id,
+            'user_id' => $registrant->user_id
+        ])
+        ->with(['conference', 'user'])
+        ->orderBy('created_at', 'desc')
+        ->get();
+
+        return view('backend.conference.conference-registration.payment-status-page', compact('registrant', 'paymentStatuses', 'society', 'conference'));
     }
 
     public function edit($society, $conference, ConferenceRegistration $registrant)
@@ -528,7 +594,7 @@ class ConferenceRegistrationController extends Controller
             }
 
             $middleName = ! empty($user->m_name) ? $user->m_name.' ' : '';
-            logActivity($conference->id, 'Updated Conference Registration', $user->f_name.' '.$middleName.$user->l_name.' registration updated');
+            logActivity($conference->id, 'Updated Conference Registration', $user->f_name.' '.$middleName.$user->l_name.' registration updated' . ($user->userDetail->country ? ' from '.$user->userDetail->country->country_name : ''));
 
             DB::commit();
 
@@ -904,7 +970,7 @@ class ConferenceRegistrationController extends Controller
                 }
                 ConferenceRegistration_addon::insert($insertData);
             }
-            logActivity($conference->id, 'Registered Conference', $user->fullName($user).' is registered to conference');
+            logActivity($conference->id, 'Registered Conference', $user->fullName($user).' is registered to conference'.($user->userDetail->country->country_name ? ' from '.$user->userDetail->country->country_name : ''));
 
             DB::commit();
 
@@ -914,7 +980,7 @@ class ConferenceRegistrationController extends Controller
             throw $e;
         }
     }
-
+ 
     public function addPerson(Request $request, $society, $conference)
     {
         $registration = ConferenceRegistration::whereId($request->id)->first();

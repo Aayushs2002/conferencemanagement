@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Backend\Payment;
 use App\Http\Controllers\Controller;
 use App\Models\Payment\InternationalPayment;
 use App\Models\Payment\NationalPayment;
+use App\Models\User\Country;
 use Exception;
 use Illuminate\Http\Request;
  
@@ -14,7 +15,15 @@ class PaymentSettingController extends Controller
     {
         $nationalPayment = NationalPayment::where(['society_id' => $society->id, 'status' => 1])->first();
         $internationalPayment = InternationalPayment::where(['society_id' => $society->id, 'status' => 1])->first();
-        return view('backend.payment-setting.index', compact('nationalPayment', 'internationalPayment', 'society'));
+        $countries = Country::where('status', 1)->orderBy('country_name', 'asc')->get();
+        
+        // Get selected countries for international payment if exists
+        $selectedCountries = [];
+        if ($internationalPayment) {
+            $selectedCountries = $internationalPayment->countries()->pluck('country_id')->toArray();
+        }
+        
+        return view('backend.payment-setting.index', compact('nationalPayment', 'internationalPayment', 'society', 'countries', 'selectedCountries'));
     }
  
     public function store(Request $request, $society)
@@ -153,19 +162,34 @@ class PaymentSettingController extends Controller
                     'merchant_decryption_private_key' => 'required',
                     'paco_signing_public_key' => 'required',
                     'international_id' => 'nullable',
+                    'selected_countries' => 'required|array|min:1',
+                    'selected_countries.*' => 'exists:countries,id',
                 ]);
 
                 if (empty($validated['international_id'])) {
                     $validated['society_id'] = $society->id;
                     $validated['payment_type'] = 'himalayan_bank';
-                    // dd($validated);
+                    // Remove selected_countries from validated data before creating the record
+                    $selectedCountries = $validated['selected_countries'];
+                    unset($validated['selected_countries']);
+                    
                     $submitData = InternationalPayment::create($validated);
+                    
+                    // Attach selected countries
+                    $submitData->countries()->sync($selectedCountries);
                 } else {
                     $internationalPayment = InternationalPayment::whereId($validated['international_id'])->first();
+                    $selectedCountries = $validated['selected_countries'];
+                    unset($validated['selected_countries']);
+                    unset($validated['international_id']);
+                    
                     $submitData = $internationalPayment->update($validated);
+                    
+                    // Sync selected countries
+                    $internationalPayment->countries()->sync($selectedCountries);
                 }
 
-                $message = empty($validated['international_id']) ? 'Successfully inserted Himalayan Bank payment.' : 'Successfully updated Himalayan Bank payment';
+                $message = empty($request->international_id) ? 'Successfully inserted Himalayan Bank payment.' : 'Successfully updated Himalayan Bank payment';
             } else if ($activeTab === 'account_details') {
                 $validated = $request->validate([
                     'bank_detail' => 'required',
