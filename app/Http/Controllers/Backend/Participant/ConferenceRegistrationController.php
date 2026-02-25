@@ -466,7 +466,7 @@ class ConferenceRegistrationController extends Controller
 
     public function onlinePaymentSubmit(Request $request, $society, $conference)
     {
-
+ 
         try {
             // dd($request->all());
             if (is_past($conference->regular_registration_deadline)) {

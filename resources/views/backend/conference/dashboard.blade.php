@@ -746,6 +746,102 @@
                 @endif
             </div>
 
+            <!-- Certificates Section -->
+            @if($canDownloadConferenceCertificate || count($eligibleWorkshopCertificates) > 0)
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="card border-0 shadow-lg" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); overflow: hidden; position: relative;">
+                        <!-- Decorative Elements -->
+                        <div style="position: absolute; top: -50px; right: -50px; width: 200px; height: 200px; background: rgba(255, 255, 255, 0.1); border-radius: 50%;"></div>
+                        <div style="position: absolute; bottom: -30px; left: -30px; width: 150px; height: 150px; background: rgba(255, 255, 255, 0.1); border-radius: 50%;"></div>
+                        
+                        <div class="card-body p-4 position-relative" style="z-index: 2;">
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="bg-white bg-opacity-20 rounded-circle p-3 me-3">
+                                    <i class="icon-base ti tabler-certificate  fs-3"></i>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <h4 class="text-white fw-bold mb-1">
+                                        <i class="icon-base ti tabler-sparkles me-2"></i>Your Certificates are Ready!
+                                    </h4>
+                                    <p class="text-white mb-0 opacity-90">
+                                        <i class="icon-base ti tabler-info-circle me-1"></i>
+                                        Download your participation certificates below
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div class="row g-3">
+                                @if($canDownloadConferenceCertificate)
+                                <div class="col-lg-6">
+                                    <div class="card border-0 h-100 shadow-sm hover-lift" style="transition: all 0.3s ease;">
+                                        <div class="card-body p-4">
+                                            <div class="d-flex align-items-start mb-3">
+                                                <div class="bg-success bg-opacity-10 rounded-circle p-3 me-3">
+                                                    <i class="icon-base ti tabler-award text-success fs-3"></i>
+                                                </div>
+                                                <div class="flex-grow-1">
+                                                    <h5 class="fw-bold text-dark mb-2">Conference Certificate</h5>
+                                                    <p class="text-muted small mb-0">
+                                                        <i class="icon-base ti tabler-calendar-check me-1"></i>
+                                                        {{ $conference->conference_name }}
+                                                    </p>
+                                                    <p class="text-muted small mb-0">
+                                                        <i class="icon-base ti tabler-calendar-event me-1"></i>
+                                                        {{ \Carbon\Carbon::parse($conference->start_date)->format('M d') }} - 
+                                                        {{ \Carbon\Carbon::parse($conference->end_date)->format('M d, Y') }}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <a href="{{ route('conference.conference-registration.generateCertificate', [$society, $conference, $userRegistration->id]) }}" 
+                                               target="_blank"
+                                               class="btn btn-success w-100 rounded-pill py-2 shadow-sm">
+                                                <i class="icon-base ti tabler-download me-2"></i>Download Certificate
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                                @endif
+
+                                @if(count($eligibleWorkshopCertificates) > 0)
+                                    @foreach($eligibleWorkshopCertificates as $workshopCert)
+                                    <div class="col-lg-6">
+                                        <div class="card border-0 h-100 shadow-sm hover-lift" style="transition: all 0.3s ease;">
+                                            <div class="card-body p-4">
+                                                <div class="d-flex align-items-start mb-3">
+                                                    <div class="bg-info bg-opacity-10 rounded-circle p-3 me-3">
+                                                        <i class="icon-base ti tabler-certificate text-info fs-3"></i>
+                                                    </div>
+                                                    <div class="flex-grow-1">
+                                                        <h5 class="fw-bold text-dark mb-2">Workshop Certificate</h5>
+                                                        <p class="text-muted small mb-0">
+                                                            <i class="icon-base ti tabler-git-fork me-1"></i>
+                                                            {{ Str::limit($workshopCert['workshop']->workshop_title, 40) }}
+                                                        </p>
+                                                        <p class="text-muted small mb-0">
+                                                            <i class="icon-base ti tabler-calendar-event me-1"></i>
+                                                            {{ \Carbon\Carbon::parse($workshopCert['workshop']->start_date)->format('M d') }} - 
+                                                            {{ \Carbon\Carbon::parse($workshopCert['workshop']->end_date)->format('M d, Y') }}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                                <a href="{{ route('workshop-certificate.generateCertificate', [$society, $conference, $workshopCert['workshop'], $workshopCert['registration']->id]) }}" 
+                                                   target="_blank"
+                                                   class="btn btn-info w-100 rounded-pill py-2 shadow-sm">
+                                                    <i class="icon-base ti tabler-download me-2"></i>Download Certificate
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    @endforeach
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            @endif
+
             <!-- Activity Overview Chart -->
             <div class="row g-4 mb-4">
                 <div class="col-lg-8">
@@ -1354,6 +1450,16 @@
                                 font: {
                                     size: 12
                                 }
+
+        /* Certificate card hover effect */
+        .hover-lift {
+            transition: all 0.3s ease;
+        }
+        
+        .hover-lift:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15) !important;
+        }
                             }
                         },
                         y: {

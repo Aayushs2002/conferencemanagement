@@ -394,7 +394,54 @@ class ConferenceController extends Controller
                 ->get();
         }
 
-        return view('backend.conference.dashboard', compact('conferenceRegistrationCount', 'totalNationalRegistrants', 'totalInternationalRegistrants', 'mealCounts', 'conference', 'society', 'data', 'sponsorData', 'dates', 'workshops', 'workshopMealCounts', 'submissionCount', 'workshopRegistrationCount', 'submissionCategoryMajorTracks', 'addonStats', 'totalAddons', 'totalAccompanyingPersons', 'userAddons', 'userAccompanyingPersons', 'reviewAssignmentCount'));
+        // Check if user is eligible for conference certificate
+        $canDownloadConferenceCertificate = false;
+        if ($userRegistration) {
+            // Check if conference has ended
+            $conferenceHasEnded = now()->isAfter($conference->end_date);
+            
+            // Check if conference has certificate settings
+            $hasCertificateSetting = $conference->conferenceCertificate()->exists();
+            
+            // Check if user has attended the conference
+            $hasAttendance = $userRegistration->attendances()->exists();
+            
+            $canDownloadConferenceCertificate = $conferenceHasEnded && $hasCertificateSetting && $hasAttendance;
+        }
+
+        // Check if user is eligible for workshop certificates
+        $eligibleWorkshopCertificates = [];
+        if (feature_enabled('workshop-management', getSociety(request()->segment(2)))) {
+            $userWorkshopRegistrations = WorkshopRegistration::where([
+                'user_id' => current_user()->id,
+                // 'registrant_type' => 1, // Participant
+                'status' => 1
+            ])->whereIn('workshop_id', $workshop)->get();
+
+            foreach ($userWorkshopRegistrations as $workshopReg) {
+                $workshopModel = Workshop::find($workshopReg->workshop_id);
+                
+                if ($workshopModel) {
+                    // Check if workshop has ended
+                    $workshopHasEnded = now()->isAfter($workshopModel->end_date);
+                    
+                    // Check if workshop has certificate settings
+                    $hasWorkshopCertificateSetting = $workshopModel->workshopCertificate()->exists();
+                    
+                    // Check if user has attended the workshop
+                    // $hasWorkshopAttendance = $workshopReg->attendances()->exists();
+                    
+                    if ($workshopHasEnded && $hasWorkshopCertificateSetting) {
+                        $eligibleWorkshopCertificates[] = [
+                            'workshop' => $workshopModel,
+                            'registration' => $workshopReg
+                        ];
+                    }
+                }
+            }
+        }
+
+        return view('backend.conference.dashboard', compact('conferenceRegistrationCount', 'totalNationalRegistrants', 'totalInternationalRegistrants', 'mealCounts', 'conference', 'society', 'data', 'sponsorData', 'dates', 'workshops', 'workshopMealCounts', 'submissionCount', 'workshopRegistrationCount', 'submissionCategoryMajorTracks', 'addonStats', 'totalAddons', 'totalAccompanyingPersons', 'userAddons', 'userAccompanyingPersons', 'reviewAssignmentCount', 'canDownloadConferenceCertificate', 'userRegistration', 'eligibleWorkshopCertificates'));
     }
 
     public function submissionsChart(Request $request, $society, $conference)

@@ -343,7 +343,7 @@ class PaymentContoller extends Controller
     {
         $mocoPayment = session()->get('onlinePayment');
         $transactionId = $request->txnID;
-        $amount = $mocoPayment['amount'];
+        $amount = $mocoPayment['amount']; 
         return view('backend.participant.conference-registration.payment-success', compact('transactionId', 'amount', 'society', 'conference'));
     }
 

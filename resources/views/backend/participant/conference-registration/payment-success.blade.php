@@ -48,7 +48,7 @@
                                <form action="{{ route('my-society.conference.submit', [$society, $conference]) }}"
                                    method="POST" id="registrationForm" enctype="multipart/form-data">
                                    @csrf
-                                   @isset($conference_registration)
+                                   @isset($conference_registration) 
                                        @method('patch') 
                                    @endisset
                                    <input type="hidden" name="registrant_type" {{-- value="{{ $onlinePayment['registrant_type'] }}" --}} value="1">
