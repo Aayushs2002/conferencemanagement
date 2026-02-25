@@ -1150,7 +1150,7 @@ class ConferenceRegistrationController extends Controller
             // dd($request->all());
             $checkUser = User::whereEmail($request->email)->first();
             $conferenceRegistration = ConferenceRegistration::where(['conference_id' => $conference->id, 'user_id' => $checkUser?->id, 'status' => 1])->first();
-            if ($conferenceRegistration) {
+            if ($conferenceRegistration && $checkUser) {
                 return redirect()->back()->withInput()->with('delete', 'User already registered for conference.');
             }
             $rules = [
@@ -1261,6 +1261,21 @@ class ConferenceRegistrationController extends Controller
             //     }
             // }
 
+            // Prepare accompany person data for email
+            $accompanyData = null;
+            if (!empty($validated['additional_guests']) && $validated['additional_guests'] >= 1) {
+                // Get member type price for guest amount
+                $memberTypePrice = ConferenceMemberTypePrice::where([
+                    'conference_id' => $conference->id,
+                    'member_type_id' => $validated['member_type_id']
+                ])->first();
+
+                $accompanyData = [
+                    'accompany_person' => $validated['additional_guests'],
+                    'amount' => $memberTypePrice ? $memberTypePrice->guest_amount : 0,
+                ];
+            }
+
             $middleName = ! empty($validated['m_name']) ? $validated['m_name'].' ' : '';
             $namePrefix = DB::table('name_prefixes')->whereId($validated['name_prefix_id'])->first()->prefix;
             $data = [
@@ -1287,7 +1302,7 @@ class ConferenceRegistrationController extends Controller
                 'conferenceAmount' => $validated['amount'],
                 'addons' => $addonData,
                 'workshop' => [],
-                'accompany' => $validated['additional_guests'] ?? 0,
+                'accompany' => $accompanyData,
                 'serviceCharge' => null,
                 'invitationType' => 1,
                 'is_invited' => $request->has('invited_guest') ? 1 : 0,
