@@ -200,13 +200,19 @@ class ConferenceRegistrationController extends Controller
                     if (!empty($validated['payment_voucher'])) {
                         $validated['payment_voucher'] = $this->file_service->fileUpload($validated['payment_voucher'], 'payment_voucher', 'conference/payment-voucher');
                     }
-                    //conference amount
+                    
+                    // Use the conference base amount from the request if provided, otherwise calculate it
                     $conferenceAmount = '';
-                    if (!empty($conference)) {
-                        if ($conference->early_bird_registration_deadline >= date('Y-m-d')) {
-                            $conferenceAmount = !empty($memberTypePrice->early_bird_amount) ? $memberTypePrice->early_bird_amount : '';
-                        } elseif ($conference->regular_registration_deadline >= date('Y-m-d')) {
-                            $conferenceAmount = !empty($memberTypePrice->regular_amount) ? $memberTypePrice->regular_amount : '';
+                    if (!empty($request->conference_base_amount)) {
+                        $conferenceAmount = $request->conference_base_amount;
+                    } else {
+                        // Fallback to calculation if not provided (for backward compatibility)
+                        if (!empty($conference)) {
+                            if ($conference->early_bird_registration_deadline >= date('Y-m-d')) {
+                                $conferenceAmount = !empty($memberTypePrice->early_bird_amount) ? $memberTypePrice->early_bird_amount : '';
+                            } elseif ($conference->regular_registration_deadline >= date('Y-m-d')) {
+                                $conferenceAmount = !empty($memberTypePrice->regular_amount) ? $memberTypePrice->regular_amount : '';
+                            }
                         }
                     }
 
@@ -524,13 +530,18 @@ class ConferenceRegistrationController extends Controller
             ];
             $paymentType = $paymentTypes[$request->payment_type] ?? 'Unknown';
 
-            //conference amount
+            // Use the conference base amount from the request if provided, otherwise calculate it
             $conferenceAmount = '';
-            if (!empty($conference)) {
-                if ($conference->early_bird_registration_deadline >= date('Y-m-d')) {
-                    $conferenceAmount = !empty($memberTypePrice->early_bird_amount) ? $memberTypePrice->early_bird_amount : '';
-                } elseif ($conference->regular_registration_deadline >= date('Y-m-d')) {
-                    $conferenceAmount = !empty($memberTypePrice->regular_amount) ? $memberTypePrice->regular_amount : '';
+            if (!empty($onlinePayment['conference_base_amount'])) {
+                $conferenceAmount = $onlinePayment['conference_base_amount'];
+            } else {
+                // Fallback to calculation if not provided (for backward compatibility)
+                if (!empty($conference)) {
+                    if ($conference->early_bird_registration_deadline >= date('Y-m-d')) {
+                        $conferenceAmount = !empty($memberTypePrice->early_bird_amount) ? $memberTypePrice->early_bird_amount : '';
+                    } elseif ($conference->regular_registration_deadline >= date('Y-m-d')) {
+                        $conferenceAmount = !empty($memberTypePrice->regular_amount) ? $memberTypePrice->regular_amount : '';
+                    }
                 }
             }
             // --- Get addon availability setting ---

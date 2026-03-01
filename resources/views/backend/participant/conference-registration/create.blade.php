@@ -861,6 +861,8 @@
                                                             id="selected_workshops_fonepay">
                                                         <input type="hidden" name="workshop_amount"
                                                             id="workshop_amount_fonepay">
+                                                        <input type="hidden" name="conference_base_amount"
+                                                            id="conference_base_amount_fonepay">
                                                         <input type="hidden" name="payment_type" value="1">
                                                         <input type="hidden" name="amount" class="amount"
                                                             id="fonePayAmount">
@@ -891,6 +893,8 @@
                                                             id="selected_workshops_esewa">
                                                         <input type="hidden" name="workshop_amount"
                                                             id="workshop_amount_esewa">
+                                                        <input type="hidden" name="conference_base_amount"
+                                                            id="conference_base_amount_esewa">
                                                         <input type="hidden" name="payment_type" value="3">
                                                         <input type="hidden" name="amount" class="amount"
                                                             id="esewaAmount">
@@ -921,6 +925,8 @@
                                                             id="selected_workshops_khalti">
                                                         <input type="hidden" name="workshop_amount"
                                                             id="workshop_amount_khalti">
+                                                        <input type="hidden" name="conference_base_amount"
+                                                            id="conference_base_amount_khalti">
                                                         <input type="hidden" name="payment_type" value="4">
                                                         <input type="hidden" name="amount" class="amount"
                                                             id="khaltiAmount">
@@ -949,6 +955,8 @@
                                                             id="selected_workshops_moco">
                                                         <input type="hidden" name="workshop_amount"
                                                             id="workshop_amount_moco">
+                                                        <input type="hidden" name="conference_base_amount"
+                                                            id="conference_base_amount_moco">
                                                         <input type="hidden" name="payment_type" value="2">
                                                         <input type="hidden" name="amount" class="amount"
                                                             id="mocoAmount">
@@ -982,6 +990,8 @@
                                                             id="selected_workshops_connectips">
                                                         <input type="hidden" name="workshop_amount"
                                                             id="workshop_amount_connectips">
+                                                        <input type="hidden" name="conference_base_amount"
+                                                            id="conference_base_amount_connectips">
                                                         <input type="hidden" name="payment_type" value="7">
                                                         <input type="hidden" name="amount" class="amount"
                                                             id="connectipsAmount">
@@ -1012,6 +1022,8 @@
                                                             id="selected_workshops_international">
                                                         <input type="hidden" name="workshop_amount"
                                                             id="workshop_amount_international">
+                                                        <input type="hidden" name="conference_base_amount"
+                                                            id="conference_base_amount_international">
                                                         <input type="hidden" name="amount" class="amount"
                                                             id="internationalAmount">
                                                         <input type="hidden" name="selected_addons"
@@ -1069,6 +1081,8 @@
                                                         id="selected_workshops_bank">
                                                     <input type="hidden" name="workshop_amount"
                                                         id="workshop_amount_bank">
+                                                    <input type="hidden" name="conference_base_amount"
+                                                        id="conference_base_amount_bank">
                                                     <input type="hidden" name="payment_type" value="6">
                                                     <input type="hidden" name="amount" class="amount" id="bankAmount">
                                                     <input type="hidden" name="selected_addons"
@@ -1220,6 +1234,7 @@
             let selectedAddOns = []; // Store selected add-ons with their details
             let selectedWorkshops = []; // Store selected workshops with their details
             let workshopPricing = {}; // Store workshop pricing data
+            let conferenceBaseAmount = 0; // Store the calculated conference base amount
             const addonAvailability = '{{ $addonAvailability ?? 'both' }}'; // Get addon availability setting
             
             // Log the addon availability setting for debugging
@@ -1563,6 +1578,9 @@
                     const memberType = '{{ @$memberTypePrice->memberType->type }}';
                     const totalAttendee = additionalGuest + 1;
 
+                    // Store the conference base amount for later use
+                    conferenceBaseAmount = registrationPrice;
+
                     if (!registrationPrice) {
                         throw new Error("Conference price has not been updated by admin.");
                     }
@@ -1866,6 +1884,9 @@
 
                 // Update add-ons data in hidden fields
                 $('input[name="selected_addons"]').val(addOnsData);
+
+                // Update conference base amount in all forms
+                $('input[name="conference_base_amount"]').val(conferenceBaseAmount);
 
                 // Calculate total workshop amount
                 let totalWorkshopAmount = 0;
