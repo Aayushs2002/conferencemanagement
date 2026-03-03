@@ -90,7 +90,7 @@ class Inquiry extends ActionRequest
         ];
 
         $payload = [
-            "request" => $request,
+            "request" => $request, 
             "iss" => SecurityData::$AccessToken,
             "aud" => "PacoAudience",
             "CompanyApiKey" => SecurityData::$AccessToken,

@@ -194,9 +194,7 @@ class ConferenceRegistrationController extends Controller
                     $validated['total_attendee'] = empty($request->accompany_person) ? 1 : $request->accompany_person + 1;
                     $validated['token'] = random_word(60);
 
-                    $date = \Carbon\Carbon::now()->format('F j, Y');
-                    // $onlinePayment = session()->get('onlinePayment');
-                    // dd($onlinePayment);
+                    // Process payment voucher if exists
                     if (!empty($validated['payment_voucher'])) {
                         $validated['payment_voucher'] = $this->file_service->fileUpload($validated['payment_voucher'], 'payment_voucher', 'conference/payment-voucher');
                     }
@@ -310,7 +308,6 @@ class ConferenceRegistrationController extends Controller
                         'transactionId' => $validated['transaction_id'],
                         'amount' => $validated['amount'],
                         'amountInWord' => numberToWord($validated['amount']),
-                        'date' => $date,
                         'societyName'      => $society->users->where('type', 2)->first()->f_name,
                         'societyLogo'      => $society->logo,
                         'societyPhone'     => $society->phone,
@@ -327,6 +324,15 @@ class ConferenceRegistrationController extends Controller
                         'serviceCharge' => $authUser->userDetail->country_id != 125 ? $validated['amount'] * 0.035 : null
                     ];
 
+                    DB::beginTransaction();
+                    
+                    // Create the conference registration record first
+                    $conferenceRegistration = ConferenceRegistration::create($validated);
+                    
+                    // Now use the actual created_at timestamp for the receipt
+                    $date = $conferenceRegistration->created_at->format('F j, Y');
+                    $mailData['date'] = $date;
+
                     // Send email with CC if configured
                     $mail = Mail::to($authUser->email);
                     
@@ -340,9 +346,6 @@ class ConferenceRegistrationController extends Controller
                     }
                     
                     $mail->send(new RegisteredByUserMail($mailData, $conference->conference_name));
-
-                    DB::beginTransaction();
-                    $conferenceRegistration = ConferenceRegistration::create($validated);
                     // Insert Addons
                     if (!empty($request->selected_addons)) {
                         $addons = explode(',', $request->selected_addons);
@@ -516,7 +519,6 @@ class ConferenceRegistrationController extends Controller
             $validated['total_attendee']  = empty($request->accompany_person) ? 1 : $request->accompany_person + 1;
             $validated['token']           = random_word(60);
 
-            $date = \Carbon\Carbon::now()->format('F j, Y');
             $onlinePayment = session()->get('onlinePayment');
             // dd($onlinePayment);
             // --- Determine Payment Type ---
@@ -630,7 +632,6 @@ class ConferenceRegistrationController extends Controller
                 'transactionId'    => $validated['transaction_id'],
                 'amount'           => $validated['amount'],
                 'amountInWord'     => numberToWord($validated['amount']),
-                'date'             => $date,
                 'societyName'      => $society->users->where('type', 2)->first()->f_name,
                 'societyLogo'      => $society->logo,
                 'societyPhone'     => $society->phone,
@@ -645,7 +646,16 @@ class ConferenceRegistrationController extends Controller
                 'workshop'         => $workshopData,
                 'accompany' => $accompanyData
             ];
-            // dd($mailData);
+            
+            DB::beginTransaction();
+
+            // Create Conference Registration record first
+            $conference_registration = ConferenceRegistration::create($validated);
+            
+            // Now use the actual created_at timestamp for the receipt
+            $date = $conference_registration->created_at->format('F j, Y');
+            $mailData['date'] = $date;
+            
             // Send Email
             $mail = Mail::to($authUser->email);
             
@@ -659,11 +669,6 @@ class ConferenceRegistrationController extends Controller
             }
             
             $mail->send(new RegisteredByUserMail($mailData, $conference->conference_name));
-
-            DB::beginTransaction();
-
-            // Create Conference Registration
-            $conference_registration = ConferenceRegistration::create($validated);
 
             // Insert Addons
             if (!empty($onlinePayment['selected_addons'])) {

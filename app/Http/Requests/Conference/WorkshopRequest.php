@@ -30,8 +30,10 @@ class WorkshopRequest extends FormRequest
             'workshop_slogan' => 'nullable|string|max:500',
             'workshop_type' => 'required|integer|in:1,2',
             'start_date' => 'required|date',
-            'end_date' => 'required|date|after_or_equal:start_date',
-            'registration_deadline' => 'required|date|before_or_equal:start_date',
+            // 'end_date' => 'required|date|after_or_equal:start_date',
+            'end_date' => 'required|date',
+            // 'registration_deadline' => 'required|date|before_or_equal:start_date',
+            'registration_deadline' => 'required|date',
             'start_time' => 'required|date_format:H:i',
             'end_time' => 'required|date_format:H:i|after:start_time',
             'contact_person_name' => 'required|string|max:255',
@@ -74,25 +76,25 @@ class WorkshopRequest extends FormRequest
         return $rules;
     }
 
-    public function withValidator($validator)
-    {
-        $validator->after(function ($validator) {
-            $startTime = $this->input('start_time');
-            $endTime = $this->input('end_time');
-            $registrationDeadline = $this->input('registration_deadline');
-            $startDate = $this->input('start_date');
+    // public function withValidator($validator)
+    // {
+    //     $validator->after(function ($validator) {
+    //         $startTime = $this->input('start_time');
+    //         $endTime = $this->input('end_time');
+    //         $registrationDeadline = $this->input('registration_deadline');
+    //         $startDate = $this->input('start_date');
 
-            if ($startTime && $endTime && strtotime($endTime) <= strtotime($startTime)) {
-                $validator->errors()->add('end_time', 'End time must be after start time.');
-            }
+    //         if ($startTime && $endTime && strtotime($endTime) <= strtotime($startTime)) {
+    //             $validator->errors()->add('end_time', 'End time must be after start time.');
+    //         }
 
-            if ($registrationDeadline && $startDate && strtotime($registrationDeadline) > strtotime($startDate)) {
-                $validator->errors()->add('registration_deadline', 'Registration deadline must be on or before the start date.');
-            }
+    //         if ($registrationDeadline && $startDate && strtotime($registrationDeadline) > strtotime($startDate)) {
+    //             $validator->errors()->add('registration_deadline', 'Registration deadline must be on or before the start date.');
+    //         }
 
-            if ($registrationDeadline && strtotime($registrationDeadline) < strtotime(date('Y-m-d'))) {
-                $validator->errors()->add('registration_deadline', 'Registration deadline cannot be in the past.');
-            }
-        });
-    }
+    //         if ($registrationDeadline && strtotime($registrationDeadline) < strtotime(date('Y-m-d'))) {
+    //             $validator->errors()->add('registration_deadline', 'Registration deadline cannot be in the past.');
+    //         }
+    //     });
+    // }
 }

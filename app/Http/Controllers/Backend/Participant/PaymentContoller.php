@@ -715,7 +715,7 @@ class PaymentContoller extends Controller
                 'USD', // input_currency  
                 $request->amount,   // input_amount
                 'Y',   // input_3d 
-                route('my-society.conference.internationalPaymentResultSuccessProcess', [$society, $conference]), // success_url
+                route('my-society.conference.internationalPaymentResultSuccess', [$society, $conference]), // success_url
                 route('my-society.conference.internationalPaymentResultFail', [$society, $conference]),  // fail_url
                 route('my-society.conference.internationalPaymentResultCancel', [$society, $conference]),  // cancel_url
                 route('my-society.conference.internationalPaymentResultBackend', [$society, $conference]), // backend_url

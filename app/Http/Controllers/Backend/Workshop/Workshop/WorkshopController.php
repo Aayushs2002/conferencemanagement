@@ -63,7 +63,7 @@ class WorkshopController extends Controller
      */
     public function store(WorkshopRequest $request, $society, $conference)
     {
-        try {
+        try { 
             $validated = $request->validated();
             $validated['conference_id'] = $conference->id;
             DB::beginTransaction();
