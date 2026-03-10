@@ -21,6 +21,7 @@ class ConferenceRegistration extends Model
         'payment_type',
         'payment_voucher',
         'amount',
+        'payment_currency',
         'transaction_id',
         'verified_status',
         'token',

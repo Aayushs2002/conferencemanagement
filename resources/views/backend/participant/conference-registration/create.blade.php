@@ -642,6 +642,34 @@
                             @endif
 
                             @if (current_user()->userDetail->country_id != 125 && 
+                                 $static_qr_payment_setting && 
+                                 $static_qr_payment_setting->countries && 
+                                 $static_qr_payment_setting->countries->contains('id', current_user()->userDetail->country_id))
+                                <div class="col-md-3 mb-3">
+                                    <label class="card payment-method-card w-100" for="staticQrRadio"
+                                        style="cursor:pointer;">
+                                        <div class="card-body text-center">
+                                            <h5 class="text-primary">📱 Static QR</h5>
+                                            <img src="{{ asset('default-image/qr-code.png') }}" class="img-fluid mb-2"
+                                                style="max-height: 60px;" 
+                                                onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+                                            <div style="display:none; font-size: 48px; margin: 10px 0;">📱</div>
+                                            @if (current_user()->userDetail->country->country_name == 'India')
+                                                <small class="text-muted">INR Payment</small>
+                                            @endif
+                                            <div class="form-check mt-3 d-flex justify-content-center">
+                                                <input class="form-check-input" type="radio" name="paymentMode"
+                                                    value="staticQr" id="staticQrRadio">
+                                                <label class="form-check-label fw-bold ms-2" for="staticQrRadio">
+                                                    Select
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </label>
+                                </div>
+                            @endif
+
+                            @if (current_user()->userDetail->country_id != 125 && 
                                  $international_payemnt_setting && 
                                  $international_payemnt_setting->countries && 
                                  $international_payemnt_setting->countries->contains('id', current_user()->userDetail->country_id))
@@ -666,7 +694,7 @@
                                 </div>
                             @endif
 
-                            @if (current_user()->userDetail->country_id != 125 && $international_payemnt_setting?->bank_detail)
+                            @if (current_user()->userDetail->country_id != 125 && $international_bank_transfer?->bank_detail)
                             {{-- in_array(current_user()->userDetail->country_id, [78, 134, 165]) && --}}
                                 <div class="col-md-3 mb-3">
                                     <label class="card payment-method-card w-100" for="bankTransferRadio"
@@ -814,12 +842,12 @@
                                         </div>
                                         <div class="card-body">
                                             <div class="bankTransferProcessingDiv">
-                                                @if (current_user()->userDetail->country_id != 125 && $international_payemnt_setting?->bank_detail)
+                                                @if (current_user()->userDetail->country_id != 125 && $international_bank_transfer?->bank_detail)
                                                     <h6 class="text-info">Bank Transfer Details</h6>
                                                     <img src="{{ asset('default-image/bankTransfer.jpg') }}"
                                                         height="40" class="mb-2">
                                                     <div class="small">
-                                                        {!! $international_payemnt_setting?->bank_detail !!}
+                                                        {!! $international_bank_transfer?->bank_detail !!}
                                                     </div>
                                                 @endif
                                                 @if (current_user()->userDetail->country_id == 125 && $national_payemnt_setting?->account_detail)
@@ -828,6 +856,15 @@
                                                         height="40" class="mb-2">
                                                     <div class="small">
                                                         {!! $national_payemnt_setting?->account_detail !!}
+                                                    </div>
+                                                @endif
+                                            </div>
+                                            
+                                            <div class="staticQrProcessingDiv" style="display: none;">
+                                                @if (current_user()->userDetail->country_id != 125 && $static_qr_payment_setting?->qr_details)
+                                                    <h6 class="text-info">Static QR Payment Details</h6>
+                                                    <div class="small">
+                                                        {!! $static_qr_payment_setting?->qr_details !!}
                                                     </div>
                                                 @endif
                                             </div>
@@ -866,6 +903,7 @@
                                                         <input type="hidden" name="payment_type" value="1">
                                                         <input type="hidden" name="amount" class="amount"
                                                             id="fonePayAmount">
+                                                        <input type="hidden" name="payment_currency" id="fonePayCurrency" value="USD">
                                                         <input type="hidden" name="selected_addons"
                                                             id="selected_addons_fonepay">
                                                         <div class="d-grid d-flex justify-content-center">
@@ -1026,6 +1064,7 @@
                                                             id="conference_base_amount_international">
                                                         <input type="hidden" name="amount" class="amount"
                                                             id="internationalAmount">
+                                                        <input type="hidden" name="payment_currency" value="USD">
                                                         <input type="hidden" name="selected_addons"
                                                             id="selected_addons_international">
                                                             
@@ -1034,6 +1073,65 @@
                                                             <button type="submit" id="submitButtonInternationalPayment"
                                                                 class="btn btn-primary btn-lg" disabled>
                                                                 <i class="fas fa-credit-card"></i> Pay via Card
+                                                            </button>
+                                                        </div>
+                                                    </form>
+                                                </div>
+                                            @endif
+
+                                            <!-- Static QR Form -->
+                                            @if (current_user()->userDetail->country_id != 125 && $static_qr_payment_setting)
+                                                <div class="staticQrFormProcessingDiv" style="display: none;">
+                                                    <form
+                                                        action="{{ route('my-society.conference.store', [$society, $conference]) }}"
+                                                        method="POST" enctype="multipart/form-data" id="staticQrForm">
+                                                        @csrf
+                                                        <div class="row my-4">
+                                                            <div class="col-md-6 form-group mb-3">
+                                                                <label for="static_qr_transaction_id" class="fw-bold">
+                                                                    <i class="fas fa-receipt"></i> Transaction ID/Reference
+                                                                    <span class="text-danger">*</span>
+                                                                </label>
+                                                                <input type="text" class="form-control"
+                                                                    name="transaction_id" id="static_qr_transaction_id"
+                                                                    placeholder="Enter transaction ID" required>
+                                                                @error('transaction_id')
+                                                                    <p class="text-danger">{{ $message }}</p>
+                                                                @enderror
+                                                            </div>
+                                                            <div class="col-md-6 form-group mb-3">
+                                                                <label for="static_qr_payment_voucher" class="fw-bold">
+                                                                    <i class="fas fa-file-upload"></i> Payment Receipt
+                                                                    <small class="text-muted">(JPG/PNG/PDF)</small>
+                                                                </label>
+                                                                <input type="file" class="form-control"
+                                                                    name="payment_voucher" id="static_qr_payment_voucher"
+                                                                    accept=".jpg,.jpeg,.png,.pdf">
+                                                                @error('payment_voucher')
+                                                                    <p class="text-danger">{{ $message }}</p>
+                                                                @enderror
+                                                            </div>
+                                                        </div>
+
+                                                        <input type="hidden" name="registrant_type"
+                                                            id="registrant_type_static_qr">
+                                                        <input type="hidden" name="accompany_person"
+                                                            id="accompany_person_static_qr">
+                                                        <input type="hidden" name="selected_workshops"
+                                                            id="selected_workshops_static_qr">
+                                                        <input type="hidden" name="workshop_amount"
+                                                            id="workshop_amount_static_qr">
+                                                        <input type="hidden" name="conference_base_amount"
+                                                            id="conference_base_amount_static_qr">
+                                                        <input type="hidden" name="payment_type" value="8">
+                                                        <input type="hidden" name="amount" class="amount" id="staticQrAmount">
+                                                        <input type="hidden" name="payment_currency" id="staticQrCurrency" value="USD">
+                                                        <input type="hidden" name="selected_addons"
+                                                            id="selected_addons_static_qr">
+                                                        <div class="d-grid d-flex justify-content-center">
+                                                            <button type="submit" id="submitButtonStaticQr"
+                                                                class="btn btn-success btn-lg" disabled>
+                                                                <i class="fas fa-qrcode"></i> Submit Static QR Payment
                                                             </button>
                                                         </div>
                                                     </form>
@@ -1085,6 +1183,7 @@
                                                         id="conference_base_amount_bank">
                                                     <input type="hidden" name="payment_type" value="6">
                                                     <input type="hidden" name="amount" class="amount" id="bankAmount">
+                                                    <input type="hidden" name="payment_currency" value="USD">
                                                     <input type="hidden" name="selected_addons"
                                                         id="selected_addons_bank">
                                                     <div class="d-grid d-flex justify-content-center">
@@ -1229,6 +1328,8 @@
             // Global variables
             let totalPrice = 0;
             let calculatedAmount = 0;
+            let calculatedAmountUSD = 0; // Store original USD amount
+            let isConvertedToINR = false; // Track if currently in INR
             let isPriceCalculated = false;
             let currencySymbol = '{{ @$memberTypePrice->memberType->delegate == 1 ? 'Rs. ' : '$ ' }}';
             let selectedAddOns = []; // Store selected add-ons with their details
@@ -1259,6 +1360,8 @@
                     '<i class="fas fa-credit-card"></i> Proceed to Payment');
                 $("#submitButtonBankTransfer").prop('disabled', false).html(
                     '<i class="fas fa-university"></i> Submit Bank Transfer');
+                $("#submitButtonStaticQr").prop('disabled', false).html(
+                    '<i class="fas fa-qrcode"></i> Submit Static QR Payment');
             }
 
             // Handle browser back/forward button - reset buttons when page is shown from cache
@@ -1447,6 +1550,8 @@
                 $("#paymentSection").fadeOut();
                 $("#processingDiv").hide();
                 isPriceCalculated = false;
+                calculatedAmount = 0;
+                calculatedAmountUSD = 0;
                 $('input[name="paymentMode"]').prop('checked', false);
                 $('.payment-method-card').removeClass('selected');
 
@@ -1800,6 +1905,7 @@
 
                     // Store calculated values
                     calculatedAmount = parseFloat(totalPrice).toFixed(2);
+                    calculatedAmountUSD = parseFloat(totalPrice).toFixed(2); // Store original USD amount
                     isPriceCalculated = true;
 
                     // Update all amount fields
@@ -1910,7 +2016,7 @@
 
                 const selectedValue = $(this).val();
 
-                if (selectedValue == 'bankTransfer') {
+                if (selectedValue == 'bankTransfer' || selectedValue == 'staticQr') {
                     $('.paymentHeader').show();
                 } else {
                     $('.paymentHeader').hide();
@@ -1929,14 +2035,19 @@
                 $("#processingDiv").fadeIn();
 
                 // Hide all processing divs
-                $(".fonePayProcessingDiv, .dollarCardProcessingDiv, .mocoProcessingDiv, .esewaProcessingDiv, .khaltiProcessingDiv, .connectipsProcessingDiv, .bankTransferProcessingDiv")
+                $(".fonePayProcessingDiv, .dollarCardProcessingDiv, .mocoProcessingDiv, .esewaProcessingDiv, .khaltiProcessingDiv, .connectipsProcessingDiv, .bankTransferProcessingDiv, .staticQrProcessingDiv, .staticQrFormProcessingDiv")
                     .hide();
 
                 // Update all hidden fields with current values
                 updateAllHiddenFields();
 
                 // Show selected payment method processing div
-                $(`.${selectedValue}ProcessingDiv`).fadeIn();
+                if (selectedValue === 'staticQr') {
+                    $('.staticQrProcessingDiv').fadeIn();
+                    $('.staticQrFormProcessingDiv').fadeIn();
+                } else {
+                    $(`.${selectedValue}ProcessingDiv`).fadeIn();
+                }
 
                 // Enable appropriate submit buttons
                 enablePaymentButton(selectedValue, delegate, checkCountry);
@@ -1944,36 +2055,74 @@
 
             // Function to enable payment buttons based on method
             function enablePaymentButton(selectedValue, delegate, checkCountry) {
+                console.log('Enabling payment button for:', selectedValue, 'Delegate:', delegate, 'Country:', checkCountry);
+                
                 // Disable all payment buttons first
-                $("#submitFonePay, #submitEsewa, #submitKhalti, #submitMoco, #submitConnectIPS, #submitButtonInternationalPayment, #submitButtonBankTransfer")
-                    .attr('disabled', true);
+                $("#submitFonePay, #submitEsewa, #submitKhalti, #submitMoco, #submitConnectIPS, #submitButtonInternationalPayment, #submitButtonBankTransfer, #submitButtonStaticQr")
+                    .prop('disabled', true);
 
-                if (selectedValue == "fonePay") {
-                    // Handle India FonePay conversion for USD
-                    if (delegate == 2 && checkCountry == 'India') {
-                        convertUsdToInr(selectedValue);
-                    } else {
-                        $("#submitFonePay").attr('disabled', false);
+                // Determine if we need INR conversion
+                const needsINRConversion = (delegate == 2 && checkCountry == 'India' && 
+                                           (selectedValue == "fonePay" || selectedValue == "staticQr"));
+
+                if (needsINRConversion) {
+                    // Convert to INR for FonePay or Static QR
+                    console.log('Converting to INR...');
+                    convertUsdToInr(selectedValue);
+                } else {
+                    // Restore USD for other payment methods when delegate is international
+                    if (delegate == 2 && isConvertedToINR) {
+                        // Only restore if we previously converted to INR
+                        console.log('Restoring USD from INR...');
+                        calculatedAmount = calculatedAmountUSD;
+                        const currencyCondition = '$ ';
+                        
+                        // Update all amount fields with USD
+                        $(".amount").val(parseFloat(calculatedAmountUSD).toFixed(2));
+                        
+                        // Reset currency fields to USD
+                        $("#fonePayCurrency").val('USD');
+                        $("#staticQrCurrency").val('USD');
+                        
+                        // Restore USD in price table
+                        $("#calculatedData tr:last-child td:last-child").html(
+                            '<strong>' + currencyCondition + parseFloat(calculatedAmountUSD).toFixed(2) + '</strong>'
+                        );
+                        
+                        // Show notification that we've reverted to USD
+                        notyf.info('Amount displayed in USD: $' + parseFloat(calculatedAmountUSD).toFixed(2));
+                        
+                        // Reset the conversion flag
+                        isConvertedToINR = false;
                     }
-                } else if (selectedValue == "dollarCard") {
-                    $("#submitButtonInternationalPayment").attr('disabled', false);
-                } else if (selectedValue == "moco") {
-                    $("#submitMoco").attr('disabled', false);
-                } else if (selectedValue == "esewa") {
-                    $("#submitEsewa").attr('disabled', false);
-                } else if (selectedValue == "khalti") {
-                    $("#submitKhalti").attr('disabled', false);
-                } else if (selectedValue == "connectips") {
-                    $("#submitConnectIPS").attr('disabled', false);
-                } else if (selectedValue == "bankTransfer") {
-                    $("#submitButtonBankTransfer").attr('disabled', false);
+                    
+                    // Enable appropriate payment button
+                    console.log('Enabling button for:', selectedValue);
+                    if (selectedValue == "fonePay") {
+                        $("#submitFonePay").prop('disabled', false);
+                    } else if (selectedValue == "dollarCard") {
+                        $("#submitButtonInternationalPayment").prop('disabled', false);
+                        console.log('International payment button enabled');
+                    } else if (selectedValue == "moco") {
+                        $("#submitMoco").prop('disabled', false);
+                    } else if (selectedValue == "esewa") {
+                        $("#submitEsewa").prop('disabled', false);
+                    } else if (selectedValue == "khalti") {
+                        $("#submitKhalti").prop('disabled', false);
+                    } else if (selectedValue == "connectips") {
+                        $("#submitConnectIPS").prop('disabled', false);
+                    } else if (selectedValue == "bankTransfer") {
+                        $("#submitButtonBankTransfer").prop('disabled', false);
+                    } else if (selectedValue == "staticQr") {
+                        $("#submitButtonStaticQr").prop('disabled', false);
+                    }
                 }
             }
 
-            // Function to convert USD to INR for FonePay
+            // Function to convert USD to INR for FonePay and Static QR
             function convertUsdToInr(paymentMode) {
                 const currencyData = {
-                    'usd': calculatedAmount,
+                    'usd': calculatedAmountUSD,
                     'paymentMode': paymentMode,
                     '_token': $('meta[name="csrf-token"]').attr('content')
                 };
@@ -1981,14 +2130,30 @@
                 $.post('{{ route('convertUsdToInr') }}', currencyData)
                     .done(function(response) {
                         if (response.type == 'success') {
-                            $("#fonePayAmount").val(response.amount);
-                            $("#submitFonePay").attr('disabled', false);
+                            // Update calculated amount to INR for display
+                            calculatedAmount = response.amount;
+                            
+                            if (paymentMode === 'fonePay') {
+                                // Store USD amount but mark currency as INR
+                                $("#fonePayAmount").val(calculatedAmountUSD);
+                                $("#fonePayCurrency").val('INR');
+                                $("#submitFonePay").prop('disabled', false);
+                            } else if (paymentMode === 'staticQr') {
+                                // Store USD amount but mark currency as INR
+                                $("#staticQrAmount").val(calculatedAmountUSD);
+                                $("#staticQrCurrency").val('INR');
+                                $("#submitButtonStaticQr").prop('disabled', false);
+                            }
 
-                            // Update the total in price table for INR
+                            // Update the total in price table for INR display
                             $("#calculatedData tr:last-child td:last-child").html(
-                                '<strong>INR ' + response.amount + '</strong>'
+                                '<strong>INR ' + parseFloat(response.amount).toFixed(2) + '</strong>'
                             );
-                            notyf.success('Amount converted to INR: ₹' + response.amount);
+                            
+                            // Set flag to track INR conversion
+                            isConvertedToINR = true;
+                            
+                            notyf.success('Amount converted to INR: ₹' + parseFloat(response.amount).toFixed(2));
                         } else {
                             notyf.error(response.message);
                         }
@@ -2083,6 +2248,24 @@
 
                 $(this).prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Submitting...');
                 $("#bankTranferForm").submit();
+            });
+
+            $("#submitButtonStaticQr").click(function(e) {
+                e.preventDefault();
+                if (!isPriceCalculated) {
+                    notyf.error('Please calculate the price first.');
+                    return;
+                }
+
+                // Validate required fields
+                const transactionId = $('#static_qr_transaction_id').val();
+                if (!transactionId) {
+                    notyf.error('Please enter the transaction ID.');
+                    return;
+                }
+
+                $(this).prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Submitting...');
+                $("#staticQrForm").submit();
             });
 
             $("#submitFonePay, #submitEsewa, #submitKhalti, #submitConnectIPS").click(function(e) {
@@ -2236,56 +2419,8 @@
                 }
             });
 
-            // Bank transfer form submission with AJAX
-            $('#bankTranferForm').on('submit', function(e) {
-                e.preventDefault();
-
-                const form = this;
-                const formData = new FormData(form);
-
-                $.ajax({
-                    url: $(form).attr('action'),
-                    type: 'POST',
-                    data: formData,
-                    contentType: false,
-                    processData: false,
-                    success: function(response) {
-                        if (response.success) {
-                            notyf.success('Registration completed successfully!');
-                            updateStepIndicator(4);
-                            setTimeout(function() {
-                                window.location.href =
-                                    '{{ route('my-society.conference.index', [$society, $conference]) }}';
-                            }, 2000);
-                        } else {
-                            $('#submitButtonBankTransfer').prop('disabled', false).html(
-                                '<i class="fas fa-university"></i> Submit Bank Transfer');
-                            notyf.error(response.message ||
-                                'Registration failed. Please try again.');
-                        }
-                    },
-                    error: function(xhr) {
-                        $('#submitButtonBankTransfer').prop('disabled', false).html(
-                            '<i class="fas fa-university"></i> Submit Bank Transfer');
-
-                        if (xhr.status === 422) {
-                            let errors = xhr.responseJSON.errors;
-                            $('.text-danger').remove();
-                            for (let key in errors) {
-                                let input = $('[name="' + key + '"]');
-                                input.addClass('is-invalid');
-                                input.after('<p class="text-danger">' + errors[key][0] +
-                                    '</p>');
-                            }
-                        } else {
-                            notyf.error('An error occurred. Please try again.');
-                        }
-                    }
-                });
-            });
-
-            // File upload preview
-            $('#payment_voucher').change(function() {
+            // File upload preview for bank transfer and static QR
+            $('#payment_voucher, #static_qr_payment_voucher').change(function() {
                 const file = this.files[0];
                 if (file) {
                     const fileSize = (file.size / 1024 / 1024).toFixed(2);

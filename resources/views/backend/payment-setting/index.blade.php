@@ -357,6 +357,10 @@
                                 <li class="nav-item"><a class="nav-link active" id="home-icon-pill"
                                         data-bs-toggle="pill" href="#homePIll" role="tab" aria-controls="homePIll"
                                         aria-selected="true"><i class="nav-icon i-Home1 mr-1"></i>Himalayan Bank</a></li>
+                                <li class="nav-item"><a class="nav-link" id="static-qr-pill" data-bs-toggle="pill"
+                                        href="#staticQrPill" role="tab" aria-controls="staticQrPill"
+                                        aria-selected="false"><i class="nav-icon i-Home1 mr-1"></i>Static QR</a>
+                                </li>
                                 <li class="nav-item"><a class="nav-link" id="profile-icon-pill" data-bs-toggle="pill"
                                         href="#profilePIll" role="tab" aria-controls="profilePIll"
                                         aria-selected="false"><i class="nav-icon i-Home1 mr-1"></i>Account Details</a>
@@ -386,7 +390,7 @@
                                                             <label class="custom-control-label" for="selectAllCountries">
                                                                 <strong>Select All Countries</strong>
                                                             </label>
-                                                        </div>
+                                                        </div> 
                                                     </div>
 
                                                     <div class="form-group mb-3">
@@ -524,6 +528,87 @@
                                     </div>
 
                                 </div>
+                                
+                                <!-- Static QR Tab -->
+                                <div class="tab-pane fade" id="staticQrPill" role="tabpanel"
+                                    aria-labelledby="static-qr-pill">
+                                    <div class="row">
+                                        <input type="hidden" name="international_id" id="international_id_static_qr"
+                                            value="{{ $staticQrPayment ? $staticQrPayment->id : '' }}">
+                                        
+                                        <!-- Country Selection Section -->
+                                        <div class="col-md-12 mb-4">
+                                            <div class="card">
+                                                <div class="card-body">
+                                                    <h5 class="card-title mb-3">
+                                                        <i class="fas fa-globe"></i> Country Selection for Static QR Payment
+                                                    </h5>
+                                                    <p class="text-muted small mb-3">
+                                                        Select which countries can use Static QR payment method. You can select all countries or specific countries.
+                                                    </p>
+                                                    
+                                                    <div class="form-group mb-3">
+                                                        <div class="custom-control custom-checkbox">
+                                                            <input type="checkbox" class="custom-control-input" id="selectAllCountriesStaticQr">
+                                                            <label class="custom-control-label" for="selectAllCountriesStaticQr">
+                                                                <strong>Select All Countries</strong>
+                                                            </label>
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="form-group mb-3">
+                                                        <label class="form-label">
+                                                            Available Countries <code>*</code>
+                                                            <span class="badge badge-info ml-2" id="selectedCountriesCountStaticQr">0 selected</span>
+                                                        </label>
+                                                        <div class="border rounded p-3" style="max-height: 250px; overflow-y: auto; background-color: #f8f9fa;">
+                                                            <div class="row">
+                                                                @foreach($countries as $country)
+                                                                    <div class="col-md-4 mb-2">
+                                                                        <div class="custom-control custom-checkbox">
+                                                                            <input type="checkbox" 
+                                                                                   class="custom-control-input country-checkbox-static-qr" 
+                                                                                   name="selected_countries_static_qr[]" 
+                                                                                   id="country_static_qr_{{ $country->id }}" 
+                                                                                   value="{{ $country->id }}"
+                                                                                   {{ isset($staticQrSelectedCountries) && in_array($country->id, $staticQrSelectedCountries) ? 'checked' : '' }}>
+                                                                            <label class="custom-control-label" for="country_static_qr_{{ $country->id }}">
+                                                                                {{ $country->country_name }}
+                                                                            </label>
+                                                                        </div>
+                                                                    </div>
+                                                                @endforeach
+                                                            </div>
+                                                        </div>
+                                                        <div class="text-danger mt-2" id="countriesErrorStaticQr"></div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- QR Code Details -->
+                                        <div class="col-md-12 form-group mb-3">
+                                            <label class="form-label" for="static_qr_details">
+                                                <i class="fas fa-qrcode"></i> QR Code Details & Instructions
+                                                <code>*</code>
+                                            </label>
+                                            <p class="text-muted small">
+                                                Enter payment instructions and QR code details. You can include images, text, and formatting.
+                                            </p>
+                                            <textarea class="form-control ckeditor" id="static_qr_details" name="static_qr_details" rows="8">{{ $staticQrPayment ? $staticQrPayment->qr_details : '' }}</textarea>
+                                            <div class="text-danger mt-2" id="staticQrDetailsError"></div>
+                                            @error('static_qr_details')
+                                                <p class="text-danger">{{ $message }}</p>
+                                            @enderror
+                                        </div>
+
+                                        <div class="col-md-12" style="display: flex; justify-content: end;">
+                                            <button type="submit" class="btn btn-primary submitData"
+                                                id="submitDataStaticQr">{{ $staticQrPayment ? 'Update' : 'Save' }}</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                
                                 <div class="tab-pane fade" id="profilePIll" role="tabpanel"
                                     aria-labelledby="profile-icon-pill">
                                     <input type="hidden" name="international_id" id="international_id"
@@ -580,6 +665,31 @@
                 updateSelectedCount();
             });
 
+            // Country selection functionality for Static QR
+            function updateSelectedCountStaticQr() {
+                let count = $('.country-checkbox-static-qr:checked').length;
+                $('#selectedCountriesCountStaticQr').text(count + ' selected');
+                
+                // Update select all checkbox state
+                let totalCountries = $('.country-checkbox-static-qr').length;
+                $('#selectAllCountriesStaticQr').prop('checked', count === totalCountries);
+            }
+
+            // Initialize count on page load for Static QR
+            updateSelectedCountStaticQr();
+
+            // Select/Deselect all countries for Static QR
+            $('#selectAllCountriesStaticQr').change(function() {
+                let isChecked = $(this).prop('checked');
+                $('.country-checkbox-static-qr').prop('checked', isChecked);
+                updateSelectedCountStaticQr();
+            });
+
+            // Update count when individual checkbox is changed for Static QR
+            $('.country-checkbox-static-qr').change(function() {
+                updateSelectedCountStaticQr();
+            });
+
             // Update hidden inputs when tabs change
             $('a[data-bs-toggle="pill"]').on('shown.bs.tab', function(e) {
                 let target = $(e.target).attr('href');
@@ -602,6 +712,8 @@
                 // International tabs
                 else if (target === '#homePIll') {
                     $('#currentInternationalTab').val('himalayan_bank');
+                } else if (target === '#staticQrPill') {
+                    $('#currentInternationalTab').val('static_qr');
                 } else if (target === '#profilePIll') {
                     $('#currentInternationalTab').val('account_details');
                 }
@@ -800,6 +912,27 @@
                             isValid = false;
                             $('#pacoSigningPublicKeyError').text('PacoSigningPublicKey is required.');
                         }
+                    } else if (activeTab === 'static_qr') {
+                        let selectedCountriesStaticQr = [];
+                        $('.country-checkbox-static-qr:checked').each(function() {
+                            selectedCountriesStaticQr.push($(this).val());
+                        });
+
+                        if (selectedCountriesStaticQr.length === 0) {
+                            isValid = false;
+                            $('#countriesErrorStaticQr').text('Please select at least one country.');
+                        }
+
+                        // Handle CKEditor content
+                        if (CKEDITOR.instances['static_qr_details']) {
+                            CKEDITOR.instances['static_qr_details'].updateElement();
+                        }
+
+                        let staticQrDetails = $('#static_qr_details').val().trim();
+                        if (!staticQrDetails) {
+                            isValid = false;
+                            $('#staticQrDetailsError').text('QR Code Details are required.');
+                        }
                     } else if (activeTab === 'account_details') {
                         if (CKEDITOR.instances['bank_detail']) {
                             CKEDITOR.instances['bank_detail'].updateElement();
@@ -849,6 +982,8 @@
                         encryption_key_id: $('#encryption_key_id').val(),
                         //bank_detail 
                         bank_detail: $('#bank_detail').val(),
+                        // Static QR fields
+                        static_qr_details: $('#static_qr_details').val(),
                         // IDs for updates
                         id: $('#id').val(),
                         international_id: $('#international_id').val(),
@@ -860,6 +995,15 @@
                         $('.country-checkbox:checked').each(function() {
                             formData.selected_countries.push($(this).val());
                         });
+                    }
+
+                    // Add selected countries for Static QR
+                    if (activeSection === 'international' && activeTab === 'static_qr') {
+                        formData.selected_countries_static_qr = [];
+                        $('.country-checkbox-static-qr:checked').each(function() {
+                            formData.selected_countries_static_qr.push($(this).val());
+                        });
+                        formData.international_id = $('#international_id_static_qr').val();
                     }
 
                     console.log('Form data being sent:', formData);

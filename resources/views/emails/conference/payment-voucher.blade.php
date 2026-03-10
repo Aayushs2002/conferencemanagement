@@ -215,20 +215,32 @@
             <thead>
                 <tr>
                     <th>Description</th>
-                    <th>Amount {{ $data['country'] == 125 ? 'Rs.' : 'USD' }}</th>
+                    <th>Amount {{ $data['currencySymbol'] ?? ($data['country'] == 125 ? 'Rs.' : 'USD') }}</th>
                 </tr>
             </thead>
             <tbody>
+                @php
+                    // Determine currency symbol and multiplier for INR conversion
+                    $currencySymbol = $data['currencySymbol'] ?? ($data['country'] == 125 ? 'Rs.' : '$');
+                    $isINR = isset($data['paymentCurrency']) && $data['paymentCurrency'] === 'INR';
+                    $conversionRate = 1;
+                    
+                    // Calculate conversion rate if INR
+                    if ($isINR && isset($data['displayAmount']) && $data['displayAmount'] > 0 && $data['amount'] > 0) {
+                        $conversionRate = $data['displayAmount'] / $data['amount'];
+                    }
+                @endphp
+                
                 @if ($data['conferenceAmount'])
                     <tr>
                         <td>Conference Registration Fee</td>
-                        <td>{{ $data['country'] == 125 ? 'Rs.' : '$' }}{{ $data['conferenceAmount'] }}</td>
+                        <td>{{ $currencySymbol }}{{ $isINR ? number_format($data['conferenceAmount'] * $conversionRate, 2) : $data['conferenceAmount'] }}</td>
                     </tr>
                 @endif
                 @if (!empty($data['accompany']))
                     <tr>
                         <td>Accompany Person X {{ $data['accompany']['accompany_person'] }}</td>
-                        <td>{{ $data['country'] == 125 ? 'Rs.' : '$' }}{{ $data['accompany']['amount'] * $data['accompany']['accompany_person'] }}
+                        <td>{{ $currencySymbol }}{{ $isINR ? number_format($data['accompany']['amount'] * $data['accompany']['accompany_person'] * $conversionRate, 2) : ($data['accompany']['amount'] * $data['accompany']['accompany_person']) }}
                         </td>
                     </tr>
                 @endif
@@ -242,7 +254,7 @@
                             {{-- Only show participant line --}}
                             <tr>
                                 <td>{{ $addon['name'] }}</td>
-                                <td>{{ $data['country'] == 125 ? 'Rs.' : '$' }}{{ $addon['amount'] }}</td>
+                                <td>{{ $currencySymbol }}{{ $isINR ? number_format($addon['amount'] * $conversionRate, 2) : $addon['amount'] }}</td>
                             </tr>
                         @elseif ($availabilityType === 'accompany_only')
                             {{-- Only show guest line --}}
@@ -252,7 +264,7 @@
                                 @endphp
                                 <tr>
                                     <td>{{ $addon['name'] }} X {{ $data['accompany']['accompany_person'] }}</td>
-                                    <td>{{ $data['country'] == 125 ? 'Rs.' : '$' }}{{ $guestAddonPrice * $data['accompany']['accompany_person'] }}</td>
+                                    <td>{{ $currencySymbol }}{{ $isINR ? number_format($guestAddonPrice * $data['accompany']['accompany_person'] * $conversionRate, 2) : ($guestAddonPrice * $data['accompany']['accompany_person']) }}</td>
                                 </tr>
                             @endif
                         @else
@@ -260,7 +272,7 @@
                             @if ($addon['amount'] > 0)
                                 <tr>
                                     <td>{{ $addon['name'] }} (Main Attendee)</td>
-                                    <td>{{ $data['country'] == 125 ? 'Rs.' : '$' }}{{ $addon['amount'] }}</td>
+                                    <td>{{ $currencySymbol }}{{ $isINR ? number_format($addon['amount'] * $conversionRate, 2) : $addon['amount'] }}</td>
                                 </tr>
                             @endif
                             {{-- Show guest line if include_guest is true --}}
@@ -270,7 +282,7 @@
                                 @endphp
                                 <tr>
                                     <td>{{ $addon['name'] }} (Accompanying Persons) X {{ $data['accompany']['accompany_person'] }}</td>
-                                    <td>{{ $data['country'] == 125 ? 'Rs.' : '$' }}{{ $guestAddonPrice * $data['accompany']['accompany_person'] }}</td>
+                                    <td>{{ $currencySymbol }}{{ $isINR ? number_format($guestAddonPrice * $data['accompany']['accompany_person'] * $conversionRate, 2) : ($guestAddonPrice * $data['accompany']['accompany_person']) }}</td>
                                 </tr>
                             @endif
                         @endif
@@ -282,19 +294,19 @@
                     @foreach ($data['workshop'] as $workshop)
                         <tr>
                             <td>{{ $workshop['name'] }}</td>
-                            <td>{{ $data['country'] == 125 ? 'Rs.' : '$' }}{{ $workshop['amount'] }}</td>
+                            <td>{{ $currencySymbol }}{{ $isINR ? number_format($workshop['amount'] * $conversionRate, 2) : $workshop['amount'] }}</td>
                         </tr>
                     @endforeach
                 @endif
                 @if (!empty($data['serviceCharge'])) 
                     <tr>
                         <td>Service Charge (3.5%)</td>
-                        <td>{{ $data['country'] == 125 ? 'Rs.' : '$' }}{{ $data['serviceCharge'] }}</td>
+                        <td>{{ $currencySymbol }}{{ $isINR ? number_format($data['serviceCharge'] * $conversionRate, 2) : $data['serviceCharge'] }}</td>
                     </tr>
                 @endif
                 <tr>
                     <td>Total Amount</td>
-                    <td><b class="total">{{ $data['country'] == 125 ? 'Rs.' : '$' }}{{ $data['amount'] }}</b></td>
+                    <td><b class="total">{{ $currencySymbol }}{{ $isINR ? number_format($data['displayAmount'], 2) : $data['amount'] }}</b></td>
                 </tr>
                 <tr>
                     <td colspan="2" class="in-words">

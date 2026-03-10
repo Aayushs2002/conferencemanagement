@@ -114,7 +114,42 @@
             </div>
             <div class="col-md-4 mb-4">
                 <p class="text-primary mb-1"><i class="i-ID-2 text-14 mr-1"></i>Total Amount</p>
-                <span>{{ $registrant->amount }}</span>
+                <span>
+                    @php
+                        $currencySymbol = '$';
+                        $displayAmount = $registrant->amount;
+                        $showConversion = false;
+                        
+                        if ($registrant->payment_currency === 'INR') {
+                            // Convert USD to INR for display
+                            $currencySymbol = 'INR';
+                            try {
+                                $data = [
+                                    'page' => 1,
+                                    'per_page' => 10,
+                                    'from' => date('Y-m-d'),
+                                    'to' => date('Y-m-d')
+                                ];
+                                $currencyExchange = \Illuminate\Support\Facades\Http::get('https://www.nrb.org.np/api/forex/v1/rates/', $data);
+                                if ($currencyExchange->successful()) {
+                                    $USDRateSell = $currencyExchange->json()['data']['payload'][0]['rates'][1]['sell'];
+                                    $rate = floatval($USDRateSell) / 1.6;
+                                    $convertedAmount = $rate * floatval($registrant->amount);
+                                    $displayAmount = ceil($convertedAmount);
+                                    $showConversion = true;
+                                }
+                            } catch (\Exception $e) {
+                                // If conversion fails, show USD amount
+                            }
+                        } elseif ($registrant->user->userDetail->country_id == 125) {
+                            $currencySymbol = 'Rs.';
+                        }
+                    @endphp
+                    {{ $currencySymbol }} {{ number_format($displayAmount, 2) }}
+                    @if($showConversion)
+                        <br><small class="text-muted">(USD ${{ number_format($registrant->amount, 2) }})</small>
+                    @endif
+                </span>
             </div>
             <div class="col-md-4 mb-4">
                 <p class="text-primary mb-1"><i class="i-ID-2 text-14 mr-1"></i>Registration Date & Time</p>
