@@ -46,7 +46,9 @@ class ConferenceRegistrationController extends Controller
             }
         }
         $national_payemnt_setting = NationalPayment::where('society_id', $conference->society_id)->first();
-        $international_payemnt_setting = InternationalPayment::with('countries')->where('society_id', $conference->society_id)->first();
+        $international_payemnt_setting = InternationalPayment::with('countries')->where('society_id', $conference->society_id)->where('payment_type', 'himalayan_bank')->first();
+        $static_qr_payment_setting = InternationalPayment::with('countries')->where('society_id', $conference->society_id)->where('payment_type', 'static_qr')->first();
+        $international_bank_transfer = InternationalPayment::where('society_id', $conference->society_id)->where('payment_type', 'account_details')->first();
         $workshops = Workshop::with(['registrations' => function ($q) {
             $q->where('status', 1);
         }])
@@ -106,7 +108,7 @@ class ConferenceRegistrationController extends Controller
         $conferenceSetting = $conference->conferenceSetting;
         $addonAvailability = $conferenceSetting?->addon_availability ?? 'both';
 
-        return view('backend.participant.conference-registration.create', compact('conference', 'amount', 'memberTypePrice', 'society', 'national_payemnt_setting', 'international_payemnt_setting', 'checkPayment', 'workshops', 'conferenceAddons', 'addonAvailability'));
+        return view('backend.participant.conference-registration.create', compact('conference', 'amount', 'memberTypePrice', 'society', 'national_payemnt_setting', 'international_payemnt_setting', 'static_qr_payment_setting', 'international_bank_transfer', 'checkPayment', 'workshops', 'conferenceAddons', 'addonAvailability'));
     }
 
     public function getWorkshopPricing(Request $request)
@@ -169,12 +171,15 @@ class ConferenceRegistrationController extends Controller
             'registrant_type' => 'required',
             'amount' => 'required',
             'payment_type' => 'required',
-            'payment_voucher' => 'required|mimes:jpg,png,pdf',
-            'transaction_id' => 'required|unique:conference_registrations,transaction_id'
+            'payment_voucher' => 'required_if:payment_type,6,8|nullable|mimes:jpg,png,pdf',
+            'transaction_id' => 'required_if:payment_type,6,8|nullable|unique:conference_registrations,transaction_id',
+            'payment_currency' => 'nullable|string|in:USD,INR'
         ];
 
         $message = [
             'transaction_id.unique' => 'Transaction/Reference Id already exist.',
+            'payment_voucher.required_if' => 'Payment receipt is required for bank transfer and static QR payments.',
+            'transaction_id.required_if' => 'Transaction ID is required for bank transfer and static QR payments.',
         ];
 
         $validated = $request->validate($rules, $message);
@@ -185,7 +190,18 @@ class ConferenceRegistrationController extends Controller
                 $checkDuplicateRegistration = ConferenceRegistration::where(['user_id' => current_user()->id, 'conference_id' => $conference->id, 'status' => 1])->first();
                 $conferenceSetting = ConferenceSetting::where('conference_id', $conference->id)->first();
                 $membetType = current_user()->societies->where('id', $conference->society_id)->first()?->pivot?->memberType;
+                
+                // Check if member type exists
+                if (!$membetType) {
+                    return redirect()->back()->with('delete', 'Member type not found. Please contact administrator.');
+                }
+                
                 $memberTypePrice = ConferenceMemberTypePrice::where(['conference_id' => $conference->id, 'member_type_id' => $membetType->id])->first();
+                
+                // Check if member type price exists
+                if (!$memberTypePrice) {
+                    return redirect()->back()->with('delete', 'Member type price not configured. Please contact administrator.');
+                }
                 if (empty($checkDuplicateRegistration)) {
                     $authUser = current_user();
                     $validated['user_id'] = $authUser->id;
@@ -290,28 +306,65 @@ class ConferenceRegistrationController extends Controller
                     //     ];
                     // }
                     $accompanyData = null;
-                    if (!empty($request->accompany_person)) {
+                    if (!empty($request->accompany_person) && $memberTypePrice) {
                         $accompanyData = [
                             'accompany_person' => $validated['accompany_person'],
-                            'amount'           => $memberTypePrice->guest_amount,
+                            'amount'           => $memberTypePrice->guest_amount ?? 0,
                         ];
                     }
 
 
+                    // Determine currency symbol based on payment_currency field
+                    $paymentCurrency = $validated['payment_currency'] ?? 'USD';
+                    $currencySymbol = $paymentCurrency === 'INR' ? 'INR' : ($authUser->userDetail->country_id == 125 ? 'Rs.' : '$');
+                    
+                    // Convert to INR if payment was made in INR
+                    $displayAmount = $validated['amount'];
+                    $amountInWords = numberToWord($validated['amount']);
+                    
+                    if ($paymentCurrency === 'INR') {
+                        try {
+                            // Get exchange rate and convert
+                            $data = [
+                                'page' => 1,
+                                'per_page' => 10,
+                                'from' => date('Y-m-d'),
+                                'to' => date('Y-m-d')
+                            ];
+                            $currencyExchange = \Illuminate\Support\Facades\Http::get('https://www.nrb.org.np/api/forex/v1/rates/', $data);
+                            if ($currencyExchange->successful()) {
+                                $USDRateSell = $currencyExchange->json()['data']['payload'][0]['rates'][1]['sell'];
+                                $rate = floatval($USDRateSell) / 1.6;
+                                $convertedAmount = $rate * floatval($validated['amount']);
+                                $displayAmount = ceil($convertedAmount);
+                                $amountInWords = numberToWord($displayAmount);
+                            }
+                        } catch (\Exception $e) {
+                            // If conversion fails, use USD amount
+                            \Log::error('Currency conversion failed for mail: ' . $e->getMessage());
+                        }
+                    }
+                    
+                    // Get society admin user safely
+                    $societyAdmin = $society->users->where('type', 2)->first();
+                    
                     $mailData = [
                         'conference_theme' => $conference->conference_theme,
                         'conference_name'  => $conference->conference_name,
                         'name' => $authUser->fullName($authUser),
-                        'namePrefix' => $authUser->userDetail->namePrefix->prefix,
+                        'namePrefix' => $authUser->userDetail->namePrefix->prefix ?? '',
                         'email' => $authUser->email,
                         'paymentType' => 'Bank Transfer',
                         'transactionId' => $validated['transaction_id'],
                         'amount' => $validated['amount'],
-                        'amountInWord' => numberToWord($validated['amount']),
-                        'societyName'      => $society->users->where('type', 2)->first()->f_name,
+                        'displayAmount' => $displayAmount,
+                        'amountInWord' => $amountInWords,
+                        'currencySymbol'   => $currencySymbol,
+                        'paymentCurrency'  => $paymentCurrency,
+                        'societyName'      => $societyAdmin?->f_name ?? '',
                         'societyLogo'      => $society->logo,
                         'societyPhone'     => $society->phone,
-                        'societyEmail'     => $society->users->where('type', 2)->first()->email,
+                        'societyEmail'     => $societyAdmin?->email ?? '',
                         'societyAddress'   => $society->address,
                         'primaryColor'     => $conference->primary_color,
                         'country'          => $authUser->userDetail->country_id,
@@ -433,11 +486,16 @@ class ConferenceRegistrationController extends Controller
 
                     DB::commit();
                     request()->session()->forget('onlinePayment');
-                    return response()->json([
-                        'success' => true,
-                        'message' => 'Registration completed successfully!',
-                        'registration_id' => $conferenceRegistration->id
-                    ]);
+                    
+                    // Redirect to payment success page instead of returning JSON
+                    $transactionId = $validated['transaction_id'];
+                    $amount = $validated['amount'];
+                    $paymentCurrency = $validated['payment_currency'] ?? 'USD';
+                    $national_payemnt_setting = NationalPayment::where('society_id', $conference->society_id)->first();
+                    $international_payemnt_setting = InternationalPayment::with('countries')->where('society_id', $conference->society_id)->first();
+                    
+                    return view('backend.participant.conference-registration.payment-success', compact('transactionId', 'amount', 'paymentCurrency', 'society', 'conference', 'national_payemnt_setting', 'international_payemnt_setting'));
+                    
                     // return redirect()->route('my-society.conference.index', [$society, $conference])->with('status', 'Successfully registered to conference.');
                 } else {
                     // return redirect()->back()->with('delete', 'Registration already done for current conference.');
@@ -448,13 +506,15 @@ class ConferenceRegistrationController extends Controller
                 }
             }
         } catch (Exception $e) {
-            // dd($e);
             DB::rollBack();
-            Log::channel('sentry')->error('Conference Registration Error: ' . $e->getMessage());
-            return response()->json([
-                'success' => false,
-                'message' => 'Registration failed: ' . $e->getMessage()
-            ], 500);
+            Log::channel('sentry')->error('Conference Registration Error: ' . $e->getMessage(), [
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            // Return user-friendly error with more details for debugging
+            return redirect()->back()->with('delete', 'Registration failed: ' . $e->getMessage() . ' at line ' . $e->getLine())->withInput();
         }
     }
 

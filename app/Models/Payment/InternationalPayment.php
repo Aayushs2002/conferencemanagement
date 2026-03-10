@@ -18,6 +18,7 @@ class InternationalPayment extends Model
         'paco_signing_public_key',
         'encryption_key_id',
         'bank_detail',
+        'qr_details',
         'status',
         'payment_type'
     ];

@@ -23,7 +23,14 @@ class PaymentSettingController extends Controller
             $selectedCountries = $internationalPayment->countries()->pluck('country_id')->toArray();
         }
         
-        return view('backend.payment-setting.index', compact('nationalPayment', 'internationalPayment', 'society', 'countries', 'selectedCountries'));
+        // Also get static QR payment setting separately for displaying in the view
+        $staticQrPayment = InternationalPayment::where(['society_id' => $society->id, 'status' => 1, 'payment_type' => 'static_qr'])->first();
+        $staticQrSelectedCountries = [];
+        if ($staticQrPayment) {
+            $staticQrSelectedCountries = $staticQrPayment->countries()->pluck('country_id')->toArray();
+        }
+        
+        return view('backend.payment-setting.index', compact('nationalPayment', 'internationalPayment', 'society', 'countries', 'selectedCountries', 'staticQrPayment', 'staticQrSelectedCountries'));
     }
  
     public function store(Request $request, $society)
@@ -190,6 +197,39 @@ class PaymentSettingController extends Controller
                 }
 
                 $message = empty($request->international_id) ? 'Successfully inserted Himalayan Bank payment.' : 'Successfully updated Himalayan Bank payment';
+            } else if ($activeTab === 'static_qr') {
+                $validated = $request->validate([
+                    'static_qr_details' => 'required',
+                    'international_id' => 'nullable',
+                    'selected_countries_static_qr' => 'required|array|min:1',
+                    'selected_countries_static_qr.*' => 'exists:countries,id',
+                ]);
+
+                if (empty($validated['international_id'])) {
+                    $validated['society_id'] = $society->id;
+                    $validated['payment_type'] = 'static_qr';
+                    $validated['qr_details'] = $validated['static_qr_details'];
+                    // Remove selected_countries from validated data before creating the record
+                    $selectedCountries = $validated['selected_countries_static_qr'];
+                    unset($validated['selected_countries_static_qr']);
+                    unset($validated['static_qr_details']);
+                    
+                    $submitData = InternationalPayment::create($validated);
+                    
+                    // Attach selected countries
+                    $submitData->countries()->sync($selectedCountries);
+                } else {
+                    $internationalPayment = InternationalPayment::whereId($validated['international_id'])->first();
+                    $internationalPayment->qr_details = $validated['static_qr_details'];
+                    $selectedCountries = $validated['selected_countries_static_qr'];
+                    
+                    $submitData = $internationalPayment->save();
+                    
+                    // Sync selected countries
+                    $internationalPayment->countries()->sync($selectedCountries);
+                }
+
+                $message = empty($request->international_id) ? 'Successfully inserted Static QR payment.' : 'Successfully updated Static QR payment';
             } else if ($activeTab === 'account_details') {
                 $validated = $request->validate([
                     'bank_detail' => 'required',
