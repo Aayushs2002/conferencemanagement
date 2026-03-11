@@ -184,7 +184,6 @@
             background-color: #f8fff9;
         }
     </style>
-
     {{-- @if (!old() && !isset($conference_registration))
         <div class="modal fade" id="openModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle"
             aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
@@ -668,7 +667,6 @@
                                     </label>
                                 </div>
                             @endif
-
                             @if (current_user()->userDetail->country_id != 125 && 
                                  $international_payemnt_setting && 
                                  $international_payemnt_setting->countries && 
@@ -1966,7 +1964,7 @@
 
             // Function to update all hidden fields for multiple workshops
             function updateAllHiddenFields() {
-                const registrantType = $('#registrant_type').val() || ($('#registrantType').val() == 1 ? '1' : '2');
+                const registrantType = $('#registrant_type').val() || 1;
                 const accompanyPerson = $('#total_attendee').val() || '0';
 
                 // Create workshops data string for form submission

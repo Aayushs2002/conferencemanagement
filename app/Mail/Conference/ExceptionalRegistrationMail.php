@@ -35,7 +35,7 @@ class ExceptionalRegistrationMail extends Mailable
     {
         return new Envelope(
             from: new \Illuminate\Mail\Mailables\Address(config('mail.from.address'), $this->conferenceName),
-            subject: 'Comference Registration Mail',
+            subject: 'Conference Registration Mail',
         );
     }
 
