@@ -42,13 +42,32 @@
     @endif
 
     {{-- Registration Details --}}
+    @php
+        $paymentCurrency = strtoupper($data['paymentCurrency'] ?? '');
+        $resolvedCurrencySymbol = $data['currencySymbol'] ?? null;
+
+        if (empty($resolvedCurrencySymbol)) {
+            if ($paymentCurrency === 'INR') {
+                $resolvedCurrencySymbol = 'INR';
+            } elseif (($data['country'] ?? null) == 125) {
+                $resolvedCurrencySymbol = 'Rs.';
+            } else {
+                $resolvedCurrencySymbol = '$';
+            }
+        }
+
+        $isINR = $paymentCurrency === 'INR';
+        $displayAmount = isset($data['displayAmount']) ? (float) $data['displayAmount'] : (float) ($data['amount'] ?? 0);
+        $baseAmount = isset($data['amount']) ? (float) $data['amount'] : 0;
+        $conversionRate = ($isINR && $displayAmount > 0 && $baseAmount > 0) ? ($displayAmount / $baseAmount) : 1;
+    @endphp
     <h4>Registration Summary:</h4>
     <ul>
         <li><strong>Transaction ID:</strong> {{ $data['transactionId'] ?? 'N/A' }}</li>
         <li><strong>Payment Type:</strong> {{ $data['paymentType'] ?? 'N/A' }}</li>
-        <li><strong>Amount Paid:</strong> {{ $data['currencySymbol'] ?? '$' }} {{ number_format((float)(isset($data['displayAmount']) ? $data['displayAmount'] : ($data['amount'] ?? 0)), 2) }} 
-            @if(isset($data['paymentCurrency']) && $data['paymentCurrency'] === 'INR')
-                <em>(USD ${{ number_format((float)($data['amount'] ?? 0), 2) }} converted to INR)</em>
+        <li><strong>Amount Paid:</strong> {{ $resolvedCurrencySymbol }} {{ number_format($displayAmount, 2) }}
+            @if ($isINR)
+                <em>(USD ${{ number_format($baseAmount, 2) }} converted to INR)</em>
             @endif
         </li>
         <li><strong>Amount in Words:</strong> {{ $data['amountInWord'] ?? '' }}</li>
@@ -91,7 +110,10 @@
                     }
                 @endphp
                 @if ($totalAddonQty > 0)
-                    <li>{{ $addon['name'] ?? 'Addon' }} (x{{ $totalAddonQty }}) – {{ $totalAddonAmount }}
+                    @php
+                        $displayAddonAmount = $isINR ? ($totalAddonAmount * $conversionRate) : $totalAddonAmount;
+                    @endphp
+                    <li>{{ $addon['name'] ?? 'Addon' }} (x{{ $totalAddonQty }}) – {{ $resolvedCurrencySymbol }} {{ number_format((float) $displayAddonAmount, 2) }}
                         @if ($totalAddonQty > 1 || $availabilityType === 'accompany_only')
                             <em>(Includes accompanying persons)</em>
                         @endif
@@ -106,8 +128,12 @@
         <h4>Workshop Registration:</h4>
         <ul>
             @foreach ($data['workshop'] as $workshop)
+                @php
+                    $workshopAmount = (float) ($workshop['amount'] ?? 0);
+                    $displayWorkshopAmount = $isINR ? ($workshopAmount * $conversionRate) : $workshopAmount;
+                @endphp
                 <li><strong>Workshop Name:</strong> {{ $workshop['name'] ?? 'Workshop' }}</li>
-                <li><strong>Workshop Amount:</strong> {{ $workshop['amount'] ?? '0' }}</li>
+                <li><strong>Workshop Amount:</strong> {{ $resolvedCurrencySymbol }} {{ number_format($displayWorkshopAmount, 2) }}</li>
                 <br>
             @endforeach
         </ul>

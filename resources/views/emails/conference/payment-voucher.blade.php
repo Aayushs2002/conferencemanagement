@@ -211,25 +211,38 @@
         </table>
 
         <!-- Items -->
+        @php
+            $paymentCurrency = strtoupper($data['paymentCurrency'] ?? '');
+            $currencySymbol = $data['currencySymbol'] ?? null;
+
+            if (empty($currencySymbol)) {
+                if ($paymentCurrency === 'INR') {
+                    $currencySymbol = 'INR';
+                } elseif (($data['country'] ?? null) == 125) {
+                    $currencySymbol = 'Rs.';
+                } else {
+                    $currencySymbol = '$';
+                }
+            }
+
+            $isINR = $paymentCurrency === 'INR';
+            $displayAmount = isset($data['displayAmount']) ? (float) $data['displayAmount'] : (float) ($data['amount'] ?? 0);
+            $baseAmount = isset($data['amount']) ? (float) $data['amount'] : 0;
+            $conversionRate = 1;
+
+            // Keep line-item math aligned with total for INR mails.
+            if ($isINR && $displayAmount > 0 && $baseAmount > 0) {
+                $conversionRate = $displayAmount / $baseAmount;
+            }
+        @endphp
         <table class="items">
             <thead>
                 <tr>
                     <th>Description</th>
-                    <th>Amount {{ $data['currencySymbol'] ?? ($data['country'] == 125 ? 'Rs.' : 'USD') }}</th>
+                    <th>Amount {{ $currencySymbol }}</th>
                 </tr>
             </thead>
             <tbody>
-                @php
-                    // Determine currency symbol and multiplier for INR conversion
-                    $currencySymbol = $data['currencySymbol'] ?? ($data['country'] == 125 ? 'Rs.' : '$');
-                    $isINR = isset($data['paymentCurrency']) && $data['paymentCurrency'] === 'INR';
-                    $conversionRate = 1;
-                    
-                    // Calculate conversion rate if INR
-                    if ($isINR && isset($data['displayAmount']) && $data['displayAmount'] > 0 && $data['amount'] > 0) {
-                        $conversionRate = $data['displayAmount'] / $data['amount'];
-                    }
-                @endphp
                 
                 @if ($data['conferenceAmount'])
                     <tr>
@@ -306,7 +319,7 @@
                 @endif
                 <tr>
                     <td>Total Amount</td>
-                    <td><b class="total">{{ $currencySymbol }}{{ $isINR ? number_format($data['displayAmount'], 2) : $data['amount'] }}</b></td>
+                    <td><b class="total">{{ $currencySymbol }}{{ $isINR ? number_format($displayAmount, 2) : $data['amount'] }}</b></td>
                 </tr>
                 <tr>
                     <td colspan="2" class="in-words">
