@@ -14,7 +14,7 @@ class PaymentSettingController extends Controller
     public function index($society)
     {
         $nationalPayment = NationalPayment::where(['society_id' => $society->id, 'status' => 1])->first();
-        $internationalPayment = InternationalPayment::where(['society_id' => $society->id, 'status' => 1])->first();
+        $internationalPayment = InternationalPayment::where(['society_id' => $society->id, 'status' => 1,'payment_type' => 'himalayan_bank'])->first();
         $countries = Country::where('status', 1)->orderBy('country_name', 'asc')->get();
         
         // Get selected countries for international payment if exists

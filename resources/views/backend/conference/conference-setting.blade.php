@@ -58,7 +58,7 @@
                 <input type="date" class="form-control" name="workshop_registration_open_date"
                     value="{{ $conferenceSetting?->workshop_registration_open_date }}">
             </div>
-
+ 
             <div class="col-md-4 mb-4">
                 <label>Workshop Application Deadline</label>
                 <input type="date" class="form-control" name="workshop_application_deadline"

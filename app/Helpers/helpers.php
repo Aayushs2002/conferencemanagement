@@ -155,7 +155,7 @@ if (!function_exists('internationalPayment')) {
     {
         $society_id =  Hashids::decode($society);
         // dd($society_id);
-        $internationalPayment = InternationalPayment::where(['society_id' => $society_id, 'status' => 1])->first();
+        $internationalPayment = InternationalPayment::where(['society_id' => $society_id, 'status' => 1,'payment_type' => 'himalayan_bank'])->first();
         return $internationalPayment;
     }
 }
