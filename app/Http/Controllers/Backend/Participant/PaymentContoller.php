@@ -5,19 +5,18 @@ namespace App\Http\Controllers\Backend\Participant;
 use App\Http\Controllers\Controller;
 use App\Models\Conference\ConferenceAddon;
 use App\Models\Conference\ConferenceMemberTypePrice;
+use App\Models\ConferencePaymentStatus;
 use App\Models\Payment\InternationalPayment;
 use App\Models\Payment\NationalPayment;
 use App\Models\Workshop\Workshop;
-use App\Models\ConferencePaymentStatus;
-use App\Services\HBL\Api\Payment;
 use App\Services\ConnectIPSService;
+use App\Services\HBL\Api\Payment;
 use Exception;
 use GuzzleHttp\Exception\GuzzleException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
-use Svg\Tag\Rect;
 
 class PaymentContoller extends Controller
 {
@@ -40,19 +39,19 @@ class PaymentContoller extends Controller
         $R2 = $conference->conference_name;
         $RU = route('my-society.conference.fonePaySuccess', [$society, $conference]);
         $sharedSecretKey = $paymentSetting->secret_key;
-        $DV = hash_hmac('sha512', $PID . ',' . $MD . ',' . $PRN . ',' . $AMT . ',' . $CRN . ',' . $DT . ',' . $R1 . ',' . $R2 . ',' . $RU, $sharedSecretKey);
+        $DV = hash_hmac('sha512', $PID.','.$MD.','.$PRN.','.$AMT.','.$CRN.','.$DT.','.$R1.','.$R2.','.$RU, $sharedSecretKey);
 
         $form = '<form id="paymentForm" action="https://clientapi.fonepay.com/api/merchantRequest" method="GET">
-                    <input type="hidden" name="PID" value="' . $PID . '">
-                    <input type="hidden" name="MD" value="' . $MD . '">
-                    <input type="hidden" name="AMT" value="' . $AMT . '">
-                    <input type="hidden" name="CRN" value="' . $CRN . '">
-                    <input type="hidden" name="DT" value="' . $DT . '">
-                    <input type="hidden" name="R1" value="' . $R1 . '">
-                    <input type="hidden" name="R2" value="' . $R2 . '">
-                    <input type="hidden" name="DV" value="' . $DV . '">
-                    <input type="hidden" name="RU" value="' . $RU . '">
-                    <input type="hidden" name="PRN" value="' . $PRN . '">
+                    <input type="hidden" name="PID" value="'.$PID.'">
+                    <input type="hidden" name="MD" value="'.$MD.'">
+                    <input type="hidden" name="AMT" value="'.$AMT.'">
+                    <input type="hidden" name="CRN" value="'.$CRN.'">
+                    <input type="hidden" name="DT" value="'.$DT.'">
+                    <input type="hidden" name="R1" value="'.$R1.'">
+                    <input type="hidden" name="R2" value="'.$R2.'">
+                    <input type="hidden" name="DV" value="'.$DV.'">
+                    <input type="hidden" name="RU" value="'.$RU.'">
+                    <input type="hidden" name="PRN" value="'.$PRN.'">
                 </form>
                 <script type="text/javascript">document.getElementById("paymentForm").submit();</script>';
 
@@ -68,6 +67,7 @@ class PaymentContoller extends Controller
             $amount = $request->P_AMT;
             $national_payemnt_setting = NationalPayment::where('society_id', $conference->society_id)->first();
             $international_payemnt_setting = InternationalPayment::with('countries')->where('society_id', $conference->society_id)->first();
+
             return view('backend.participant.conference-registration.payment-success', compact('transactionId', 'amount', 'society', 'conference', 'national_payemnt_setting', 'international_payemnt_setting'));
         }
     }
@@ -95,21 +95,22 @@ class PaymentContoller extends Controller
         <head><title>Redirecting to eSewa...</title></head>
         <body onload="document.forms[\'esewaPaymentForm\'].submit();">
             <form id="esewaPaymentForm" action="https://rc-epay.esewa.com.np/api/epay/main/v2/form" method="POST">
-                <input type="hidden" name="amount" value="' . $amount . '">
+                <input type="hidden" name="amount" value="'.$amount.'">
                 <input type="hidden" name="tax_amount" value="0">
-                <input type="hidden" name="total_amount" value="' . $total_amount . '">
-                <input type="hidden" name="transaction_uuid" value="' . $transaction_uuid . '">
-                <input type="hidden" name="product_code" value="' . $product_code . '">
+                <input type="hidden" name="total_amount" value="'.$total_amount.'">
+                <input type="hidden" name="transaction_uuid" value="'.$transaction_uuid.'">
+                <input type="hidden" name="product_code" value="'.$product_code.'">
                 <input type="hidden" name="product_service_charge" value="0">
                 <input type="hidden" name="product_delivery_charge" value="0">
-                <input type="hidden" name="success_url" value="' . route('my-society.conference.esewaSuccess', [$society, $conference]) . '">
-                <input type="hidden" name="failure_url" value="' . route('my-society.conference.esewaError', [$society, $conference]) . '">
+                <input type="hidden" name="success_url" value="'.route('my-society.conference.esewaSuccess', [$society, $conference]).'">
+                <input type="hidden" name="failure_url" value="'.route('my-society.conference.esewaError', [$society, $conference]).'">
                 <input type="hidden" name="signed_field_names" value="total_amount,transaction_uuid,product_code">
-                <input type="hidden" name="signature" value="' . $signature . '">
+                <input type="hidden" name="signature" value="'.$signature.'">
             </form>
         </body>
         </html>
     ';
+
         return response($form);
     }
 
@@ -119,7 +120,8 @@ class PaymentContoller extends Controller
         $data = json_decode($data, true);
         if ($data['status'] == 'COMPLETE') {
             $transactionId = $data['transaction_code'];
-            $amount = (int)$data['total_amount'];
+            $amount = (int) $data['total_amount'];
+
             return view('backend.participant.conference-registration.payment-success', compact('transactionId', 'amount', 'society', 'conference'));
         } else {
             return redirect()->route('my-society.conference.create', [$society, $conference])->with('delete', 'Payment process has been failed or cancelled, please try again.');
@@ -131,7 +133,6 @@ class PaymentContoller extends Controller
         return redirect()->route('my-society.conference.create', [$society, $conference])->with('delete', 'Payment process has been failed or cancelled, please try again.');
     }
 
-
     public function khalti(Request $request, $society, $conference)
     {
         if (is_past($conference->regular_registration_deadline)) {
@@ -141,20 +142,20 @@ class PaymentContoller extends Controller
         session(['onlinePayment' => $request->all()]);
         $paymentSetting = NationalPayment::where('society_id', $conference->society_id)->select('khalti_live_secret_key')->first();
         $amount = $request->amount;
-        $customer_name = current_user()->f_name . ' ' . current_user()->m_name . ' ' . current_user()->l_name;
+        $customer_name = current_user()->f_name.' '.current_user()->m_name.' '.current_user()->l_name;
         $customer_email = current_user()->email;
         $customer_phone = current_user()->userDetail->phone;
         $configs = [
-            "return_url" => route('my-society.conference.khaltiSuccess', [$society, $conference]),
-            "website_url" => config('app.url'),
-            "amount" =>  $amount * 100,
-            "purchase_order_id" => uniqid(),
-            "purchase_order_name" => $conference->conference_name,
-            "customer_info" => [
-                "name" => $customer_name,
-                "email" => $customer_email,
-                "phone" => $customer_phone
-            ]
+            'return_url' => route('my-society.conference.khaltiSuccess', [$society, $conference]),
+            'website_url' => config('app.url'),
+            'amount' => $amount * 100,
+            'purchase_order_id' => uniqid(),
+            'purchase_order_name' => $conference->conference_name,
+            'customer_info' => [
+                'name' => $customer_name,
+                'email' => $customer_email,
+                'phone' => $customer_phone,
+            ],
         ];
 
         $json_configs = json_encode($configs);
@@ -162,7 +163,7 @@ class PaymentContoller extends Controller
         $curl = curl_init();
         curl_setopt_array(
             $curl,
-            array(
+            [
                 CURLOPT_URL => 'https://dev.khalti.com/api/v2/epayment/initiate/',
                 CURLOPT_RETURNTRANSFER => true,
                 CURLOPT_ENCODING => '',
@@ -172,12 +173,12 @@ class PaymentContoller extends Controller
                 CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
                 CURLOPT_CUSTOMREQUEST => 'POST',
                 CURLOPT_POSTFIELDS => $json_configs,
-                CURLOPT_HTTPHEADER => array(
+                CURLOPT_HTTPHEADER => [
                     // 'Authorization: Key live_secret_key_68791341fdd94846a146f0457ff7b455',
-                    'Authorization: Key ' . $paymentSetting->khalti_live_secret_key,
+                    'Authorization: Key '.$paymentSetting->khalti_live_secret_key,
                     'Content-Type: application/json',
-                ),
-            )
+                ],
+            ]
         );
         $response = curl_exec($curl);
 
@@ -185,6 +186,7 @@ class PaymentContoller extends Controller
 
         if ($response) {
             $data = json_decode($response);
+
             return redirect($data->payment_url);
         }
     }
@@ -194,20 +196,20 @@ class PaymentContoller extends Controller
         $data = $request->all();
         if ($data['status'] == 'Completed') {
             $transactionId = $data['transaction_id'];
-            $amount = (int)($data['total_amount'] / 100);
+            $amount = (int) ($data['total_amount'] / 100);
+
             return view('backend.participant.conference-registration.payment-success', compact('transactionId', 'amount', 'society', 'conference'));
         } else {
             return redirect()->route('my-society.conference.create', [$society, $conference])->with('delete', 'Payment process has been failed or cancelled, please try again.');
         }
     }
 
-
     public function moco(Request $request, $society, $conference)
     {
         if (is_past($conference->regular_registration_deadline)) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Conference Registration date has ended.'
+                'message' => 'Conference Registration date has ended.',
             ], 500);
         }
         session(['onlinePayment' => $request->all()]);
@@ -222,19 +224,18 @@ class PaymentContoller extends Controller
         $timestamp = now()->utc()->format('Y-m-d H:i:s');
         $sharedSecretKey = $paymentSetting->moco_shared_key;
 
-
-        $hashData = $mid . $oid . $tid . $timestamp . $referenceNumber . $amount;
+        $hashData = $mid.$oid.$tid.$timestamp.$referenceNumber.$amount;
         $hash = hash_hmac('sha256', $hashData, $sharedSecretKey);
 
         $requestData = [
-            "mid" => $mid,
-            "oid" => $oid,
-            "tid" => $tid,
-            "amount" => $amount,
-            "referenceNumber" => $referenceNumber,
-            "timestamp" => $timestamp,
-            "format" => "image",
-            "hash" => $hash
+            'mid' => $mid,
+            'oid' => $oid,
+            'tid' => $tid,
+            'amount' => $amount,
+            'referenceNumber' => $referenceNumber,
+            'timestamp' => $timestamp,
+            'format' => 'image',
+            'hash' => $hash,
         ];
 
         try {
@@ -265,10 +266,10 @@ class PaymentContoller extends Controller
                         }
                     }
                 } elseif (strpos($contentType, 'image/') !== false) {
-                    $qrData = 'data:' . $contentType . ';base64,' . base64_encode($responseBody);
+                    $qrData = 'data:'.$contentType.';base64,'.base64_encode($responseBody);
                     $responseData = ['type' => 'image', 'format' => $contentType];
                 } elseif (base64_decode($responseBody, true) !== false && strlen($responseBody) > 100) {
-                    $qrData = 'data:image/png;base64,' . $responseBody;
+                    $qrData = 'data:image/png;base64,'.$responseBody;
                     $responseData = ['type' => 'base64_image'];
                 } else {
                     $qrData = $responseBody;
@@ -283,21 +284,21 @@ class PaymentContoller extends Controller
                         'timestamp' => $timestamp,
                         'qr_data' => $qrData,
                         'response_info' => $responseData,
-                        'content_type' => $contentType
-                    ]
+                        'content_type' => $contentType,
+                    ],
                 ]);
             } else {
 
                 return response()->json([
                     'status' => 'error',
                     'message' => 'Failed to generate QR code',
-                    'error_code' => $response->status()
+                    'error_code' => $response->status(),
                 ], $response->status());
             }
         } catch (\Exception $e) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Unable to connect to payment gateway'
+                'message' => 'Unable to connect to payment gateway',
             ], 500);
         }
     }
@@ -316,7 +317,7 @@ class PaymentContoller extends Controller
         $localTxnDate = now('UTC')->format('Y-m-d');
 
         $sharedKey = $paymentSetting->moco_shared_key;
-        $hash = hash_hmac('sha256', $mid . $oid . $tid . $timestamp . $referenceNumber, $sharedKey);
+        $hash = hash_hmac('sha256', $mid.$oid.$tid.$timestamp.$referenceNumber, $sharedKey);
 
         $queryParams = [
             'mid' => $mid,
@@ -325,10 +326,11 @@ class PaymentContoller extends Controller
             'referenceNumber' => $referenceNumber,
             'localTxnDate' => $localTxnDate,
             'timestamp' => $timestamp,
-            'hash' => $hash
+            'hash' => $hash,
         ];
 
         $response = Http::get('https://mpi.moco.com.np/transaction/status', $queryParams);
+
         return response()->json($response->json(), $response->status());
         // return response()->json([
         //     'status' => 'success',
@@ -343,10 +345,10 @@ class PaymentContoller extends Controller
     {
         $mocoPayment = session()->get('onlinePayment');
         $transactionId = $request->txnID;
-        $amount = $mocoPayment['amount']; 
+        $amount = $mocoPayment['amount'];
+
         return view('backend.participant.conference-registration.payment-success', compact('transactionId', 'amount', 'society', 'conference'));
     }
-
 
     public function connectips(Request $request, $society, $conference)
     {
@@ -362,8 +364,8 @@ class PaymentContoller extends Controller
             $connectIPSService = new ConnectIPSService($society);
 
             // Generate unique transaction ID and reference ID
-            $txnId = 'CONF-' . $conference->id . '-' . time();
-            $referenceId = 'REF-' . time() . '-' . rand(1000, 9999);
+            $txnId = 'CONF-'.$conference->id.'-'.time();
+            $referenceId = 'REF-'.time().'-'.rand(1000, 9999);
             $txnDate = date('d-m-Y');
             $amount = $request->amount;
 
@@ -373,8 +375,8 @@ class PaymentContoller extends Controller
                 'txnDate' => $txnDate,
                 'txnAmt' => $amount,
                 'referenceId' => $referenceId,
-                'remarks' => 'Conference Registration: ' . substr($conference->conference_name, 0, 50),
-                'particulars' => 'Registration for ' . current_user()->fullName(current_user()),
+                'remarks' => 'Conference Registration: '.substr($conference->conference_name, 0, 50),
+                'particulars' => 'Registration for '.current_user()->fullName(current_user()),
             ];
 
             // Get prepared form data with token
@@ -402,13 +404,13 @@ class PaymentContoller extends Controller
             ]);
 
         } catch (Exception $e) {
-            Log::error('ConnectIPS Conference Payment Failed: ' . $e->getMessage(), [
+            Log::error('ConnectIPS Conference Payment Failed: '.$e->getMessage(), [
                 'conference_id' => $conference->id,
                 'user_id' => current_user()->id,
                 'error' => $e->getMessage(),
             ]);
-            
-            return redirect()->back()->with('delete', 'Failed to initiate ConnectIPS payment: ' . $e->getMessage());
+
+            return redirect()->back()->with('delete', 'Failed to initiate ConnectIPS payment: '.$e->getMessage());
         }
     }
 
@@ -419,7 +421,7 @@ class PaymentContoller extends Controller
             $txnId = $request->input('TXNID');
             $status = $request->input('STATUS');
             $message = $request->input('MESSAGE');
-            
+
             Log::info('ConnectIPS Success Callback', [
                 'txn_id' => $txnId,
                 'status' => $status,
@@ -431,7 +433,7 @@ class PaymentContoller extends Controller
             $storedTxnId = session('connectips_txn_id');
             $referenceId = session('connectips_reference_id');
             $amount = session('connectips_amount');
-            
+
             Log::info('ConnectIPS Session Data', [
                 'stored_txn_id' => $storedTxnId,
                 'reference_id' => $referenceId,
@@ -439,18 +441,18 @@ class PaymentContoller extends Controller
             ]);
 
             // If callback TXNID exists, use it for validation
-            $validationTxnId = !empty($txnId) ? $txnId : $storedTxnId;
-            
-            if (!$validationTxnId) {
+            $validationTxnId = ! empty($txnId) ? $txnId : $storedTxnId;
+
+            if (! $validationTxnId) {
                 throw new Exception('Transaction ID not found in callback or session');
             }
 
-            if (!$referenceId || !$amount) {
+            if (! $referenceId || ! $amount) {
                 throw new Exception('Transaction data not found in session. Please try again.');
             }
 
             // If status is already provided and successful, proceed without validation
-            if (!empty($status) && (strtoupper($status) === 'SUCCESS' || strtoupper($status) === 'COMPLETED')) {
+            if (! empty($status) && (strtoupper($status) === 'SUCCESS' || strtoupper($status) === 'COMPLETED')) {
                 Log::info('ConnectIPS Payment Successful from Callback Status', [
                     'txn_id' => $validationTxnId,
                     'reference_id' => $referenceId,
@@ -463,12 +465,16 @@ class PaymentContoller extends Controller
 
                 // Get payment settings for success page
                 $national_payemnt_setting = NationalPayment::where('society_id', $conference->society_id)->first();
-                $international_payemnt_setting = InternationalPayment::where('society_id', $conference->society_id)->first();
+                $international_payemnt_setting = InternationalPayment::with('countries')->where('society_id', $conference->society_id)->where('payment_type', 'himalayan_bank')->first();
+        $static_qr_payment_setting = InternationalPayment::with('countries')->where('society_id', $conference->society_id)->where('payment_type', 'static_qr')->first();
+        $international_bank_transfer = InternationalPayment::where('society_id', $conference->society_id)->where('payment_type', 'himalayan_bank')->first();
+                $static_qr_payment_setting = InternationalPayment::with('countries')->where('society_id', $conference->society_id)->where('payment_type', 'static_qr')->first();
+                $international_bank_transfer = InternationalPayment::where('society_id', $conference->society_id)->where('payment_type', 'himalayan_bank')->first();
 
                 // Use ConnectIPS transaction ID
                 $transactionId = $validationTxnId;
 
-                return view('backend.participant.conference-registration.payment-success', 
+                return view('backend.participant.conference-registration.payment-success',
                     compact('transactionId', 'amount', 'society', 'conference', 'national_payemnt_setting', 'international_payemnt_setting'));
             }
 
@@ -486,7 +492,7 @@ class PaymentContoller extends Controller
 
             for ($i = 0; $i < $maxRetries; $i++) {
                 try {
-                    Log::info("ConnectIPS Validation Attempt " . ($i + 1), [
+                    Log::info('ConnectIPS Validation Attempt '.($i + 1), [
                         'txn_id' => $validationTxnId,
                         'reference_id' => $referenceId,
                         'amount' => $amount,
@@ -507,13 +513,14 @@ class PaymentContoller extends Controller
                     }
 
                     // If transaction not found, wait and retry
-                    if (isset($validationResponse['statusDesc']) && 
-                        (stripos($validationResponse['statusDesc'], 'not found') !== false || 
+                    if (isset($validationResponse['statusDesc']) &&
+                        (stripos($validationResponse['statusDesc'], 'not found') !== false ||
                          stripos($validationResponse['statusDesc'], 'pending') !== false)) {
-                        
+
                         if ($i < $maxRetries - 1) {
                             Log::info("Transaction not found or pending, retrying in {$retryDelay} seconds...");
                             sleep($retryDelay);
+
                             continue;
                         }
                     }
@@ -521,12 +528,13 @@ class PaymentContoller extends Controller
                     break;
 
                 } catch (Exception $e) {
-                    Log::warning("ConnectIPS Validation Attempt " . ($i + 1) . " Failed", [
+                    Log::warning('ConnectIPS Validation Attempt '.($i + 1).' Failed', [
                         'error' => $e->getMessage(),
                     ]);
-                    
+
                     if ($i < $maxRetries - 1) {
                         sleep($retryDelay);
+
                         continue;
                     }
                     throw $e;
@@ -537,7 +545,7 @@ class PaymentContoller extends Controller
                 // Get detailed transaction information
                 try {
                     $transactionDetails = $connectIPSService->getTransactionDetails($validationTxnId, $amount);
-                    
+
                     Log::info('ConnectIPS Payment Successful', [
                         'txn_id' => $validationTxnId,
                         'reference_id' => $referenceId,
@@ -555,43 +563,47 @@ class PaymentContoller extends Controller
 
                 // Get payment settings for success page
                 $national_payemnt_setting = NationalPayment::where('society_id', $conference->society_id)->first();
-                $international_payemnt_setting = InternationalPayment::where('society_id', $conference->society_id)->first();
+                $international_payemnt_setting = InternationalPayment::with('countries')->where('society_id', $conference->society_id)->where('payment_type', 'himalayan_bank')->first();
+        $static_qr_payment_setting = InternationalPayment::with('countries')->where('society_id', $conference->society_id)->where('payment_type', 'static_qr')->first();
+        $international_bank_transfer = InternationalPayment::where('society_id', $conference->society_id)->where('payment_type', 'himalayan_bank')->first();
+                $static_qr_payment_setting = InternationalPayment::with('countries')->where('society_id', $conference->society_id)->where('payment_type', 'static_qr')->first();
+                $international_bank_transfer = InternationalPayment::where('society_id', $conference->society_id)->where('payment_type', 'himalayan_bank')->first();
 
                 // Use ConnectIPS transaction ID
                 $transactionId = $validationTxnId;
 
-                return view('backend.participant.conference-registration.payment-success', 
+                return view('backend.participant.conference-registration.payment-success',
                     compact('transactionId', 'amount', 'society', 'conference', 'national_payemnt_setting', 'international_payemnt_setting'));
             } else {
                 Log::warning('ConnectIPS Payment Validation Failed After Retries', [
                     'txn_id' => $validationTxnId,
                     'validation_response' => $validationResponse,
                 ]);
-                
+
                 $errorMessage = 'Payment verification failed. ';
                 if (isset($validationResponse['statusDesc'])) {
                     $errorMessage .= $validationResponse['statusDesc'];
                 } else {
-                    $errorMessage .= 'Transaction could not be verified. Please contact support with transaction ID: ' . $validationTxnId;
+                    $errorMessage .= 'Transaction could not be verified. Please contact support with transaction ID: '.$validationTxnId;
                 }
-                
+
                 return redirect()->route('my-society.conference.create', [$society, $conference])
                     ->with('delete', $errorMessage);
             }
 
         } catch (Exception $e) {
-            Log::error('ConnectIPS Success Callback Failed: ' . $e->getMessage(), [
+            Log::error('ConnectIPS Success Callback Failed: '.$e->getMessage(), [
                 'conference_id' => $conference->id,
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
                 'request_data' => $request->all(),
             ]);
-            
-            $errorMessage = 'Payment verification error: ' . $e->getMessage();
-            if (!empty($txnId)) {
-                $errorMessage .= ' (Transaction ID: ' . $txnId . ')';
+
+            $errorMessage = 'Payment verification error: '.$e->getMessage();
+            if (! empty($txnId)) {
+                $errorMessage .= ' (Transaction ID: '.$txnId.')';
             }
-            
+
             return redirect()->route('my-society.conference.create', [$society, $conference])
                 ->with('delete', $errorMessage);
         }
@@ -600,7 +612,7 @@ class PaymentContoller extends Controller
     public function connectipsFailure(Request $request, $society, $conference)
     {
         $txnId = $request->input('TXNID');
-        
+
         Log::info('ConnectIPS Failure Callback', [
             'txn_id' => $txnId,
             'all_params' => $request->all(),
@@ -613,10 +625,9 @@ class PaymentContoller extends Controller
             ->with('delete', 'ConnectIPS payment has been cancelled or failed. Please try again.');
     }
 
-
     // public function internationalPayment(Request $request, $society, $conference)
     // {
-    //     // dd($request->all()); 
+    //     // dd($request->all());
     //     session(['onlinePayment' => $request->all()]);
 
     //     $paymentSetting = InternationalPayment::where('society_id', $society->id)->first();
@@ -655,7 +666,7 @@ class PaymentContoller extends Controller
     //                 <input type="hidden" name="MerchantDecryptionPrivateKey" value="' . $paymentSetting->merchant_decryption_private_key . '">
     //                 <input type="hidden" name="PacoSigningPublicKey" value="' . $paymentSetting->paco_signing_public_key . '">
     //                 <input type="hidden" name="input_currency" value="USD">
-    //                 <input type="hidden" name="input_amount" value="' . $request->amount . '"> 
+    //                 <input type="hidden" name="input_amount" value="' . $request->amount . '">
     //                 <input type="hidden" name="input_3d" value="Y">
     //                  <input type="hidden" name="success_url" value="' . route('my-society.conference.internationalPaymentResultSuccessProcess', [$society, $conference]) . '">
     //                  <input type="hidden" name="fail_url" value="' . route('my-society.conference.internationalPaymentResultFail', [$society, $conference]) . '">
@@ -686,7 +697,7 @@ class PaymentContoller extends Controller
                 'payment_initiated_at' => now(),
             ]);
         } catch (Exception $e) {
-            Log::error('Failed to create payment status: ' . $e->getMessage());
+            Log::error('Failed to create payment status: '.$e->getMessage());
         }
 
         // $paymentSetting = InternationalPayment::where('society_id', $society->id)->first();
@@ -705,16 +716,16 @@ class PaymentContoller extends Controller
         //         </form>
         //         <script type="text/javascript">document.getElementById("paymentForm").submit();</script>';
         // return $form;
-        $paymentSetting = InternationalPayment::where('society_id', $society->id)->first();
+        $paymentSetting = InternationalPayment::where('society_id', $society->id)->where('payment_type', 'himalayan_bank')->first();
         // dd($paymentSetting);
         try {
-            $payment = new Payment();
+            $payment = new Payment;
             $joseResponse = $payment->ExecuteFormJose(
                 $paymentSetting->merchant_key, // merchant_id
                 $paymentSetting->api_key, // api_key
-                'USD', // input_currency  
+                'USD', // input_currency
                 $request->amount,   // input_amount
-                'Y',   // input_3d 
+                'Y', // input_3d
                 route('my-society.conference.internationalPaymentResultSuccess', [$society, $conference]), // success_url
                 route('my-society.conference.internationalPaymentResultFail', [$society, $conference]),  // fail_url
                 route('my-society.conference.internationalPaymentResultCancel', [$society, $conference]),  // cancel_url
@@ -738,23 +749,22 @@ class PaymentContoller extends Controller
             // );
 
             $response_obj = json_decode($joseResponse);
-            header("Location: " . $response_obj->response->Data->paymentPage->paymentPageURL);
+            header('Location: '.$response_obj->response->Data->paymentPage->paymentPageURL);
             exit();
         } catch (GuzzleException $e) {
-            echo '\n Message: ' . $e->getMessage();
-            echo '\n Trace: ' . $e->getTraceAsString();
+            echo '\n Message: '.$e->getMessage();
+            echo '\n Trace: '.$e->getTraceAsString();
         } catch (Exception $e) {
-            echo '\n Message: ' . $e->getMessage();
-            echo '\n Trace: ' . $e->getTraceAsString();
+            echo '\n Message: '.$e->getMessage();
+            echo '\n Trace: '.$e->getTraceAsString();
         }
     }
 
-
     public function internationalPaymentResultSuccessProcess(Request $request, $society, $conference)
     {
-        $orderNo  = $request->orderNo;
+        $orderNo = $request->orderNo;
         // $inquiry = 'https://merchant.omwaytechnologies.com/inquiry_request.php?orderno=' . $orderNo;
-        $inquiry = 'https://merchant.conference.nesog.org.np/inquiry_request.php?orderno=' . $orderNo;
+        $inquiry = 'https://merchant.conference.nesog.org.np/inquiry_request.php?orderno='.$orderNo;
 
         return redirect($inquiry);
     }
@@ -767,76 +777,80 @@ class PaymentContoller extends Controller
 
         $responseObject = json_decode($decodedData);
         $transactionId = $responseObject->response->Data[0]->PspReferenceNo ?? null;
-        
+
         // Update payment status to completed
         try {
             $latestPaymentStatus = ConferencePaymentStatus::where([
                 'conference_id' => $conference->id,
                 'user_id' => current_user()->id,
-                'payment_method' => 'card'
+                'payment_method' => 'card',
             ])
-            ->orderBy('created_at', 'desc')
-            ->first();
+                ->orderBy('created_at', 'desc')
+                ->first();
 
             if ($latestPaymentStatus && $transactionId) {
                 $latestPaymentStatus->update([
                     'payment_status' => ConferencePaymentStatus::STATUS_COMPLETED,
                     'transaction_id' => $transactionId,
                     'payment_completed_at' => now(),
-                    'payment_response' => json_encode($responseObject)
+                    'payment_response' => json_encode($responseObject),
                 ]);
             }
         } catch (Exception $e) {
-            Log::error('Failed to update payment status: ' . $e->getMessage());
+            Log::error('Failed to update payment status: '.$e->getMessage());
         }
-        
+
         return view('backend.participant.conference-registration.payment-success', compact('transactionId'));
     }
 
     public function internationalPaymentResultFail(Request $request, $society, $conference)
     {
         // dd($request);
-        
+
         // Update payment status to failed
         try {
             $latestPaymentStatus = ConferencePaymentStatus::where([
                 'conference_id' => $conference->id,
                 'user_id' => current_user()->id,
-                'payment_method' => 'card'
+                'payment_method' => 'card',
             ])
-            ->orderBy('created_at', 'desc')
-            ->first();
+                ->orderBy('created_at', 'desc')
+                ->first();
 
             if ($latestPaymentStatus) {
                 $latestPaymentStatus->update([
                     'payment_status' => ConferencePaymentStatus::STATUS_FAILED,
                     'error_message' => 'Payment failed or was rejected by payment gateway',
-                    'payment_response' => json_encode($request->all())
+                    'payment_response' => json_encode($request->all()),
                 ]);
             }
         } catch (Exception $e) {
-            Log::error('Failed to update payment status: ' . $e->getMessage());
+            Log::error('Failed to update payment status: '.$e->getMessage());
         }
 
         $checkPayment = 'failed';
         $membetType = current_user()->societies->where('id', $conference->society_id)->first()?->pivot?->memberType;
         $memberTypePrice = ConferenceMemberTypePrice::where(['conference_id' => $conference->id, 'member_type_id' => $membetType->id])->first();
         $amount = '';
-        if (!empty($conference)) {
+        if (! empty($conference)) {
             if ($conference->early_bird_registration_deadline >= date('Y-m-d')) {
-                $amount = !empty($memberTypePrice->early_bird_amount) ? $memberTypePrice->early_bird_amount : '';
+                $amount = ! empty($memberTypePrice->early_bird_amount) ? $memberTypePrice->early_bird_amount : '';
             } elseif ($conference->regular_registration_deadline >= date('Y-m-d')) {
-                $amount = !empty($memberTypePrice->regular_amount) ? $memberTypePrice->regular_amount : '';
+                $amount = ! empty($memberTypePrice->regular_amount) ? $memberTypePrice->regular_amount : '';
             }
         }
         $national_payemnt_setting = NationalPayment::where('society_id', $conference->society_id)->first();
-        $international_payemnt_setting = InternationalPayment::where('society_id', $conference->society_id)->first();
+        $international_payemnt_setting = InternationalPayment::with('countries')->where('society_id', $conference->society_id)->where('payment_type', 'himalayan_bank')->first();
+        $static_qr_payment_setting = InternationalPayment::with('countries')->where('society_id', $conference->society_id)->where('payment_type', 'static_qr')->first();
+        $international_bank_transfer = InternationalPayment::where('society_id', $conference->society_id)->where('payment_type', 'himalayan_bank')->first();
+        $static_qr_payment_setting = InternationalPayment::with('countries')->where('society_id', $conference->society_id)->where('payment_type', 'static_qr')->first();
+        $international_bank_transfer = InternationalPayment::where('society_id', $conference->society_id)->where('payment_type', 'himalayan_bank')->first();
         $workshops = Workshop::with(['registrations' => function ($q) {
             $q->where('status', 1);
         }])
             ->where([
                 'conference_id' => $conference->id,
-                'status' => 1
+                'status' => 1,
             ])
             ->get()
             ->filter(function ($workshop) use ($membetType) {
@@ -846,7 +860,7 @@ class PaymentContoller extends Controller
                     ->where('user_id', $currentUserId)
                     ->first();
 
-                if (!empty($checkRegistration)) {
+                if (! empty($checkRegistration)) {
                     return false;
                 }
 
@@ -877,7 +891,7 @@ class PaymentContoller extends Controller
         $addonAvailability = $conferenceSetting?->addon_availability ?? 'both';
 
         // dd($checkPayment);
-        return view('backend.participant.conference-registration.create', compact('workshops', 'conferenceAddons', 'conference', 'amount', 'memberTypePrice', 'society', 'checkPayment', 'international_payemnt_setting', 'national_payemnt_setting', 'addonAvailability'));
+        return view('backend.participant.conference-registration.create', compact('workshops', 'conferenceAddons', 'conference', 'amount', 'memberTypePrice', 'society', 'checkPayment', 'international_payemnt_setting', 'national_payemnt_setting', 'addonAvailability','static_qr_payment_setting', 'international_bank_transfer'));
         // $transactionId = $request->orderNo;
         // return view('backend.conferences.registrations.international-payment-success', compact('transactionId'));
     }
@@ -889,41 +903,43 @@ class PaymentContoller extends Controller
             $latestPaymentStatus = ConferencePaymentStatus::where([
                 'conference_id' => $conference->id,
                 'user_id' => current_user()->id,
-                'payment_method' => 'card'
+                'payment_method' => 'card',
             ])
-            ->orderBy('created_at', 'desc')
-            ->first();
+                ->orderBy('created_at', 'desc')
+                ->first();
 
             if ($latestPaymentStatus) {
                 $latestPaymentStatus->update([
                     'payment_status' => ConferencePaymentStatus::STATUS_CANCELLED,
                     'error_message' => 'Payment was cancelled by user',
-                    'payment_response' => json_encode($request->all())
+                    'payment_response' => json_encode($request->all()),
                 ]);
             }
         } catch (Exception $e) {
-            Log::error('Failed to update payment status: ' . $e->getMessage());
+            Log::error('Failed to update payment status: '.$e->getMessage());
         }
 
         $checkPayment = 'cancelled';
         $membetType = current_user()->societies->where('id', $conference->society_id)->first()?->pivot?->memberType;
         $memberTypePrice = ConferenceMemberTypePrice::where(['conference_id' => $conference->id, 'member_type_id' => $membetType->id])->first();
         $amount = '';
-        if (!empty($conference)) {
+        if (! empty($conference)) {
             if ($conference->early_bird_registration_deadline >= date('Y-m-d')) {
-                $amount = !empty($memberTypePrice->early_bird_amount) ? $memberTypePrice->early_bird_amount : '';
+                $amount = ! empty($memberTypePrice->early_bird_amount) ? $memberTypePrice->early_bird_amount : '';
             } elseif ($conference->regular_registration_deadline >= date('Y-m-d')) {
-                $amount = !empty($memberTypePrice->regular_amount) ? $memberTypePrice->regular_amount : '';
+                $amount = ! empty($memberTypePrice->regular_amount) ? $memberTypePrice->regular_amount : '';
             }
         }
         $national_payemnt_setting = NationalPayment::where('society_id', $conference->society_id)->first();
-        $international_payemnt_setting = InternationalPayment::with('countries')->where('society_id', $conference->society_id)->first();
+        $international_payemnt_setting = InternationalPayment::with('countries')->where('society_id', $conference->society_id)->where('payment_type', 'himalayan_bank')->first();
+        $static_qr_payment_setting = InternationalPayment::with('countries')->where('society_id', $conference->society_id)->where('payment_type', 'static_qr')->first();
+        $international_bank_transfer = InternationalPayment::where('society_id', $conference->society_id)->where('payment_type', 'himalayan_bank')->first();
         $workshops = Workshop::with(['registrations' => function ($q) {
             $q->where('status', 1);
         }])
             ->where([
                 'conference_id' => $conference->id,
-                'status' => 1
+                'status' => 1,
             ])
             ->get()
             ->filter(function ($workshop) use ($membetType) {
@@ -933,7 +949,7 @@ class PaymentContoller extends Controller
                     ->where('user_id', $currentUserId)
                     ->first();
 
-                if (!empty($checkRegistration)) {
+                if (! empty($checkRegistration)) {
                     return false;
                 }
 
@@ -958,12 +974,12 @@ class PaymentContoller extends Controller
                 return true;
             });
         $conferenceAddons = ConferenceAddon::where(['conference_id' => $conference->id, 'status' => 1])->get();
-        
+
         // Get conference setting for addon availability
         $conferenceSetting = $conference->conferenceSetting;
         $addonAvailability = $conferenceSetting?->addon_availability ?? 'both';
-        
-        return view('backend.participant.conference-registration.create', compact('workshops', 'conferenceAddons', 'conference', 'amount', 'memberTypePrice', 'society', 'checkPayment', 'international_payemnt_setting', 'national_payemnt_setting', 'addonAvailability'));
+
+        return view('backend.participant.conference-registration.create', compact('workshops', 'conferenceAddons', 'conference', 'amount', 'memberTypePrice', 'society', 'checkPayment', 'international_payemnt_setting', 'national_payemnt_setting', 'addonAvailability', 'static_qr_payment_setting', 'international_bank_transfer'));
     }
 
     public function internationalPaymentResultBackend($society, $conference)
@@ -972,21 +988,22 @@ class PaymentContoller extends Controller
         $membetType = current_user()->societies->where('id', $conference->society_id)->first()?->pivot?->memberType;
         $memberTypePrice = ConferenceMemberTypePrice::where(['conference_id' => $conference->id, 'member_type_id' => $membetType->id])->first();
         $amount = '';
-        if (!empty($conference)) {
+        if (! empty($conference)) {
             if ($conference->early_bird_registration_deadline >= date('Y-m-d')) {
-                $amount = !empty($memberTypePrice->early_bird_amount) ? $memberTypePrice->early_bird_amount : '';
+                $amount = ! empty($memberTypePrice->early_bird_amount) ? $memberTypePrice->early_bird_amount : '';
             } elseif ($conference->regular_registration_deadline >= date('Y-m-d')) {
-                $amount = !empty($memberTypePrice->regular_amount) ? $memberTypePrice->regular_amount : '';
+                $amount = ! empty($memberTypePrice->regular_amount) ? $memberTypePrice->regular_amount : '';
             }
         }
         $national_payemnt_setting = NationalPayment::where('society_id', $conference->society_id)->first();
-        $international_payemnt_setting = InternationalPayment::where('society_id', $conference->society_id)->first();
+        $international_payemnt_setting = InternationalPayment::with('countries')->where('society_id', $conference->society_id)->where('payment_type', 'himalayan_bank')->first();
+        $static_qr_payment_setting = InternationalPayment::with('countries')->where('society_id', $conference->society_id)->where('payment_type', 'static_qr')->first();
         $workshops = Workshop::with(['registrations' => function ($q) {
             $q->where('status', 1);
         }])
             ->where([
                 'conference_id' => $conference->id,
-                'status' => 1
+                'status' => 1,
             ])
             ->get()
             ->filter(function ($workshop) use ($membetType) {
@@ -996,7 +1013,7 @@ class PaymentContoller extends Controller
                     ->where('user_id', $currentUserId)
                     ->first();
 
-                if (!empty($checkRegistration)) {
+                if (! empty($checkRegistration)) {
                     return false;
                 }
 
@@ -1021,6 +1038,7 @@ class PaymentContoller extends Controller
                 return true;
             });
         $conferenceAddons = ConferenceAddon::where(['conference_id' => $conference->id, 'status' => 1])->get();
-        return view('backend.participant.conference-registration.create', compact('workshops', 'conferenceAddons', 'conference', 'amount', 'memberTypePrice', 'society', 'checkPayment', 'international_payemnt_setting', 'national_payemnt_setting'));
+
+        return view('backend.participant.conference-registration.create', compact('workshops', 'conferenceAddons', 'conference', 'amount', 'memberTypePrice', 'society', 'checkPayment', 'international_payemnt_setting', 'national_payemnt_setting', 'addonAvailability', 'static_qr_payment_setting', 'international_bank_transfer'));
     }
 }
