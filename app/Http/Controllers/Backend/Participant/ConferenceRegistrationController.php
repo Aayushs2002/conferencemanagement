@@ -561,7 +561,8 @@ class ConferenceRegistrationController extends Controller
                 'registrant_type'  => 'required',
                 'amount'           => 'required',
                 'payment_type'     => 'required',
-                'transaction_id'   => 'required|unique:conference_registrations,transaction_id'
+                'transaction_id'   => 'required|unique:conference_registrations,transaction_id',
+                'payment_currency' => 'nullable|string|in:USD,INR'
             ];
 
             $message = [
@@ -570,6 +571,7 @@ class ConferenceRegistrationController extends Controller
             ];
 
             $validated = $request->validate($rules, $message);
+            $onlinePayment = session()->get('onlinePayment', []);
 
             // Authenticated user
             $authUser = current_user();
@@ -579,8 +581,37 @@ class ConferenceRegistrationController extends Controller
             $validated['total_attendee']  = empty($request->accompany_person) ? 1 : $request->accompany_person + 1;
             $validated['token']           = random_word(60);
 
-            $onlinePayment = session()->get('onlinePayment');
-            // dd($onlinePayment);
+            $paymentCurrency = strtoupper($onlinePayment['payment_currency'] ?? ($validated['payment_currency'] ?? 'USD'));
+            if (!in_array($paymentCurrency, ['USD', 'INR'], true)) {
+                $paymentCurrency = 'USD';
+            }
+            $validated['payment_currency'] = $paymentCurrency;
+
+            $currencySymbol = $paymentCurrency === 'INR' ? 'INR' : ($authUser->userDetail->country_id == 125 ? 'Rs.' : '$');
+            $displayAmount = $validated['amount'];
+            $amountInWords = numberToWord($validated['amount']);
+
+            if ($paymentCurrency === 'INR') {
+                try {
+                    $data = [
+                        'page' => 1,
+                        'per_page' => 10,
+                        'from' => date('Y-m-d'),
+                        'to' => date('Y-m-d')
+                    ];
+                    $currencyExchange = \Illuminate\Support\Facades\Http::get('https://www.nrb.org.np/api/forex/v1/rates/', $data);
+                    if ($currencyExchange->successful()) {
+                        $USDRateSell = $currencyExchange->json()['data']['payload'][0]['rates'][1]['sell'];
+                        $rate = floatval($USDRateSell) / 1.6;
+                        $convertedAmount = $rate * floatval($validated['amount']);
+                        $displayAmount = ceil($convertedAmount);
+                        $amountInWords = numberToWord($displayAmount);
+                    }
+                } catch (\Exception $e) {
+                    \Log::error('Currency conversion failed for online payment mail: ' . $e->getMessage());
+                }
+            }
+
             // --- Determine Payment Type ---
             $paymentTypes = [
                 1 => 'FonePay',
@@ -691,7 +722,10 @@ class ConferenceRegistrationController extends Controller
                 'paymentType'      => $paymentType,
                 'transactionId'    => $validated['transaction_id'],
                 'amount'           => $validated['amount'],
-                'amountInWord'     => numberToWord($validated['amount']),
+                'displayAmount'    => $displayAmount,
+                'amountInWord'     => $amountInWords,
+                'currencySymbol'   => $currencySymbol,
+                'paymentCurrency'  => $paymentCurrency,
                 'societyName'      => $society->users->where('type', 2)->first()->f_name,
                 'societyLogo'      => $society->logo,
                 'societyPhone'     => $society->phone,
@@ -704,7 +738,7 @@ class ConferenceRegistrationController extends Controller
                 'conferenceAmount' => $conferenceAmount,
                 'addons'           => $addonsData,
                 'workshop'         => $workshopData,
-                'accompany' => $accompanyData
+                'accompany'        => $accompanyData
             ];
             
             DB::beginTransaction();
