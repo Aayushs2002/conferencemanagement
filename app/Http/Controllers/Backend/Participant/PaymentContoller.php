@@ -800,7 +800,7 @@ class PaymentContoller extends Controller
             Log::error('Failed to update payment status: '.$e->getMessage());
         }
 
-        return view('backend.participant.conference-registration.payment-success', compact('transactionId'));
+        return view('backend.participant.conference-registration.payment-success', compact('transactionId','society', 'conference'));
     }
 
     public function internationalPaymentResultFail(Request $request, $society, $conference)
