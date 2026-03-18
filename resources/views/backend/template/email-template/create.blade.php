@@ -43,19 +43,28 @@
                                     User Submission</option>
                                 <option value="2"
                                     {{ old('key', isset($email_template) ? $email_template->key : '') == 2 ? 'selected' : '' }}>
-                                    Submission Accepted</option>
+                                    Submission Accepted - Oral</option>
+                                <option value="6"
+                                    {{ old('key', isset($email_template) ? $email_template->key : '') == 6 ? 'selected' : '' }}>
+                                    Submission Accepted - Poster</option>
                                 <option value="3"
                                     {{ old('key', isset($email_template) ? $email_template->key : '') == 3 ? 'selected' : '' }}>
-                                    Submission Correction</option>
+                                    Submission Correction - Oral</option>
+                                <option value="7"
+                                    {{ old('key', isset($email_template) ? $email_template->key : '') == 7 ? 'selected' : '' }}>
+                                    Submission Correction - Poster</option>
                                 <option value="4"
                                     {{ old('key', isset($email_template) ? $email_template->key : '') == 4 ? 'selected' : '' }}>
-                                    Submission Rejected</option>
+                                    Submission Rejected - Oral</option>
+                                <option value="8"
+                                    {{ old('key', isset($email_template) ? $email_template->key : '') == 8 ? 'selected' : '' }}>
+                                    Submission Rejected - Poster</option>
                                 <option value="5"
                                     {{ old('key', isset($email_template) ? $email_template->key : '') == 5 ? 'selected' : '' }}>
                                     Expert Assigned</option>
-                                {{-- <option value="6"
-                                    {{ old('key', isset($email_template) ? $email_template->key : '') == 6 ? 'selected' : '' }}>
-                                    Convert Presentation Type</option> --}}
+                                <option value="9"
+                                    {{ old('key', isset($email_template) ? $email_template->key : '') == 9 ? 'selected' : '' }}>
+                                    Convert Oral to Poster</option>
                             </select>
                             @error('key')
                                 <p class="text-danger">{{ $message }}</p>
@@ -131,6 +140,27 @@
                 },
             ],
             5: [{
+                tag: "{submission_topic}",
+                label: "Submission Topic"
+            }, ],
+            6: [{
+                tag: "{submission_topic}",
+                label: "Submission Topic"
+            }, ],
+            7: [{
+                tag: "{submission_topic}",
+                label: "Submission Topic"
+            }, ],
+            8: [{
+                    tag: "{submission_topic}",
+                    label: "Submission Topic"
+                },
+                {
+                    tag: "{reject_remark}",
+                    label: "Reject Remark"
+                },
+            ],
+            9: [{
                 tag: "{submission_topic}",
                 label: "Submission Topic"
             }, ]

@@ -52,7 +52,39 @@
                 <tbody>
                     @foreach ($email_templates as $email_template)
                         <tr>
-                            <td>{{ $email_template->key }}</td>
+                            <td>
+                                @switch($email_template->key)
+                                    @case(1)
+                                        User Submission
+                                        @break
+                                    @case(2)
+                                        Submission Accepted - Oral
+                                        @break
+                                    @case(3)
+                                        Submission Correction - Oral
+                                        @break
+                                    @case(4)
+                                        Submission Rejected - Oral
+                                        @break
+                                    @case(5)
+                                        Expert Assigned
+                                        @break
+                                    @case(6)
+                                        Submission Accepted - Poster
+                                        @break
+                                    @case(7)
+                                        Submission Correction - Poster
+                                        @break
+                                    @case(8)
+                                        Submission Rejected - Poster
+                                        @break
+                                    @case(9)
+                                        Convert Oral to Poster
+                                        @break
+                                    @default
+                                        Unknown Type ({{ $email_template->key }})
+                                @endswitch
+                            </td>
                             <td>{{ $email_template->subject }}</td>
                             <td>{!! $email_template->body !!}</td>
                             <td>

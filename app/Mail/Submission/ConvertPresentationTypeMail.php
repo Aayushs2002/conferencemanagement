@@ -18,10 +18,15 @@ class ConvertPresentationTypeMail extends Mailable
      */
     public $data;
     public $conferenceName;
-    public function __construct($data, $conferenceName = null)
+    public $subjectText;
+    public $bodyContent;
+
+    public function __construct($data, $conferenceName = null, $subjectText = null, $bodyContent = null)
     {
         $this->data = $data;
         $this->conferenceName = $conferenceName ?? config('mail.from.name');
+        $this->subjectText = $subjectText;
+        $this->bodyContent = $bodyContent;
     }
 
 
@@ -32,7 +37,7 @@ class ConvertPresentationTypeMail extends Mailable
     {
         return new Envelope(
             from: new \Illuminate\Mail\Mailables\Address(config('mail.from.address'), $this->conferenceName),
-            subject: 'Convert Presentation Type Request',
+            subject: $this->subjectText ? $this->subjectText : 'Convert Presentation Type Request',
         );
     }
 

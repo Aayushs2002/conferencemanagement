@@ -71,7 +71,7 @@ class EmailTemplateController extends Controller
      */
     public function edit($society, $conference, EmailTemplate $email_template)
     {
-        $this->authorize('edit', $email_template);
+        // $this->authorize('edit', $email_template);
         return view('backend.template.email-template.create', compact('society', 'conference', 'email_template'));
     }
 
