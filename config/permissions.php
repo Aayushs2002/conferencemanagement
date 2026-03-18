@@ -19,7 +19,7 @@ return [
         //conference pass setting
         'pass-setting.index' => 'View Pass Setting',
         'pass-setting.create' => 'Add Pass Setting',
-        'pass-setting.store' => 'Add Pass Setting',
+        'pass-setting.store' => 'Add Pass Setting', 
         'pass-setting.edit' => 'Edit Pass Setting',
         'pass-setting.update' => 'Edit Pass Setting',
 
