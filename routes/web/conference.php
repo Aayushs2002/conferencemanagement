@@ -330,6 +330,8 @@ Route::middleware('auth')->group(function () {
         Route::resource('/committee/committe-designation', CommitteeDesignationController::class)->except('show');
 
         Route::post('/committee/update-order', [CommitteeController::class, 'updateOrder'])->name('committee.update-order');
+        Route::get('/committee/committee-static-page', [CommitteeController::class, 'staticPage'])->name('committee.static-page');
+        Route::post('/committee/committee-static-page', [CommitteeController::class, 'updateStaticPage'])->name('committee.static-page.update');
         Route::resource('/committee', CommitteeController::class)->except('show');
 
         // committee member routes

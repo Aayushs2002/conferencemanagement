@@ -27,7 +27,7 @@
         </li>
         @php
             $conference = getConference(request()->segment(4));
-        @endphp
+        @endphp 
         {{-- @if (current_user()->type != 3) --}}
         {{-- @dd(auth()->user()->societies->first()) --}}
         @if (feature_enabled('conference-registration-management', getSociety(request()->segment(2))))
@@ -373,6 +373,15 @@
                                 <a href="{{ route('committe-designation.index', [request()->segment(2), request()->segment(4)]) }}"
                                     class="menu-link">
                                     <div data-i18n="Committee Designation">Committee Designation</div>
+                                </a>
+                            </li>
+                        @endif
+                        @if (auth()->user()->hasConferencePermissionBlade($conference, 'View Committee'))
+                            <li
+                                class="menu-item {{ request()->segment(6) == 'committee-static-page' ? 'active' : '' }}">
+                                <a href="{{ route('committee.static-page', [request()->segment(2), request()->segment(4)]) }}"
+                                    class="menu-link">
+                                    <div data-i18n="Committee Static Page">Committee Static Page</div>
                                 </a>
                             </li>
                         @endif

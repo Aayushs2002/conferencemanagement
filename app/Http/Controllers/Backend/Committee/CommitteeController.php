@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Backend\Committee;
 
 use App\Http\Controllers\Controller;
 use App\Models\Committee\Committee;
+use App\Models\Conference\ConferenceSetting;
 use Exception;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
@@ -114,13 +115,13 @@ class CommitteeController extends Controller
     {
         try {
             $orders = $request->orders;
-            
+
             foreach ($orders as $order) {
                 Committee::where('id', $order['id'])->update([
                     'display_order' => $order['position']
                 ]);
             }
-            
+
             return response()->json([
                 'success' => true,
                 'message' => 'Order updated successfully'
@@ -130,6 +131,41 @@ class CommitteeController extends Controller
                 'success' => false,
                 'message' => 'Failed to update order: ' . $e->getMessage()
             ], 500);
+        }
+    }
+
+    /**
+     * Show the committee static page settings.
+     */
+    public function staticPage($society, $conference)
+    {
+        $conferenceSetting = ConferenceSetting::where('conference_id', $conference->id)->first();
+
+        return view('backend.committee.committee.static-page', compact('conferenceSetting', 'society', 'conference'));
+    }
+
+    /**
+     * Update the committee static page settings.
+     */
+    public function updateStaticPage(Request $request, $society, $conference)
+    {
+        try {
+            $validated = $request->validate([
+                'committee_static_page_enabled' => 'nullable|boolean',
+                'committee_static_page_content' => 'nullable'
+            ]);
+
+            // Ensure enabled field defaults to false if not present
+            $validated['committee_static_page_enabled'] = $validated['committee_static_page_enabled'] ?? false;
+
+            $conferenceSetting = ConferenceSetting::updateOrCreate(
+                ['conference_id' => $conference->id],
+                $validated
+            );
+
+            return redirect()->back()->with('status', 'Committee Static Page Settings Updated Successfully');
+        } catch (Exception $e) {
+            return redirect()->back()->with('delete', 'Error: ' . $e->getMessage());
         }
     }
 }
