@@ -92,7 +92,7 @@ class User extends Authenticatable
     {
         return $this->belongsToMany(Society::class, 'user_societies', 'user_id', 'society_id')
             ->using(UserSociety::class)
-            ->withPivot('member_type_id');
+            ->withPivot('member_type_id', 'id_card_document', 'official_letter_document', 'documents_uploaded_at');
     }
 
     public function societyUsers()

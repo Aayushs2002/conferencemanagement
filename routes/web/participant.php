@@ -20,6 +20,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/my-society/{society}', 'detail')->name('my-society.detail');
         Route::get('/my-society/{society}/conference', 'conference')->name('my-society.conference');
         Route::post('/join-society-submit', 'joinSocietySubmit')->name('joinSocietySubmit');
+        Route::post('/my-society/{society}/update-documents', 'updateDocuments')->name('mySociety.updateDocuments');
     });
 
     Route::get('/my-society/conference/{conference}/dashboard', [ConferenceDashboardController::class, 'index'])->name('my-society.conference.dashboard');

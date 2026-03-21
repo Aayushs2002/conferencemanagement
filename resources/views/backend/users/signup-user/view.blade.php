@@ -1,5 +1,8 @@
 <div class="modal-body ">
     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+    @php
+        $userSociety = $user->societies()->where('society_id', $society->id)->first();
+    @endphp
     <div class="">
         <h5 class=" mb-4 " style="background: white;">View Detail <span class="text-danger">(User
                 Name:
@@ -64,6 +67,42 @@
                 <p class="text-primary mb-1"><i class="i-ID-2 text-16 mr-1"></i>Country</p>
                 <span>{{ $user->userDetail->country->country_name }}</span>
             </div>
+
+            <div class="col-12">
+                <h6>Verification Documents</h6>
+                <hr class="mt-0" style="height:1px;border:none;color:#333;background-color:#333;" />
+            </div>
+
+            <div class="col-md-6 mb-4">
+                <p class="text-primary mb-1"><i class="i-File-Text text-16 mr-1"></i>ID Card Document</p>
+                @if ($userSociety && $userSociety->pivot && $userSociety->pivot->id_card_document)
+                    <a href="{{ asset('storage/society/student-verification/' . $userSociety->pivot->id_card_document) }}"
+                        class="btn btn-sm btn-outline-primary" target="_blank">
+                        View ID Card
+                    </a>
+                @else
+                    <span class="text-muted">Not uploaded</span>
+                @endif
+            </div>
+
+            <div class="col-md-6 mb-4">
+                <p class="text-primary mb-1"><i class="i-File-Text text-16 mr-1"></i>Approval Letter Document</p>
+                @if ($userSociety && $userSociety->pivot && $userSociety->pivot->official_letter_document)
+                    <a href="{{ asset('storage/society/student-verification/' . $userSociety->pivot->official_letter_document) }}"
+                        class="btn btn-sm btn-outline-primary" target="_blank">
+                        View Approval Letter
+                    </a>
+                @else
+                    <span class="text-muted">Not uploaded</span>
+                @endif
+            </div>
+
+            @if ($userSociety && $userSociety->pivot && $userSociety->pivot->documents_uploaded_at)
+                <div class="col-12 mb-2">
+                    <small class="text-muted">Documents updated on:
+                        {{ \Carbon\Carbon::parse($userSociety->pivot->documents_uploaded_at)->format('M d, Y h:i A') }}</small>
+                </div>
+            @endif
 
         </div>
     </div>

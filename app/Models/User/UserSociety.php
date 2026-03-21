@@ -13,6 +13,9 @@ class UserSociety extends Pivot
         'user_id',
         'society_id',
         'member_type_id',
+        'id_card_document',
+        'official_letter_document',
+        'documents_uploaded_at',
         'status'
     ];
 

@@ -32,6 +32,7 @@ class MemberTypeRequest extends FormRequest
                     ->where(fn($query) => $query->where('society_id', $society->id))
                     ->ignore($this->memberType),
             ],
+            'requires_student_verification' => 'nullable|boolean',
         ];
     }
 }

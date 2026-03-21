@@ -25,6 +25,14 @@
                                 @if (isset($memberType)) {{ $memberType->is_society_member == 1 ? 'checked' : '' }} @else @checked(old('is_society_member') == '1') @endif />
                             <label for="is_society_member" class="form-check-label">Is Society Member ? </label>
                         </div>
+                        <div class="col-md-4 form-check mb-3">
+                            <input type="checkbox" class="form-check-input" name="requires_student_verification"
+                                   id="requires_student_verification" value="1"
+                                   @if (isset($memberType)) {{ $memberType->requires_student_verification == 1 ? 'checked' : '' }} @else @checked(old('requires_student_verification') == '1') @endif />
+                            <label for="requires_student_verification" class="form-check-label">
+                                Requires Student/Resident Verification?
+                            </label>
+                        </div>
                     </div>
                     <div class="row">
 
