@@ -834,7 +834,7 @@
                             value="${contribution.id}" ${isChecked}>
                         <label class="form-check-label" for="contribution_${index}_${contribution.id}">
                             ${contribution.name}
-                            ${description ? `<i class="ti ti-info-circle" data-bs-toggle="tooltip" title="${description}"></i>` : ''}
+                            ${description ? `<i class="ti-tablerinfo-circle" data-bs-toggle="tooltip" title="${description}"></i>` : ''}
                         </label>
                     </div>
                 </div>

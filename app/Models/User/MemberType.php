@@ -8,9 +8,10 @@ class MemberType extends Model
 {
     protected $fillable = [
         'society_id',
-        'delegate', 
+        'delegate',
         'type',
         'is_society_member',
+        'requires_student_verification',
         'status'
     ];
 }

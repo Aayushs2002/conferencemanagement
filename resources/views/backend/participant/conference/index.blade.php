@@ -17,8 +17,160 @@
             </div>
         </div>
 
-        <!-- Conference Tabs -->
+        <!-- Account Settings -->
         <div class="row mb-4">
+            <div class="col-12">
+                <div class="card border-0 shadow-sm settings-card">
+                    <div class="card-body">
+                        <div class="d-flex flex-column flex-lg-row justify-content-between align-items-start align-items-lg-center gap-3">
+                            <div class="d-flex align-items-start gap-3">
+                                <div class="bg-primary bg-opacity-10 rounded p-2 mt-1">
+                                    <i class="ti-tablersettings text-primary" style="font-size: 1.4rem;"></i>
+                                </div>
+                                <div>
+                                    <h5 class="mb-1 fw-bold">Account Settings</h5>
+                                    <p class="text-muted mb-2">Manage profile details and student/resident verification documents in one place.</p>
+                                    @if($userSociety && $userSociety->documents_uploaded_at)
+                                        <small class="text-muted d-inline-flex align-items-center">
+                                            <i class="ti-tablerclock me-1"></i>
+                                            Documents last updated: {{ \Carbon\Carbon::parse($userSociety->documents_uploaded_at)->format('M d, Y') }}
+                                        </small>
+                                    @endif
+                                </div>
+                            </div>
+                            <button type="button" class="btn btn-primary rounded-pill px-4"
+                                data-bs-toggle="modal" data-bs-target="#accountSettingsModal">
+                                <i class="ti-tableradjustments-horizontal me-1"></i> Open Settings
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Settings Modal -->
+        <div class="modal fade" id="accountSettingsModal" tabindex="-1" aria-labelledby="accountSettingsModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+                <div class="modal-content border-0 shadow-lg">
+                    <div class="modal-header border-0 pb-0">
+                        <h5 class="modal-title fw-bold" id="accountSettingsModalLabel">Conference Account Settings</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body pt-2">
+                        <ul class="nav nav-pills settings-nav mb-4" id="settingsTabs" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active" id="documents-tab" data-bs-toggle="pill"
+                                    data-bs-target="#documents-pane" type="button" role="tab"
+                                    aria-controls="documents-pane" aria-selected="true">
+                                    <i class="ti-tablerfile-certificate me-1"></i> Verification Documents
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="profile-tab" data-bs-toggle="pill"
+                                    data-bs-target="#profile-pane" type="button" role="tab"
+                                    aria-controls="profile-pane" aria-selected="false">
+                                    <i class="ti-tableruser-edit me-1"></i> Profile
+                                </button>
+                            </li>
+                        </ul>
+
+                        <div class="tab-content">
+                            <div class="tab-pane fade show active" id="documents-pane" role="tabpanel" aria-labelledby="documents-tab" tabindex="0">
+                                @if($userSociety && $userSociety->memberType && $userSociety->memberType->requires_student_verification == 1)
+                                    <div class="alert alert-info d-flex align-items-start" role="alert">
+                                        <i class="ti-tablerinfo-circle me-2 mt-1"></i>
+                                        <div>
+                                            <strong>Verification is required</strong>
+                                            <div class="small">Please upload your ID card and/or approval letter for {{ $society->users->where('type', 2)->value('f_name') }} membership.</div>
+                                        </div>
+                                    </div>
+
+                                    <form action="{{ route('mySociety.updateDocuments', $society->id) }}" method="POST" enctype="multipart/form-data">
+                                        @csrf
+
+                                        <div class="row g-3">
+                                            <div class="col-md-6">
+                                                <label class="form-label fw-semibold">
+                                                    <i class="ti-tablerid-badge me-1 text-primary"></i> ID Card
+                                                </label>
+
+                                                @if($userSociety->id_card_document)
+                                                    <div class="mb-2">
+                                                        <a href="{{ asset('storage/society/student-verification/' . $userSociety->id_card_document) }}"
+                                                            target="_blank" class="btn btn-sm btn-outline-primary">
+                                                            <i class="ti-tablereye me-1"></i> View Uploaded ID Card
+                                                        </a>
+                                                    </div>
+                                                @endif
+
+                                                <input type="file" class="form-control @error('id_card_document') is-invalid @enderror"
+                                                    name="id_card_document" accept=".jpg,.jpeg,.png,.pdf">
+                                                @error('id_card_document')
+                                                    <div class="invalid-feedback">{{ $message }}</div>
+                                                @enderror
+                                                <small class="text-muted">JPG, PNG, or PDF - Max 5MB</small>
+                                            </div>
+
+                                            <div class="col-md-6">
+                                                <label class="form-label fw-semibold">
+                                                    <i class="ti-tablerfile-certificate me-1 text-primary"></i> Approval Letter (HoD/Principal)
+                                                </label>
+
+                                                @if($userSociety->official_letter_document)
+                                                    <div class="mb-2">
+                                                        <a href="{{ asset('storage/society/student-verification/' . $userSociety->official_letter_document) }}"
+                                                            target="_blank" class="btn btn-sm btn-outline-primary">
+                                                            <i class="ti-tablereye me-1"></i> View Uploaded Letter
+                                                        </a>
+                                                    </div>
+                                                @endif
+
+                                                <input type="file" class="form-control @error('official_letter_document') is-invalid @enderror"
+                                                    name="official_letter_document" accept=".jpg,.jpeg,.png,.pdf">
+                                                @error('official_letter_document')
+                                                    <div class="invalid-feedback">{{ $message }}</div>
+                                                @enderror
+                                                <small class="text-muted">JPG, PNG, or PDF - Max 5MB</small>
+                                            </div>
+                                        </div>
+
+                                        <div class="d-flex justify-content-end mt-4">
+                                            <button type="submit" class="btn btn-primary rounded-pill px-4">
+                                                <i class="ti-tablerupload me-1"></i> Save Documents
+                                            </button>
+                                        </div>
+                                    </form>
+                                @else
+                                    <div class="text-center py-4">
+                                        <div class="bg-success bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3"
+                                            style="width: 64px; height: 64px;">
+                                            <i class="ti-tablercircle-check text-success" style="font-size: 1.8rem;"></i>
+                                        </div>
+                                        <h6 class="fw-bold mb-1">Verification documents are not required</h6>
+                                        <p class="text-muted mb-0">Your current member type does not require ID card or approval letter upload.</p>
+                                    </div>
+                                @endif
+                            </div>
+
+                            <div class="tab-pane fade" id="profile-pane" role="tabpanel" aria-labelledby="profile-tab" tabindex="0">
+                                <div class="card border-0 bg-light-subtle">
+                                    <div class="card-body">
+                                        <h6 class="fw-bold mb-2">Update Your Profile</h6>
+                                        <p class="text-muted mb-3">Need to change your institution, designation, department, address, photo, or council number? Open profile settings and update your details.</p>
+                                        <a href="{{ route('security.index.society',$society) }}" class="btn btn-outline-primary rounded-pill px-4">
+                                            <i class="ti-tableruser-edit me-1"></i> Open Profile Settings
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Conference Tabs -->
+        <div class="row mb-4"> 
             <div class="col-12">
                 <ul class="nav nav-pills justify-content-center gap-2" role="tablist">
                     <li class="nav-item" role="presentation">
@@ -327,7 +479,54 @@
         </div>
     </div>
 
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            let shouldAutoOpenSettings = false;
+
+            @if ($errors->has('id_card_document') || $errors->has('official_letter_document'))
+                shouldAutoOpenSettings = true;
+            @elseif (
+                $userSociety &&
+                $userSociety->memberType &&
+                $userSociety->memberType->requires_student_verification == 1 &&
+                empty($userSociety->id_card_document) &&
+                empty($userSociety->official_letter_document)
+            )
+                shouldAutoOpenSettings = true;
+            @endif
+
+            if (shouldAutoOpenSettings) {
+                const settingsModalElement = document.getElementById('accountSettingsModal');
+                if (settingsModalElement) {
+                    const settingsModal = new bootstrap.Modal(settingsModalElement);
+                    settingsModal.show();
+
+                    const documentsTab = document.getElementById('documents-tab');
+                    if (documentsTab) {
+                        bootstrap.Tab.getOrCreateInstance(documentsTab).show();
+                    }
+                }
+            }
+        });
+    </script>
+
     <style>
+        .settings-card {
+            background: linear-gradient(130deg, #ffffff 0%, #f6f9ff 100%);
+        }
+
+        .settings-nav .nav-link {
+            border-radius: 999px;
+            padding: 0.5rem 1rem;
+            color: #6c757d;
+            font-weight: 600;
+        }
+
+        .settings-nav .nav-link.active {
+            background-color: #0d6efd;
+            color: #fff;
+        }
+
         .hover-lift {
             transition: transform 0.3s ease, box-shadow 0.3s ease;
         }

@@ -126,7 +126,7 @@
                         <div class="mb-2">
                             <a href="{{ asset('storage/conference/registration-guideline/' . $conferenceSetting->registration_guideline) }}"
                                 target="_blank" class="btn btn-outline-primary btn-sm w-100">
-                                <i class="ti ti-file-text me-1"></i> Download PDF Guidelines
+                                <i class="ti-tablerfile-text me-1"></i> Download PDF Guidelines
                             </a>
                         </div>
                     @endif
@@ -136,7 +136,7 @@
                         <div class="mb-2">
                             <button type="button" class="btn btn-outline-danger btn-sm w-100"
                                 onclick="showVideoModal('registration', '{{ $conferenceSetting->registration_guideline_youtube }}')">
-                                <i class="ti ti-video me-1"></i> Registration Video Guide
+                                <i class="ti-tablervideo me-1"></i> Registration Video Guide
                             </button>
                         </div>
                     @endif

@@ -214,7 +214,7 @@
                             {{-- <div class="row pl-3 decisionForm" id="sectionOverallRatingDiv" style="display: none;"> --}}
                             {{-- <div class="col-md-12 mb-3">
                                     <div class="alert alert-warning">
-                                        <i class="ti ti-info-circle"></i> 
+                                        <i class="ti-tablerinfo-circle"></i> 
                                         <strong>Additional Score Required:</strong> 
                                         <span id="remainingScoreText"></span>
                                     </div>

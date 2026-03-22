@@ -97,7 +97,7 @@
 <div class="modal-footer">
     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
     <button type="button" class="btn btn-primary" id="saveAccommodation">
-        <i class="ti ti-device-floppy"></i> Save Accommodation
+        <i class="ti-tablerdevice-floppy"></i> Save Accommodation
     </button>
 </div>
 
@@ -148,7 +148,7 @@
             }
 
             const btn = $(this);
-            btn.prop('disabled', true).html('<i class="ti ti-loader fa-spin"></i> Saving...');
+            btn.prop('disabled', true).html('<i class="ti-tablerloader fa-spin"></i> Saving...');
 
             $.ajaxSetup({
                 headers: {
@@ -189,7 +189,7 @@
                     });
 
                     btn.prop('disabled', false).html(
-                        '<i class="ti ti-device-floppy"></i> Save Accommodation');
+                        '<i class="ti-tablerdevice-floppy"></i> Save Accommodation');
                 }
             });
         });

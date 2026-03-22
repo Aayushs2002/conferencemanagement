@@ -112,7 +112,7 @@
                                             <label class="form-check-label" for="contribution_{{ $contribution->id }}">
                                                 {{ $contribution->name }}
                                                 @if ($contribution->description)
-                                                    <i class="ti ti-info-circle" 
+                                                    <i class="ti-tablerinfo-circle" 
                                                     data-bs-toggle="tooltip" 
                                                     title="{{ $contribution->description }}"></i>
                                                 @endif
@@ -310,7 +310,7 @@
                                                 for="contribution_{{ $contribution->id }}">
                                                 {{ $contribution->name }}
                                                 @if ($contribution->description)
-                                                    <i class="ti ti-info-circle" data-bs-toggle="tooltip"
+                                                    <i class="ti-tablerinfo-circle" data-bs-toggle="tooltip"
                                                         title="{{ $contribution->description }}"></i>
                                                 @endif
                                             </label>
@@ -544,7 +544,7 @@
 
                 var alertHtml = `
                 <div class="alert ${alertClass} alert-dismissible fade show" role="alert">
-                    <i class="ti ti-${icon}"></i> ${message}
+                    <i class="ti-tabler${icon}"></i> ${message}
                     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                 </div>
             `;
