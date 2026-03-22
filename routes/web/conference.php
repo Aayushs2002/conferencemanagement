@@ -202,6 +202,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/sent-to-author-form', 'sentToAuthorForm')->name('sentToAuthorForm');
         Route::post('/sentToAuthor', 'sentToAuthor')->name('sentToAuthor');
         Route::get('/{submission}/view-discussion', 'viewDiscussion')->name('viewDiscussion');
+        Route::get('/{submission}/download-slide', 'downloadSlide')->name('downloadSlide');
         Route::get('/convert-presentation-type-request/{id}', 'convertPresentationTypeRequest')->name('convertPresentationTypeRequest');
         Route::post('viewScore', 'viewScore')->name('viewScore');
         Route::post('send-mail', 'sendMail')->name('sendMail');

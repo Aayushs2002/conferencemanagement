@@ -291,6 +291,46 @@ class SubmissionController extends Controller
         return view('backend.participant.submission.view', compact('submission'));
     }
 
+    public function uploadSlide(Request $request, $society, $conference, Submission $submission)
+    {
+        try {
+            if ((int) $submission->conference_id !== (int) $conference->id) {
+                abort(404);
+            }
+
+            if ((int) $submission->user_id !== (int) current_user()->id) {
+                abort(403);
+            }
+
+            if (! ((int) $submission->presentation_type === 2 && (int) $submission->request_status === 1)) {
+                return redirect()->back()->with('delete', 'Slide upload is only available for accepted oral submissions.');
+            }
+
+            $request->validate([
+                'slide_file' => 'required|file|mimes:ppt,pptx,pdf|max:20480',
+            ]);
+
+            DB::beginTransaction();
+
+            if (! empty($submission->slide_file)) {
+                $this->file_service->deleteFile($submission->slide_file, 'participant/submission/slides');
+            }
+
+            $slideFile = $this->file_service->fileUpload($request->file('slide_file'), 'slide', 'participant/submission/slides');
+            $submission->update([
+                'slide_file' => $slideFile,
+            ]);
+
+            DB::commit();
+
+            return redirect()->back()->with('status', 'Slide uploaded successfully.');
+        } catch (\Throwable $th) {
+            DB::rollBack();
+
+            return redirect()->back()->with('delete', 'Unable to upload slide at the moment. Please try again.');
+        }
+    }
+
     public function edit($society, $conference, $submission)
     {
         // dd($submission);

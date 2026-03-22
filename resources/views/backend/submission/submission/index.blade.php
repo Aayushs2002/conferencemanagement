@@ -354,6 +354,20 @@
                                                 class="icon-base ti tabler-eye me-1"></i>
                                             View</a>
 
+                                        @if (!empty($submission->slide_file))
+                                            <a class="dropdown-item"
+                                                href="{{ asset('storage/participant/submission/slides/' . $submission->slide_file) }}"
+                                                target="_blank">
+                                                <i class="icon-base ti tabler-presentation me-1"></i>
+                                                View Slides
+                                            </a>
+                                            <a class="dropdown-item"
+                                                href="{{ route('submission.downloadSlide', [$society, $conference, $submission]) }}">
+                                                <i class="icon-base ti tabler-download me-1"></i>
+                                                Download Slides
+                                            </a>
+                                        @endif
+
                                         @if (is_super_admin())
                                             <hr>
                                             <form

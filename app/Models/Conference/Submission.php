@@ -24,6 +24,7 @@ class Submission extends Model
         'abstract_content',
         'sections',
         'image',
+        'slide_file',
         'conflict_of_interest',
         'source_of_funding',
         'submitted_date',
