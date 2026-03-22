@@ -31,6 +31,7 @@ use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Storage;
 use Maatwebsite\Excel\Facades\Excel;
 
 class SubmissionController extends Controller
@@ -171,6 +172,20 @@ class SubmissionController extends Controller
         $submission = Submission::whereId($request->id)->first();
 
         return view('backend.submission.submission.view', compact('submission'));
+    }
+
+    public function downloadSlide($society, $conference, Submission $submission)
+    {
+        abort_if((int) $submission->conference_id !== (int) $conference->id, 404);
+        abort_if(empty($submission->slide_file), 404, 'Slide file not found.');
+
+        $path = 'participant/submission/slides/' . $submission->slide_file;
+        abort_unless(Storage::disk('public')->exists($path), 404, 'Slide file does not exist.');
+
+        $extension = pathinfo($submission->slide_file, PATHINFO_EXTENSION);
+        $downloadName = 'submission-' . $submission->id . '-slide.' . $extension;
+
+        return response()->download(storage_path('app/public/' . $path), $downloadName);
     }
 
     public function edit($society, $conference, $submission)
@@ -745,7 +760,7 @@ class SubmissionController extends Controller
             DB::rollBack();
 
             // Log the error for debugging
-            \Log::error('Submission sentToAuthor error: '.$e->getMessage());
+            logger()->error('Submission sentToAuthor error: '.$e->getMessage());
 
             return response()->json([
                 'message' => 'An error occurred while processing your request.',

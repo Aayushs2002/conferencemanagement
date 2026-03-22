@@ -24,6 +24,26 @@
                animation: blink 2s infinite;
 
            }
+
+           .slide-panel {
+               border: 1px solid #e5e7eb;
+               border-radius: 10px;
+               padding: 10px;
+               background: #f8fafc;
+               min-width: 230px;
+           }
+
+           .slide-panel .slide-title {
+               font-size: 12px;
+               font-weight: 600;
+               color: #1f2937;
+               letter-spacing: 0.2px;
+           }
+
+           .slide-panel .slide-meta {
+               font-size: 11px;
+               color: #6b7280;
+           }
        </style>
    @endsection
    @if ($submissionSetting?->abstract_guidelines)
@@ -235,6 +255,7 @@
                        <th>Topic</th>
                        <th>Presentation Type</th>
                        <th>Request Status</th>
+                       <th>Slides</th>
                        <th>Action</th>
                    </tr>
                </thead>
@@ -276,6 +297,48 @@
                                @endif
                            </td>
                            <td>
+                               @if ($submission->presentation_type == 2 && $submission->request_status === 1)
+                                   <div class="slide-panel">
+                                       <div class="d-flex justify-content-between align-items-center mb-2">
+                                           <span class="slide-title"><i class="icon-base ti tabler-presentation me-1"></i>Oral Slides</span>
+                                           @if ($submission->slide_file)
+                                               <span class="badge bg-success">Uploaded</span>
+                                           @else
+                                               <span class="badge bg-warning text-dark">Pending</span>
+                                           @endif
+                                       </div>
+
+                                       <div class="d-flex flex-wrap gap-1">
+                                           <form action="{{ route('my-society.conference.submission.uploadSlide', [$society, $conference, $submission]) }}"
+                                               method="POST" enctype="multipart/form-data" class="d-inline-block slide-upload-form">
+                                               @csrf
+                                               <input type="file" name="slide_file" class="d-none slideFileInput"
+                                                   id="slideFileInput{{ $submission->id }}" accept=".ppt,.pptx,.pdf" required>
+                                               <label for="slideFileInput{{ $submission->id }}" class="btn btn-sm btn-primary mb-0">
+                                                   <i class="icon-base ti tabler-upload icon-xs me-1"></i>
+                                                   {{ $submission->slide_file ? 'Replace' : 'Upload' }}
+                                               </label>
+                                           </form>
+
+                                           @if ($submission->slide_file)
+                                               <a href="{{ asset('storage/participant/submission/slides/' . $submission->slide_file) }}"
+                                                   target="_blank" class="btn btn-sm btn-info">
+                                                   <i class="icon-base ti tabler-eye icon-xs me-1"></i>View
+                                               </a>
+                                               <a href="{{ asset('storage/participant/submission/slides/' . $submission->slide_file) }}"
+                                                   download class="btn btn-sm btn-success">
+                                                   <i class="icon-base ti tabler-download icon-xs me-1"></i>Download
+                                               </a>
+                                           @endif
+                                       </div>
+
+                                       <div class="slide-meta mt-2">Accepted Oral only | PPT, PPTX, PDF | Max 20MB</div>
+                                   </div>
+                               @else
+                                   <span class="badge bg-label-secondary">Not Available</span>
+                               @endif
+                           </td>
+                           <td>
                                <div class="dropdown">
                                    <button type="button" class="btn p-0 dropdown-toggle hide-arrow"
                                        data-bs-toggle="dropdown">
@@ -291,6 +354,31 @@
                                            data-bs-toggle="modal" data-bs-target="#pricingModal"><i
                                                class="icon-base ti tabler-eye me-1"></i>
                                            View</a>
+                                       
+                                       @if ($submission->presentation_type == 2 && $submission->request_status === 1)
+                                           <hr class="my-1">
+                                           <small class="dropdown-item-text" style="font-size: 11px; color: #6b7280;">ORAL SLIDES</small>
+                                           <form action="{{ route('my-society.conference.submission.uploadSlide', [$society, $conference, $submission]) }}"
+                                               method="POST" enctype="multipart/form-data" class="slide-upload-form">
+                                               @csrf
+                                               <input type="file" name="slide_file" class="d-none slideFileInput"
+                                                   id="slideFileInput{{ $submission->id }}" accept=".ppt,.pptx,.pdf" required>
+                                               <label for="slideFileInput{{ $submission->id }}" class="dropdown-item" style="cursor: pointer;">
+                                                   <i class="icon-base ti tabler-upload icon-xs me-1"></i>
+                                                   {{ $submission->slide_file ? 'Replace Slides' : 'Upload Slides' }}
+                                               </label>
+                                           </form>
+                                           @if ($submission->slide_file)
+                                               <a href="{{ asset('storage/participant/submission/slides/' . $submission->slide_file) }}"
+                                                   target="_blank" class="dropdown-item">
+                                                   <i class="icon-base ti tabler-eye icon-xs me-1"></i>View Slides
+                                               </a>
+                                               <a href="{{ asset('storage/participant/submission/slides/' . $submission->slide_file) }}"
+                                                   download class="dropdown-item">
+                                                   <i class="icon-base ti tabler-download icon-xs me-1"></i>Download Slides
+                                               </a>
+                                           @endif
+                                       @endif
                                    </div>
 
                                    <a href="{{ route('my-society.conference.submission.author.index', [$society, $conference, $submission]) }}"
@@ -467,6 +555,38 @@
                        location.href = href + "?confirmation=no";
                    }
                });
+           });
+
+           $(document).on('change', '.slideFileInput', function() {
+               const file = this.files[0];
+               if (!file) {
+                   return;
+               }
+
+               const allowedExtensions = ['ppt', 'pptx', 'pdf'];
+               const extension = file.name.split('.').pop().toLowerCase();
+               if (!allowedExtensions.includes(extension)) {
+                   Swal.fire({
+                       icon: 'error',
+                       title: 'Invalid file format',
+                       text: 'Please upload PPT, PPTX, or PDF only.'
+                   });
+                   $(this).val('');
+                   return;
+               }
+
+               if (file.size > 20 * 1024 * 1024) {
+                   Swal.fire({
+                       icon: 'error',
+                       title: 'File too large',
+                       text: 'Maximum allowed file size is 20MB.'
+                   });
+                   $(this).val('');
+                   return;
+               }
+
+               const form = $(this).closest('form');
+               form.submit();
            });
 
            // $('#openAbstractGuidelineModal').modal('show'); // Removed - now controlled by localStorage
