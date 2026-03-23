@@ -30,7 +30,7 @@ class ProfileController extends Controller
                 'department_id' => 'required',
                 'institute_address' => 'required',
                 'dob_ad' => 'nullable|date|before:' . now()->subYears(18)->format('Y-m-d'),
-                'image' => 'required',
+                'image' => 'required|file|mimes:jpg,jpeg,png|max:2048',
             ];
 
             $messages = [
@@ -38,6 +38,9 @@ class ProfileController extends Controller
                 'designation_id.required' => 'Please select Designation.',
                 'department_id.required' => 'Please select Department.',
                 'dob_ad.before' => 'You must be at least 18 years old.',
+                'image.required' => 'Please upload a passport-size image.',
+                'image.mimes' => 'Image must be a file of type: jpg, jpeg, png.',
+                'image.max' => 'Image size must not exceed 2MB.',
             ];
 
             $namePrefixId = current_user()->userDetail->name_prefix_id;
