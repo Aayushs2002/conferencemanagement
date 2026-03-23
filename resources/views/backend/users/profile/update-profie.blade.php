@@ -22,7 +22,7 @@
                     $designations = $loadData('designations', \App\Models\User\Designation::class);
                     $departments = $loadData('departments', \App\Models\User\Department::class);
                 @endphp
-
+ 
                 <form class="needs-validation" enctype="multipart/form-data">
                     <div class="row g-6">
 

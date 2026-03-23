@@ -251,7 +251,7 @@
                                 <small class="text-muted">Upload JPG, PNG, or JPEG image.</small>
                             </div>
                         </div>
-
+ 
                         <div class="mt-6 text-end">
                             <button type="submit" class="btn btn-primary" id="btnProfileUpdateSubmit">
                                 <i class="icon-base ti tabler-device-floppy icon-sm me-1"></i>
