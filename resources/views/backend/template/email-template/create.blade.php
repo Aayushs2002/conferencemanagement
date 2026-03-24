@@ -163,7 +163,19 @@
             9: [{
                 tag: "{submission_topic}",
                 label: "Submission Topic"
-            }, ]
+            },
+            {
+                tag: "{response_link}",
+                label: "Response Link"
+            },
+            {
+                tag: "{current_format}",
+                label: "Current Format (Oral/Poster)"
+            },
+            {
+                tag: "{requested_format}",
+                label: "Requested Format (Oral/Poster)"
+            }]
         };
 
         const placeholderButtonsContainer = document.getElementById('placeholder-buttons');

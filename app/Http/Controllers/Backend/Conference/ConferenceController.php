@@ -441,7 +441,15 @@ class ConferenceController extends Controller
             }
         }
 
-        return view('backend.conference.dashboard', compact('conferenceRegistrationCount', 'totalNationalRegistrants', 'totalInternationalRegistrants', 'mealCounts', 'conference', 'society', 'data', 'sponsorData', 'dates', 'workshops', 'workshopMealCounts', 'submissionCount', 'workshopRegistrationCount', 'submissionCategoryMajorTracks', 'addonStats', 'totalAddons', 'totalAccompanyingPersons', 'userAddons', 'userAccompanyingPersons', 'reviewAssignmentCount', 'canDownloadConferenceCertificate', 'userRegistration', 'eligibleWorkshopCertificates'));
+        // Get pending presentation type change requests
+        $pendingPresentationTypeRequests = Submission::where([
+            'conference_id' => $conference->id,
+            'user_id' => current_user()->id,
+            'status' => 1,
+            'presentation_type_change' => 0  // 0 = sent to author, awaiting response
+        ])->get();
+
+        return view('backend.conference.dashboard', compact('conferenceRegistrationCount', 'totalNationalRegistrants', 'totalInternationalRegistrants', 'mealCounts', 'conference', 'society', 'data', 'sponsorData', 'dates', 'workshops', 'workshopMealCounts', 'submissionCount', 'workshopRegistrationCount', 'submissionCategoryMajorTracks', 'addonStats', 'totalAddons', 'totalAccompanyingPersons', 'userAddons', 'userAccompanyingPersons', 'reviewAssignmentCount', 'canDownloadConferenceCertificate', 'userRegistration', 'eligibleWorkshopCertificates', 'pendingPresentationTypeRequests'));
     }
 
     public function submissionsChart(Request $request, $society, $conference)

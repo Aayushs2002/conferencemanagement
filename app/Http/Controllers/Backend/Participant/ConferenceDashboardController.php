@@ -16,7 +16,15 @@ class ConferenceDashboardController extends Controller
         $submissionCount = Submission::where(['conference_id' => $conference->id, 'user_id' => current_user()->id, 'status' => 1])->count();
         $workshop = Workshop::where(['conference_id' => $conference->id, 'status' => 1])->pluck('id');
         $workshopRegistrationCount = WorkshopRegistration::where(['user_id' => current_user()->id, 'status' => 1])->whereIn('workshop_id', $workshop)->count();
+        
+        // Get pending presentation type change requests
+        $pendingPresentationTypeRequests = Submission::where([
+            'conference_id' => $conference->id,
+            'user_id' => current_user()->id,
+            'status' => 1,
+            'presentation_type_change' => 0  // 0 = sent to author, awaiting response
+        ])->get();
 
-        return view('backend.participant.conference.conference-dashboard', compact('conference', 'submissionCount', 'workshopRegistrationCount'));
+        return view('backend.participant.conference.conference-dashboard', compact('conference', 'submissionCount', 'workshopRegistrationCount', 'pendingPresentationTypeRequests'));
     }
 }

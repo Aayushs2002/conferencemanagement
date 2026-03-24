@@ -810,32 +810,56 @@ class SubmissionController extends Controller
 
     public function convertPresentationType(Request $request, $society, $conference, $id)
     {
-        $submission = Submission::whereId($id)->first();
+        $submission = Submission::with('submissionCategoryMajorTrack', 'presenter')->whereId($id)->first();
 
+        if (!$submission) {
+            return redirect()->back()->with('delete', 'Submission not found.');
+        }
+
+        // If no confirmation parameter, show the presentation change page
+        if ($request->input('confirmation') === null) {
+            return view('backend.participant.submission.presentation-type-change', compact('submission', 'conference', 'society'));
+        }
+
+        // Determine the new presentation type after confirmation
         if ($submission->presentation_type == 2) {
             $newValue = 1;
         } else {
             $newValue = 2;
         }
 
+        // Process confirmation response
         if ($request->input('confirmation') == 'yes') {
             $presentation_type_change = 1;
-        }
-        if ($request->input('confirmation') == 'no') {
+            $message = 'Presentation type changed to ' . ($newValue == 1 ? 'Poster' : 'Oral') . ' successfully.';
+        } elseif ($request->input('confirmation') == 'no') {
             $presentation_type_change = 2;
+            $message = 'Presentation type change request declined.';
+        } else {
+            return redirect()->back()->with('delete', 'Invalid confirmation value.');
         }
-        $submission->update(
-            [
+
+        DB::beginTransaction();
+        try {
+            $submission->update([
                 'presentation_type_change' => $presentation_type_change,
                 'presentation_type' => $newValue
-            ]
-        );
+            ]);
 
-        if ($request->input('confirmation') == 'yes') {
-            return redirect()->back()->with('status', 'Presentation type changed successfully.');
-        }
-        if ($request->input('confirmation') == 'no') {
-            return redirect()->back()->with('delete', 'Presentation type changed Rejected.');
+            // Log activity
+            logActivity(
+                $conference->id,
+                'Presentation Type Response',
+                $submission->title . ' - Author ' . ($presentation_type_change == 1 ? 'accepted' : 'rejected') . 
+                ' change from ' . ($submission->presentation_type == 1 ? 'Poster' : 'Oral') . ' to ' . 
+                ($newValue == 1 ? 'Poster' : 'Oral')
+            );
+
+            DB::commit();
+            return redirect()->route('my-society.conference.submission.index', [$society, $conference])->with('status', $message);
+        } catch (Exception $e) {
+            DB::rollBack();
+            return redirect()->back()->with('delete', 'Something went wrong: ' . $e->getMessage());
         }
     }
 
