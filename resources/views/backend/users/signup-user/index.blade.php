@@ -417,7 +417,7 @@
                 });
             });
 
-            $(".resetPassword").click(function(e) {
+            $(document).on("click", ".resetPassword", function(e) {
                 e.preventDefault();
                 Swal.fire({
                     title: "Are you sure to reset password of this member?",

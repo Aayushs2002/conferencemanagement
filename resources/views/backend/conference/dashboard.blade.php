@@ -842,6 +842,89 @@
             </div>
             @endif
 
+            <!-- Presentation Type Change Requests Widget -->
+            @if(isset($pendingPresentationTypeRequests) && count($pendingPresentationTypeRequests) > 0)
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="card border-0 shadow-sm" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); overflow: hidden; position: relative;">
+                        <!-- Decorative Elements -->
+                        <div style="position: absolute; top: -50px; right: -50px; width: 200px; height: 200px; background: rgba(255, 255, 255, 0.1); border-radius: 50%;"></div>
+                        <div style="position: absolute; bottom: -30px; left: -30px; width: 150px; height: 150px; background: rgba(255, 255, 255, 0.1); border-radius: 50%;"></div>
+
+                        <div class="card-body p-4 position-relative" style="z-index: 2;">
+                            <div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-3">
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="bg-white bg-opacity-20 rounded-circle p-3">
+                                        <i class="icon-base ti tabler-alert-triangle  fs-3"></i>
+                                    </div>
+                                    <div>
+                                        <h4 class="text-white fw-bold mb-1">
+                                            <i class="icon-base ti tabler-notification me-2"></i>Presentation Type Change Requests
+                                        </h4>
+                                        <p class="text-white mb-0 opacity-90">
+                                            <i class="icon-base ti tabler-clock me-1"></i>
+                                            You have {{ count($pendingPresentationTypeRequests) }} pending {{ Str::plural('request', count($pendingPresentationTypeRequests)) }} requiring your attention
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="badge bg-white text-danger rounded-pill px-4 py-2 fs-6 fw-bold">
+                                    {{ count($pendingPresentationTypeRequests) }} Action{{ count($pendingPresentationTypeRequests) > 1 ? 's' : '' }} Needed
+                                </div>
+                            </div>
+
+                            <!-- Pending Requests List -->
+                            <div class="row g-3">
+                                @foreach($pendingPresentationTypeRequests as $request)
+                                <div class="col-lg-6">
+                                    <div class="card border-0 h-100 shadow-sm hover-lift" style="transition: all 0.3s ease;">
+                                        <div class="card-body p-4">
+                                            <div class="d-flex align-items-start justify-content-between mb-3">
+                                                <div>
+                                                    <h6 class="fw-bold text-dark mb-1 text-truncate" title="{{ $request->title }}">
+                                                        {{ Str::limit($request->title, 50) }}
+                                                    </h6>
+                                                    <p class="text-muted small mb-2">
+                                                        <i class="icon-base ti tabler-arrows-exchange me-1"></i>
+                                                        {{ $request->presentation_type == 1 ? 'Poster' : 'Oral' }} → 
+                                                        {{ $request->presentation_type == 1 ? 'Oral' : 'Poster' }}
+                                                    </p>
+                                                </div>
+                                                <span class="badge bg-danger bg-opacity-10 text-danger rounded-pill px-3 py-2">
+                                                    <i class="icon-base ti tabler-hourglass-high me-1"></i>Pending
+                                                </span>
+                                            </div>
+
+                                            <div class="d-flex align-items-center gap-2 mb-3">
+                                                <small class="text-muted">
+                                                    <i class="icon-base ti tabler-calendar me-1"></i>
+                                                    Submitted: {{ \Carbon\Carbon::parse($request->submitted_date)->format('M d, Y') }}
+                                                </small>
+                                            </div>
+
+                                            <div class="d-grid gap-2">
+                                                <a href="{{ route('my-society.conference.submission.convertPresentationType', [$society, $conference, $request->id]) }}" 
+                                                   class="btn btn-primary btn-sm rounded-pill fw-semibold">
+                                                    <i class="icon-base ti tabler-check me-1"></i>Review & Respond
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                @endforeach
+                            </div>
+
+                            <div class="mt-4 pt-3 border-top border-white border-opacity-20">
+                                <p class="text-white opacity-90 small mb-0">
+                                    <i class="icon-base ti tabler-info-circle me-1"></i>
+                                    Please respond to these requests within 24 hours. Your timely response helps conference organizers with planning.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            @endif
+
             <!-- Activity Overview Chart -->
             <div class="row g-4 mb-4">
                 <div class="col-lg-8">
@@ -1265,7 +1348,7 @@
     @endif
 @endsection
 
-@section('styles')
+@section('styles') 
     <style>
         .hover-shadow {
             transition: all 0.3s ease;

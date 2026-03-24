@@ -858,17 +858,33 @@ class SubmissionController extends Controller
             // Check for email template (Key 9 = Convert Oral to Poster)
             $template = EmailTemplate::where(['conference_id' => $submission->conference_id, 'key' => 9])->first();
 
+            // Generate response link
+            $responseLink = route('my-society.conference.submission.convertPresentationType', [$society, $conference, $submission->id]);
+            
+            // Determine formats
+            $currentFormat = $submission->presentation_type == 1 ? 'Poster' : 'Oral';
+            $requestedFormat = $submission->presentation_type == 1 ? 'Oral' : 'Poster';
+            
             if ($template) {
                 // Use email template if exists
                 $data = [
                     'submission_topic' => $submission->title,
+                    'response_link' => $responseLink,
+                    'current_format' => $currentFormat,
+                    'requested_format' => $requestedFormat,
                 ];
                 $subject = parseTemplate($template->subject, $data);
                 $body = parseTemplate($template->body, $data);
+                $mailData['response_link'] = $responseLink;
+                $mailData['current_format'] = $currentFormat;
+                $mailData['requested_format'] = $requestedFormat;
 
                 Mail::to($submission->presenter->email)->send(new ConvertPresentationTypeMail($mailData, $conference->conference_name, $subject, $body));
             } else {
                 // Fallback to existing hardcoded email
+                $mailData['response_link'] = $responseLink;
+                $mailData['current_format'] = $currentFormat;
+                $mailData['requested_format'] = $requestedFormat;
                 Mail::to($submission->presenter->email)->send(new ConvertPresentationTypeMail($mailData, $conference->conference_name));
             }
 
