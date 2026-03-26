@@ -99,6 +99,18 @@
                         </option>
                     </select>
                 </div>
+                <div class="col-md-3 form-group mb-3">
+                    <label for="slide_uploaded" class="mb-2">Slide Upload</label>
+                    <select name="slide_uploaded" id="slide_uploaded" class="form-control @error('slide_uploaded') is-invalid @enderror">
+                        <option value="">-- All --</option>
+                        <option value="uploaded" {{ request()->slide_uploaded == 'uploaded' ? 'selected' : '' }}>
+                            Uploaded
+                        </option>
+                        <option value="not_uploaded" {{ request()->slide_uploaded == 'not_uploaded' ? 'selected' : '' }}>
+                            Not Uploaded
+                        </option>
+                    </select>
+                </div>
 
                 <input type="hidden" name="color_filter" id="color_filter" value="{{ request()->color_filter }}">
 

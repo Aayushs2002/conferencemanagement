@@ -20,6 +20,7 @@ use Exception;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Redis;
 
 class SubmissionController extends Controller
@@ -293,22 +294,36 @@ class SubmissionController extends Controller
 
     public function uploadSlide(Request $request, $society, $conference, Submission $submission)
     {
+        if ((int) $submission->conference_id !== (int) $conference->id) {
+            abort(404);
+        }
+
+        if ((int) $submission->user_id !== (int) current_user()->id) {
+            abort(403);
+        }
+
+        if (! ((int) $submission->presentation_type === 2 && (int) $submission->request_status === 1)) {
+            return redirect()->back()->with('delete', 'Slide upload is only available for accepted oral submissions.');
+        }
+
+        $request->validate(
+            [
+                'slide_file' => 'required|file|extensions:ppt,pptx,pdf|max:20480',
+            ],
+            [
+                'slide_file.required' => 'Please select a slide file to upload.',
+                'slide_file.file' => 'The selected file is invalid.',
+                'slide_file.extensions' => 'Only PPT, PPTX, and PDF files are allowed.',
+                'slide_file.max' => 'The slide file must not be greater than 20 MB.',
+                'slide_file.uploaded' => 'File upload failed. Please try a smaller file or check your internet connection.',
+            ]
+        );
+
         try {
-            if ((int) $submission->conference_id !== (int) $conference->id) {
-                abort(404);
+            $slideFileInput = $request->file('slide_file');
+            if (! $slideFileInput || ! $slideFileInput->isValid()) {
+                return redirect()->back()->withInput()->with('delete', 'The uploaded slide file is corrupted or incomplete. Please upload again.');
             }
-
-            if ((int) $submission->user_id !== (int) current_user()->id) {
-                abort(403);
-            }
-
-            if (! ((int) $submission->presentation_type === 2 && (int) $submission->request_status === 1)) {
-                return redirect()->back()->with('delete', 'Slide upload is only available for accepted oral submissions.');
-            }
-
-            $request->validate([
-                'slide_file' => 'required|file|mimes:ppt,pptx,pdf|max:20480',
-            ]);
 
             DB::beginTransaction();
 
@@ -316,7 +331,7 @@ class SubmissionController extends Controller
                 $this->file_service->deleteFile($submission->slide_file, 'participant/submission/slides');
             }
 
-            $slideFile = $this->file_service->fileUpload($request->file('slide_file'), 'slide', 'participant/submission/slides');
+            $slideFile = $this->file_service->fileUpload($slideFileInput, 'slide', 'participant/submission/slides');
             $submission->update([
                 'slide_file' => $slideFile,
             ]);
@@ -326,8 +341,14 @@ class SubmissionController extends Controller
             return redirect()->back()->with('status', 'Slide uploaded successfully.');
         } catch (\Throwable $th) {
             DB::rollBack();
+            Log::error('Slide upload failed', [
+                'submission_id' => $submission->id,
+                'conference_id' => $conference->id,
+                'user_id' => current_user()->id,
+                'error' => $th->getMessage(),
+            ]);
 
-            return redirect()->back()->with('delete', 'Unable to upload slide at the moment. Please try again.');
+            return redirect()->back()->withInput()->with('delete', 'Unable to process this file. Please upload a valid PDF/PPT/PPTX (max 20MB).');
         }
     }
 
