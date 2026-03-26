@@ -300,7 +300,8 @@
                                @if ($submission->presentation_type == 2 && $submission->request_status === 1)
                                    <div class="slide-panel">
                                        <div class="d-flex justify-content-between align-items-center mb-2">
-                                           <span class="slide-title"><i class="icon-base ti tabler-presentation me-1"></i>Oral Slides</span>
+                                           <span class="slide-title"><i
+                                                   class="icon-base ti tabler-presentation me-1"></i>Oral Slides</span>
                                            @if ($submission->slide_file)
                                                <span class="badge bg-success">Uploaded</span>
                                            @else
@@ -309,15 +310,22 @@
                                        </div>
 
                                        <div class="d-flex flex-wrap gap-1">
-                                           <form action="{{ route('my-society.conference.submission.uploadSlide', [$society, $conference, $submission]) }}"
-                                               method="POST" enctype="multipart/form-data" class="d-inline-block slide-upload-form">
+                                           <form
+                                               action="{{ route('my-society.conference.submission.uploadSlide', [$society, $conference, $submission]) }}"
+                                               method="POST" enctype="multipart/form-data"
+                                               class="d-inline-block slide-upload-form">
                                                @csrf
                                                <input type="file" name="slide_file" class="d-none slideFileInput"
-                                                   id="slideFileInput{{ $submission->id }}" accept=".ppt,.pptx,.pdf" required>
-                                               <label for="slideFileInput{{ $submission->id }}" class="btn btn-sm btn-primary mb-0">
+                                                   id="slideFileInput{{ $submission->id }}" accept=".ppt,.pptx,.pdf"
+                                                   required>
+                                               <label for="slideFileInput{{ $submission->id }}"
+                                                   class="btn btn-sm btn-primary mb-0">
                                                    <i class="icon-base ti tabler-upload icon-xs me-1"></i>
                                                    {{ $submission->slide_file ? 'Replace' : 'Upload' }}
                                                </label>
+                                               @error('slide_file')
+                                                   <p class="text-danger">{{ $message }}</p>
+                                               @enderror
                                            </form>
 
                                            @if ($submission->slide_file)
@@ -332,7 +340,8 @@
                                            @endif
                                        </div>
 
-                                       <div class="slide-meta mt-2">Accepted Oral only | PPT, PPTX, PDF | Max 20MB</div>
+                                       <div class="slide-meta mt-2">Accepted Oral only | PPT, PPTX, PDF | Max 20MB
+                                       </div>
                                    </div>
                                @else
                                    <span class="badge bg-label-secondary">Not Available</span>
@@ -354,16 +363,21 @@
                                            data-bs-toggle="modal" data-bs-target="#pricingModal"><i
                                                class="icon-base ti tabler-eye me-1"></i>
                                            View</a>
-                                       
+
                                        @if ($submission->presentation_type == 2 && $submission->request_status === 1)
                                            <hr class="my-1">
-                                           <small class="dropdown-item-text" style="font-size: 11px; color: #6b7280;">ORAL SLIDES</small>
-                                           <form action="{{ route('my-society.conference.submission.uploadSlide', [$society, $conference, $submission]) }}"
-                                               method="POST" enctype="multipart/form-data" class="slide-upload-form">
+                                           <small class="dropdown-item-text"
+                                               style="font-size: 11px; color: #6b7280;">ORAL SLIDES</small>
+                                           <form
+                                               action="{{ route('my-society.conference.submission.uploadSlide', [$society, $conference, $submission]) }}"
+                                               method="POST" enctype="multipart/form-data"
+                                               class="slide-upload-form">
                                                @csrf
                                                <input type="file" name="slide_file" class="d-none slideFileInput"
-                                                   id="slideFileInput{{ $submission->id }}" accept=".ppt,.pptx,.pdf" required>
-                                               <label for="slideFileInput{{ $submission->id }}" class="dropdown-item" style="cursor: pointer;">
+                                                   id="slideFileInput{{ $submission->id }}" accept=".ppt,.pptx,.pdf"
+                                                   required>
+                                               <label for="slideFileInput{{ $submission->id }}" class="dropdown-item"
+                                                   style="cursor: pointer;">
                                                    <i class="icon-base ti tabler-upload icon-xs me-1"></i>
                                                    {{ $submission->slide_file ? 'Replace Slides' : 'Upload Slides' }}
                                                </label>
@@ -375,7 +389,8 @@
                                                </a>
                                                <a href="{{ asset('storage/participant/submission/slides/' . $submission->slide_file) }}"
                                                    download class="dropdown-item">
-                                                   <i class="icon-base ti tabler-download icon-xs me-1"></i>Download Slides
+                                                   <i class="icon-base ti tabler-download icon-xs me-1"></i>Download
+                                                   Slides
                                                </a>
                                            @endif
                                        @endif

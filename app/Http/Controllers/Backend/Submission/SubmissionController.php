@@ -99,6 +99,17 @@ class SubmissionController extends Controller
             }
         }
 
+        // Filter by slide upload status
+        if ($request->filled('slide_uploaded')) {
+            if ($request->slide_uploaded === 'uploaded') {
+                $query->whereNotNull('slide_file')->where('slide_file', '!=', '');
+            } elseif ($request->slide_uploaded === 'not_uploaded') {
+                $query->where(function ($q) {
+                    $q->whereNull('slide_file')->orWhere('slide_file', '');
+                });
+            }
+        }
+
         $submissions = $query->latest()->get();
 
         // Track duplicate submissions by user
