@@ -27,7 +27,7 @@
                             Special Guest
                         </option>
                         <option {{ request()->registrant_type == 5 ? 'selected' : '' }} value="5">
-                            Organizer
+                            Organizer 
                         </option>
                         <option {{ request()->registrant_type == 6 ? 'selected' : '' }} value="6">
                             Faculty

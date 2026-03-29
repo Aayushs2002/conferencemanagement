@@ -258,7 +258,7 @@ class PaymentContoller extends Controller
                         } elseif (isset($responseData['image'])) {
                             $qrData = $responseData['image'];
                         } elseif (isset($responseData['data'])) {
-                            $qrData = $responseData['data'];
+                            $qrData = $responseData['data']; 
                         } elseif (isset($responseData['qrCode'])) {
                             $qrData = $responseData['qrCode'];
                         } elseif (isset($responseData['qr_code'])) {

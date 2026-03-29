@@ -192,7 +192,7 @@
                 <td style="width:150px;"><strong>Receipt No:</strong> {{ $data['transactionId'] }}</td>
                 <td style="text-align:center;">
                     <div class="title">
-                        <h2>Payment Receipt</h2>
+                        <h2>{{ !empty($data['is_unpaid']) ? 'Payment Voucher' : 'Payment Receipt' }}</h2>
                     </div>
                 </td>
                 <td style="width:180px; text-align:right;"><strong>Date:</strong> {{ $data['date'] }}</td>
@@ -205,6 +205,11 @@
                 <td><strong>Received From:</strong> {{ $data['namePrefix'] }} {{ $data['name'] }}</td>
                 <td class="right"><strong>Payment Method:</strong> {{ $data['paymentType'] }}</td>
             </tr>
+            @if (!empty($data['is_unpaid']))
+                <tr>
+                    <td colspan="2"><strong>Payment Status:</strong> Unpaid</td>
+                </tr>
+            @endif
             <tr>
                 <td colspan="2"><strong>Purpose:</strong> {{ $data['conference_name'] }}</td>
             </tr>
@@ -317,10 +322,19 @@
                         <td>{{ $currencySymbol }}{{ $isINR ? number_format($data['serviceCharge'] * $conversionRate, 2) : $data['serviceCharge'] }}</td>
                     </tr>
                 @endif
-                <tr>
-                    <td>Total Amount</td>
-                    <td><b class="total">{{ $currencySymbol }}{{ $isINR ? number_format($displayAmount, 2) : $data['amount'] }}</b></td>
-                </tr>
+                @if (!empty($data['is_unpaid']))
+                    <tr>
+                        <td>{{ ($data['due_or_credit_amount'] ?? 0) >= 0 ? 'Due Amount' : 'Credit Amount' }}</td>
+                        <td>
+                            <b class="total">{{ $currencySymbol }}{{ number_format(abs((float) ($data['due_or_credit_amount'] ?? $data['amount'] ?? 0)), 2) }}</b>
+                        </td>
+                    </tr>
+                @else
+                    <tr>
+                        <td>Total Amount</td>
+                        <td><b class="total">{{ $currencySymbol }}{{ $isINR ? number_format($displayAmount, 2) : $data['amount'] }}</b></td>
+                    </tr>
+                @endif
                 <tr>
                     <td colspan="2" class="in-words">
                         <b>In words:</b> {{ $data['amountInWord'] }}/-

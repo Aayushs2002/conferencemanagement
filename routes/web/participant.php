@@ -28,7 +28,9 @@ Route::middleware('auth')->group(function () {
     Route::controller(ConferenceRegistrationController::class)->prefix('/my-society/{society}/conference/{conference}')->name('my-society.conference.')->group(function () {
         Route::get('/conference-registration', 'index')->name('index');
         Route::get('/conference-registration/create', 'create')->name('create');
+        Route::get('/conference-registration/{registration}/pay-now', 'payNow')->name('payNow');
         Route::post('/conference-registration/store', 'store')->name('store');
+        Route::post('/conference-registration/{registration}/pay-now/offline', 'submitOutstandingOffline')->name('submitOutstandingOffline');
         Route::post('/check-submission', 'checkSubmission')->name('checkSubmission');
         Route::post('/online-payment-submit', 'onlinePaymentSubmit')->name('submit');
         Route::patch('/update-conference-registation', 'updateRegistration')->name('updateRegistration');

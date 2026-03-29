@@ -106,15 +106,20 @@
                                <td>{{ $registration->conference->conference_theme }}</td>
                                <td>{{ $registration->registrant_type == 1 ? 'Attendee' : 'Speaker' }}</td>
                                <td>
-                                   @if (!empty($registration->amount))
-                                       {{ $registration->payment_type == 5 ? '$ ' : 'Rs.' }}{{ $registration->amount }}
+                                   @if ((int) $registration->payment_type === 9)
+                                       <span class="badge bg-danger">Unpaid</span>
+                                       <div class="small mt-1">
+                                           Due: {{ $registration->payment_currency === 'INR' ? 'INR ' : ($registration->user->userDetail->country_id != 125 ? '$ ' : 'Rs.') }}{{ number_format((float) $registration->amount, 2) }}
+                                       </div>
+                                   @elseif (!empty($registration->amount))
+                                       {{ $registration->user->userDetail->country_id != 125 ? '$ ' : 'Rs.' }}{{ $registration->amount }}
                                    @elseif (!empty($registration->payment_voucher))
                                        @php
-                                           $explodeFileName = explode('.', $registration->payment_voucher);
+                                           $explodeFileName = explode('.', $registration->payment_voucher); 
                                        @endphp
                                        @if ($explodeFileName[1] == 'pdf')
                                            <a href="{{ asset('storage/conference/registration/payment-voucher/' . $registration->payment_voucher) }}"
-                                               target="_blank"><img src="{{ asset('default-images/pdf.png') }}"
+                                               target="_blank"><img src="{{ asset('default-image/pdf.png') }}"
                                                    alt="voucher" height="50" width="40"></a>
                                        @else
                                            <a href="{{ asset('storage/conference/registration/payment-voucher/' . $registration->payment_voucher) }}"
@@ -138,26 +143,14 @@
                                </td>
                                <td>{{ $registration->total_attendee }}</td>
                                <td>
-                                   @if ($registration)
-                                       {{-- @if ($registration->attendances->where('status', 1)->count() == 2) --}}
-                                       {{-- <a href="" target="_blank" class="btn btn-primary btn-sm mb-1"><i
-                                               class="nav-icon i-File"></i> Generate Certificate</a> --}}
+                                   @if ((int) $registration->payment_type === 9)
+                                       <a href="{{ route('my-society.conference.payNow', [$society, $conference, $registration]) }}" class="btn btn-sm btn-primary">
+                                           Pay Now
+                                       </a>
                                    @elseif ($registration->verified_status == 1)
-                                       <span class="badge bg-success">Verified</span>
+                                       <span class="badge bg-success">Paid</span>
                                    @else
-                                       <form action="" method="POST">
-                                           @method('delete')
-                                           @csrf
-                                           @if (!empty($registration->payment_voucher))
-                                               @if ($registration->payment_voucher != 'Fone-Pay')
-                                                   <a href="" class="btn btn-sm btn-success" title="Edit Data"><i
-                                                           class="nav-icon i-Pen-2"></i></a>
-                                               @endif
-                                           @else
-                                               Paid Online
-                                           @endif
-                                           {{-- <button title="Delete Data" class="btn btn-sm btn-danger delete" type="submit"><i class="nav-icon i-Close-Window"></i></button> --}}
-                                       </form>
+                                       <span class="badge bg-warning">Pending Verification</span>
                                    @endif
                                </td>
                            </tr>

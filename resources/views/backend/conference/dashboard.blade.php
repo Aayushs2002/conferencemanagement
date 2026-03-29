@@ -665,6 +665,47 @@
                                 <h5 class="fw-bold text-success mb-0">
                                     <i class="icon-base ti tabler-circle-check me-1"></i>Confirmed
                                 </h5>
+                                <div class="mt-3 p-3 rounded-3 border" style="background: #f8fafc;">
+                                    @php
+                                        $currencyCode = $registrationFinancialSummary['currency'] ?? 'USD';
+                                        $currencySymbol = $currencyCode === 'INR' ? 'INR' : '$';
+                                        $baseAmount = (float) ($registrationFinancialSummary['base_amount'] ?? 0);
+                                        $addonAmount = (float) ($registrationFinancialSummary['addon_amount'] ?? 0);
+                                        $accompanyAmount = (float) ($registrationFinancialSummary['accompany_amount'] ?? 0);
+                                        $hasBreakdownRows = $baseAmount > 0 || $addonAmount > 0 || $accompanyAmount > 0;
+                                    @endphp
+                                    @if($baseAmount > 0)
+                                        <div class="d-flex justify-content-between small mb-1">
+                                            <span class="text-muted">Base Amount</span>
+                                            <span class="fw-semibold">{{ $currencySymbol }} {{ number_format($baseAmount, 2) }}</span>
+                                        </div>
+                                    @endif
+                                    @if($addonAmount > 0)
+                                        <div class="d-flex justify-content-between small mb-1">
+                                            <span class="text-muted">Add-ons</span>
+                                            <span class="fw-semibold">{{ $currencySymbol }} {{ number_format($addonAmount, 2) }}</span>
+                                        </div>
+                                    @endif
+                                    @if($accompanyAmount > 0)
+                                        <div class="d-flex justify-content-between small mb-1">
+                                            <span class="text-muted">Accompanying</span>
+                                            <span class="fw-semibold">{{ $currencySymbol }} {{ number_format($accompanyAmount, 2) }}</span>
+                                        </div>
+                                    @endif
+                                    @if($hasBreakdownRows)
+                                        <hr class="my-2">
+                                    @endif
+                                    <div class="d-flex justify-content-between small">
+                                        <span class="fw-semibold">Total Paid</span>
+                                        <span class="fw-bold text-success">{{ $currencySymbol }} {{ number_format($registrationFinancialSummary['total_amount'] ?? 0, 2) }}</span>
+                                    </div>
+                                </div>
+                                @if(!empty($userRegistration?->amount))
+                                    <a href="{{ route('conference.downloadMyPaymentVoucher', [$society, $conference]) }}"
+                                       class="btn btn-sm btn-outline-primary rounded-pill mt-3 px-3">
+                                        <i class="icon-base ti tabler-download me-1"></i>Download Payment Voucher
+                                    </a>
+                                @endif
                             @else
                                 <h5 class="fw-bold text-warning mb-0">Not Registered</h5>
                                 <a href="{{ route('my-society.conference.create', [$society, $conference]) }}" 
@@ -906,7 +947,7 @@
                                                    class="btn btn-primary btn-sm rounded-pill fw-semibold">
                                                     <i class="icon-base ti tabler-check me-1"></i>Review & Respond
                                                 </a>
-                                            </div>
+                                            </div> 
                                         </div>
                                     </div>
                                 </div>
@@ -1124,24 +1165,43 @@
                         </div>
                         <div class="card-body p-4">
                             @if($submissionCount > 0)
-                                <div class="alert alert-success border-0 bg-success bg-opacity-10 mb-3">
-                                    <div class="d-flex align-items-center">
-                                        <i class="icon-base ti tabler-circle-check text-success fs-4 me-3"></i>
-                                        <div>
-                                            <p class="fw-semibold mb-0">You have {{ $submissionCount }} active {{ Str::plural('submission', $submissionCount) }}</p>
-                                            <small class="text-muted">Keep track of your submission status through the dashboard</small>
+                                <div class="alert border-0" style="background: #f8fafc;">
+                                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                                        <div class="small">
+                                            <span class="badge bg-label-primary me-1">Pending: {{ $requestStatusSummary['pending'] ?? 0 }}</span>
+                                            <span class="badge bg-label-success me-1">Accepted: {{ $requestStatusSummary['accepted'] ?? 0 }}</span>
+                                            <span class="badge bg-label-warning me-1">Correction: {{ $requestStatusSummary['correction'] ?? 0 }}</span>
+                                            <span class="badge bg-label-danger">Rejected: {{ $requestStatusSummary['rejected'] ?? 0 }}</span>
                                         </div>
+                                        <a href="{{ route('my-society.conference.submission.index', [$society, $conference]) }}" class="btn btn-sm btn-outline-primary rounded-pill">
+                                            <i class="icon-base ti tabler-list-details me-1"></i>View All
+                                        </a>
                                     </div>
                                 </div>
-                                <div class="d-flex justify-content-center align-items-center" style="height: 150px;">
-                                    <div class="text-center">
-                                        <div class="bg-success bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" 
-                                             style="width: 80px; height: 80px;">
-                                            <i class="icon-base ti tabler-file-check text-success" style="font-size: 2.5rem;"></i>
+                                <div class="list-group list-group-flush">
+                                    @foreach($recentSubmissionStatuses as $submission)
+                                        @php
+                                            $requestStatusLabel = match((int) $submission->request_status) {
+                                                1 => 'Accepted',
+                                                2 => 'Correction',
+                                                3 => 'Rejected',
+                                                default => 'Pending'
+                                            };
+                                            $requestStatusClass = match((int) $submission->request_status) {
+                                                1 => 'bg-label-success',
+                                                2 => 'bg-label-warning',
+                                                3 => 'bg-label-danger',
+                                                default => 'bg-label-primary'
+                                            };
+                                        @endphp
+                                        <div class="list-group-item border-0 px-0 py-2 d-flex justify-content-between align-items-center">
+                                            <div class="me-2">
+                                                <h6 class="mb-0 fw-semibold">{{ Str::limit($submission->title, 40) }}</h6>
+                                                <small class="text-muted">{{ $submission->submitted_date ? \Carbon\Carbon::parse($submission->submitted_date)->format('M d, Y') : 'Submission date unavailable' }}</small>
+                                            </div>
+                                            <span class="badge {{ $requestStatusClass }} rounded-pill">{{ $requestStatusLabel }}</span>
                                         </div>
-                                        <h2 class="fw-bold text-success mb-2">{{ $submissionCount }}</h2>
-                                        <p class="text-muted mb-0">Active {{ Str::plural('Submission', $submissionCount) }}</p>
-                                    </div>
+                                    @endforeach
                                 </div>
                             @else
                                 <div class="text-center py-5">

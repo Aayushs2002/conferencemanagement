@@ -36,6 +36,14 @@
                 <strong>Note:</strong> You must accept this invitation before you can access conference features and
                 submit accommodation details if you are an international participant.<br>
             @endif
+            @if (!empty($data['is_unpaid']))
+                <br>
+                <strong>Your registration is currently marked as Unpaid.</strong><br>
+                <strong>{{ ($data['due_or_credit_amount'] ?? 0) >= 0 ? 'Due Amount' : 'Credit Amount' }}:</strong>
+                {{ ($data['country'] ?? 0) == 125 ? 'Rs.' : '$' }}{{ number_format(abs((float) ($data['due_or_credit_amount'] ?? 0)), 2) }}<br>
+                <strong>Payment Link:</strong>
+                <a href="{{ $data['payment_link'] ?? config('app.url') }}" target="_blank">Pay Now</a><br>
+            @endif
             Thank you.
         </p>
     </div>
