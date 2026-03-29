@@ -58,6 +58,7 @@ Route::middleware('auth')->group(function () {
     // conference open portal route
     Route::prefix('/society/{society}/conference/{conference}')->group(function () {
         Route::get('/dashboard', [ConferenceController::class, 'openConferencePortal'])->name('conference.openConferencePortal');
+        Route::get('/dashboard/download-payment-voucher', [ConferenceController::class, 'downloadMyPaymentVoucher'])->name('conference.downloadMyPaymentVoucher');
         Route::get('/dashboard/attendance-status', [ConferenceController::class, 'viewAttendanceStatus'])->name('conference.viewAttendanceStatus');
         Route::get('/dashboard/attendance-status/export', [ConferenceController::class, 'exportAttendanceStatus'])->name('conference.exportAttendanceStatus');
         Route::get('/dashboard/submissions-chart', [ConferenceController::class, 'submissionsChart'])->name('conference.submissionsChart');

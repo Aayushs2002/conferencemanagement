@@ -6,16 +6,20 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Conference\ConferenceRequest;
 use App\Models\Conference\Attendance;
 use App\Models\Conference\Conference;
+use App\Models\Conference\ConferenceMemberTypePrice;
 use App\Models\Conference\ConferenceOrganizer;
 use App\Models\Conference\ConferenceRegistration;
+use App\Models\Conference\ConferenceSetting;
 use App\Models\Conference\ConferenceVenueDetail;
 use App\Models\Conference\Submission;
+use App\Models\Conference\ConferenceRegistration_addon;
 use App\Models\Conference\SubmissionCategoryMajorTrack;
 use App\Models\User;
 use App\Models\User\Society;
 use App\Models\Workshop\Workshop;
 use App\Models\Workshop\WorkshopRegistration;
 use App\Services\File\FileService;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -374,6 +378,22 @@ class ConferenceController extends Controller
         $reviewAssignmentCount = Submission::where(['conference_id' => $conference->id, 'expert_id' => current_user()->id, 'status' => 1])->count();
         $submissionCategoryMajorTracks = SubmissionCategoryMajorTrack::where(['conference_id' => $conference->id, 'status' => 1])->get();
 
+        // Current user submission request status summary and recent submissions
+        $userSubmissions = Submission::where([
+            'conference_id' => $conference->id,
+            'user_id' => current_user()->id,
+            'status' => 1,
+        ])->latest('id')->get(['id', 'title', 'request_status', 'submitted_date']);
+
+        $requestStatusSummary = [
+            'pending' => $userSubmissions->where('request_status', 0)->count(),
+            'accepted' => $userSubmissions->where('request_status', 1)->count(),
+            'correction' => $userSubmissions->where('request_status', 2)->count(),
+            'rejected' => $userSubmissions->where('request_status', 3)->count(),
+        ];
+
+        $recentSubmissionStatuses = $userSubmissions->take(5);
+
         // Get current user's addon and accompanying person info (for participants)
         $userRegistration = ConferenceRegistration::where(['conference_id' => $conference->id, 'user_id' => current_user()->id, 'status' => 1])->first();
         $userAddons = [];
@@ -392,6 +412,37 @@ class ConferenceController extends Controller
                 ->where('conference_registration_id', $userRegistration->id)
                 ->where('status', 1)
                 ->get();
+        }
+
+        // Participant payment summary for dashboard quick voucher card
+        $registrationFinancialSummary = [
+            'base_amount' => 0,
+            'addon_amount' => collect($userAddons)->sum('amount'),
+            'accompany_amount' => 0,
+            'total_amount' => (float) ($userRegistration->amount ?? 0),
+            'currency' => $userRegistration?->payment_currency ?? 'USD',
+        ];
+
+        if ($userRegistration) {
+            $memberType = current_user()->societies->where('id', $conference->society_id)->first()?->pivot?->memberType;
+            $memberTypePrice = $memberType
+                ? ConferenceMemberTypePrice::where([
+                    'conference_id' => $conference->id,
+                    'member_type_id' => $memberType->id,
+                ])->first()
+                : null;
+
+            $guestCount = max(((int) $userRegistration->total_attendee) - 1, 0);
+            $registrationFinancialSummary['accompany_amount'] = $guestCount > 0
+                ? (float) ($guestCount * ($memberTypePrice?->guest_amount ?? 0))
+                : 0;
+
+            $registrationFinancialSummary['base_amount'] = max(
+                (float) $registrationFinancialSummary['total_amount']
+                - (float) $registrationFinancialSummary['addon_amount']
+                - (float) $registrationFinancialSummary['accompany_amount'],
+                0
+            );
         }
 
         // Check if user is eligible for conference certificate
@@ -449,7 +500,112 @@ class ConferenceController extends Controller
             'presentation_type_change' => 0  // 0 = sent to author, awaiting response
         ])->get();
 
-        return view('backend.conference.dashboard', compact('conferenceRegistrationCount', 'totalNationalRegistrants', 'totalInternationalRegistrants', 'mealCounts', 'conference', 'society', 'data', 'sponsorData', 'dates', 'workshops', 'workshopMealCounts', 'submissionCount', 'workshopRegistrationCount', 'submissionCategoryMajorTracks', 'addonStats', 'totalAddons', 'totalAccompanyingPersons', 'userAddons', 'userAccompanyingPersons', 'reviewAssignmentCount', 'canDownloadConferenceCertificate', 'userRegistration', 'eligibleWorkshopCertificates', 'pendingPresentationTypeRequests'));
+        return view('backend.conference.dashboard', compact('conferenceRegistrationCount', 'totalNationalRegistrants', 'totalInternationalRegistrants', 'mealCounts', 'conference', 'society', 'data', 'sponsorData', 'dates', 'workshops', 'workshopMealCounts', 'submissionCount', 'workshopRegistrationCount', 'submissionCategoryMajorTracks', 'addonStats', 'totalAddons', 'totalAccompanyingPersons', 'userAddons', 'userAccompanyingPersons', 'reviewAssignmentCount', 'canDownloadConferenceCertificate', 'userRegistration', 'eligibleWorkshopCertificates', 'pendingPresentationTypeRequests', 'requestStatusSummary', 'recentSubmissionStatuses', 'registrationFinancialSummary'));
+    }
+
+    public function downloadMyPaymentVoucher($society, $conference)
+    {
+        $conferenceRegistration = ConferenceRegistration::where([
+            'conference_id' => $conference->id,
+            'user_id' => current_user()->id,
+            'status' => 1,
+        ])->first();
+
+        if (! $conferenceRegistration) {
+            return redirect()->route('conference.openConferencePortal', [$society, $conference])
+                ->with('delete', 'No conference registration found to download voucher.');
+        }
+
+        $user = current_user();
+        $date = $conferenceRegistration->created_at?->format('F j, Y') ?? now()->format('F j, Y');
+        $conferenceSetting = ConferenceSetting::where('conference_id', $conference->id)->first();
+        $conferenceRegistrationAddons = ConferenceRegistration_addon::where('conference_registration_id', $conferenceRegistration->id)->get();
+        $workshopRegistraions = WorkshopRegistration::where([
+            'user_id' => $conferenceRegistration->user_id,
+            'transaction_id' => $conferenceRegistration->transaction_id,
+        ])->get();
+
+        $membetType = $user->societies->where('id', $conference->society_id)->first()?->pivot?->memberType;
+        $memberTypePrice = $membetType
+            ? ConferenceMemberTypePrice::where([
+                'conference_id' => $conference->id,
+                'member_type_id' => $membetType->id,
+            ])->first()
+            : null;
+
+        $conferenceAmount = '';
+        if (! empty($conference) && ! empty($memberTypePrice)) {
+            $createdAt = strtotime($conferenceRegistration->created_at);
+            $today = strtotime(date('Y-m-d'));
+
+            $earlyBirdDeadline = strtotime($conference->early_bird_registration_deadline);
+            $regularDeadline = strtotime($conference->regular_registration_deadline);
+
+            if ($earlyBirdDeadline >= $today && $earlyBirdDeadline >= $createdAt) {
+                $conferenceAmount = ! empty($memberTypePrice->early_bird_amount) ? $memberTypePrice->early_bird_amount : '';
+            } elseif ($regularDeadline >= $today && $regularDeadline >= $createdAt) {
+                $conferenceAmount = ! empty($memberTypePrice->regular_amount) ? $memberTypePrice->regular_amount : '';
+            }
+        }
+
+        $addonsData = [];
+        foreach ($conferenceRegistrationAddons as $addon) {
+            $addonsData[] = [
+                'name' => $addon->ConferenceAddon->addon_name,
+                'amount' => $addon->amount,
+            ];
+        }
+
+        $workshopData = [];
+        foreach ($workshopRegistraions as $workshop) {
+            $workshopData[] = [
+                'name' => $workshop->workshop->workshop_title,
+                'amount' => $workshop->amount,
+            ];
+        }
+
+        $serviceCharge = $user->userDetail->country_id != 125 ? $conferenceRegistration->amount * 0.035 : null;
+        $accompanyData = null;
+        if ($conferenceRegistration->total_attendee > 1) {
+            $accompanyData = [
+                'accompany_person' => $conferenceRegistration->total_attendee - 1,
+                'amount' => $memberTypePrice->guest_amount ?? 0,
+            ];
+        }
+
+        $societyOwner = $society->users->where('type', 2)->first();
+
+        $data = [
+            'conference_theme' => $conference->conference_theme,
+            'conference_name' => $conference->conference_name,
+            'name' => $user->fullName($user),
+            'namePrefix' => $user->userDetail->namePrefix->prefix ?? '',
+            'email' => $user->email,
+            'paymentType' => 'Online Payment',
+            'transactionId' => $conferenceRegistration->transaction_id,
+            'amount' => $conferenceRegistration->amount,
+            'amountInWord' => numberToWord($conferenceRegistration->amount),
+            'date' => $date,
+            'societyName' => $societyOwner?->f_name ?? '',
+            'societyLogo' => $society->logo,
+            'societyPhone' => $society->phone,
+            'societyEmail' => $societyOwner?->email ?? '',
+            'societyAddress' => $society->address,
+            'primaryColor' => $conference->primary_color,
+            'country' => $user->userDetail->country_id,
+            'signatureName' => $conferenceSetting?->name,
+            'signature' => $conferenceSetting?->signature,
+            'conferenceAmount' => $conferenceAmount,
+            'addons' => $addonsData,
+            'workshop' => $workshopData,
+            'accompany' => $accompanyData,
+            'serviceCharge' => $serviceCharge,
+        ];
+
+        $pdf = Pdf::loadView('emails.conference.payment-voucher', ['data' => $data])
+            ->setPaper('legal', 'portrait');
+
+        return $pdf->download('payment-voucher.pdf');
     }
 
     public function submissionsChart(Request $request, $society, $conference)

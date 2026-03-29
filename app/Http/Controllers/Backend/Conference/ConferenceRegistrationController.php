@@ -844,12 +844,17 @@ class ConferenceRegistrationController extends Controller
             $rules = [
                 'user_id' => 'required',
                 'registrant_type' => 'required',
-                'transaction_id' => 'required|unique:conference_registrations,transaction_id',
-                'amount' => 'required|integer',
+                'payment_status' => 'required|in:paid,unpaid',
+                'transaction_id' => 'nullable|unique:conference_registrations,transaction_id',
+                'amount' => 'required|numeric',
                 'meal_type' => 'required',
                 'additional_guests' => 'nullable|numeric',
                 'payment_voucher' => 'nullable|mimes:jpg,png,pdf|max:250',
             ];
+
+            if ($request->payment_status === 'paid') {
+                $rules['transaction_id'] = 'required|unique:conference_registrations,transaction_id';
+            }
 
             if ($request->registrant_type == 2) {
                 $rules['short_cv'] = 'required';
@@ -867,6 +872,10 @@ class ConferenceRegistrationController extends Controller
 
             $validated = $request->validate($rules, $message);
 
+            if ($validated['payment_status'] === 'unpaid' && empty($validated['transaction_id'])) {
+                $validated['transaction_id'] = 'UNPAID-'.now()->format('YmdHis').'-'.mt_rand(1000, 9999);
+            }
+
             // for values start
 
             if (empty($validated['additional_guests'])) {
@@ -876,8 +885,8 @@ class ConferenceRegistrationController extends Controller
             }
             $validated['conference_id'] = $conference->id;
             $validated['token'] = random_word(60);
-            $validated['verified_status'] = 1;
-            $validated['payment_type'] = 6;
+            $validated['verified_status'] = $validated['payment_status'] === 'paid' ? 1 : 0;
+            $validated['payment_type'] = $validated['payment_status'] === 'paid' ? 6 : 9;
             $date = \Carbon\Carbon::now()->format('F j, Y');
 
             if (! empty($validated['payment_voucher'])) {
@@ -896,10 +905,10 @@ class ConferenceRegistrationController extends Controller
                 'name' => $user->fullName($user),
                 'namePrefix' => $user->userDetail->namePrefix?->prefix,
                 'email' => $user->email,
-                'paymentType' => 'Online Payment',
+                'paymentType' => $validated['payment_status'] === 'paid' ? 'Online Payment' : 'Unpaid',
                 'transactionId' => $validated['transaction_id'],
                 'amount' => $validated['amount'],
-                'amountInWord' => numberToWord($validated['amount']),
+                'amountInWord' => numberToWord(abs((int) $validated['amount'])),
                 'date' => $date,
                 'societyName' => $society->users->where('type', 2)->first()->f_name,
                 'societyLogo' => $society->logo,
@@ -915,6 +924,9 @@ class ConferenceRegistrationController extends Controller
                 'workshop' => [],
                 'accompany' => null,
                 'serviceCharge' => null,
+                'is_unpaid' => $validated['payment_status'] === 'unpaid',
+                'due_or_credit_amount' => (float) $validated['amount'],
+                'payment_link' => route('my-society.conference.index', [$society, $conference]),
             ];
 
             Mail::to($user->email)->send(new ExceptionalRegistrationMail($mailData, $conference->conference_name));
@@ -1169,6 +1181,7 @@ class ConferenceRegistrationController extends Controller
                 'additional_guests' => 'nullable|numeric',
                 'country_id' => 'required',
                 'meal_type' => 'required',
+                'payment_status' => 'required|in:paid,unpaid',
                 'payment_voucher' => 'nullable|mimes:jpg,png,pdf|max:250',
                 'email' => 'required|email|unique:users,email',
             ];
@@ -1185,14 +1198,12 @@ class ConferenceRegistrationController extends Controller
                 $rules['other_department'] = 'required';
             }
 
-            if ($request->has('invited_guest')) {
-                $rules['council_number'] = 'nullable';
-                $rules['transaction_id'] = 'nullable|unique:conference_registrations,transaction_id';
-                $rules['amount'] = 'nullable';
-            } else {
-                $rules['council_number'] = 'nullable';
+            $rules['council_number'] = 'nullable';
+            $rules['amount'] = 'required|numeric';
+            $rules['transaction_id'] = 'nullable|unique:conference_registrations,transaction_id';
+
+            if ($request->payment_status === 'paid') {
                 $rules['transaction_id'] = 'required|unique:conference_registrations,transaction_id';
-                $rules['amount'] = 'required|numeric';
             }
 
             if ($request->registrant_type == 2) {
@@ -1210,6 +1221,10 @@ class ConferenceRegistrationController extends Controller
 
             $validated = $request->validate($rules, $message);
 
+            if ($validated['payment_status'] === 'unpaid' && empty($validated['transaction_id'])) {
+                $validated['transaction_id'] = 'UNPAID-'.now()->format('YmdHis').'-'.mt_rand(1000, 9999);
+            }
+
             // for values start
 
             $password = random_word(8);
@@ -1223,8 +1238,8 @@ class ConferenceRegistrationController extends Controller
             $invitationToken = bin2hex(random_bytes(32));
             $validated['conference_id'] = $conference->id;
             $validated['token'] = random_word(60);
-            $validated['verified_status'] = 1;
-            $validated['payment_type'] = 6;
+            $validated['verified_status'] = $validated['payment_status'] === 'paid' ? 1 : 0;
+            $validated['payment_type'] = $validated['payment_status'] === 'paid' ? 6 : 9;
             $validated['invitation_response_token'] = $invitationToken;
 
             $date = \Carbon\Carbon::now()->format('F j, Y');
@@ -1285,10 +1300,10 @@ class ConferenceRegistrationController extends Controller
                 'password' => $password,
                 'conference_theme' => $conference->conference_theme,
                 'conference_name' => $conference->conference_name,
-                'paymentType' => 'Online Payment',
+                'paymentType' => $validated['payment_status'] === 'paid' ? 'Online Payment' : 'Unpaid',
                 'transactionId' => $validated['transaction_id'],
                 'amount' => $validated['amount'],
-                'amountInWord' => numberToWord($validated['amount']),
+                'amountInWord' => numberToWord(abs((int) $validated['amount'])),
                 'date' => $date,
                 'societyName' => $society->users->where('type', 2)->first()->f_name,
                 'societyLogo' => $society->logo,
@@ -1308,6 +1323,9 @@ class ConferenceRegistrationController extends Controller
                 'is_invited' => $request->has('invited_guest') ? 1 : 0,
                 'invitation_token' => $invitationToken,
                 'invitation_url' => route('invitation.show', $invitationToken),
+                'is_unpaid' => $validated['payment_status'] === 'unpaid',
+                'due_or_credit_amount' => (float) $validated['amount'],
+                'payment_link' => route('my-society.conference.index', [$society, $conference]),
             ];
             Mail::to($validated['email'])->send(new RegistrationMail($data, $conference->conference_name));
 

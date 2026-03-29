@@ -32,7 +32,7 @@
                                 @endforeach
                             </select> 
                             @error('name_prefix_id')
-                                <p class="text-danger">{{ $message }}</p>
+                                <p class="text-danger">{{ $message }}</p> 
                             @enderror
                         </div>
                         <div class="col-md-4 form-group mb-3">
@@ -228,18 +228,29 @@
                             @enderror
                         </div>
 
-                        <div class="col-md-4 form-group mb-3 hideDiv">
+                        <div class="col-md-4 form-group mb-3 hideDiv paymentProofDiv">
                             <label for="payment_voucher">Payment Voucher <code>(Only JPG/PNG/PDF) (Max: 250
                                     KB)</code></label>
                             <input type="file" class="form-control @error('payment_voucher') is-invalid @enderror"
-                                name="payment_voucher" id="image2" />
+                                name="payment_voucher" id="payment_voucher" />
                             @error('payment_voucher')
                                 <p class="text-danger">{{ $message }}</p>
                             @enderror
                             <div class="row" id="imgPreview2"></div>
                         </div>
-                        <div class="col-md-4 form-group mb-3 hideDiv">
-                            <label for="amount">Amount <code>* (Only Numeric Value)</code></label>
+                        <div class="col-md-4 form-group mb-3">
+                            <label for="payment_status">Payment Status <code>*</code></label>
+                            <select name="payment_status" class="form-control" id="payment_status" required>
+                                <option value="" hidden>-- Select Payment Status --</option>
+                                <option value="paid" @selected(old('payment_status', old('invited_guest') ? 'unpaid' : 'paid') == 'paid')>Paid</option>
+                                <option value="unpaid" @selected(old('payment_status', old('invited_guest') ? 'unpaid' : 'paid') == 'unpaid')>Unpaid</option>
+                            </select>
+                            @error('payment_status')
+                                <p class="text-danger">{{ $message }}</p>
+                            @enderror
+                        </div>
+                        <div class="col-md-4 form-group mb-3">
+                            <label for="amount" id="amountLabel">Amount <code>* (Only Numeric Value)</code></label>
                             <input type="text" class="form-control @error('amount') is-invalid @enderror numericValue"
                                 name="amount" id="amount" value="{{ old('amount') }}" placeholder="Enter amount"
                                 required />
@@ -247,11 +258,11 @@
                                 <p class="text-danger">{{ $message }}</p>
                             @enderror
                         </div>
-                        <div class="col-md-4 form-group mb-3 hideDiv" id="hideDiv">
+                        <div class="col-md-4 form-group mb-3 hideDiv paymentTxnDiv" id="hideDiv">
                             <label for="transaction_id">Transaction ID/Bill No/Reference Code <code>*</code></label>
                             <input type="text" class="form-control @error('transaction_id') is-invalid @enderror"
                                 name="transaction_id" id="transaction_id" value="{{ old('transaction_id') }}"
-                                placeholder="Enter transaction id or bill number" required />
+                                placeholder="Enter transaction id or bill number"  />
                             @error('transaction_id')
                                 <p class="text-danger">{{ $message }}</p>
                             @enderror
@@ -366,20 +377,49 @@
             $("#invited_guest").change(function(e) {
                 e.preventDefault();
                 if ($(this).is(":checked")) {
-                    $('.hideDiv').attr('hidden', true)
-                    $('#transaction_id').attr('required', false)
-                    $('#amount').attr('required', false)
+                    $('#payment_status').val('unpaid').trigger('change');
                     $('#councilNumberRequired').text('')
                     $('.certificateRequired').attr('hidden', false)
                 } else {
-                    $('#transaction_id').attr('required', true)
-                    $('#amount').attr('required', true)
-                    $('.hideDiv').attr('hidden', false)
+                    if (!$('#payment_status').val()) {
+                        $('#payment_status').val('paid');
+                    }
+                    $('#payment_status').trigger('change');
                     $('#councilNumberRequired').text('*')
                     $('.certificateRequired').attr('hidden', true)
                 }
             });
             $("#invited_guest").trigger('change');
+
+            function togglePaymentFieldsByStatus() {
+                let paymentStatus = $('#payment_status').val() || 'paid';
+                if ($('#invited_guest').is(':checked') && paymentStatus === 'paid') {
+                    $('#payment_status').val('unpaid');
+                    paymentStatus = 'unpaid';
+                }
+                const isUnpaid = paymentStatus === 'unpaid';
+
+                if (isUnpaid) {
+                    $('.paymentProofDiv, .paymentTxnDiv').attr('hidden', true);
+                    $('#transaction_id').attr('required', false);
+                    $('#amount').attr('required', true);
+                    $('#amountLabel').html('Due/Credit Amount <code>* (Only Numeric Value)</code>');
+                    if (!$('#transaction_id').val()) {
+                        $('#transaction_id').val('UNPAID-' + Date.now());
+                    }
+                } else {
+                    $('.paymentProofDiv, .paymentTxnDiv').attr('hidden', false);
+                    $('#transaction_id').attr('required', !$('#invited_guest').is(':checked'));
+                    $('#amount').attr('required', true);
+                    $('#amountLabel').html('Amount <code>* (Only Numeric Value)</code>');
+                    if ($('#transaction_id').val() && $('#transaction_id').val().startsWith('UNPAID-')) {
+                        $('#transaction_id').val('');
+                    }
+                }
+            }
+
+            $('#payment_status').on('change', togglePaymentFieldsByStatus);
+            togglePaymentFieldsByStatus();
 
             $("#registrant_type").change(function(e) {
                 e.preventDefault();
@@ -584,6 +624,9 @@
 
             // Update on form submit
             $('#registrationForm').on('submit', function() {
+                if (($('#payment_status').val() || 'paid') === 'unpaid' && !$('#transaction_id').val()) {
+                    $('#transaction_id').val('UNPAID-' + Date.now());
+                }
                 updateSelectedAddons();
             });
 
@@ -595,6 +638,8 @@
                     (event.keyCode == 65 && event.ctrlKey === true) ||
                     // Allow home, end, left, right
                     (event.keyCode >= 35 && event.keyCode <= 39) ||
+                    // Allow minus keys for credit amount
+                    event.keyCode == 189 || event.keyCode == 109 ||
                     // Allow numbers from the main keyboard (0-9) and the numpad (96-105)
                     (event.keyCode >= 48 && event.keyCode <= 57) || (event.keyCode >= 96 && event.keyCode <=
                         105)) {

@@ -20,6 +20,7 @@ use Illuminate\Http\Request;
 use Mail;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\Rule;
 
 class ConferenceRegistrationController extends Controller
 {
@@ -109,6 +110,101 @@ class ConferenceRegistrationController extends Controller
         $addonAvailability = $conferenceSetting?->addon_availability ?? 'both';
 
         return view('backend.participant.conference-registration.create', compact('conference', 'amount', 'memberTypePrice', 'society', 'national_payemnt_setting', 'international_payemnt_setting', 'static_qr_payment_setting', 'international_bank_transfer', 'checkPayment', 'workshops', 'conferenceAddons', 'addonAvailability'));
+    }
+
+    public function payNow($society, $conference, $registration)
+    {
+        $registration = ConferenceRegistration::where([
+            'id' => $registration,
+            'user_id' => current_user()->id,
+            'conference_id' => $conference->id,
+            'status' => 1,
+        ])->firstOrFail();
+
+        if ($registration->payment_type != 9) {
+            return redirect()->route('my-society.conference.index', [$society, $conference])
+                ->with('delete', 'This registration does not have an outstanding payment.');
+        }
+
+        $national_payemnt_setting = NationalPayment::where('society_id', $conference->society_id)->first();
+        $international_payemnt_setting = InternationalPayment::with('countries')
+            ->where('society_id', $conference->society_id)
+            ->where('payment_type', 'himalayan_bank')
+            ->first();
+        $static_qr_payment_setting = InternationalPayment::with('countries')
+            ->where('society_id', $conference->society_id)
+            ->where('payment_type', 'static_qr')
+            ->first();
+        $international_bank_transfer = InternationalPayment::where('society_id', $conference->society_id)
+            ->where('payment_type', 'himalayan_bank')
+            ->first();
+
+        $memberType = current_user()->societies->where('id', $conference->society_id)->first()?->pivot?->memberType;
+        $memberTypePrice = $memberType
+            ? ConferenceMemberTypePrice::where(['conference_id' => $conference->id, 'member_type_id' => $memberType->id])->first()
+            : null;
+
+        return view('backend.participant.conference-registration.pay-now', compact(
+            'society',
+            'conference',
+            'registration',
+            'memberTypePrice',
+            'national_payemnt_setting',
+            'international_payemnt_setting',
+            'static_qr_payment_setting',
+            'international_bank_transfer'
+        ));
+    }
+
+    public function submitOutstandingOffline(Request $request, $society, $conference, $registration)
+    {
+        $registration = ConferenceRegistration::where([
+            'id' => $registration,
+            'user_id' => current_user()->id,
+            'conference_id' => $conference->id,
+            'status' => 1,
+        ])->firstOrFail();
+
+        if ($registration->payment_type != 9) {
+            return redirect()->route('my-society.conference.index', [$society, $conference])
+                ->with('delete', 'This registration does not have an outstanding payment.');
+        }
+
+        $validated = $request->validate([
+            'transaction_id' => 'required|unique:conference_registrations,transaction_id',
+            'payment_type' => 'required|in:6,8',
+            'amount' => 'required|numeric|min:0',
+            'payment_currency' => 'nullable|string|in:USD,INR',
+            'payment_voucher' => 'nullable|mimes:jpg,png,pdf',
+        ], [
+            'transaction_id.unique' => 'Transaction/Reference Id already exist.',
+        ]);
+
+        try {
+            DB::beginTransaction();
+
+            if (!empty($validated['payment_voucher'])) {
+                $validated['payment_voucher'] = $this->file_service->fileUpload($validated['payment_voucher'], 'payment_voucher', 'conference/payment-voucher');
+            }
+
+            $registration->update([
+                'transaction_id' => $validated['transaction_id'],
+                'amount' => $validated['amount'],
+                'payment_type' => (int) $validated['payment_type'],
+                'payment_currency' => $validated['payment_currency'] ?? 'USD',
+                'payment_voucher' => $validated['payment_voucher'] ?? $registration->payment_voucher,
+                'verified_status' => 0,
+            ]);
+
+            DB::commit();
+
+            return redirect()->route('my-society.conference.index', [$society, $conference])
+                ->with('status', 'Payment details submitted successfully. Verification is pending.');
+        } catch (Exception $e) {
+            DB::rollBack();
+
+            return redirect()->back()->with('delete', 'Unable to submit payment: '.$e->getMessage());
+        }
     }
 
     public function getWorkshopPricing(Request $request)
@@ -542,6 +638,24 @@ class ConferenceRegistrationController extends Controller
                 return redirect()->back()->with('delete', 'Registration deadline has ended.');
             }
 
+            $onlinePayment = session()->get('onlinePayment', []);
+            $outstandingRegistrationId = $request->registration_id_to_pay ?? ($onlinePayment['registration_id_to_pay'] ?? null);
+            $outstandingRegistration = null;
+
+            if (!empty($outstandingRegistrationId)) {
+                $outstandingRegistration = ConferenceRegistration::where([
+                    'id' => $outstandingRegistrationId,
+                    'user_id' => current_user()->id,
+                    'conference_id' => $conference->id,
+                    'status' => 1,
+                ])->first();
+
+                if (!$outstandingRegistration || (int) $outstandingRegistration->payment_type !== 9) {
+                    return redirect()->route('my-society.conference.index', [$society, $conference])
+                        ->with('delete', 'Outstanding registration was not found for payment.');
+                }
+            }
+
             $checkDuplicateRegistration = ConferenceRegistration::where([
                 'user_id'      => current_user()->id,
                 'conference_id' => $conference->id,
@@ -551,7 +665,7 @@ class ConferenceRegistrationController extends Controller
             $conferenceSetting = ConferenceSetting::where('conference_id', $conference->id)->first();
             $membetType = current_user()->societies->where('id', $conference->society_id)->first()?->pivot?->memberType;
             $memberTypePrice = ConferenceMemberTypePrice::where(['conference_id' => $conference->id, 'member_type_id' => $membetType->id])->first();
-            if (!empty($checkDuplicateRegistration)) {
+            if (!empty($checkDuplicateRegistration) && empty($outstandingRegistration)) {
                 return redirect()->back()->with('delete', 'Registration already done for current conference.');
             }
 
@@ -561,7 +675,10 @@ class ConferenceRegistrationController extends Controller
                 'registrant_type'  => 'required',
                 'amount'           => 'required',
                 'payment_type'     => 'required',
-                'transaction_id'   => 'required|unique:conference_registrations,transaction_id',
+                'transaction_id'   => [
+                    'required',
+                    Rule::unique('conference_registrations', 'transaction_id')->ignore($outstandingRegistration?->id),
+                ],
                 'payment_currency' => 'nullable|string|in:USD,INR'
             ];
 
@@ -571,15 +688,16 @@ class ConferenceRegistrationController extends Controller
             ];
 
             $validated = $request->validate($rules, $message);
-            $onlinePayment = session()->get('onlinePayment', []);
 
             // Authenticated user
             $authUser = current_user();
             $validated['user_id']         = $authUser->id;
             $validated['verified_status'] = 1;
             $validated['conference_id']   = $conference->id;
-            $validated['total_attendee']  = empty($request->accompany_person) ? 1 : $request->accompany_person + 1;
-            $validated['token']           = random_word(60);
+            $validated['total_attendee']  = empty($outstandingRegistration)
+                ? (empty($request->accompany_person) ? 1 : $request->accompany_person + 1)
+                : $outstandingRegistration->total_attendee;
+            $validated['token']           = empty($outstandingRegistration) ? random_word(60) : $outstandingRegistration->token;
 
             $paymentCurrency = strtoupper($onlinePayment['payment_currency'] ?? ($validated['payment_currency'] ?? 'USD'));
             if (!in_array($paymentCurrency, ['USD', 'INR'], true)) {
@@ -743,8 +861,19 @@ class ConferenceRegistrationController extends Controller
             
             DB::beginTransaction();
 
-            // Create Conference Registration record first
-            $conference_registration = ConferenceRegistration::create($validated);
+            if (!empty($outstandingRegistration)) {
+                $outstandingRegistration->update([
+                    'payment_type' => $validated['payment_type'],
+                    'payment_currency' => $validated['payment_currency'] ?? 'USD',
+                    'transaction_id' => $validated['transaction_id'],
+                    'amount' => $validated['amount'],
+                    'verified_status' => 1,
+                ]);
+                $conference_registration = $outstandingRegistration->fresh();
+            } else {
+                // Create Conference Registration record first
+                $conference_registration = ConferenceRegistration::create($validated);
+            }
             
             // Now use the actual created_at timestamp for the receipt
             $date = $conference_registration->created_at->format('F j, Y');
@@ -765,7 +894,7 @@ class ConferenceRegistrationController extends Controller
             $mail->send(new RegisteredByUserMail($mailData, $conference->conference_name));
 
             // Insert Addons
-            if (!empty($onlinePayment['selected_addons'])) {
+            if (empty($outstandingRegistration) && !empty($onlinePayment['selected_addons'])) {
                 $addons = explode(',', $onlinePayment['selected_addons']);
                 $insertData = [];
                 
@@ -816,7 +945,7 @@ class ConferenceRegistrationController extends Controller
 
                 DB::table('conference_registration_addons')->insert($insertData);
             }            // Create Workshop Registration
-            if (!empty($onlinePayment['selected_workshops'])) {
+            if (empty($outstandingRegistration) && !empty($onlinePayment['selected_workshops'])) {
                 $workshops = explode(',', $onlinePayment['selected_workshops']);
                 $insertWorkshopData = [];
                 foreach ($workshops as $workshopInfos) {
@@ -850,7 +979,9 @@ class ConferenceRegistrationController extends Controller
 
             return redirect()
                 ->route('my-society.conference.index', [$society, $conference])
-                ->with('status', 'Successfully registered to conference.');
+                ->with('status', empty($outstandingRegistration)
+                    ? 'Successfully registered to conference.'
+                    : 'Outstanding payment completed successfully.');
         } catch (Exception $e) {
             DB::rollBack();
             throw $e;

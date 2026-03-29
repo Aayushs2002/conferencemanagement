@@ -16,7 +16,19 @@
     <div>
         <p>I hope this message finds you well. We are delighted to confirm your registration for the conference
             {{ $data['conference_theme'] }}.</p>
-        <p>Thank you for joining us. We look forward to your participation and an engaging experience at the event.</p>
+        @if (!empty($data['is_unpaid']))
+            <p>Your registration has been marked as <strong>Unpaid</strong>.</p>
+            <p>
+                <strong>{{ ($data['due_or_credit_amount'] ?? 0) >= 0 ? 'Due Amount' : 'Credit Amount' }}:</strong>
+                {{ ($data['country'] ?? 0) == 125 ? 'Rs.' : '$' }}{{ number_format(abs((float) ($data['due_or_credit_amount'] ?? 0)), 2) }}
+            </p>
+            <p>
+                Please use the payment link below to complete your conference payment:
+                <a href="{{ $data['payment_link'] ?? config('app.url') }}" target="_blank">Pay Now</a>
+            </p>
+        @else
+            <p>Thank you for joining us. We look forward to your participation and an engaging experience at the event.</p>
+        @endif
     </div>
     <br>
     <div>

@@ -61,6 +61,7 @@
                                    <input type="hidden" name="registrant_type" value="{{ $onlinePayment['registrant_type'] ?? 1 }}">
                                    <input type="hidden" name="accompany_person" value="{{ $onlinePayment['accompany_person'] ?? 0 }}">
                                    <input type="hidden" name="payment_type" value="{{ $onlinePayment['payment_type'] ?? '' }}">
+                                   <input type="hidden" name="registration_id_to_pay" value="{{ $onlinePayment['registration_id_to_pay'] ?? '' }}">
                                    <div class="row">
                                        <h2 class="col-md-12"><code>Conference Registration Form:</code></h2>
                                        <div class="col-md-6 form-group mb-3">

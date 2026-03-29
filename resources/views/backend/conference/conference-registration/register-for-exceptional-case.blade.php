@@ -25,7 +25,7 @@
                                 @endforeach
                             </select>
                             <div class="valid-feedback">Looks good!</div>
-                            <div class="invalid-feedback">Please Select user.</div>
+                            <div class="invalid-feedback">Please Select user.</div> 
                             @error('user_id')
                                 <p class="text-danger">{{ $message }}</p>
                             @enderror
@@ -55,7 +55,20 @@
                             @enderror
                         </div>
                         <div class="col-md-4 form-group mb-3">
-                            <label for="amount">Amount <code>* (Only Numeric Value)</code></label>
+                            <label for="payment_status">Payment Status <code>*</code></label>
+                            <select name="payment_status" class="form-control" id="payment_status" required>
+                                <option value="" hidden>-- Select Payment Status --</option>
+                                <option value="paid" @selected(old('payment_status', 'paid') == 'paid')>Paid</option>
+                                <option value="unpaid" @selected(old('payment_status') == 'unpaid')>Unpaid</option>
+                            </select>
+                            <div class="valid-feedback">Looks good!</div>
+                            <div class="invalid-feedback">Please select payment status.</div>
+                            @error('payment_status')
+                                <p class="text-danger">{{ $message }}</p>
+                            @enderror
+                        </div>
+                        <div class="col-md-4 form-group mb-3">
+                            <label for="amount" id="amountLabel">Amount <code>* (Only Numeric Value)</code></label>
                             <input type="text" class="form-control @error('amount') is-invalid @enderror numericValue"
                                 name="amount" id="amount" value="{{ old('amount') }}" placeholder="Enter amount"
                                 required />
@@ -113,7 +126,7 @@
                             <label for="payment_voucher">Payment Voucher <code>(Only JPG/PNG/PDF) (Max: 250
                                     KB)</code></label>
                             <input type="file" class="form-control @error('payment_voucher') is-invalid @enderror"
-                                name="payment_voucher" id="image2" />
+                                name="payment_voucher" id="payment_voucher" />
                             @error('payment_voucher')
                                 <p class="text-danger">{{ $message }}</p>
                             @enderror
@@ -172,6 +185,8 @@
                     (event.keyCode == 65 && event.ctrlKey === true) ||
                     // Allow home, end, left, right
                     (event.keyCode >= 35 && event.keyCode <= 39) ||
+                    // Allow minus keys for credit amount
+                    event.keyCode == 189 || event.keyCode == 109 ||
                     // Allow numbers from the main keyboard (0-9) and the numpad (96-105)
                     (event.keyCode >= 48 && event.keyCode <= 57) || (event.keyCode >= 96 && event.keyCode <=
                         105)) {
@@ -191,6 +206,30 @@
                 }
             });
             $("#registrant_type").trigger("change");
+
+            function togglePaymentFieldsByStatus() {
+                const paymentStatus = $('#payment_status').val() || 'paid';
+                const isUnpaid = paymentStatus === 'unpaid';
+
+                if (isUnpaid) {
+                    $('#transaction_id').prop('required', false).closest('.form-group').attr('hidden', true);
+                    $('#payment_voucher').prop('required', false).closest('.form-group').attr('hidden', true);
+                    $('#amountLabel').html('Due/Credit Amount <code>* (Only Numeric Value)</code>');
+                    if (!$('#transaction_id').val()) {
+                        $('#transaction_id').val('UNPAID-' + Date.now());
+                    }
+                } else {
+                    $('#transaction_id').prop('required', true).closest('.form-group').attr('hidden', false);
+                    $('#payment_voucher').closest('.form-group').attr('hidden', false);
+                    $('#amountLabel').html('Amount <code>* (Only Numeric Value)</code>');
+                    if ($('#transaction_id').val() && $('#transaction_id').val().startsWith('UNPAID-')) {
+                        $('#transaction_id').val('');
+                    }
+                }
+            }
+
+            $('#payment_status').on('change', togglePaymentFieldsByStatus);
+            togglePaymentFieldsByStatus();
 
             // Load addons when user is selected
             $('#user_id').on('change', function() {
@@ -282,6 +321,9 @@
             // Update on form submit
             $('#registrationForm').on('submit', function() {
                 updateSelectedAddons();
+                if (($('#payment_status').val() || 'paid') === 'unpaid' && !$('#transaction_id').val()) {
+                    $('#transaction_id').val('UNPAID-' + Date.now());
+                }
             });
 
             //   $("#submitButton").click(function(e) {
