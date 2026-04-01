@@ -971,14 +971,19 @@ class SubmissionController extends Controller
 
     public function sendMail($society, $conference)
     {
-        return view('backend.submission.submission.send-mail', compact('society', 'conference'));
+        $submissionTracks = SubmissionCategoryMajorTrack::where([
+            'conference_id' => $conference->id,
+            'status' => 1,
+        ])->orderBy('title', 'asc')->get();
+
+        return view('backend.submission.submission.send-mail', compact('society', 'conference', 'submissionTracks'));
     }
 
     public function sendMailSubmit(Request $request, $society, $conference)
     {
         try {
             $type = 'success';
-            $message = 'Mail Send Succssfully.';
+            $message = 'Mail queued successfully.';
 
             $validated = $request->validate([
                 'user_type' => 'required',
@@ -990,9 +995,24 @@ class SubmissionController extends Controller
 
             $users = json_decode($validated['User']);
 
-            foreach ($users as $user) {
-                SendSubmissionBulkMailJob::dispatch($user, $validated['subject'], $validated['mail_content'], $conference->conference_name);
+            if (empty($users)) {
+                throw new Exception('No recipients selected.');
             }
+
+            $queuedCount = 0;
+            foreach ($users as $user) {
+                // Throttle queued mail sends to avoid SMTP rate limits (e.g., Mailtrap free plan).
+                SendSubmissionBulkMailJob::dispatch(
+                    $user,
+                    $validated['subject'],
+                    $validated['mail_content'],
+                    $conference->conference_name
+                )->delay(now()->addSeconds($queuedCount * 2));
+
+                $queuedCount++;
+            }
+
+            $message = "Email queued successfully for {$queuedCount} recipient(s).";
         } catch (Exception $e) {
             $type = 'error';
             $message = $e->getMessage();
@@ -1005,6 +1025,8 @@ class SubmissionController extends Controller
     {
         $userType = $request->input('user_type');
         $presentationType = $request->input('presentation_type');
+        $requestStatus = $request->input('request_status');
+        $trackId = $request->input('submission_category_major_track_id');
 
         if (! $userType || ! $presentationType) {
             return response()->json([]);
@@ -1012,16 +1034,32 @@ class SubmissionController extends Controller
 
         $types = ($presentationType == 3) ? [1, 2] : [$presentationType];
 
+        $baseQuery = Submission::query()
+            ->whereIn('presentation_type', $types)
+            ->where('conference_id', $conference->id)
+            ->where('status', 1);
+
+        if ($requestStatus !== null && $requestStatus !== '') {
+            // Keep backward compatibility where rejected can be stored/sent as 3 or 4.
+            if (in_array((string) $requestStatus, ['3', '4'], true)) {
+                $baseQuery->whereIn('request_status', [3, 4]);
+            } else {
+                $baseQuery->where('request_status', $requestStatus);
+            }
+        }
+
+        if (! empty($trackId)) {
+            $baseQuery->where('submission_category_major_track_id', $trackId);
+        }
+
         if ($userType == 1) {
-            $submissions = Submission::whereIn('presentation_type', $types)
-                ->where('conference_id', $conference->id)
+            $submissions = (clone $baseQuery)
                 ->with('presenter:id,f_name,m_name,l_name,email')
                 ->get()
                 ->pluck('presenter')
                 ->unique('id');
         } elseif ($userType == 2) {
-            $submissions = Submission::whereIn('presentation_type', $types)
-                ->where('conference_id', $conference->id)
+            $submissions = (clone $baseQuery)
                 ->with('expert:id,f_name,m_name,l_name,email')
                 ->get()
                 ->pluck('expert')
