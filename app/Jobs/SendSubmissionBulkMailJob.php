@@ -11,6 +11,10 @@ class SendSubmissionBulkMailJob implements ShouldQueue
 {
     use Queueable;
 
+    public $tries = 5;
+
+    public $backoff = [30, 60, 120, 240];
+
     /**
      * Create a new job instance.
      */
