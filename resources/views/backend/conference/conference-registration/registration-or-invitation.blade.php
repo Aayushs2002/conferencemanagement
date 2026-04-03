@@ -228,7 +228,7 @@
                             @enderror
                         </div>
 
-                        <div class="col-md-4 form-group mb-3 hideDiv paymentProofDiv">
+                        <div class="col-md-4 form-group mb-3 hideDiv paymentProofDiv" id="paymentVoucherWrapper">
                             <label for="payment_voucher">Payment Voucher <code>(Only JPG/PNG/PDF) (Max: 250
                                     KB)</code></label>
                             <input type="file" class="form-control @error('payment_voucher') is-invalid @enderror"
@@ -238,7 +238,7 @@
                             @enderror
                             <div class="row" id="imgPreview2"></div>
                         </div>
-                        <div class="col-md-4 form-group mb-3">
+                        <div class="col-md-4 form-group mb-3" id="paymentStatusWrapper">
                             <label for="payment_status">Payment Status <code>*</code></label>
                             <select name="payment_status" class="form-control" id="payment_status" required>
                                 <option value="" hidden>-- Select Payment Status --</option>
@@ -249,7 +249,7 @@
                                 <p class="text-danger">{{ $message }}</p>
                             @enderror
                         </div>
-                        <div class="col-md-4 form-group mb-3">
+                        <div class="col-md-4 form-group mb-3" id="amountWrapper">
                             <label for="amount" id="amountLabel">Amount <code>* (Only Numeric Value)</code></label>
                             <input type="text" class="form-control @error('amount') is-invalid @enderror numericValue"
                                 name="amount" id="amount" value="{{ old('amount') }}" placeholder="Enter amount"
@@ -392,27 +392,49 @@
             $("#invited_guest").trigger('change');
 
             function togglePaymentFieldsByStatus() {
-                let paymentStatus = $('#payment_status').val() || 'paid';
-                if ($('#invited_guest').is(':checked') && paymentStatus === 'paid') {
+                if ($('#invited_guest').is(':checked')) {
                     $('#payment_status').val('unpaid');
-                    paymentStatus = 'unpaid';
+                    $('#paymentStatusWrapper').attr('hidden', true);
+                    $('#payment_status').prop('disabled', true).removeAttr('required');
+                    $('#amountWrapper').attr('hidden', true);
+                    $('#amount').prop('disabled', true).val('0').removeAttr('required');
+                    $('#paymentVoucherWrapper').attr('hidden', true);
+                    $('#payment_voucher').prop('disabled', true).val('').removeAttr('required');
+                    $('.paymentTxnDiv').attr('hidden', true);
+                    $('#transaction_id').prop('disabled', true).val('').removeAttr('required');
+                    $('#amountLabel').html('Amount <code>* (Only Numeric Value)</code>');
+                    return;
                 }
+
+                let paymentStatus = $('#payment_status').val() || 'paid';
                 const isUnpaid = paymentStatus === 'unpaid';
+
+                $('#paymentStatusWrapper').removeAttr('hidden');
+                $('#payment_status').prop('disabled', false).attr('required', true);
 
                 if (isUnpaid) {
                     $('.paymentProofDiv, .paymentTxnDiv').attr('hidden', true);
+                    $('#amountWrapper').removeAttr('hidden');
+                    $('#amount').prop('disabled', false);
+                    $('#payment_voucher').prop('disabled', false);
+                    $('#transaction_id').prop('disabled', false);
                     $('#transaction_id').attr('required', false);
                     $('#amount').attr('required', true);
                     $('#amountLabel').html('Due/Credit Amount <code>* (Only Numeric Value)</code>');
                     if (!$('#transaction_id').val()) {
-                        $('#transaction_id').val('UNPAID-' + Date.now());
+                        $('#transaction_id').val('CREDIT-' + Date.now());
                     }
                 } else {
-                    $('.paymentProofDiv, .paymentTxnDiv').attr('hidden', false);
+                    $('.paymentProofDiv, .paymentTxnDiv').removeAttr('hidden');
+                    $('#amountWrapper').removeAttr('hidden');
+                    $('#paymentVoucherWrapper').removeAttr('hidden');
+                    $('#amount').prop('disabled', false);
+                    $('#payment_voucher').prop('disabled', false);
+                    $('#transaction_id').prop('disabled', false);
                     $('#transaction_id').attr('required', !$('#invited_guest').is(':checked'));
                     $('#amount').attr('required', true);
                     $('#amountLabel').html('Amount <code>* (Only Numeric Value)</code>');
-                    if ($('#transaction_id').val() && $('#transaction_id').val().startsWith('UNPAID-')) {
+                    if ($('#transaction_id').val() && $('#transaction_id').val().startsWith('CREDIT-')) {
                         $('#transaction_id').val('');
                     }
                 }
@@ -624,8 +646,13 @@
 
             // Update on form submit
             $('#registrationForm').on('submit', function() {
-                if (($('#payment_status').val() || 'paid') === 'unpaid' && !$('#transaction_id').val()) {
-                    $('#transaction_id').val('UNPAID-' + Date.now());
+                if ($('#invited_guest').is(':checked')) {
+                    $('#payment_status').val('unpaid');
+                    $('#amount').val('0');
+                    $('#transaction_id').val('');
+                    $('#payment_voucher').val('');
+                } else if (($('#payment_status').val() || 'paid') === 'unpaid' && !$('#transaction_id').val()) {
+                    $('#transaction_id').val('CREDIT-' + Date.now());
                 }
                 updateSelectedAddons();
             });

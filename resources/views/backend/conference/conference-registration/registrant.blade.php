@@ -244,6 +244,7 @@
                         {{-- <th>Email</th> --}}
                         <th>Payment Type/Voucher</th>
                         <th>Transaction ID</th>
+                        <th>Amount</th>
                         <th>Registraton Type</th>
                         <th>No. of people</th>
                         <th>Is Verified?</th>
@@ -252,6 +253,26 @@
                     </tr>
                 </thead>
                 <tbody>
+                    @php
+                        $inrConversionRate = null;
+                        try {
+                            $data = [
+                                'page' => 1,
+                                'per_page' => 10,
+                                'from' => date('Y-m-d'),
+                                'to' => date('Y-m-d'),
+                            ];
+                            $currencyExchange = \Illuminate\Support\Facades\Http::get('https://www.nrb.org.np/api/forex/v1/rates/', $data);
+                            if ($currencyExchange->successful()) {
+                                $USDRateSell = $currencyExchange->json()['data']['payload'][0]['rates'][1]['sell'] ?? null;
+                                if (!empty($USDRateSell)) {
+                                    $inrConversionRate = floatval($USDRateSell) / 1.6;
+                                }
+                            }
+                        } catch (\Exception $e) {
+                            $inrConversionRate = null;
+                        }
+                    @endphp
                     @foreach ($registrants as $registrant)
                         <tr>
                             <th scope="row">{{ $loop->iteration }}</th>
@@ -331,6 +352,27 @@
                                 @endif
                             </td>
                             <td>{{ $registrant->transaction_id ?? '-' }}</td>
+                               <td>
+                                @php
+                                    $currencySymbol = '$';
+                                    $displayAmount = (float) ($registrant->amount ?? 0);
+                                    $showConversion = false;
+
+                                    if ($registrant->payment_currency === 'INR') {
+                                        $currencySymbol = 'INR';
+                                        if (!empty($inrConversionRate) && !empty($registrant->amount)) {
+                                            $displayAmount = ceil($inrConversionRate * floatval($registrant->amount));
+                                            $showConversion = true;
+                                        }
+                                    } elseif (($registrant->user?->userDetail?->country_id ?? null) == 125) {
+                                        $currencySymbol = 'Rs.';
+                                    }
+                                @endphp
+                                {{ $currencySymbol }} {{ number_format($displayAmount, 2) }}
+                                @if ($showConversion)
+                                    <br><small class="text-muted">(USD ${{ number_format((float) $registrant->amount, 2) }})</small>
+                                @endif
+                            </td>
                             <td>
                                 @if ($registrant->registrant_type == 1)
                                     Attendee
@@ -375,6 +417,7 @@
                                         title="Verify Registrant"><span class="badge bg-warning">Unverified</span></a>
                                 @endif
                             </td>
+                         
                             <td>{{ $registrant->registration_id ?? 'N/A' }}</td>
 
                             <td>
@@ -402,7 +445,7 @@
                                                     class="icon-base ti tabler-replace me-1 "></i> Convert Registrant
                                                 Type</a>
                                         @endif
-                                        <a class="dropdown-item"
+                                        <a class="dropdown-item" 
                                             href="{{ route('conference.conference-registration.generateIndividualPass', [$society, $conference, $registrant->id]) }}" target="_blank"><i
                                                 class="icon-base ti tabler-ticket me-1"></i> Generate Pass</a>
                                         <a class="dropdown-item"

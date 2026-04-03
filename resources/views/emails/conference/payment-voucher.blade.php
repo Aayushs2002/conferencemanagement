@@ -207,7 +207,7 @@
             </tr>
             @if (!empty($data['is_unpaid']))
                 <tr>
-                    <td colspan="2"><strong>Payment Status:</strong> Unpaid</td>
+                    <td colspan="2"><strong>Payment Status:</strong> Credit</td>
                 </tr>
             @endif
             <tr>
@@ -324,9 +324,9 @@
                 @endif
                 @if (!empty($data['is_unpaid']))
                     <tr>
-                        <td>{{ ($data['due_or_credit_amount'] ?? 0) >= 0 ? 'Due Amount' : 'Credit Amount' }}</td>
+                        <td>Credit Amount</td>
                         <td>
-                            <b class="total">{{ $currencySymbol }}{{ number_format(abs((float) ($data['due_or_credit_amount'] ?? $data['amount'] ?? 0)), 2) }}</b>
+                            <b class="total">-{{ $currencySymbol }}{{ number_format(abs((float) ($data['due_or_credit_amount'] ?? $data['amount'] ?? 0)), 2) }}</b>
                         </td>
                     </tr>
                 @else

@@ -873,7 +873,7 @@ class ConferenceRegistrationController extends Controller
             $validated = $request->validate($rules, $message);
 
             if ($validated['payment_status'] === 'unpaid' && empty($validated['transaction_id'])) {
-                $validated['transaction_id'] = 'UNPAID-'.now()->format('YmdHis').'-'.mt_rand(1000, 9999);
+                $validated['transaction_id'] = 'CREDIT-'.now()->format('YmdHis').'-'.mt_rand(1000, 9999);
             }
 
             // for values start
@@ -905,7 +905,7 @@ class ConferenceRegistrationController extends Controller
                 'name' => $user->fullName($user),
                 'namePrefix' => $user->userDetail->namePrefix?->prefix,
                 'email' => $user->email,
-                'paymentType' => $validated['payment_status'] === 'paid' ? 'Online Payment' : 'Unpaid',
+                'paymentType' => $validated['payment_status'] === 'paid' ? 'Online Payment' : 'Credit',
                 'transactionId' => $validated['transaction_id'],
                 'amount' => $validated['amount'],
                 'amountInWord' => numberToWord(abs((int) $validated['amount'])),
@@ -1160,6 +1160,8 @@ class ConferenceRegistrationController extends Controller
     {
         try {
             // dd($request->all());
+            $isInvitedGuest = $request->boolean('invited_guest');
+
             $checkUser = User::whereEmail($request->email)->first();
             $conferenceRegistration = ConferenceRegistration::where(['conference_id' => $conference->id, 'user_id' => $checkUser?->id, 'status' => 1])->first();
             if ($conferenceRegistration && $checkUser) {
@@ -1181,8 +1183,8 @@ class ConferenceRegistrationController extends Controller
                 'additional_guests' => 'nullable|numeric',
                 'country_id' => 'required',
                 'meal_type' => 'required',
-                'payment_status' => 'required|in:paid,unpaid',
-                'payment_voucher' => 'nullable|mimes:jpg,png,pdf|max:250',
+                'payment_status' => $isInvitedGuest ? 'nullable|in:paid,unpaid' : 'required|in:paid,unpaid',
+                'payment_voucher' => $isInvitedGuest ? 'nullable' : 'nullable|mimes:jpg,png,pdf|max:250',
                 'email' => 'required|email|unique:users,email',
             ];
 
@@ -1199,10 +1201,10 @@ class ConferenceRegistrationController extends Controller
             }
 
             $rules['council_number'] = 'nullable';
-            $rules['amount'] = 'required|numeric';
-            $rules['transaction_id'] = 'nullable|unique:conference_registrations,transaction_id';
+            $rules['amount'] = $isInvitedGuest ? 'nullable|numeric' : 'required|numeric';
+            $rules['transaction_id'] = $isInvitedGuest ? 'nullable|unique:conference_registrations,transaction_id' : 'required|unique:conference_registrations,transaction_id';
 
-            if ($request->payment_status === 'paid') {
+            if (! $isInvitedGuest && $request->payment_status === 'paid') {
                 $rules['transaction_id'] = 'required|unique:conference_registrations,transaction_id';
             }
 
@@ -1221,8 +1223,13 @@ class ConferenceRegistrationController extends Controller
 
             $validated = $request->validate($rules, $message);
 
-            if ($validated['payment_status'] === 'unpaid' && empty($validated['transaction_id'])) {
-                $validated['transaction_id'] = 'UNPAID-'.now()->format('YmdHis').'-'.mt_rand(1000, 9999);
+            if ($isInvitedGuest) {
+                $validated['payment_status'] = 'unpaid';
+                $validated['amount'] = 0;
+                $validated['transaction_id'] = null;
+                unset($validated['payment_voucher']);
+            } elseif ($validated['payment_status'] === 'unpaid' && empty($validated['transaction_id'])) {
+                $validated['transaction_id'] = 'CREDIT-'.now()->format('YmdHis').'-'.mt_rand(1000, 9999);
             }
 
             // for values start
@@ -1300,8 +1307,8 @@ class ConferenceRegistrationController extends Controller
                 'password' => $password,
                 'conference_theme' => $conference->conference_theme,
                 'conference_name' => $conference->conference_name,
-                'paymentType' => $validated['payment_status'] === 'paid' ? 'Online Payment' : 'Unpaid',
-                'transactionId' => $validated['transaction_id'],
+                'paymentType' => $isInvitedGuest ? 'Invitation' : ($validated['payment_status'] === 'paid' ? 'Online Payment' : 'Credit'),
+                'transactionId' => $isInvitedGuest ? null : $validated['transaction_id'],
                 'amount' => $validated['amount'],
                 'amountInWord' => numberToWord(abs((int) $validated['amount'])),
                 'date' => $date,
@@ -1320,16 +1327,16 @@ class ConferenceRegistrationController extends Controller
                 'accompany' => $accompanyData,
                 'serviceCharge' => null,
                 'invitationType' => 1,
-                'is_invited' => $request->has('invited_guest') ? 1 : 0,
+                'is_invited' => $isInvitedGuest ? 1 : 0,
                 'invitation_token' => $invitationToken,
                 'invitation_url' => route('invitation.show', $invitationToken),
                 'is_unpaid' => $validated['payment_status'] === 'unpaid',
                 'due_or_credit_amount' => (float) $validated['amount'],
-                'payment_link' => route('my-society.conference.index', [$society, $conference]),
+                'payment_link' => $isInvitedGuest ? null : route('my-society.conference.index', [$society, $conference]),
             ];
             Mail::to($validated['email'])->send(new RegistrationMail($data, $conference->conference_name));
 
-            if ($request->has('invited_guest')) {
+            if ($isInvitedGuest) {
                 $validated['is_invited'] = 1;
             }
 

@@ -23,7 +23,7 @@
                                         {{ $workshop->workshop_title }}</option>
                                 @endforeach
                             </select>
-                            @error('workshop_id')
+                            @error('workshop_id') 
                                 <p class="text-danger">{{ $message }}</p>
                             @enderror
                         </div>
@@ -114,8 +114,19 @@
                                     <option value="{{ $designation->id }}" @selected(old('designation_id') == $designation->id)>
                                         {{ $designation->designation }}</option>
                                 @endforeach
+                                <option value="other" @selected(old('designation_id') == 'other')>Others</option>
                             </select>
                             @error('designation_id')
+                                <p class="text-danger">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        <div class="col-md-4 form-group mb-3" id="otherDesignationWrapper" style="display: none;">
+                            <label for="other_designation" class="form-label">Other Designation <code>*</code></label>
+                            <input type="text" class="form-control" name="other_designation"
+                                id="other_designation" placeholder="Enter Designation"
+                                value="{{ old('other_designation') }}">
+                            @error('other_designation')
                                 <p class="text-danger">{{ $message }}</p>
                             @enderror
                         </div>
@@ -128,8 +139,19 @@
                                     <option value="{{ $department->id }}" @selected(old('department_id') == $department->id)>
                                         {{ $department->name }}</option>
                                 @endforeach
+                                <option value="other" @selected(old('department_id') == 'other')>Others</option>
                             </select>
                             @error('department_id')
+                                <p class="text-danger">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        <div class="col-md-4 form-group mb-3" id="otherDepartmentWrapper" style="display: none;">
+                            <label for="other_department" class="form-label">Other Department <code>*</code></label>
+                            <input type="text" class="form-control" name="other_department"
+                                id="other_department" placeholder="Enter Department"
+                                value="{{ old('other_department') }}">
+                            @error('other_department')
                                 <p class="text-danger">{{ $message }}</p>
                             @enderror
                         </div>
@@ -220,6 +242,10 @@
         $(document).ready(function() {
             const $institutionSelect = $('#institution_id');
             const $otherInstitutionWrapper = $('#otherInstitutionWrapper');
+            const $designationSelect = $('#designation_id');
+            const $otherDesignationWrapper = $('#otherDesignationWrapper');
+            const $departmentSelect = $('#department_id');
+            const $otherDepartmentWrapper = $('#otherDepartmentWrapper');
 
             function toggleOtherInstitution() {
                 if ($institutionSelect.val() === 'other') {
@@ -229,8 +255,30 @@
                 }
             }
 
+            function toggleOtherDesignation() {
+                if ($designationSelect.val() === 'other') {
+                    $otherDesignationWrapper.show();
+                } else {
+                    $otherDesignationWrapper.hide();
+                }
+            }
+
+            function toggleOtherDepartment() {
+                if ($departmentSelect.val() === 'other') {
+                    $otherDepartmentWrapper.show();
+                } else {
+                    $otherDepartmentWrapper.hide();
+                }
+            }
+
             $institutionSelect.on('change', toggleOtherInstitution);
             toggleOtherInstitution();
+
+            $designationSelect.on('change', toggleOtherDesignation);
+            toggleOtherDesignation();
+
+            $departmentSelect.on('change', toggleOtherDepartment);
+            toggleOtherDepartment();
 
             $('#country_id').on('change', function() {
                 var country_id = $(this).val();
