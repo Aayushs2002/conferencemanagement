@@ -216,13 +216,13 @@
                     $('#payment_voucher').prop('required', false).closest('.form-group').attr('hidden', true);
                     $('#amountLabel').html('Due/Credit Amount <code>* (Only Numeric Value)</code>');
                     if (!$('#transaction_id').val()) {
-                        $('#transaction_id').val('UNPAID-' + Date.now());
+                        $('#transaction_id').val('CREDIT-' + Date.now());
                     }
                 } else {
                     $('#transaction_id').prop('required', true).closest('.form-group').attr('hidden', false);
                     $('#payment_voucher').closest('.form-group').attr('hidden', false);
                     $('#amountLabel').html('Amount <code>* (Only Numeric Value)</code>');
-                    if ($('#transaction_id').val() && $('#transaction_id').val().startsWith('UNPAID-')) {
+                    if ($('#transaction_id').val() && $('#transaction_id').val().startsWith('CREDIT-')) {
                         $('#transaction_id').val('');
                     }
                 }
@@ -322,7 +322,7 @@
             $('#registrationForm').on('submit', function() {
                 updateSelectedAddons();
                 if (($('#payment_status').val() || 'paid') === 'unpaid' && !$('#transaction_id').val()) {
-                    $('#transaction_id').val('UNPAID-' + Date.now());
+                    $('#transaction_id').val('CREDIT-' + Date.now());
                 }
             });
 

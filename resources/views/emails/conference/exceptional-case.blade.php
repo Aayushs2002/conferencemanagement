@@ -16,11 +16,14 @@
     <div>
         <p>I hope this message finds you well. We are delighted to confirm your registration for the conference
             {{ $data['conference_theme'] }}.</p>
-        @if (!empty($data['is_unpaid']))
-            <p>Your registration has been marked as <strong>Unpaid</strong>.</p>
+        @if (!empty($data['is_invited']))
+            <p>Your registration has been recorded as an <strong>invited guest</strong>.</p>
+            <p>No payment, transaction ID, or payment voucher is required for this registration.</p>
+        @elseif (!empty($data['is_unpaid']))
+            <p>Your registration has been marked as <strong>Credit</strong>.</p>
             <p>
-                <strong>{{ ($data['due_or_credit_amount'] ?? 0) >= 0 ? 'Due Amount' : 'Credit Amount' }}:</strong>
-                {{ ($data['country'] ?? 0) == 125 ? 'Rs.' : '$' }}{{ number_format(abs((float) ($data['due_or_credit_amount'] ?? 0)), 2) }}
+                <strong>Credit Amount:</strong>
+                -{{ ($data['country'] ?? 0) == 125 ? 'Rs.' : '$' }}{{ number_format(abs((float) ($data['due_or_credit_amount'] ?? 0)), 2) }}
             </p>
             <p>
                 Please use the payment link below to complete your conference payment:

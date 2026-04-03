@@ -226,8 +226,7 @@ class WorkshopRegistrationController extends Controller
     {
         try {
             $checkUser = User::whereEmail($request->email)->first();
-
-            $workshop = WorkshopRegistration::where(['workshop_id' => $request->workshop_id, 'user_id' => $checkUser?->id])->first();
+            $workshop = WorkshopRegistration::whereNotNull('user_id')->where(['workshop_id' => $request->workshop_id, 'user_id' => $checkUser?->id])->first();
             if ($workshop) {
                 return redirect()->back()->withInput()->with('delete', 'User already registered for this workshop.');
             }
@@ -252,6 +251,18 @@ class WorkshopRegistrationController extends Controller
                 'certificate_required' => 'nullable',
             ];
 
+            if ($request->institution_id == 'other') {
+                $rules['other_institution_name'] = 'required';
+            }
+
+            if ($request->designation_id == 'other') {
+                $rules['other_designation'] = 'required';
+            }
+
+            if ($request->department_id == 'other') {
+                $rules['other_department'] = 'required';
+            }
+
             $validated = $request->validate($rules);
 
             // for values start
@@ -275,7 +286,42 @@ class WorkshopRegistrationController extends Controller
 
             $validated['user_id'] = $storeUser->id;
 
-            UserDetail::create($validated);
+            $institution_id = $request->institution_id == 'other' ? null : $validated['institution_id'];
+            $designation_id = $request->designation_id == 'other' ? null : $validated['designation_id'];
+            $department_id = $request->department_id == 'other' ? null : $validated['department_id'];
+
+            UserDetail::create([
+                'name_prefix_id' => $validated['name_prefix_id'],
+                'phone' => $validated['phone'],
+                'institution_id' => $institution_id,
+                'designation_id' => $designation_id,
+                'department_id' => $department_id,
+                'address' => $validated['address'],
+                'council_number' => $validated['council_number'] ?? null,
+                'country_id' => $validated['country_id'],
+                'user_id' => $validated['user_id'],
+            ]);
+
+            if ($request->institution_id == 'other') {
+                \App\Models\User\UserInstitution::create([
+                    'user_id' => $storeUser->id,
+                    'institution_name' => $request->other_institution_name,
+                ]);
+            }
+
+            if ($request->designation_id == 'other') {
+                \App\Models\User\UserDesignation::create([
+                    'user_id' => $storeUser->id,
+                    'designation_name' => $request->other_designation,
+                ]);
+            }
+
+            if ($request->department_id == 'other') {
+                \App\Models\User\UserDepartment::create([
+                    'user_id' => $storeUser->id,
+                    'department_name' => $request->other_department,
+                ]);
+            }
 
             // insert table-4
             $societyId = current_user()->societies->value('id');
@@ -318,6 +364,7 @@ class WorkshopRegistrationController extends Controller
                 'workshop' => $workshopData,
                 'accompany' => null,
                 'type' => 1,
+                'password' => $password,
             ];
             Mail::to($request->email)->send(new RegistrationByAdminMail($mailData, $conference->conference_name));
 

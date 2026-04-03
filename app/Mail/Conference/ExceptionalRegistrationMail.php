@@ -56,6 +56,10 @@ class ExceptionalRegistrationMail extends Mailable
      */
     public function attachments(): array
     {
+        if (! empty($this->data['is_invited'])) {
+            return [];
+        }
+
         $pdf = Pdf::loadView('emails.conference.payment-voucher', ['data' => $this->data])
             ->setPaper('legal', 'potrait');
         $pdfPath = storage_path('app/public/registration.pdf');
