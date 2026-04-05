@@ -1551,7 +1551,7 @@ class ConferenceRegistrationController extends Controller
                       ->orWhereIn('user_id', $committeeMemberUserIds);
                 });
             } else {
-                $query->where('registrant_type', $request->registrant_type);
+                $query->where('registrant_type', $request->registrant_type); 
             }
         }
 
@@ -1602,6 +1602,10 @@ class ConferenceRegistrationController extends Controller
         $passSetting = PassSetting::where(['conference_id' => $conference->id, 'status' => 1])->first();
 
         $registrantsWithDesignation = $registrants->map(function ($participant) use ($conference, $passSetting) {
+            $designation = null;
+            $color = null;
+            $designationCountryName = null;
+
             $userSociety = $participant->user?->societies->first();
             $memberType = $userSociety?->pivot?->memberType;
 
@@ -1667,6 +1671,11 @@ class ConferenceRegistrationController extends Controller
                 if (! isset($designation) && $conferenceMemberTypeNameTag) {
                     $designation = $conferenceMemberTypeNameTag->name_tag;
                     $color = $conferenceMemberTypeNameTag->color;
+
+                    if ((int) ($passSetting?->include_country_for_international ?? 0) === 1 &&
+                        $participant->isInternationalParticipant()) {
+                        $designationCountryName = $participant->user?->userDetail?->country?->country_name;
+                    }
                 } elseif (! isset($designation)) {
                     // Fallback: Try to get any name tag for this registrant type (ignore member_type)
                     $fallbackNameTag = ConferenceMemberTypeNameTag::where('conference_id', $conference->id)
@@ -1676,6 +1685,11 @@ class ConferenceRegistrationController extends Controller
                     if ($fallbackNameTag) {
                         $designation = $fallbackNameTag->name_tag;
                         $color = $fallbackNameTag->color ?? '#7367f0';
+
+                        if ((int) ($passSetting?->include_country_for_international ?? 0) === 1 &&
+                            $participant->isInternationalParticipant()) {
+                            $designationCountryName = $participant->user?->userDetail?->country?->country_name;
+                        }
                     } else {
                         // Ultimate fallback based on registrant type
                         $registrantTypes = [
@@ -1693,6 +1707,7 @@ class ConferenceRegistrationController extends Controller
 
             $participant->designation = $designation;
             $participant->designation_color = $color;
+            $participant->designation_country_name = $designationCountryName;
 
             return $participant;
         });
@@ -1714,6 +1729,7 @@ class ConferenceRegistrationController extends Controller
         // dd($conference);
         $participant = $conferenceRegistration;
         $passSetting = PassSetting::where(['conference_id' => $conference->id, 'status' => 1])->first();
+        $designationCountryName = null;
         $userSociety = $participant->user?->societies->first();
         $memberType = $userSociety?->pivot?->memberType;
         $conferenceUserPassDesignation = ConferenceUserPassDesignation::where(['conference_id' => $conference->id, 'user_id' => $participant->user_id])->first();
@@ -1775,6 +1791,11 @@ class ConferenceRegistrationController extends Controller
             if (! isset($designation) && $conferenceMemberTypeNameTag) {
                 $designation = $conferenceMemberTypeNameTag->name_tag;
                 $color = $conferenceMemberTypeNameTag->color;
+
+                if ((int) ($passSetting?->include_country_for_international ?? 0) === 1 &&
+                    $participant->isInternationalParticipant()) {
+                    $designationCountryName = $participant->user?->userDetail?->country?->country_name;
+                }
             } elseif (! isset($designation)) {
                 // Fallback: Try to get any name tag for this registrant type (ignore member_type)
                 $fallbackNameTag = ConferenceMemberTypeNameTag::where('conference_id', $conference->id)
@@ -1784,6 +1805,11 @@ class ConferenceRegistrationController extends Controller
                 if ($fallbackNameTag) {
                     $designation = $fallbackNameTag->name_tag;
                     $color = $fallbackNameTag->color ?? '#7367f0';
+
+                    if ((int) ($passSetting?->include_country_for_international ?? 0) === 1 &&
+                        $participant->isInternationalParticipant()) {
+                        $designationCountryName = $participant->user?->userDetail?->country?->country_name;
+                    }
                 } else {
                     // Ultimate fallback based on registrant type
                     $registrantTypes = [
@@ -1802,7 +1828,7 @@ class ConferenceRegistrationController extends Controller
             return redirect()->back()->with('delete', 'Please Create Pass Setting');
         }
 
-        return view('backend.conference.conference-registration.individual-pass', compact('participant', 'passSetting', 'designation', 'conference', 'color'));
+        return view('backend.conference.conference-registration.individual-pass', compact('participant', 'passSetting', 'designation', 'conference', 'color', 'designationCountryName'));
     }
 
     public function generateCertificate($society, $conference, ConferenceRegistration $conferenceRegistration)

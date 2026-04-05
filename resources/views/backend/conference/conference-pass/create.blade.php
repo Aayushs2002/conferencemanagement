@@ -14,7 +14,7 @@
 
 @section('content')
     <div class="col-md">
-        <div class="card">
+        <div class="card"> 
             <h4 class="card-header">
                 <a href="{{ route('pass-setting.index', [$society, $conference]) }}">
                     <i class="ti tabler-arrow-narrow-left"></i>
@@ -154,6 +154,22 @@
                                 value="{{ old('workshop_trainer_color', @$pass_setting->workshop_trainer_color ?? '#7367f0') }}"
                                 style="height: 40px;" />
                             @error('workshop_trainer_color')
+                                <p class="text-danger">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        <div class="mb-6 col-md-6">
+                            <label class="form-label d-block" for="include_country_for_international">International Designation Country</label>
+                            <input type="hidden" name="include_country_for_international" value="0">
+                            <div class="form-check">
+                                <input type="checkbox" class="form-check-input @error('include_country_for_international') is-invalid @enderror"
+                                    id="include_country_for_international" name="include_country_for_international" value="1"
+                                    {{ old('include_country_for_international', @$pass_setting->include_country_for_international) ? 'checked' : '' }}>
+                                <label class="form-check-label" for="include_country_for_international">
+                                    Show participant country in designation for international participants
+                                </label>
+                            </div>
+                            @error('include_country_for_international')
                                 <p class="text-danger">{{ $message }}</p>
                             @enderror
                         </div>
@@ -518,6 +534,7 @@
                 $(this).find('select.member-select').attr('name', `member_type_id[${index}][]`);
                 $(this).find('select[name^="registrant_type"]').attr('name', `registrant_type[${index}]`);
                 $(this).find('input[name^="name_tag"]').attr('name', `name_tag[${index}]`);
+                $(this).find('input[name^="color"]').attr('name', `color[${index}]`);
             });
 
             i = $('#dynamic_field tbody tr').length;

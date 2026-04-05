@@ -80,6 +80,7 @@ class PassSettingController extends Controller
                 'workshop_participant_color' => 'nullable|string|max:7',
                 'workshop_trainer_name_tag' => 'nullable|string|max:255',
                 'workshop_trainer_color' => 'nullable|string|max:7',
+                'include_country_for_international' => 'nullable|boolean',
                 'member_type_id' => 'required|array',
                 'member_type_id.*' => 'required',
                 'registrant_type' => 'required|array',
@@ -87,6 +88,7 @@ class PassSettingController extends Controller
                 'color' => 'nullable|array',
                 'color.*' => 'nullable|string|max:7',
             ]);
+            $validated['include_country_for_international'] = (int) $request->boolean('include_country_for_international');
             $validated['conference_id'] = $conference->id;
 
             if (!empty($validated['image'])) {
@@ -210,6 +212,7 @@ class PassSettingController extends Controller
                 'workshop_participant_color' => 'nullable|string|max:7',
                 'workshop_trainer_name_tag' => 'nullable|string|max:255',
                 'workshop_trainer_color' => 'nullable|string|max:7',
+                'include_country_for_international' => 'nullable|boolean',
                 'member_type_id' => 'required|array',
                 'member_type_id.*' => 'required',
                 'registrant_type' => 'required|array',
@@ -217,6 +220,7 @@ class PassSettingController extends Controller
                 'color' => 'nullable|array',
                 'color.*' => 'nullable|string|max:7',
             ]);
+            $validated['include_country_for_international'] = (int) $request->boolean('include_country_for_international');
             if (!empty($validated['image'])) {
                 //deleting the file deleteFile function parameter required file,location
                 $this->file_service->deleteFile($pass_setting->image, 'conference/conference/pass');
