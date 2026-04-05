@@ -182,6 +182,9 @@
                         <h1
                             style="color:#fff;  font-size:40px; padding:0px 30px 8px; margin:0px; weight:bold; text-align:center;">
                             {{ $designation }}
+                            @if (!empty($designationCountryName))
+                                <small style="font-size: 24px; font-weight: 600;">({{ $designationCountryName }})</small>
+                            @endif
                         </h1>
                     </div> 
                     <div style="width:92%; font-size:15px; padding:12px 25px; color:#fff; float:left;">

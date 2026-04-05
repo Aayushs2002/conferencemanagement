@@ -17,6 +17,7 @@ class PassSetting extends Model
         'workshop_participant_color',
         'workshop_trainer_name_tag',
         'workshop_trainer_color',
+        'include_country_for_international',
         'status' 
     ];
 
