@@ -198,7 +198,7 @@
                                     <div data-i18n="Submission">Submission</div>
                                 </a>
                             </li>
-                        @endif
+                        @endif 
                         @if (auth()->user()->hasConferencePermissionBlade($conference, 'View Submission Setting'))
                             <li class="menu-item {{ request()->segment(6) == 'submission-setting' ? 'active' : '' }}">
                                 <a href="{{ route('submission.setting', [request()->segment(2), request()->segment(4)]) }}"

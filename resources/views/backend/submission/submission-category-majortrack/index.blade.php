@@ -46,6 +46,7 @@
                         <th>#</th>
                         <th>Title</th>
                         <th>Major Track</th>
+                        <th>Assigned Managers</th>
 
                         <th>Action</th>
                     </tr>
@@ -56,6 +57,13 @@
                             <th scope="row">{{ $loop->iteration }}</th>
                             <td>{{ $submissionCategoryMajortrack->title }}</td>
                             <td>{{ $submissionCategoryMajortrack->major_areas }}</td>
+                            <td>
+                                @if ($submissionCategoryMajortrack->managers->isNotEmpty())
+                                    {{ $submissionCategoryMajortrack->managers->map(fn($manager) => trim($manager->fullName($manager)))->implode(', ') }}
+                                @else
+                                    <span class="text-muted">All permitted users</span>
+                                @endif
+                            </td>
                             <td>
                                 <div class="dropdown">
                                     <button type="button" class="btn p-0 dropdown-toggle hide-arrow"

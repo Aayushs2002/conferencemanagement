@@ -38,6 +38,59 @@ class SubmissionController extends Controller
 {
     public function __construct(protected FileService $file_service) {}
 
+    private function managedTrackIds($conferenceId): array
+    {
+        if (is_super_admin()) {
+            return [];
+        }
+
+        return SubmissionCategoryMajorTrack::where('conference_id', $conferenceId)
+            ->whereHas('managers', function ($query) {
+                $query->where('users.id', current_user()->id);
+            })
+            ->pluck('id')
+            ->toArray();
+    }
+
+    private function applyManagedTrackScope($query, $conferenceId)
+    {
+        $managedTrackIds = $this->managedTrackIds($conferenceId);
+
+        if (!empty($managedTrackIds)) {
+            $query->whereIn('submission_category_major_track_id', $managedTrackIds);
+        }
+
+        return $query;
+    }
+
+    private function ensureSubmissionAccess($submission): void
+    {
+        if (! $submission instanceof Submission) {
+            if (is_numeric($submission)) {
+                $submission = Submission::find($submission);
+            } else {
+                try {
+                    $submission = Submission::findByHashid((string) $submission);
+                } catch (\Throwable $th) {
+                    $submission = null;
+                }
+            }
+        }
+
+        if (! $submission) {
+            abort(404, 'Submission not found.');
+        }
+
+        if (is_super_admin()) {
+            return;
+        }
+
+        $managedTrackIds = $this->managedTrackIds($submission->conference_id);
+        if (!empty($managedTrackIds) && !in_array((int) $submission->submission_category_major_track_id, $managedTrackIds, true)) {
+            abort(403, 'Unauthorized to manage this submission theme/sub-theme.');
+        }
+    }
+
     public function index(Request $request, $society, $conference)
     {
         // $conferenceDetail = conference_detail();
@@ -52,7 +105,12 @@ class SubmissionController extends Controller
 
             return $model::where('status', 1)->get();
         };
-        $submissionTracks = SubmissionCategoryMajorTrack::where(['conference_id' => $conference->id, 'status' => 1])->get();
+        $submissionTracksQuery = SubmissionCategoryMajorTrack::where(['conference_id' => $conference->id, 'status' => 1]);
+        $managedTrackIds = $this->managedTrackIds($conference->id);
+        if (! empty($managedTrackIds)) {
+            $submissionTracksQuery->whereIn('id', $managedTrackIds);
+        }
+        $submissionTracks = $submissionTracksQuery->get();
         $articleTypes = ArticleType::where(['conference_id' => $conference->id, 'status' => 1])->get();
         $submission_setting = SubmissionSetting::where('conference_id', $conference->id)->select('scoring_allowed')->first();
         // $designations = \App\Models\User\Designation::where('status', 1)->orderBy('designation', 'asc')->get();
@@ -60,6 +118,7 @@ class SubmissionController extends Controller
 
         // dd($submission_setting);
         $query = Submission::with('discussions')->where(['conference_id' => $conference->id, 'status' => 1]);
+        $this->applyManagedTrackScope($query, $conference->id);
         if ($request->filled('article_type_id')) {
             $query->where('article_type_id', $request->article_type_id);
         }
@@ -181,12 +240,14 @@ class SubmissionController extends Controller
     public function show(Request $request)
     {
         $submission = Submission::whereId($request->id)->first();
+        $this->ensureSubmissionAccess($submission);
 
         return view('backend.submission.submission.view', compact('submission'));
     }
 
     public function downloadSlide($society, $conference, Submission $submission)
     {
+        $this->ensureSubmissionAccess($submission);
         abort_if((int) $submission->conference_id !== (int) $conference->id, 404);
         abort_if(empty($submission->slide_file), 404, 'Slide file not found.');
 
@@ -269,6 +330,7 @@ class SubmissionController extends Controller
         $setting = SubmissionSetting::where('conference_id', $conference->id)->select('abstract_word_limit', 'key_word_limit')->first();
 
         $submission = Submission::whereId($request->id)->first();
+        $this->ensureSubmissionAccess($submission);
 
         // Get all author user IDs for this submission
         $authorUserIds = Author::where('submission_id', $submission->id)
@@ -417,6 +479,11 @@ class SubmissionController extends Controller
                 ->where('conference_id', $conference->id)
                 ->where('status', 1)
                 ->get();
+
+            $managedTrackIds = $this->managedTrackIds($conference->id);
+            if (!empty($managedTrackIds)) {
+                $submissions = $submissions->whereIn('submission_category_major_track_id', $managedTrackIds);
+            }
 
             if ($submissions->isEmpty()) {
                 return response()->json(['type' => 'error', 'message' => 'No valid submissions found']);
@@ -585,6 +652,11 @@ class SubmissionController extends Controller
                 ->where('status', 1)
                 ->get();
 
+            $managedTrackIds = $this->managedTrackIds($conference->id);
+            if (!empty($managedTrackIds)) {
+                $submissions = $submissions->whereIn('submission_category_major_track_id', $managedTrackIds);
+            }
+
             if ($submissions->isEmpty()) {
                 return response()->json(['type' => 'error', 'message' => 'No valid submissions found']);
             }
@@ -652,6 +724,7 @@ class SubmissionController extends Controller
     public function sentToAuthorForm(Request $request, $society, $conference)
     {
         $submission = Submission::whereId($request->id)->first();
+        $this->ensureSubmissionAccess($submission);
 
         $discussions = SubmissionDiscussion::where('submission_id', $submission->id)->get();
 
@@ -845,6 +918,7 @@ class SubmissionController extends Controller
 
     public function viewDiscussion($society, $conference, $submission)
     {
+        $this->ensureSubmissionAccess($submission);
         $discussions = SubmissionDiscussion::where(['submission_id' => $submission->id, 'status' => 1])->get();
 
         return view('backend.submission.discussion.index', compact('discussions', 'submission'));
@@ -856,6 +930,7 @@ class SubmissionController extends Controller
         try {
             // code...
             $submission = Submission::whereId($id)->first();
+            $this->ensureSubmissionAccess($submission);
 
             $mailData['presenter_name'] = $submission->presenter->fullName($submission->presenter);
             $mailData['topic'] = $submission->title;
@@ -921,6 +996,7 @@ class SubmissionController extends Controller
     public function viewScore(Request $request)
     {
         $submission = Submission::with('articleType.setting', 'submissionRating')->whereId($request->id)->first();
+        $this->ensureSubmissionAccess($submission);
 
         // Get article type setting sections if available
         $articleTypeSections = null;
@@ -933,6 +1009,7 @@ class SubmissionController extends Controller
 
     public function destroy($society, $conference, Submission $submission)
     {
+        $this->ensureSubmissionAccess($submission);
 
         DB::beginTransaction();
         try {
@@ -961,6 +1038,7 @@ class SubmissionController extends Controller
     public function getAuthors($society, $conference, $id)
     {
         $submission = Submission::with('authors')->find($id);
+        $this->ensureSubmissionAccess($submission);
 
         if (! $submission) {
             return response()->json([]);
@@ -971,10 +1049,15 @@ class SubmissionController extends Controller
 
     public function sendMail($society, $conference)
     {
-        $submissionTracks = SubmissionCategoryMajorTrack::where([
+        $submissionTracksQuery = SubmissionCategoryMajorTrack::where([
             'conference_id' => $conference->id,
             'status' => 1,
-        ])->orderBy('title', 'asc')->get();
+        ])->orderBy('title', 'asc');
+        $managedTrackIds = $this->managedTrackIds($conference->id);
+        if (! empty($managedTrackIds)) {
+            $submissionTracksQuery->whereIn('id', $managedTrackIds);
+        }
+        $submissionTracks = $submissionTracksQuery->get();
 
         return view('backend.submission.submission.send-mail', compact('society', 'conference', 'submissionTracks'));
     }
@@ -1038,6 +1121,7 @@ class SubmissionController extends Controller
             ->whereIn('presentation_type', $types)
             ->where('conference_id', $conference->id)
             ->where('status', 1);
+        $this->applyManagedTrackScope($baseQuery, $conference->id);
 
         if ($requestStatus !== null && $requestStatus !== '') {
             // Keep backward compatibility where rejected can be stored/sent as 3 or 4.
@@ -1085,6 +1169,7 @@ class SubmissionController extends Controller
     {
         $query = Submission::with(['authors', 'presenter.userDetail', 'submissionCategoryMajorTrack', 'articleType', 'expert.userDetail', 'submissionRating', 'articleType.setting'])
             ->where(['conference_id' => $conference->id, 'status' => 1]);
+        $this->applyManagedTrackScope($query, $conference->id);
 
         if ($request->filled('article_type_id')) {
             $query->where('article_type_id', $request->article_type_id);
@@ -1195,6 +1280,7 @@ class SubmissionController extends Controller
     {
         // $submissionTracks = SubmissionCategoryMajorTrack::where(['conference_id' => $conference->id, 'status' => 1])->get();
         $query = Submission::with('discussions')->where(['conference_id' => $conference->id, 'status' => 1]);
+        $this->applyManagedTrackScope($query, $conference->id);
         if ($request->filled('article_type_id')) {
             $query->where('article_type_id', $request->article_type_id);
         }
@@ -1427,7 +1513,12 @@ class SubmissionController extends Controller
 
     public function viewSubmissions(Request $request, $society, $conference)
     {
-        $submissionTracks = SubmissionCategoryMajorTrack::where(['conference_id' => $conference->id, 'status' => 1])->get();
+        $submissionTracksQuery = SubmissionCategoryMajorTrack::where(['conference_id' => $conference->id, 'status' => 1]);
+        $managedTrackIds = $this->managedTrackIds($conference->id);
+        if (! empty($managedTrackIds)) {
+            $submissionTracksQuery->whereIn('id', $managedTrackIds);
+        }
+        $submissionTracks = $submissionTracksQuery->get();
         $articleTypes = ArticleType::where(['conference_id' => $conference->id, 'status' => 1])->get();
         $loadData = function ($relation, $model) use ($society) {
             if ($society && $society->$relation()->exists()) {
@@ -1442,6 +1533,7 @@ class SubmissionController extends Controller
 
         $query = Submission::with(['authors', 'submissionCategoryMajorTrack', 'articleType.setting', 'expert'])
             ->where(['conference_id' => $conference->id, 'status' => 1]);
+        $this->applyManagedTrackScope($query, $conference->id);
 
         if ($request->filled('article_type_id')) {
             $query->where('article_type_id', $request->article_type_id);
