@@ -558,7 +558,7 @@
                 });
             });
 
-            $(document).on("click", "#importRegistrant", function(e) {
+            $(document).on("click", "#importRegistrant", function(e) { 
                 e.preventDefault();
                 var url =
                     '{{ route('conference.conference-registration.importExcel', [$society, $conference]) }}';
