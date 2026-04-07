@@ -15,7 +15,7 @@
                         Need help?
                         <a href="{{ asset('downloads/sample.xlsx') }}" class="text-primary" id="downloadSample">
                             <i class="bi bi-download"></i> Download Sample Excel
-                        </a>
+                        </a> 
                     </small>
                 </div>
                 <div class="col-md-12 text-end">

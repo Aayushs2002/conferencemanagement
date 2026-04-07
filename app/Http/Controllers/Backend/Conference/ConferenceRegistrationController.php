@@ -669,7 +669,7 @@ class ConferenceRegistrationController extends Controller
 
     public function importExcelSubmit(Request $request, $society, $conference)
     {
-        $request->validate([
+        $request->validate([ 
             'excel_file' => 'required|file|mimes:xlsx,xls,csv|max:5120',
         ], [
             'excel_file.required' => 'Please upload an Excel file.',

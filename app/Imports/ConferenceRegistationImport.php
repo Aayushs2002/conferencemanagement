@@ -14,7 +14,7 @@ use App\Models\User\UserDetail;
 use App\Models\User\UserSociety;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
-use Maatwebsite\Excel\Concerns\ToCollection;
+use Maatwebsite\Excel\Concerns\ToCollection; 
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Maatwebsite\Excel\Concerns\WithBatchInserts;
 use Maatwebsite\Excel\Concerns\WithChunkReading;
@@ -96,6 +96,7 @@ class ConferenceRegistationImport implements ToCollection, WithHeadingRow, WithC
         'speaker' => 2,
         'session chair' => 3,
         'special guest' => 4,
+        'organizer' => 5,
     ];
 
     /**
