@@ -27,11 +27,11 @@
                                 @if (!isset($committee_member))
                                     @foreach ($users as $user)
                                         <option value="{{ $user->id }}" @selected(old('user_id') == $user->id)>
-                                            {{ $user->fullName($user) }}</option>
+                                            {{ $user->fullName($user) }} - {{ $user->email }}</option>
                                     @endforeach
                                 @else
                                     <option value="{{ $committee_member->user_id }}" selected>
-                                        {{ $committee_member->user->fullName($committee_member->user) }}</option>
+                                        {{ $committee_member->user->fullName($committee_member->user) }} - {{ $committee_member->user->email }}</option>
                                 @endif
                             </select>
                             <div class="valid-feedback">Looks good!</div>
