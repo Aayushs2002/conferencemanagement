@@ -12,16 +12,15 @@
                class="btn btn-secondary btn-sm">
                 <i class="ti tabler-arrow-left me-1"></i> Back to Registrants
             </a>
-        </div>
+        </div> 
         <div class="card-body">
             <form method="POST" action="{{ route('conference.conference-registration.sendBulkEmail', [$society, $conference]) }}">
                 @csrf
-
-                <!-- Filters --> 
+ 
                 <div class="row mb-4">
                     <div class="col-12">
-                        <h6 class="border-bottom pb-2 mb-3"><i class="ti tabler-filter me-2"></i>Filter Recipients (Optional)</h6>
-                        <p class="text-muted small">Leave filters empty to send to all registrants</p>
+                        <h6 class="border-bottom pb-2 mb-3"><i class="ti tabler-filter me-2"></i>Filter Recipients</h6>
+                        <p class="text-muted small mb-0">Filter the recipient list, then load users and add all or only the ones you want to email.</p>
                     </div>
                     <div class="col-md-3 mb-3">
                         <label for="registrant_type" class="form-label">Registrant Type</label>
@@ -75,7 +74,7 @@
                             @endforeach
                         </select>
                     </div>
-                    <div class="col-md-3 mb-3"> 
+                    <div class="col-md-3 mb-3">
                         <label for="country_id" class="form-label">Country</label>
                         <select class="form-control select2" name="country_id" id="country_id">
                             <option value="">-- All Countries --</option>
@@ -96,33 +95,45 @@
                     </div>
                     <div class="col-md-3 mb-3">
                         <label for="from" class="form-label">From Date</label>
-                        <input type="date" 
-                               value="{{ old('from') }}" 
-                               class="form-control" 
-                               id="from" 
+                        <input type="date"
+                               value="{{ old('from') }}"
+                               class="form-control"
+                               id="from"
                                name="from" />
                     </div>
                     <div class="col-md-3 mb-3">
                         <label for="to" class="form-label">To Date</label>
-                        <input type="date" 
-                               value="{{ old('to') }}" 
-                               class="form-control" 
-                               id="to" 
+                        <input type="date"
+                               value="{{ old('to') }}"
+                               class="form-control"
+                               id="to"
                                name="to" />
+                    </div>
+                    <div class="col-12 mt-1">
+                        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
+                            <label for="User" class="form-label mb-0">Recipients List</label>
+                            <div class="btn-group" role="group" aria-label="Recipient actions">
+                                <button type="button" class="btn btn-sm btn-outline-primary" id="loadRecipients">Load Users</button>
+                                <button type="button" class="btn btn-sm btn-outline-success" id="addAllRecipients">Add All</button>
+                                <button type="button" class="btn btn-sm btn-outline-secondary" id="clearRecipients">Clear</button>
+                            </div>
+                        </div>
+                        <input id="User" name="User" class="form-control" />
+                        <small id="recipientSummary" class="text-muted d-block mt-1">Loaded: 0 | Selected: 0</small>
+                        <p class="text-danger User"></p>
                     </div>
                 </div>
 
-                <!-- Email Content -->
                 <div class="row mb-4">
                     <div class="col-12">
                         <h6 class="border-bottom pb-2 mb-3"><i class="ti tabler-mail me-2"></i>Email Content</h6>
                     </div>
                     <div class="col-md-12 mb-3">
                         <label for="subject" class="form-label">Subject <code>*</code></label>
-                        <input type="text" 
-                               class="form-control @error('subject') is-invalid @enderror" 
-                               id="subject" 
-                               name="subject" 
+                        <input type="text"
+                               class="form-control @error('subject') is-invalid @enderror"
+                               id="subject"
+                               name="subject"
                                value="{{ old('subject') }}"
                                placeholder="Enter email subject"
                                required>
@@ -132,7 +143,7 @@
                     </div>
                     <div class="col-md-12 mb-3">
                         <label for="message" class="form-label">Message <code>*</code></label>
-                        <div class="mb-2"> 
+                        <div class="mb-2">
                             <small class="text-muted d-block mb-2"><i class="ti tabler-info-circle me-1"></i>Click buttons below to insert placeholders:</small>
                             <div class="btn-group flex-wrap" role="group">
                                 <button type="button" class="btn btn-sm btn-outline-primary insert-placeholder" data-placeholder="{name}">Name</button>
@@ -151,9 +162,9 @@
                                 <button type="button" class="btn btn-sm btn-outline-primary insert-placeholder" data-placeholder="{certificate_link}">Certificate Link</button>
                             </div>
                         </div>
-                        <textarea class="form-control ckeditor @error('message') is-invalid @enderror" 
-                                  id="message" 
-                                  name="message" 
+                        <textarea class="form-control ckeditor @error('message') is-invalid @enderror"
+                                  id="message"
+                                  name="message"
                                   rows="10"
                                   required>{{ old('message') }}</textarea>
                         @error('message')
@@ -162,10 +173,9 @@
                     </div>
                 </div>
 
-                <!-- Action Buttons -->
                 <div class="row">
-                    <div class="col-12 text-end"> 
-                        <a href="{{ route('conference.conference-registration.index', [$society, $conference]) }}" 
+                    <div class="col-12 text-end">
+                        <a href="{{ route('conference.conference-registration.index', [$society, $conference]) }}"
                            class="btn btn-secondary">
                             <i class="ti tabler-x me-1"></i> Cancel
                         </a>
@@ -182,8 +192,155 @@
 @section('scripts')
     <script>
         let editorInstance;
+        let recipientTagify;
+        const bulkRecipientsUrl = @json(route('conference.conference-registration.getBulkEmailUsers', [$society, $conference]));
         
         $(document).ready(function() {
+            function notifyError(message) {
+                if (typeof notyf !== 'undefined') {
+                    notyf.error(message);
+                } else {
+                    alert(message);
+                }
+            }
+
+            function notifySuccess(message) {
+                if (typeof notyf !== 'undefined') {
+                    notyf.success(message);
+                }
+            }
+
+            function updateRecipientSummary() {
+                const loadedCount = recipientTagify ? (recipientTagify.settings.whitelist || []).length : 0;
+                const selectedCount = recipientTagify ? (recipientTagify.value || []).length : 0;
+                $('#recipientSummary').text('Loaded: ' + loadedCount + ' | Selected: ' + selectedCount);
+            }
+
+            function initRecipientTagify() {
+                if (typeof Tagify === 'undefined') {
+                    notifyError('Recipient selector could not be initialized. Please refresh and try again.');
+                    return;
+                }
+
+                const recipientInput = document.getElementById('User');
+                if (!recipientInput) {
+                    return;
+                }
+
+                if (recipientInput._tagify) {
+                    recipientInput._tagify.destroy();
+                }
+
+                function tagTemplate(tagData) {
+                    return `
+<tag title="${tagData.title || tagData.email}" contenteditable='false' spellcheck='false' tabIndex="-1" class="${this.settings.classNames.tag} ${tagData.class || ''}" ${this.getAttributes(tagData)}>
+  <x title='' class='tagify__tag__removeBtn' role='button' aria-label='remove tag'></x>
+  <div>
+    <div class='tagify__tag__avatar-wrap'>
+      <img onerror="this.style.visibility='hidden'" src="${tagData.avatar}">
+    </div>
+    <span class='tagify__tag-text'>${tagData.name}</span>
+  </div>
+</tag>`;
+                }
+
+                function suggestionItemTemplate(tagData) {
+                    return `
+<div ${this.getAttributes(tagData)} class='tagify__dropdown__item align-items-center ${tagData.class || ''}' tabindex="0" role="option">
+  ${tagData.avatar ? `<div class='tagify__dropdown__item__avatar-wrap'><img onerror="this.style.visibility='hidden'" src="${tagData.avatar}"></div>` : ''}
+  <div class="fw-medium">${tagData.name}</div>
+  <span>${tagData.email}</span>
+</div>`;
+                }
+
+                function dropdownHeaderTemplate(suggestions) {
+                    return `
+<div class="${this.settings.classNames.dropdownItem} ${this.settings.classNames.dropdownItem}__addAll">
+  <strong>${this.value.length ? 'Add remaining' : 'Add All'}</strong>
+  <span>${suggestions.length} members</span>
+</div>`;
+                }
+
+                recipientTagify = new Tagify(recipientInput, {
+                    tagTextProp: 'name',
+                    enforceWhitelist: true,
+                    skipInvalid: true,
+                    dropdown: {
+                        closeOnSelect: false,
+                        enabled: 0,
+                        maxItems: 10000,
+                        classname: 'users-list',
+                        searchKeys: ['name', 'email']
+                    },
+                    templates: {
+                        tag: tagTemplate,
+                        dropdownItem: suggestionItemTemplate,
+                        dropdownHeader: dropdownHeaderTemplate
+                    },
+                    whitelist: []
+                });
+
+                recipientTagify.on('dropdown:select', function(e) {
+                    if (e.detail && e.detail.elm && e.detail.elm.classList.contains(recipientTagify.settings.classNames.dropdownItem + '__addAll')) {
+                        recipientTagify.dropdown.selectAll();
+                        updateRecipientSummary();
+                    }
+                });
+
+                recipientTagify.on('add', updateRecipientSummary);
+                recipientTagify.on('remove', updateRecipientSummary);
+                updateRecipientSummary();
+            }
+
+            function fetchAndUpdateRecipients(showMessage) {
+                if (!recipientTagify) {
+                    notifyError('Recipient selector is not ready');
+                    return;
+                }
+
+                const filters = {
+                    registrant_type: $('#registrant_type').val(),
+                    is_invited: $('#is_invited').val(),
+                    verified_status: $('#verified_status').val(),
+                    payment_type: $('#payment_type').val(),
+                    prefix: $('#prefix').val(),
+                    country_id: $('#country_id').val(),
+                    attendance_status: $('#attendance_status').val(),
+                    from: $('#from').val(),
+                    to: $('#to').val(),
+                    _t: Date.now()
+                };
+
+                recipientTagify.loading(true);
+                $.ajax({
+                    url: bulkRecipientsUrl,
+                    type: 'GET',
+                    data: filters,
+                    dataType: 'json',
+                    success: function(data) {
+                        const users = Array.isArray(data) ? data : [];
+                        recipientTagify.settings.whitelist = users;
+                        recipientTagify.loading(false);
+                        recipientTagify.removeAllTags();
+                        recipientTagify.dropdown.show.call(recipientTagify);
+                        updateRecipientSummary();
+
+                        if (showMessage) {
+                            if (users.length > 0) {
+                                notifySuccess(users.length + ' user(s) loaded');
+                            } else {
+                                notifyError('No users found for selected filters');
+                            }
+                        }
+                    },
+                    error: function(xhr) {
+                        recipientTagify.loading(false);
+                        console.error('Recipient fetch error', xhr);
+                        notifyError('Failed to load users. Please try again.');
+                    }
+                });
+            }
+
             // Initialize CKEditor
             CKEDITOR.replace('message', {
                 filebrowserUploadUrl: '{{ route('ckeditor.fileUpload', ['_token' => csrf_token()]) }}',
@@ -213,6 +370,46 @@
                     allowClear: true
                 });
             }
+
+            initRecipientTagify();
+
+            $(document)
+                .off('change.bulkEmail', '#registrant_type, #is_invited, #verified_status, #payment_type, #prefix, #country_id, #attendance_status, #from, #to')
+                .on('change.bulkEmail', '#registrant_type, #is_invited, #verified_status, #payment_type, #prefix, #country_id, #attendance_status, #from, #to', function() {
+                    fetchAndUpdateRecipients(false);
+                });
+
+            $(document)
+                .off('click.bulkEmail', '#loadRecipients')
+                .on('click.bulkEmail', '#loadRecipients', function(e) {
+                    e.preventDefault();
+                    fetchAndUpdateRecipients(true);
+                });
+
+            $(document)
+                .off('click.bulkEmail', '#addAllRecipients')
+                .on('click.bulkEmail', '#addAllRecipients', function(e) {
+                    e.preventDefault();
+                    if (!recipientTagify || !recipientTagify.settings.whitelist || recipientTagify.settings.whitelist.length === 0) {
+                        notifyError('Load users first');
+                        return;
+                    }
+                    recipientTagify.removeAllTags();
+                    recipientTagify.addTags(recipientTagify.settings.whitelist);
+                    updateRecipientSummary();
+                    notifySuccess('All filtered users added');
+                });
+
+            $(document)
+                .off('click.bulkEmail', '#clearRecipients')
+                .on('click.bulkEmail', '#clearRecipients', function(e) {
+                    e.preventDefault();
+                    if (!recipientTagify) {
+                        return;
+                    }
+                    recipientTagify.removeAllTags();
+                    updateRecipientSummary();
+                });
 
             // Insert placeholder into CKEditor (same as email template)
             $('.insert-placeholder').on('click', function() {

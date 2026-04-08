@@ -2394,6 +2394,27 @@ class ConferenceRegistrationController extends Controller
     }
 
     /**
+     * Load bulk email recipients for the selected conference filters.
+     */
+    public function getBulkEmailUsers(Request $request, $society, $conference)
+    {
+        try {
+            $registrants = $this->buildBulkEmailRecipientQuery($request, $conference)->get();
+
+            return response()->json($this->mapBulkEmailRecipients($registrants));
+        } catch (Exception $e) {
+            \Log::error('Conference bulk email recipient lookup failed: '.$e->getMessage(), [
+                'conference_id' => $conference->id ?? null,
+                'society_id' => $society->id ?? null,
+            ]);
+
+            return response()->json([
+                'error' => 'Failed to load registrants. Please try again.',
+            ], 500);
+        }
+    }
+
+    /**
      * Send bulk email to registrants
      */
     public function sendBulkEmail(Request $request, $society, $conference)
@@ -2409,77 +2430,20 @@ class ConferenceRegistrationController extends Controller
             ini_set('max_execution_time', '600');
             set_time_limit(600);
 
-            $society_id = $society->id;
-            $query = ConferenceRegistration::with([
-                'user' => function ($query) use ($society_id) {
-                    $query->with([
-                        'userDetail.namePrefix',
-                        'userDetail.country',
-                        'societies' => function ($q) use ($society_id) {
-                            $q->where('society_id', $society_id)
-                                ->withPivot('member_type_id');
-                        },
-                    ]);
-                },
-                'conference',
-            ])
-                ->where('conference_id', $conference->id)
-                ->where('status', 1)
-                ->whereNotNull('user_id'); // Only send to real users
+            $selectedRecipients = json_decode($request->input('User', '[]'), true);
+            $selectedUserIds = collect(is_array($selectedRecipients) ? $selectedRecipients : [])
+                ->pluck('value')
+                ->filter()
+                ->unique()
+                ->values()
+                ->all();
 
-            // Apply filters
-            if ($request->filled('registrant_type')) {
-                $query->where('registrant_type', $request->registrant_type);
+            if (! empty($selectedUserIds)) {
+                $registrants = $this->buildBulkEmailRecipientQuery($request, $conference, $selectedUserIds)->get();
+            } else {
+                $registrants = $this->buildBulkEmailRecipientQuery($request, $conference)->get();
             }
 
-            if ($request->filled('is_invited')) {
-                $query->where('is_invited', $request->is_invited);
-            }
-
-            if ($request->filled('verified_status')) {
-                $query->where('verified_status', $request->verified_status);
-            }
-
-            if ($request->filled('payment_type')) {
-                $query->where('payment_type', $request->payment_type);
-            }
-
-            if ($request->filled('from')) {
-                $query->whereDate('created_at', '>=', $request->from);
-            }
-
-            if ($request->filled('to')) {
-                $query->whereDate('created_at', '<=', $request->to);
-            }
-
-            if ($request->filled('country_id')) {
-                $query->whereHas('user.userDetail', function ($q) use ($request) {
-                    $q->where('country_id', $request->country_id);
-                });
-            }
-
-            if ($request->filled('prefix')) {
-                $query->whereHas('user.userDetail', function ($q) use ($request) {
-                    $q->where('name_prefix_id', $request->prefix);
-                });
-            }
-
-            // Filter by attendance status
-            if ($request->filled('attendance_status')) {
-                if ($request->attendance_status == '1') {
-                    // Has attended - has attendance record with status 1
-                    $query->whereHas('attendances', function ($q) {
-                        $q->where('status', 1);
-                    });
-                } elseif ($request->attendance_status == '0') {
-                    // Not attended - no attendance record or status != 1
-                    $query->whereDoesntHave('attendances', function ($q) {
-                        $q->where('status', 1);
-                    });
-                }
-            }
-
-            $registrants = $query->get();
             if ($registrants->isEmpty()) {
                 return redirect()
                     ->back()
@@ -2538,6 +2502,110 @@ class ConferenceRegistrationController extends Controller
                 ->withInput()
                 ->with('delete', 'Error sending emails: '.$e->getMessage());
         }
+    }
+
+    /**
+     * Build the base bulk email recipient query.
+     */
+    private function buildBulkEmailRecipientQuery(Request $request, $conference, ?array $selectedUserIds = null)
+    {
+        $societyId = $request->route('society')->id ?? null;
+
+        $query = ConferenceRegistration::with([
+            'user' => function ($query) use ($societyId) {
+                $query->with([
+                    'userDetail.namePrefix',
+                    'userDetail.country',
+                    'societies' => function ($societyQuery) use ($societyId) {
+                        if ($societyId) {
+                            $societyQuery->where('society_id', $societyId)
+                                ->withPivot('member_type_id');
+                        }
+                    },
+                ]);
+            },
+            'conference',
+        ])
+            ->where('conference_id', $conference->id)
+            ->where('status', 1)
+            ->whereNotNull('user_id');
+
+        if (! empty($selectedUserIds)) {
+            $query->whereIn('user_id', $selectedUserIds);
+        }
+
+        if ($request->filled('registrant_type')) {
+            $query->where('registrant_type', $request->registrant_type);
+        }
+
+        if ($request->filled('is_invited')) {
+            $query->where('is_invited', $request->is_invited);
+        }
+
+        if ($request->filled('verified_status')) {
+            $query->where('verified_status', $request->verified_status);
+        }
+
+        if ($request->filled('payment_type')) {
+            $query->where('payment_type', $request->payment_type);
+        }
+
+        if ($request->filled('from')) {
+            $query->whereDate('created_at', '>=', $request->from);
+        }
+
+        if ($request->filled('to')) {
+            $query->whereDate('created_at', '<=', $request->to);
+        }
+
+        if ($request->filled('country_id')) {
+            $query->whereHas('user.userDetail', function ($userDetailQuery) use ($request) {
+                $userDetailQuery->where('country_id', $request->country_id);
+            });
+        }
+
+        if ($request->filled('prefix')) {
+            $query->whereHas('user.userDetail', function ($userDetailQuery) use ($request) {
+                $userDetailQuery->where('name_prefix_id', $request->prefix);
+            });
+        }
+
+        if ($request->filled('attendance_status')) {
+            if ($request->attendance_status == '1') {
+                $query->whereHas('attendances', function ($attendanceQuery) {
+                    $attendanceQuery->where('status', 1);
+                });
+            } elseif ($request->attendance_status == '0') {
+                $query->whereDoesntHave('attendances', function ($attendanceQuery) {
+                    $attendanceQuery->where('status', 1);
+                });
+            }
+        }
+
+        return $query;
+    }
+
+    /**
+     * Convert registrants into the Tagify payload used by the mail form.
+     */
+    private function mapBulkEmailRecipients($registrants)
+    {
+        return $registrants
+            ->filter(function ($registrant) {
+                return $registrant->user && $registrant->user->email;
+            })
+            ->unique('user_id')
+            ->map(function ($registrant) {
+                $user = $registrant->user;
+
+                return [
+                    'value' => $user->id,
+                    'name' => $user->fullName($user),
+                    'email' => $user->email,
+                    'avatar' => 'https://i.pravatar.cc/80?u='.urlencode($user->email),
+                ];
+            })
+            ->values();
     }
 
     /**
