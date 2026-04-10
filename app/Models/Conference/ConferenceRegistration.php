@@ -661,6 +661,116 @@ GROUP BY MT.id, MT.delegate, MT.type";
     }
 
     /**
+     * Update registration IDs for one registrant type only.
+     * Uses the same sorting and committee-member handling pattern as bulk update.
+     */
+    public static function updateRegistrationIdsByRegistrantType(int $conferenceId, int $registrantType): array
+    {
+        DB::beginTransaction();
+
+        try {
+            $committeeMemberUserIds = CommitteeMember::where('conference_id', $conferenceId)
+                ->where('status', 1)
+                ->pluck('user_id')
+                ->toArray();
+
+            $typeMeta = [
+                self::REGISTRANT_ATTENDEE => ['prefix' => 'PAR', 'label' => 'Attendee'],
+                self::REGISTRANT_SPEAKER => ['prefix' => 'SPE', 'label' => 'Speaker'],
+                self::REGISTRANT_SESSION_CHAIR => ['prefix' => 'SCH', 'label' => 'Session Chair'],
+                self::REGISTRANT_SPECIAL_GUEST => ['prefix' => 'SGU', 'label' => 'Special Guest'],
+                self::REGISTRANT_ORGANIZER => ['prefix' => 'ORG', 'label' => 'Organizer'],
+                self::REGISTRANT_FACULTY => ['prefix' => 'FAC', 'label' => 'Faculty'],
+                self::REGISTRANT_VOLUNTEER => ['prefix' => 'VOL', 'label' => 'Volunteer'],
+            ];
+
+            if (! isset($typeMeta[$registrantType])) {
+                throw new \InvalidArgumentException('Invalid registrant type selected.');
+            }
+
+            $prefix = $typeMeta[$registrantType]['prefix'];
+            $label = $typeMeta[$registrantType]['label'];
+
+            if ($registrantType === self::REGISTRANT_ORGANIZER) {
+                $realRegistrants = self::where('conference_id', $conferenceId)
+                    ->where('status', 1)
+                    ->where('is_invited', 0)
+                    ->whereNotNull('user_id')
+                    ->where(function ($query) use ($committeeMemberUserIds) {
+                        $query->where('registrant_type', self::REGISTRANT_ORGANIZER)
+                            ->orWhereIn('user_id', $committeeMemberUserIds);
+                    })
+                    ->with(['user' => function ($q) {
+                        $q->select('id', 'f_name', 'm_name', 'l_name');
+                    }])
+                    ->get()
+                    ->sortBy(function ($registration) {
+                        return $registration->user
+                            ? strtolower($registration->user->f_name.' '.$registration->user->m_name.' '.$registration->user->l_name)
+                            : '';
+                    })
+                    ->values();
+
+                $dummyRegistrants = self::where('conference_id', $conferenceId)
+                    ->where('status', 1)
+                    ->where('registrant_type', self::REGISTRANT_ORGANIZER)
+                    ->where('is_invited', 0)
+                    ->whereNull('user_id')
+                    ->orderBy('created_at')
+                    ->get();
+            } else {
+                $realRegistrants = self::where('conference_id', $conferenceId)
+                    ->where('status', 1)
+                    ->where('registrant_type', $registrantType)
+                    ->where('is_invited', 0)
+                    ->whereNotNull('user_id')
+                    ->whereNotIn('user_id', $committeeMemberUserIds)
+                    ->with(['user' => function ($q) {
+                        $q->select('id', 'f_name', 'm_name', 'l_name');
+                    }])
+                    ->get()
+                    ->sortBy(function ($registration) {
+                        return $registration->user
+                            ? strtolower($registration->user->f_name.' '.$registration->user->m_name.' '.$registration->user->l_name)
+                            : '';
+                    })
+                    ->values();
+
+                $dummyRegistrants = self::where('conference_id', $conferenceId)
+                    ->where('status', 1)
+                    ->where('registrant_type', $registrantType)
+                    ->where('is_invited', 0)
+                    ->whereNull('user_id')
+                    ->orderBy('created_at')
+                    ->get();
+            }
+
+            $counter = 1;
+            foreach ($realRegistrants as $registration) {
+                $registration->registration_id = $prefix.'_'.str_pad($counter, 3, '0', STR_PAD_LEFT);
+                $registration->save();
+                $counter++;
+            }
+
+            foreach ($dummyRegistrants as $registration) {
+                $registration->registration_id = $prefix.'_'.str_pad($counter, 3, '0', STR_PAD_LEFT);
+                $registration->save();
+                $counter++;
+            }
+
+            DB::commit();
+
+            return [
+                'label' => $label,
+                'total' => max(0, $counter - 1),
+            ];
+        } catch (\Exception $e) {
+            DB::rollBack();
+            throw $e;
+        }
+    }
+
+    /**
      * Get registration ID prefix based on type
      */
     public function getRegistrationIdPrefix(): string
@@ -675,6 +785,8 @@ GROUP BY MT.id, MT.delegate, MT.type";
             self::REGISTRANT_SESSION_CHAIR => 'SCH',
             self::REGISTRANT_SPECIAL_GUEST => 'SGU',
             self::REGISTRANT_ORGANIZER => 'ORG',
+            self::REGISTRANT_FACULTY => 'FAC',
+            self::REGISTRANT_VOLUNTEER => 'VOL',
             default => 'REG'
         };
     }
