@@ -3,7 +3,7 @@
     <div class="">
         <h4 class=" mb-4 " style="background: white;">Verify Registrant <span class="text-danger">(Registrant
                 Name:
-                {{ $registration->user->fullName($registration->user) }})</span></h4>
+                {{ $registration->user?->fullName($registration->user) }})</span></h4>
         <form id="verifyForm">
             @csrf
             <div class="row">
