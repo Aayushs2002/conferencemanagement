@@ -116,6 +116,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/download-voucher/{conferenceRegistration}', 'downloadVoucher')->name('downloadVoucher');
         Route::post('/generate-dummy-pass', 'generateDummyPass')->name('generateDummyPass');
         Route::post('/update-registration-ids', 'updateRegistrationIds')->name('updateRegistrationIds');
+        Route::post('/update-registration-ids-by-type', 'updateRegistrationIdsByType')->name('updateRegistrationIdsByType');
         Route::get('/bulk-email', 'showBulkEmailForm')->name('bulkEmail');
         Route::get('/bulk-email/users', 'getBulkEmailUsers')->name('getBulkEmailUsers');
         Route::post('/bulk-email', 'sendBulkEmail')->name('sendBulkEmail');

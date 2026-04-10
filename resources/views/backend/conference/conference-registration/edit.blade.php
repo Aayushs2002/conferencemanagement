@@ -302,6 +302,17 @@
                         </div>
 
                         <div class="col-md-4 form-group mb-3">
+                            <label for="registration_id">Registration ID</label>
+                            <input type="text" class="form-control @error('registration_id') is-invalid @enderror"
+                                name="registration_id" id="registration_id"
+                                value="{{ old('registration_id', $registrant->registration_id) }}"
+                                placeholder="Enter registration id manually" />
+                            @error('registration_id')
+                                <p class="text-danger">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        <div class="col-md-4 form-group mb-3">
                             <label for="payment_type">Payment Type <code>*</code></label>
                             <select name="payment_type" class="form-control" id="payment_type" required>
                                 <option value="" hidden>-- Select Payment Type --</option>

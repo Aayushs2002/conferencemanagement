@@ -228,7 +228,13 @@
                                             <i class="ti tabler-refresh me-2"></i> Update Registration IDs
                                         </button>
                                     </form>
-                                </li> 
+                                </li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <a class="dropdown-item" href="javascript:void(0);" data-bs-toggle="modal" data-bs-target="#updateRegistrationIdsByTypeModal">
+                                        <i class="ti tabler-adjustments me-2"></i> Update IDs By Registrant Type
+                                    </a>
+                                </li>
                             </ul>
                         </div> 
 
@@ -526,6 +532,43 @@
                 </div>
             </div>
         </div>
+
+        <!-- Update Registration IDs By Type Modal -->
+        <div class="modal fade" id="updateRegistrationIdsByTypeModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Update Registration IDs By Type</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <form id="updateRegistrationIdsByTypeForm" action="{{ route('conference.conference-registration.updateRegistrationIdsByType', [$society, $conference]) }}" method="POST">
+                        @csrf
+                        <div class="modal-body">
+                            <div class="mb-3">
+                                <label for="update_registrant_type" class="form-label">Registrant Type <code>*</code></label>
+                                <select class="form-control" id="update_registrant_type" name="registrant_type" required>
+                                    <option value="">-- Select Registrant Type --</option>
+                                    <option value="1">Attendee</option>
+                                    <option value="2">Speaker</option>
+                                    <option value="3">Session Chair</option>
+                                    <option value="4">Special Guest</option>
+                                    <option value="5">Organizer</option>
+                                    <option value="6">Faculty</option>
+                                    <option value="7">Volunteer</option>
+                                </select>
+                                <small class="text-muted">Only the selected type will be re-numbered and updated.</small>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <button type="button" id="updateByTypeBtn" class="btn btn-primary" onclick="confirmUpdateRegistrationIdsByType()">
+                                Update IDs
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
     </div>
 @endsection
 @section('scripts')
@@ -719,6 +762,23 @@
             if (confirm('This will update registration IDs for all registrants in this conference. This process may take a few minutes for large datasets. Do you want to continue?')) {
                 const form = document.getElementById('updateRegistrationIdsForm');
                 const button = form.querySelector('button');
+                button.disabled = true;
+                button.innerHTML = '<i class="ti tabler-loader me-2"></i> Updating...';
+                form.submit();
+            }
+        }
+
+        function confirmUpdateRegistrationIdsByType() {
+            const form = document.getElementById('updateRegistrationIdsByTypeForm');
+            const registrantType = document.getElementById('update_registrant_type').value;
+
+            if (!registrantType) {
+                alert('Please select a registrant type first.');
+                return;
+            }
+
+            if (confirm('This will update registration IDs only for the selected registrant type. Do you want to continue?')) {
+                const button = document.getElementById('updateByTypeBtn');
                 button.disabled = true;
                 button.innerHTML = '<i class="ti tabler-loader me-2"></i> Updating...';
                 form.submit();
