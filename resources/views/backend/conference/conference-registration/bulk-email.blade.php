@@ -121,6 +121,8 @@
                         <input id="User" name="User" class="form-control" />
                         <small id="recipientSummary" class="text-muted d-block mt-1">Loaded: 0 | Selected: 0</small>
                         <p class="text-danger User"></p>
+                        <!-- Hidden field to store selected user IDs -->
+                        <input type="hidden" id="selectedUserIds" name="selectedUserIds" />
                     </div>
                 </div>
 
@@ -216,6 +218,13 @@
                 $('#recipientSummary').text('Loaded: ' + loadedCount + ' | Selected: ' + selectedCount);
             }
 
+            function updateSelectedUserIds() {
+                // Extract selected user IDs from Tagify and store in hidden field
+                const selectedUsers = recipientTagify.value || [];
+                const userIds = selectedUsers.map(u => u.id).join(',');
+                $('#selectedUserIds').val(userIds);
+            }
+
             function initRecipientTagify() {
                 if (typeof Tagify === 'undefined') {
                     notifyError('Recipient selector could not be initialized. Please refresh and try again.');
@@ -248,8 +257,8 @@
                     return `
 <div ${this.getAttributes(tagData)} class='tagify__dropdown__item align-items-center ${tagData.class || ''}' tabindex="0" role="option">
   ${tagData.avatar ? `<div class='tagify__dropdown__item__avatar-wrap'><img onerror="this.style.visibility='hidden'" src="${tagData.avatar}"></div>` : ''}
-  <div class="fw-medium">${tagData.name}</div>
-  <span>${tagData.email}</span>
+  <div class="fw-medium">${tagData.name || 'Unknown'}</div>
+  <span>${tagData.email || ''}</span>
 </div>`;
                 }
 
@@ -267,7 +276,7 @@
                     skipInvalid: true,
                     dropdown: {
                         closeOnSelect: false,
-                        enabled: 0,
+                        enabled: 1,
                         maxItems: 10000,
                         classname: 'users-list',
                         searchKeys: ['name', 'email']
@@ -287,8 +296,25 @@
                     }
                 });
 
-                recipientTagify.on('add', updateRecipientSummary);
-                recipientTagify.on('remove', updateRecipientSummary);
+                recipientTagify.on('add', function(e) {
+                    updateRecipientSummary();
+                    updateSelectedUserIds();
+                });
+                
+                recipientTagify.on('remove', function(e) {
+                    updateRecipientSummary();
+                    updateSelectedUserIds();
+                });
+                
+                // Add click handler to show dropdown with suggestions
+                recipientTagify.DOM.input.addEventListener('click', function() {
+                    if (recipientTagify.settings.whitelist && recipientTagify.settings.whitelist.length > 0) {
+                        recipientTagify.DOM.input.value = '';
+                        const event = new Event('input', { bubbles: true });
+                        recipientTagify.DOM.input.dispatchEvent(event);
+                    }
+                });
+                
                 updateRecipientSummary();
             }
 
@@ -318,19 +344,76 @@
                     data: filters,
                     dataType: 'json',
                     success: function(data) {
-                        const users = Array.isArray(data) ? data : [];
-                        recipientTagify.settings.whitelist = users;
-                        recipientTagify.loading(false);
-                        recipientTagify.removeAllTags();
-                        recipientTagify.dropdown.show.call(recipientTagify);
-                        updateRecipientSummary();
-
-                        if (showMessage) {
-                            if (users.length > 0) {
-                                notifySuccess(users.length + ' user(s) loaded');
-                            } else {
-                                notifyError('No users found for selected filters');
+                        try {
+                            const users = Array.isArray(data) ? data : [];
+                            
+                            if (users.length === 0) {
+                                recipientTagify.loading(false);
+                                updateRecipientSummary();
+                                if (showMessage) {
+                                    notifyError('No users found for selected filters');
+                                }
+                                return;
                             }
+                            
+                            // Validate and clean user data - ensure all strings are properly typed
+                            const validUsers = users.filter(u => {
+                                return u && 
+                                       (u.id || u.id === 0) && 
+                                       String(u.name).trim() && 
+                                       String(u.email).trim();
+                            }).map(u => ({
+                                id: u.id,
+                                name: String(u.name).trim(),
+                                email: String(u.email).trim(),
+                                avatar: u.avatar || '',
+                                title: u.title || '',
+                                class: u.class || ''
+                            }));
+                            
+                            if (validUsers.length === 0) {
+                                recipientTagify.loading(false);
+                                updateRecipientSummary();
+                                if (showMessage) {
+                                    notifyError('No valid users found');
+                                }
+                                return;
+                            }
+                            
+                            // Update whitelist with validated data
+                            recipientTagify.whitelist = validUsers;
+                            recipientTagify.settings.whitelist = validUsers;
+                            recipientTagify.loading(false);
+                            recipientTagify.removeAllTags();
+                            
+                            updateRecipientSummary();
+                            
+                            // Focus on input 
+                            recipientTagify.DOM.input.focus();
+                            recipientTagify.DOM.input.value = '';
+                            
+                            // Manually trigger the dropdown by simulating user input
+                            setTimeout(() => {
+                                // Type a character to trigger suggestions
+                                recipientTagify.DOM.input.value = 'a';
+                                const inputEvent = new Event('input', { bubbles: true });
+                                recipientTagify.DOM.input.dispatchEvent(inputEvent);
+                                
+                                // After a brief delay, clear and show all
+                                setTimeout(() => {
+                                    recipientTagify.DOM.input.value = '';
+                                    const clearEvent = new Event('input', { bubbles: true });
+                                    recipientTagify.DOM.input.dispatchEvent(clearEvent);
+                                }, 150);
+                            }, 100);
+
+                            if (showMessage) {
+                                notifySuccess(validUsers.length + ' user(s) loaded. Start typing or click in the field to view suggestions.');
+                            }
+                        } catch (err) {
+                            recipientTagify.loading(false);
+                            console.error('Error processing users:', err);
+                            notifyError('Error loading users. Please try again.');
                         }
                     },
                     error: function(xhr) {
@@ -425,12 +508,22 @@
             $('#sendEmailBtn').on('click', function(e) {
                 e.preventDefault();
                 
+                // Check if users are selected
+                const selectedUsers = recipientTagify.value || [];
+                if (selectedUsers.length === 0) {
+                    notifyError('Please select at least one recipient');
+                    return;
+                }
+                
+                // Update the hidden field with selected user IDs
+                updateSelectedUserIds();
+                
                 // Update the textarea with CKEditor content
                 if (editorInstance) {
                     $('#message').val(editorInstance.getData());
                 }
                 
-                if (confirm('Are you sure you want to send this email to the selected registrants? This action cannot be undone.')) {
+                if (confirm('Are you sure you want to send this email to ' + selectedUsers.length + ' selected registrant(s)? This action cannot be undone.')) {
                     $(this).prop('disabled', true);
                     $(this).html('<i class="ti tabler-loader me-1"></i> Sending...');
                     $(this).closest('form').submit();
