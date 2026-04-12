@@ -60,7 +60,7 @@ class ConferenceRegistrationController extends Controller
         $society_id = $society->id;
         $query = ConferenceRegistration::with([
             'user' => function ($query) use ($society_id) {
-                $query->with([
+                $query->with([ 
                     'userDetail.namePrefix',
                     'userDetail.country',
                     'userDetail.designation',
@@ -2435,21 +2435,11 @@ class ConferenceRegistrationController extends Controller
     }
 
     /**
-     * Send bulk email to registrants
+     * Get bulk email users (for autocomplete/tagify)
      */
-    public function sendBulkEmail(Request $request, $society, $conference)
+    public function getBulkEmailUsers(Request $request, $society, $conference)
     {
         try {
-            $request->validate([
-                'subject' => 'required|string|max:255',
-                'message' => 'required|string',
-            ]);
-
-            // Increase limits for large datasets
-            ini_set('memory_limit', '1024M');
-            ini_set('max_execution_time', '600');
-            set_time_limit(600);
-
             $society_id = $society->id;
             $query = ConferenceRegistration::with([
                 'user' => function ($query) use ($society_id) {
@@ -2466,7 +2456,7 @@ class ConferenceRegistrationController extends Controller
             ])
                 ->where('conference_id', $conference->id)
                 ->where('status', 1)
-                ->whereNotNull('user_id'); // Only send to real users
+                ->whereNotNull('user_id'); // Only get real users
 
             // Apply filters
             if ($request->filled('registrant_type')) {
@@ -2517,6 +2507,133 @@ class ConferenceRegistrationController extends Controller
                     $query->whereDoesntHave('attendances', function ($q) {
                         $q->where('status', 1);
                     });
+                }
+            }
+
+            $registrants = $query->get();
+
+            // Transform to Tagify format
+            $users = $registrants->map(function ($registrant) {
+                $user = $registrant->user;
+                if (!$user) {
+                    return null;
+                }
+
+                $middleName = !empty($user->m_name) ? ' ' . $user->m_name : '';
+                $fullName = trim($user->f_name . $middleName . ' ' . $user->l_name);
+
+                return [
+                    'id' => $user->id,
+                    'name' => $fullName,
+                    'email' => $user->email,
+                    'avatar' => $user->profile_image ? asset('storage/' . $user->profile_image) : asset('default-image/user-profile.png'),
+                    'title' => $fullName . ' (' . $user->email . ')',
+                    'class' => 'user-tag',
+                ];
+            })->filter()->values();
+
+            return response()->json($users);
+        } catch (\Exception $e) {
+            return response()->json([], 500);
+        }
+    }
+
+    /**
+     * Send bulk email to registrants
+     */
+    public function sendBulkEmail(Request $request, $society, $conference)
+    {
+        try {
+            $request->validate([
+                'subject' => 'required|string|max:255',
+                'message' => 'required|string',
+            ]);
+
+            // Increase limits for large datasets
+            ini_set('memory_limit', '1024M');
+            ini_set('max_execution_time', '600');
+            set_time_limit(600);
+
+            $society_id = $society->id;
+            $query = ConferenceRegistration::with([
+                'user' => function ($query) use ($society_id) {
+                    $query->with([
+                        'userDetail.namePrefix',
+                        'userDetail.country',
+                        'societies' => function ($q) use ($society_id) {
+                            $q->where('society_id', $society_id)
+                                ->withPivot('member_type_id');
+                        },
+                    ]);
+                },
+                'conference',
+            ])
+                ->where('conference_id', $conference->id)
+                ->where('status', 1)
+                ->whereNotNull('user_id'); // Only send to real users
+
+            // If selectedUserIds is provided, use those specific users
+            if ($request->filled('selectedUserIds')) {
+                $userIds = array_filter(array_map('intval', explode(',', $request->selectedUserIds)));
+                if (! empty($userIds)) {
+                    $query->whereIn('user_id', $userIds);
+                } else {
+                    return redirect()
+                        ->back()
+                        ->withInput()
+                        ->with('delete', 'No valid user IDs selected.');
+                }
+            } else {
+                // Apply filters (only if selectedUserIds not provided)
+                if ($request->filled('registrant_type')) {
+                    $query->where('registrant_type', $request->registrant_type);
+                }
+
+                if ($request->filled('is_invited')) {
+                    $query->where('is_invited', $request->is_invited);
+                }
+
+                if ($request->filled('verified_status')) {
+                    $query->where('verified_status', $request->verified_status);
+                }
+
+                if ($request->filled('payment_type')) {
+                    $query->where('payment_type', $request->payment_type);
+                }
+
+                if ($request->filled('from')) {
+                    $query->whereDate('created_at', '>=', $request->from);
+                }
+
+                if ($request->filled('to')) {
+                    $query->whereDate('created_at', '<=', $request->to);
+                }
+
+                if ($request->filled('country_id')) {
+                    $query->whereHas('user.userDetail', function ($q) use ($request) {
+                        $q->where('country_id', $request->country_id);
+                    });
+                }
+
+                if ($request->filled('prefix')) {
+                    $query->whereHas('user.userDetail', function ($q) use ($request) {
+                        $q->where('name_prefix_id', $request->prefix);
+                    });
+                }
+
+                // Filter by attendance status
+                if ($request->filled('attendance_status')) {
+                    if ($request->attendance_status == '1') {
+                        // Has attended - has attendance record with status 1
+                        $query->whereHas('attendances', function ($q) {
+                            $q->where('status', 1);
+                        });
+                    } elseif ($request->attendance_status == '0') {
+                        // Not attended - no attendance record or status != 1
+                        $query->whereDoesntHave('attendances', function ($q) {
+                            $q->where('status', 1);
+                        });
+                    }
                 }
             }
 
