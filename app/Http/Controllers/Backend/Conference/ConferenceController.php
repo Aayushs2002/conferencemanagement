@@ -633,7 +633,7 @@ class ConferenceController extends Controller
         $viewType = $request->get('view_type', 'registrants'); // registrants, sponsors, or both
         $registrants = collect();
         $sponsors = collect();
-
+ 
         // Fetch Registrants Data
         if (in_array($viewType, ['registrants', 'both'])) {
             $query = DB::table('conference_registrations as CR')
@@ -664,8 +664,8 @@ class ConferenceController extends Controller
                     'CR.status' => 1,
                     'CR.conference_id' => $conference->id,
                 ])
-                ->join('users as U', 'CR.user_id', '=', 'U.id')
-                ->join('user_details as UD', 'U.id', '=', 'UD.user_id')
+                ->leftJoin('users as U', 'CR.user_id', '=', 'U.id')
+                ->leftJoin('user_details as UD', 'U.id', '=', 'UD.user_id')
                 ->leftJoin('countries as C', 'UD.country_id', '=', 'C.id')
                 ->leftJoin('institutions as I', 'UD.institution_id', '=', 'I.id');
 
@@ -731,7 +731,9 @@ class ConferenceController extends Controller
                 });
             }
 
-            $query->orderBy('U.f_name', 'asc'); 
+                $query->orderByRaw("CASE WHEN \"CR\".\"user_id\" IS NULL THEN 1 ELSE 0 END asc")
+                ->orderByRaw("COALESCE(\"U\".\"f_name\", '') asc")
+                ->orderBy('CR.id', 'asc'); 
             
             $registrants = $query->get();
         }
@@ -960,8 +962,8 @@ class ConferenceController extends Controller
                     'CR.status' => 1,
                     'CR.conference_id' => $conference->id,
                 ])
-                ->join('users as U', 'CR.user_id', '=', 'U.id')
-                ->join('user_details as UD', 'U.id', '=', 'UD.user_id')
+                ->leftJoin('users as U', 'CR.user_id', '=', 'U.id')
+                ->leftJoin('user_details as UD', 'U.id', '=', 'UD.user_id')
                 ->leftJoin('countries as C', 'UD.country_id', '=', 'C.id')
                 ->leftJoin('institutions as I', 'UD.institution_id', '=', 'I.id');
 
@@ -1027,7 +1029,9 @@ class ConferenceController extends Controller
                 });
             }
 
-            $query->orderBy('U.f_name', 'asc');
+            $query->orderByRaw("CASE WHEN \"CR\".\"user_id\" IS NULL THEN 1 ELSE 0 END asc")
+                ->orderByRaw("COALESCE(\"U\".\"f_name\", '') asc")
+                ->orderBy('CR.id', 'asc');
             $registrants = $query->get();
 
             // Attach data for registrants

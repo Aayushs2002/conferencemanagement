@@ -674,7 +674,7 @@ class ConferenceRegistrationController extends Controller
                 'total_attendee' => $activeAccompanyCount + 1, // +1 for the registrant
             ]);
 
-            logActivity($conference->id, 'Deleted Accompany Person', 'Deleted accompany person: '.$personName.' from '.$registration->user->fullName($registration->user).' registration');
+            logActivity($conference->id, 'Deleted Accompany Person', 'Deleted accompany person: '.$personName.' from '.$registration->user?->fullName($registration->user).' registration');
 
             return response()->json([
                 'success' => true,
@@ -1062,7 +1062,7 @@ class ConferenceRegistrationController extends Controller
                 AccompanyPerson::insert($insertArray);
             }
 
-            logActivity($registration->conference_id, 'Add Person', 'Added '.$validated['additional_guests'].' Guests to '.$registration->user->fullName($registration->user).' is registered to conference');
+            logActivity($registration->conference_id, 'Add Person', 'Added '.$validated['additional_guests'].' Guests to '.$registration->user?->fullName($registration->user).' is registered to conference');
 
             $type = 'success';
             $message = 'Successfully Added';
@@ -1071,6 +1071,7 @@ class ConferenceRegistrationController extends Controller
 
             // return redirect()->back()->with('status', 'Successfully registered.');
         } catch (Exception $e) {
+            DB::rollBack();
             $type = 'error';
             $message = $e->getMessage();
         }
@@ -2670,19 +2671,20 @@ class ConferenceRegistrationController extends Controller
                     'conference_name' => $conference->conference_name,
                 ];
 
-                // Dispatch job with delay to prevent rate limiting (3 seconds per email)
+                // Dispatch job with delay to prevent rate limiting (5 seconds per email)
+                // Increases interval to 5 seconds to stay within Mailtrap rate limits
                 SendRegistrantEmailJob::dispatch(
                     $registrant->id,
                     $request->subject,
                     $messageContent,
                     $data, 
                     $conference->conference_name
-                )->delay(now()->addSeconds($queuedCount * 3));
+                )->delay(now()->addSeconds($queuedCount * 5));
 
                 $queuedCount++;
             }
 
-            $message = "Email queued successfully for {$queuedCount} recipient(s). Emails will be sent with 3-second intervals.";
+            $message = "Email queued successfully for {$queuedCount} recipient(s). Emails will be sent with 5-second intervals.";
             if ($skippedCount > 0) {
                 $message .= " Skipped {$skippedCount} recipient(s) with invalid data.";
             }

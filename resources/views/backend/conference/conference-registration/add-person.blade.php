@@ -10,7 +10,7 @@
                 <input type="hidden" id="registrationId" name="id" value="{{ $registration->id }}">
                 
                 @if($registration->accompanyPersons->where('status', 1)->count() > 0)
-                    <div class="col-md-12 mb-4">
+                    <div class="col-md-12 mb-4"> 
                         <h5 class="text-primary mb-3">Existing Accompany Persons:</h5>
                         <div class="table-responsive">
                             <table class="table table-bordered">
