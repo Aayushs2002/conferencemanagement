@@ -1197,31 +1197,26 @@ class ConferenceController extends Controller
         $conferenceId = $request->conference_id;
         $date = $request->date;
 
-        // Query for conference registrations
-        $query = DB::table('conference_registrations');
-        
-        // Filter by date if not 'all'
-        if ($date && $date !== 'all') {
-            $query->leftJoin('attendances', function($join) use ($date) {
-                $join->on('conference_registrations.id', '=', 'attendances.conference_registration_id')
-                     ->whereDate('attendances.created_at', '=', $date);
-            })
-            ->leftJoin('meals', function($join) use ($date) {
-                $join->on('conference_registrations.id', '=', 'meals.conference_registration_id')
-                     ->whereDate('meals.created_at', '=', $date);
-            });
-        } else {
-            $query->leftJoin('attendances', 'conference_registrations.id', '=', 'attendances.conference_registration_id')
-                  ->leftJoin('meals', 'conference_registrations.id', '=', 'meals.conference_registration_id');
-        }
-        
-        $query->where('conference_registrations.conference_id', $conferenceId);
+        $registrationIds = DB::table('conference_registrations')
+            ->where('conference_id', $conferenceId)
+            ->where('status', 1)
+            ->where('verified_status', 1)
+            ->select('id');
 
-        $data = $query->select(
-            DB::raw('COUNT(DISTINCT attendances.id) as attendance_count'),
-            DB::raw('COALESCE(SUM(meals.lunch_taken), 0) as lunch_count'),
-            DB::raw('COALESCE(SUM(meals.dinner_taken), 0) as dinner_count')
-        )->first();
+        $registrantAttendanceQuery = DB::table('attendances')
+            ->whereIn('conference_registration_id', $registrationIds);
+
+        $registrantMealQuery = DB::table('meals')
+            ->whereIn('conference_registration_id', $registrationIds);
+
+        if ($date && $date !== 'all') {
+            $registrantAttendanceQuery->whereDate('created_at', '=', $date);
+            $registrantMealQuery->whereDate('created_at', '=', $date);
+        }
+
+        $registrantAttendanceCount = $registrantAttendanceQuery->count();
+        $registrantLunchCount = (int) ($registrantMealQuery->sum('lunch_taken') ?? 0);
+        $registrantDinnerCount = (int) ($registrantMealQuery->sum('dinner_taken') ?? 0);
 
         // Query for kit distribution
         $kitQuery = DB::table('conference_registration_kits');
@@ -1233,41 +1228,36 @@ class ConferenceController extends Controller
         
         $kitQuery->join('conference_registrations', 'conference_registration_kits.conference_registration_id', '=', 'conference_registrations.id')
                  ->where('conference_registrations.conference_id', $conferenceId)
+                 ->where('conference_registrations.status', 1)
+                 ->where('conference_registrations.verified_status', 1)
                  ->where('conference_registration_kits.status', 1);
 
         $kitData = $kitQuery->count();
 
-        // Query for sponsor data
-        $sponsorQuery = DB::table('sponsors');
-        
-        // Filter by date if not 'all'
-        if ($date && $date !== 'all') {
-            $sponsorQuery->leftJoin('sponsor_attendances', function($join) use ($date) {
-                $join->on('sponsors.id', '=', 'sponsor_attendances.sponsor_id')
-                     ->whereDate('sponsor_attendances.created_at', '=', $date);
-            })
-            ->leftJoin('sponsor_meals', function($join) use ($date) {
-                $join->on('sponsors.id', '=', 'sponsor_meals.sponsor_id')
-                     ->whereDate('sponsor_meals.created_at', '=', $date);
-            });
-        } else {
-            $sponsorQuery->leftJoin('sponsor_attendances', 'sponsors.id', '=', 'sponsor_attendances.sponsor_id')
-                         ->leftJoin('sponsor_meals', 'sponsors.id', '=', 'sponsor_meals.sponsor_id');
-        }
-        
-        $sponsorQuery->where('sponsors.conference_id', $conferenceId)
-                     ->where('sponsors.status', 1);
+        $sponsorIds = DB::table('sponsors')
+            ->where('conference_id', $conferenceId)
+            ->where('status', 1)
+            ->select('id');
 
-        $sponsorData = $sponsorQuery->select(
-            DB::raw('COUNT(DISTINCT sponsor_attendances.id) as sponsor_attendance_count'),
-            DB::raw('COALESCE(SUM(sponsor_meals.lunch_taken), 0) as sponsor_lunch_count'),
-            DB::raw('COALESCE(SUM(sponsor_meals.dinner_taken), 0) as sponsor_dinner_count')
-        )->first();
+        $sponsorAttendanceQuery = DB::table('sponsor_attendances')
+            ->whereIn('sponsor_id', $sponsorIds);
+
+        $sponsorMealQuery = DB::table('sponsor_meals')
+            ->whereIn('sponsor_id', $sponsorIds);
+
+        if ($date && $date !== 'all') {
+            $sponsorAttendanceQuery->whereDate('created_at', '=', $date);
+            $sponsorMealQuery->whereDate('created_at', '=', $date);
+        }
+
+        $sponsorAttendanceCount = $sponsorAttendanceQuery->count();
+        $sponsorLunchCount = (int) ($sponsorMealQuery->sum('lunch_taken') ?? 0);
+        $sponsorDinnerCount = (int) ($sponsorMealQuery->sum('dinner_taken') ?? 0);
 
         // Combine conference registrants and sponsors counts
-        $totalAttendance = ($data->attendance_count ?? 0) + ($sponsorData->sponsor_attendance_count ?? 0);
-        $totalLunch = ($data->lunch_count ?? 0) + ($sponsorData->sponsor_lunch_count ?? 0);
-        $totalDinner = ($data->dinner_count ?? 0) + ($sponsorData->sponsor_dinner_count ?? 0);
+        $totalAttendance = $registrantAttendanceCount + $sponsorAttendanceCount;
+        $totalLunch = $registrantLunchCount + $sponsorLunchCount;
+        $totalDinner = $registrantDinnerCount + $sponsorDinnerCount;
 
         // Return combined totals with breakdown
         return response()->json([
@@ -1275,12 +1265,12 @@ class ConferenceController extends Controller
             'lunch_count' => $totalLunch,
             'dinner_count' => $totalDinner,
             'kit_count' => $kitData,
-            'registrant_attendance_count' => $data->attendance_count ?? 0,
-            'registrant_lunch_count' => $data->lunch_count ?? 0,
-            'registrant_dinner_count' => $data->dinner_count ?? 0,
-            'sponsor_attendance_count' => $sponsorData->sponsor_attendance_count ?? 0,
-            'sponsor_lunch_count' => $sponsorData->sponsor_lunch_count ?? 0,
-            'sponsor_dinner_count' => $sponsorData->sponsor_dinner_count ?? 0,
+            'registrant_attendance_count' => $registrantAttendanceCount,
+            'registrant_lunch_count' => $registrantLunchCount,
+            'registrant_dinner_count' => $registrantDinnerCount,
+            'sponsor_attendance_count' => $sponsorAttendanceCount,
+            'sponsor_lunch_count' => $sponsorLunchCount,
+            'sponsor_dinner_count' => $sponsorDinnerCount,
         ]);
     }
 
