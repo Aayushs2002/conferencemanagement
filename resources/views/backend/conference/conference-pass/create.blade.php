@@ -104,6 +104,17 @@
                             @enderror
                         </div>
 
+                        <div class="mb-6 col-md-4">
+                            <label class="form-label" for="border_color">Border Color</label>
+                            <input type="color" class="form-control @error('border_color') is-invalid @enderror"
+                                id="border_color" name="border_color"
+                                value="{{ old('border_color', @$pass_setting->border_color ?? '#00aeef') }}"
+                                style="height: 40px;" />
+                            @error('border_color')
+                                <p class="text-danger">{{ $message }}</p>
+                            @enderror
+                        </div>
+
                         <div class="col-12 mt-4">
                             <h6>1.1. Workshop Pass Setting</h6>
                             <hr class="mt-0" style="height:1px;border:none;color:#333;background-color:#333;" />
