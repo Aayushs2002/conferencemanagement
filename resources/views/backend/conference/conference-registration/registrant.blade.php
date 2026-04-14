@@ -113,6 +113,14 @@
                         <p class="text-danger">{{ $message }}</p>
                     @enderror
                 </div>
+                <div class="col-md-2 form-group mb-3">
+                    <label for="country_scope" class="mb-2">Nationality Scope</label>
+                    <select name="country_scope" id="country_scope" class="form-control">
+                        <option value="">-- Select Scope --</option>
+                        <option value="national" {{ request('country_scope') === 'national' ? 'selected' : '' }}>National</option>
+                        <option value="international" {{ request('country_scope') === 'international' ? 'selected' : '' }}>International</option>
+                    </select>
+                </div>
                 <div class="col-md-3 form-group mb-3">
                     <label for="sort_by" class="mb-2">Sort By</label>
                     <select name="sort_by" id="sort_by" class="form-control @error('sort_by') is-invalid @enderror">
@@ -233,6 +241,12 @@
                                 <li>
                                     <a class="dropdown-item" href="javascript:void(0);" data-bs-toggle="modal" data-bs-target="#updateRegistrationIdsByTypeModal">
                                         <i class="ti tabler-adjustments me-2"></i> Update IDs By Registrant Type
+                                    </a> 
+                                </li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <a class="dropdown-item" href="javascript:void(0);" data-bs-toggle="modal" data-bs-target="#updateRegistrationIdsByCountryModal">
+                                        <i class="ti tabler-world me-2"></i> Update IDs By Country Scope
                                     </a>
                                 </li>
                             </ul>
@@ -523,6 +537,15 @@
                                     <option value="5">Organizer</option>
                                 </select>
                             </div>
+                            <div class="mb-3">
+                                <label for="dummy_country_scope" class="form-label">Country Scope <code>*</code></label>
+                                <select class="form-control" id="dummy_country_scope" name="country_scope" required>
+                                    <option value="">-- Select Scope --</option>
+                                    <option value="national">National</option>
+                                    <option value="international">International</option>
+                                </select>
+                                <small class="text-muted">Used to track dummy transaction ID as NAT-DUMMY-* or INT-DUMMY-*.</small>
+                            </div>
                         </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
@@ -562,6 +585,38 @@
                         <div class="modal-footer">
                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                             <button type="button" id="updateByTypeBtn" class="btn btn-primary" onclick="confirmUpdateRegistrationIdsByType()">
+                                Update IDs
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Update Registration IDs By Country Scope Modal -->
+        <div class="modal fade" id="updateRegistrationIdsByCountryModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Update Registration IDs By Country Scope</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <form id="updateRegistrationIdsByCountryForm" action="{{ route('conference.conference-registration.updateRegistrationIdsByCountryScope', [$society, $conference]) }}" method="POST">
+                        @csrf
+                        <div class="modal-body">
+                            <div class="mb-3">
+                                <label for="update_country_scope" class="form-label">Country Scope <code>*</code></label>
+                                <select class="form-control" id="update_country_scope" name="country_scope" required>
+                                    <option value="">-- Select Scope --</option>
+                                    <option value="national">National</option>
+                                    <option value="international">International</option>
+                                </select>
+                                <small class="text-muted">National = country_id 125, International = country_id other than 125.</small>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <button type="button" id="updateByCountryBtn" class="btn btn-primary" onclick="confirmUpdateRegistrationIdsByCountry()">
                                 Update IDs
                             </button>
                         </div>
@@ -779,6 +834,23 @@
 
             if (confirm('This will update registration IDs only for the selected registrant type. Do you want to continue?')) {
                 const button = document.getElementById('updateByTypeBtn');
+                button.disabled = true;
+                button.innerHTML = '<i class="ti tabler-loader me-2"></i> Updating...';
+                form.submit();
+            }
+        }
+
+        function confirmUpdateRegistrationIdsByCountry() {
+            const form = document.getElementById('updateRegistrationIdsByCountryForm');
+            const countryScope = document.getElementById('update_country_scope').value;
+
+            if (!countryScope) {
+                alert('Please select a country scope first.');
+                return;
+            }
+
+            if (confirm('This will update registration IDs only for the selected country scope and append dummy records at the end. Do you want to continue?')) {
+                const button = document.getElementById('updateByCountryBtn');
                 button.disabled = true;
                 button.innerHTML = '<i class="ti tabler-loader me-2"></i> Updating...';
                 form.submit();

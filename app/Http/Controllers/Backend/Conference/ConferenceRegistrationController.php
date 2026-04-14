@@ -129,6 +129,9 @@ class ConferenceRegistrationController extends Controller
                 $q->where('country_id', $request->country_id);
             });
         }
+
+        $this->applyCountryScopeFilter($query, $request);
+
         if ($request->filled('prefix')) {
             $query->whereHas('user.userDetail', function ($q) use ($request) {
                 $q->where('name_prefix_id', $request->prefix);
@@ -153,7 +156,7 @@ class ConferenceRegistrationController extends Controller
         $dummyRegistrants = $registrants->whereNull('user_id');
         $realRegistrants = $registrants->whereNotNull('user_id');
 
-        // Apply sorting based on request
+        // Apply sorting based on request 
         $sortBy = $request->filled('sort_by') ? $request->sort_by : 'name_asc';
         
         switch ($sortBy) {
@@ -209,7 +212,7 @@ class ConferenceRegistrationController extends Controller
             'registrants' => $registrants,
             'conference' => $conference,
             'society' => $society,
-            'filters' => $request->only(['registrant_type', 'prefix', 'is_invited', 'payment_type', 'from', 'to', 'country_id', 'member_type_id', 'sort_by']),
+            'filters' => $request->only(['registrant_type', 'prefix', 'is_invited', 'payment_type', 'from', 'to', 'country_id', 'country_scope', 'member_type_id', 'sort_by']),
         ]);
     }
 
@@ -1528,6 +1531,8 @@ class ConferenceRegistrationController extends Controller
             });
         }
 
+        $this->applyCountryScopeFilter($query, $request);
+
         if ($request->filled('prefix')) {
             $query->whereHas('user.userDetail', function ($q) use ($request) {
                 $q->where('name_prefix_id', $request->prefix);
@@ -1619,6 +1624,8 @@ class ConferenceRegistrationController extends Controller
                 $q->where('country_id', $request->country_id);
             });
         }
+
+        $this->applyCountryScopeFilter($query, $request);
 
         if ($request->filled('prefix')) {
             $query->whereHas('user.userDetail', function ($q) use ($request) {
@@ -2238,10 +2245,13 @@ class ConferenceRegistrationController extends Controller
         $request->validate([
             'dummy_count' => 'required|integer|min:1|max:100',
             'registrant_type' => 'required|integer|in:1,2,3,4,5',
+            'country_scope' => 'required|in:national,international',
         ]);
 
         $dummyCount = $request->dummy_count;
         $registrantType = $request->registrant_type;
+        $countryScope = $request->country_scope;
+        $dummyTransactionPrefix = $countryScope === 'international' ? 'INT-DUMMY-' : 'NAT-DUMMY-';
 
         // Create and save dummy registrant objects to database
         $savedRegistrants = collect();
@@ -2256,7 +2266,7 @@ class ConferenceRegistrationController extends Controller
                 'status' => 1,
                 'verified_status' => 1, // Auto-verify dummy passes
                 'payment_type' => null,
-                'transaction_id' => 'DUMMY-'.\Str::upper(\Str::random(10)),
+                'transaction_id' => $dummyTransactionPrefix.\Str::upper(\Str::random(10)),
                 'amount' => 0,
                 'total_attendee' => 1,
             ]);
@@ -2416,6 +2426,64 @@ class ConferenceRegistrationController extends Controller
             return redirect()
                 ->back()
                 ->with('delete', 'Error updating registration IDs for selected type: '.$e->getMessage());
+        }
+    }
+
+    /**
+     * Update registration IDs for selected country scope only.
+     */
+    public function updateRegistrationIdsByCountryScope(Request $request, $society, $conference)
+    {
+        try {
+            $validated = $request->validate([
+                'country_scope' => 'required|in:national,international',
+            ]);
+
+            $stats = ConferenceRegistration::updateRegistrationIdsByCountryScope(
+                $conference->id,
+                $validated['country_scope']
+            );
+
+            return redirect()
+                ->back()
+                ->with('status', "Registration IDs updated successfully for {$stats['label']} scope! Total updated: {$stats['total']} (Real: {$stats['real']}, Dummy: {$stats['dummy']})");
+        } catch (\Exception $e) {
+            return redirect()
+                ->back()
+                ->with('delete', 'Error updating registration IDs for selected country scope: '.$e->getMessage());
+        }
+    }
+
+    private function applyCountryScopeFilter($query, Request $request): void
+    {
+        if (! $request->filled('country_scope')) {
+            return;
+        }
+
+        if ($request->country_scope === 'national') {
+            $query->where(function ($q) {
+                $q->whereHas('user.userDetail', function ($subQuery) {
+                    $subQuery->where('country_id', 125);
+                })
+                    ->orWhere(function ($dummyQuery) {
+                        $dummyQuery->whereNull('user_id')
+                            ->where('transaction_id', 'like', 'NAT-DUMMY-%');
+                    });
+            });
+
+            return;
+        }
+
+        if ($request->country_scope === 'international') {
+            $query->where(function ($q) {
+                $q->whereHas('user.userDetail', function ($subQuery) {
+                    $subQuery->where('country_id', '!=', 125);
+                })
+                    ->orWhere(function ($dummyQuery) {
+                        $dummyQuery->whereNull('user_id')
+                            ->where('transaction_id', 'like', 'INT-DUMMY-%');
+                    });
+            });
         }
     }
 

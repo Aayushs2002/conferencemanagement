@@ -771,6 +771,80 @@ GROUP BY MT.id, MT.delegate, MT.type";
     }
 
     /**
+     * Update registration IDs for national/international scope.
+     * Real users are sorted alphabetically, dummy users are appended at the end.
+     */
+    public static function updateRegistrationIdsByCountryScope(int $conferenceId, string $countryScope): array
+    {
+        DB::beginTransaction();
+
+        try {
+            $scope = strtolower($countryScope);
+            if (! in_array($scope, ['national', 'international'])) {
+                throw new \InvalidArgumentException('Invalid country scope selected.');
+            }
+
+            $prefix = $scope === 'national' ? 'NAT' : 'INT';
+            $label = $scope === 'national' ? 'National' : 'International';
+            $dummyTransactionPrefix = $scope === 'national' ? 'NAT-DUMMY-%' : 'INT-DUMMY-%';
+
+            $realRegistrantsQuery = self::where('conference_id', $conferenceId)
+                ->where('status', 1)
+                ->whereNotNull('user_id')
+                ->whereHas('user.userDetail', function ($query) use ($scope) {
+                    if ($scope === 'national') {
+                        $query->where('country_id', 125);
+                    } else {
+                        $query->where('country_id', '!=', 125);
+                    }
+                })
+                ->with(['user' => function ($q) {
+                    $q->select('id', 'f_name', 'm_name', 'l_name');
+                }]);
+
+            $realRegistrants = $realRegistrantsQuery->get()
+                ->sortBy(function ($registration) {
+                    return $registration->user
+                        ? strtolower($registration->user->f_name.' '.$registration->user->m_name.' '.$registration->user->l_name)
+                        : '';
+                })
+                ->values();
+
+            $dummyRegistrants = self::where('conference_id', $conferenceId)
+                ->where('status', 1)
+                ->whereNull('user_id')
+                ->where('transaction_id', 'like', $dummyTransactionPrefix)
+                ->orderBy('created_at')
+                ->get();
+
+            $counter = 1;
+            foreach ($realRegistrants as $registration) {
+                $registration->registration_id = $prefix.'_'.str_pad($counter, 3, '0', STR_PAD_LEFT);
+                $registration->save();
+                $counter++;
+            }
+
+            foreach ($dummyRegistrants as $registration) {
+                $registration->registration_id = $prefix.'_'.str_pad($counter, 3, '0', STR_PAD_LEFT);
+                $registration->save();
+                $counter++;
+            }
+
+            DB::commit();
+
+            return [
+                'label' => $label,
+                'total' => max(0, $counter - 1),
+                'real' => $realRegistrants->count(),
+                'dummy' => $dummyRegistrants->count(),
+            ];
+        } catch (\Exception $e) {
+            DB::rollBack();
+            throw $e;
+        }
+    }
+
+    /**
      * Get registration ID prefix based on type
      */
     public function getRegistrationIdPrefix(): string
