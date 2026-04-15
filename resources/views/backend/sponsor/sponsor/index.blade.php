@@ -22,6 +22,11 @@
                             <i class="icon-base ti tabler-id-badge icon-xs me-sm-1"></i>
                             <span class="d-none d-sm-inline-block">Generate Pass</span>
                         </a>
+                        <a href="{{ route('sponsor.generate-certificate-bulk', [$society, $conference]) }}" target="_blank"
+                            class="btn btn-secondary me-2" tabindex="0">
+                            <i class="icon-base ti tabler-certificate icon-xs me-sm-1"></i>
+                            <span class="d-none d-sm-inline-block">Generate Bulk Certificate</span>
+                        </a>
                             <a href="{{ route('sponsor.update-registration-ids', [$society, $conference]) }}" 
                                 class="btn btn-warning me-2" 
                                 tabindex="0"
@@ -98,6 +103,10 @@
                                         <a class="dropdown-item viewData" data-bs-toggle="modal"
                                             data-bs-target="#pricingModal{{ $sponsor->id }}"><i
                                                 class="icon-base ti tabler-eye me-1 "></i> View</a>
+                                        <a class="dropdown-item"
+                                            href="{{ route('sponsor.generate-certificate', [$society, $conference, $sponsor->id]) }}"
+                                            target="_blank"><i class="icon-base ti tabler-certificate me-1"></i>
+                                            Generate Certificate</a>
                                         <hr>
                                         @if (auth()->user()->hasConferencePermissionBlade(getConference(request()->segment(4)), 'Delete Sponsor'))
                                             <form

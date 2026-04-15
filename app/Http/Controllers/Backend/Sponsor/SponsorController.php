@@ -323,6 +323,40 @@ class SponsorController extends Controller
         }
     }
 
+    public function generateCertificate($society, $conference, Sponsor $sponsor)
+    {
+        $conference->load('conferenceCertificate', 'ConferenceVenueDetail', 'conferenceSetting');
+        $sponsor->load('category');
+
+        $sponsorName = $sponsor->name;
+        $categoryName = $sponsor->category?->category_name ?? 'Sponsor';
+
+        return view('backend.sponsor.sponsor.generate-certificate', compact(
+            'conference',
+            'sponsor',
+            'sponsorName',
+            'categoryName'
+        ));
+    }
+
+    public function generateBulkCertificate($society, $conference)
+    {
+        $conference->load('conferenceCertificate', 'ConferenceVenueDetail', 'conferenceSetting');
+
+        $sponsors = Sponsor::with('category')
+            ->where([
+                'conference_id' => $conference->id,
+                'status' => 1,
+            ])
+            ->orderBy('name', 'ASC')
+            ->get();
+
+        return view('backend.sponsor.sponsor.generate-certificate-bulk', compact(
+            'conference',
+            'sponsors'
+        ));
+    }
+
     /**
      * Update registration IDs for all sponsors in a conference
      */
