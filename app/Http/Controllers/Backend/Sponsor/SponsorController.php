@@ -197,6 +197,11 @@ class SponsorController extends Controller
 
     public function generatePass($society, $conference)
     {
+         // Increase memory and execution time limits for large datasets
+        ini_set('memory_limit', '1024M');
+        ini_set('max_execution_time', '300');
+        set_time_limit(300);
+
         $sponsors = Sponsor::where(['conference_id' => $conference->id, 'status' => 1])->orderBy('name', 'ASC')->get();
         $passSetting = PassSetting::where(['conference_id' => $conference->id, 'status' => 1])->first();
 
