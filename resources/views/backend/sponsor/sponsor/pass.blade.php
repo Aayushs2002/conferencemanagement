@@ -48,7 +48,7 @@
                         </p>
 
                         <h6
-                            style="font-size:24px; background:#fff;  margin:5px 0px; line-height:30px; font-weight:500; padding:2px 0px; background-color:rgba(0,174, 239, 0.4);">
+                            style="font-size:24px; background:#fff;  margin:5px 0px; line-height:30px; font-weight:500; padding:2px 0px; background-color:{{ $passSetting->border_color ?? '#00aeef' }};">
                         </h6>
                         <h1
                             style="font-size:34px;text-transform:capitalize; letter-spacing:-0.02em; background:#fff; margin:15px auto 5px; width:470px; border-radius:10px; height:30px; padding:22px 0px;">
