@@ -212,9 +212,9 @@ class ScientificSessionController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(ScientificSession $scientific_session)
+    public function destroy($society, $conference, ScientificSession $scientific_session)
     {
-        $scientific_session->update(['status' => 0]);
+        $scientific_session->delete();
 
         return redirect()->back()->with('delete', 'Scientifc Session Deleted Successfully');
     }
