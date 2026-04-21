@@ -1923,6 +1923,9 @@ class ConferenceRegistrationController extends Controller
             case ConferenceRegistration::REGISTRANT_VOLUNTEER:
                 $registrantType = 'Volunteer';
                 break;
+            case ConferenceRegistration::REGISTRANT_INVITEE:
+                $registrantType = 'Invitee';
+                break;
         }
         
         return view('backend.conference.conference-registration.generate-certificate', compact(
@@ -2451,6 +2454,116 @@ class ConferenceRegistrationController extends Controller
             return redirect()
                 ->back()
                 ->with('delete', 'Error updating registration IDs for selected country scope: '.$e->getMessage());
+        }
+    }
+
+    /**
+     * Bulk update registrant type with advanced filtering
+     */
+    public function bulkUpdateRegistrantType(Request $request, $society, $conference)
+    {
+        try {
+            // Increase limits for large datasets
+            ini_set('memory_limit', '1024M');
+            ini_set('max_execution_time', '600');
+            set_time_limit(600);
+
+            $selectedIds = [];
+            if ($request->filled('selected_registrant_ids')) {
+                $selectedIds = array_filter(array_map('intval', explode(',', $request->selected_registrant_ids)));
+            }
+
+            // Validate input
+            $validated = $request->validate([
+                'from_type' => 'nullable|integer|in:1,2,3,4,5,6,7,8',
+                'to_type' => 'required|integer|in:1,2,3,4,5,6,7,8',
+                'selected_registrant_ids' => 'nullable|string',
+                'filter_is_invited' => 'nullable|in:0,1',
+                'filter_verified_status' => 'nullable|in:0,1,2',
+                'filter_country_scope' => 'nullable|in:national,international',
+                'filter_certificate_required' => 'nullable|in:0,1',
+                'filter_attend_type' => 'nullable|in:1,2',
+            ]);
+
+            if (!empty($selectedIds)) {
+                // Use selected registrations mode
+                $stats = ConferenceRegistration::bulkUpdateRegistrantTypeByIds(
+                    $selectedIds,
+                    $conference->id,
+                    (int) $validated['to_type']
+                );
+
+                $toTypeLabel = ConferenceRegistration::getRegistrantTypeLabel((int) $validated['to_type']);
+
+                return redirect()
+                    ->back()
+                    ->with('status', "Successfully converted {$stats['updated']} registrations to {$toTypeLabel}");
+            }
+
+            if (empty($validated['from_type'])) {
+                return redirect()
+                    ->back()
+                    ->with('delete', 'Please select a source registrant type when no registrations are selected.');
+            }
+
+            // Reject if FROM and TO are the same for the fallback bulk path
+            if ((int) $validated['from_type'] === (int) $validated['to_type']) {
+                return redirect()
+                    ->back()
+                    ->with('delete', 'Error: Source and target registrant types cannot be the same.');
+            }
+
+            // Build filters array for filter-based conversion
+            $filters = array_filter([
+                'is_invited' => ($validated['filter_is_invited'] ?? null) !== null ? (bool) $validated['filter_is_invited'] : null,
+                'verified_status' => ($validated['filter_verified_status'] ?? null) !== null ? (int) $validated['filter_verified_status'] : null,
+                'country_scope' => $validated['filter_country_scope'] ?? null,
+                'certificate_required' => ($validated['filter_certificate_required'] ?? null) !== null ? (bool) $validated['filter_certificate_required'] : null,
+                'attend_type' => ($validated['filter_attend_type'] ?? null) !== null ? (int) $validated['filter_attend_type'] : null,
+            ], fn($value) => $value !== null);
+
+            // Call the bulk update method with filters
+            $filters['from_type'] = (int) $validated['from_type'];
+            $stats = ConferenceRegistration::bulkUpdateRegistrantTypeWithFilters(
+                $conference->id,
+                (int) $validated['to_type'],
+                $filters
+            );
+
+            // Build success message
+            $fromTypeLabel = ConferenceRegistration::getRegistrantTypeLabel((int) $validated['from_type']);
+            $toTypeLabel = ConferenceRegistration::getRegistrantTypeLabel((int) $validated['to_type']);
+            $filtersSummary = '';
+
+            if (!empty($filters)) {
+                $filtersSummary = ' with filters: ';
+                $appliedFilters = [];
+                if (isset($filters['is_invited'])) {
+                    $appliedFilters[] = $filters['is_invited'] ? 'Invited' : 'Self-Registered';
+                }
+                if (isset($filters['verified_status'])) {
+                    $statusMap = [0 => 'Unverified', 1 => 'Verified', 2 => 'Rejected'];
+                    $appliedFilters[] = $statusMap[$filters['verified_status']];
+                }
+                if (isset($filters['country_scope'])) {
+                    $appliedFilters[] = ucfirst($filters['country_scope']);
+                }
+                if (isset($filters['certificate_required'])) {
+                    $appliedFilters[] = $filters['certificate_required'] ? 'Certificate Required' : 'No Certificate';
+                }
+                if (isset($filters['attend_type'])) {
+                    $appliedFilters[] = $filters['attend_type'] == 1 ? 'Physical' : 'Online';
+                }
+                $filtersSummary .= implode(', ', $appliedFilters);
+            }
+
+            return redirect()
+                ->back()
+                ->with('status', "Successfully converted {$stats['updated']} registrations from {$fromTypeLabel} to {$toTypeLabel}{$filtersSummary}");
+        } catch (\Exception $e) {
+            return redirect()
+                ->back()
+                ->with('delete', 'Error during bulk registrant type conversion: '.$e->getMessage());
         }
     }
 

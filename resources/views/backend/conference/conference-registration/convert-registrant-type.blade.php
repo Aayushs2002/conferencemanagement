@@ -41,6 +41,10 @@
                             {{ old('registrant_type', optional($registration)->registrant_type) == 7 ? 'selected' : '' }}>
                             Volunteer
                         </option>
+                        <option value="8"
+                            {{ old('registrant_type', optional($registration)->registrant_type) == 8 ? 'selected' : '' }}>
+                            Invitee
+                        </option>
                     </select>
 
                     @error('registrant_type')
@@ -81,7 +85,7 @@
         });
         $.ajax({
             type: "POST",
-            url: '{{ route('conference.conference-registration.convertRegistrantTypesubmit',[$society, $conference]) }}',
+            url: '{{ route('conference.conference-registration.convertRegistrantTypesubmit', [$society, $conference]) }}',
             data: data,
             dataType: "json",
             processData: false,
