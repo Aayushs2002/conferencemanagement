@@ -52,6 +52,7 @@ class ConferenceRegistration extends Model
     public const REGISTRANT_ORGANIZER = 5;
     public const REGISTRANT_FACULTY = 6; 
     public const REGISTRANT_VOLUNTEER = 7; 
+    public const REGISTRANT_INVITEE = 8;
     
 
     public const ATTEND_PHYSICAL = 1;
@@ -863,5 +864,419 @@ GROUP BY MT.id, MT.delegate, MT.type";
             self::REGISTRANT_VOLUNTEER => 'VOL',
             default => 'REG'
         };
+    }
+
+    /**
+     * Get registrant type label
+     */
+    public static function getRegistrantTypeLabel($type): string
+    {
+        return match ($type) {
+            self::REGISTRANT_ATTENDEE => 'Attendee',
+            self::REGISTRANT_SPEAKER => 'Speaker',
+            self::REGISTRANT_SESSION_CHAIR => 'Session Chair',
+            self::REGISTRANT_SPECIAL_GUEST => 'Special Guest',
+            self::REGISTRANT_ORGANIZER => 'Organizer',
+            self::REGISTRANT_FACULTY => 'Faculty',
+            self::REGISTRANT_VOLUNTEER => 'Volunteer',
+            self::REGISTRANT_INVITEE => 'Invitee',
+            default => 'Unknown'
+        };
+    }
+
+    /**
+     * Bulk update registrant type from one type to another for a specific conference
+     * Optionally filter by invited status or verification status
+     */
+    public static function bulkUpdateRegistrantType(
+        int $conferenceId,
+        int $fromType,
+        int $toType,
+        ?bool $onlyInvited = null,
+        ?int $verifiedStatus = null
+    ): array {
+        DB::beginTransaction();
+
+        try {
+            // Validate registrant types
+            $validTypes = [
+                self::REGISTRANT_ATTENDEE,
+                self::REGISTRANT_SPEAKER,
+                self::REGISTRANT_SESSION_CHAIR,
+                self::REGISTRANT_SPECIAL_GUEST,
+                self::REGISTRANT_ORGANIZER,
+                self::REGISTRANT_FACULTY,
+                self::REGISTRANT_VOLUNTEER,
+                self::REGISTRANT_INVITEE,
+            ];
+
+            if (!in_array($fromType, $validTypes) || !in_array($toType, $validTypes)) {
+                throw new \InvalidArgumentException('Invalid registrant type specified.');
+            }
+
+            if ($fromType === $toType) {
+                throw new \InvalidArgumentException('Source and destination types cannot be the same.');
+            }
+
+            // Build the query
+            $query = self::where('conference_id', $conferenceId)
+                ->where('status', 1)
+                ->where('registrant_type', $fromType);
+
+            // Apply optional filters
+            if ($onlyInvited !== null) {
+                $query->where('is_invited', $onlyInvited);
+            }
+
+            if ($verifiedStatus !== null) {
+                $query->where('verified_status', $verifiedStatus);
+            }
+
+            $registrations = $query->get();
+
+            // Update all matching registrations
+            foreach ($registrations as $registration) {
+                $registration->registrant_type = $toType;
+                $registration->save();
+            }
+
+            DB::commit();
+
+            return [
+                'success' => true,
+                'updated' => $registrations->count(),
+                'from_type' => self::getRegistrantTypeLabel($fromType),
+                'to_type' => self::getRegistrantTypeLabel($toType),
+                'from_type_value' => $fromType,
+                'to_type_value' => $toType,
+                'filters_applied' => [
+                    'invited_only' => $onlyInvited,
+                    'verified_status' => $verifiedStatus,
+                ],
+            ];
+        } catch (\Exception $e) {
+            DB::rollBack();
+            throw $e;
+        }
+    }
+
+    /**
+     * Bulk update registrant type by country scope (national/international)
+     * All registrations from specified country scope will be updated to new type
+     */
+    public static function bulkUpdateRegistrantTypeByCountryScope(
+        int $conferenceId,
+        string $countryScope,
+        int $toType
+    ): array {
+        DB::beginTransaction();
+
+        try {
+            // Validate scope
+            $scope = strtolower($countryScope);
+            if (!in_array($scope, ['national', 'international'])) {
+                throw new \InvalidArgumentException('Invalid country scope. Use "national" or "international".');
+            }
+
+            // Validate target type
+            $validTypes = [
+                self::REGISTRANT_ATTENDEE,
+                self::REGISTRANT_SPEAKER,
+                self::REGISTRANT_SESSION_CHAIR,
+                self::REGISTRANT_SPECIAL_GUEST,
+                self::REGISTRANT_ORGANIZER,
+                self::REGISTRANT_FACULTY,
+                self::REGISTRANT_VOLUNTEER,
+                self::REGISTRANT_INVITEE,
+            ];
+
+            if (!in_array($toType, $validTypes)) {
+                throw new \InvalidArgumentException('Invalid registrant type specified.');
+            }
+
+            // Query registrations by country scope
+            $registrations = self::where('conference_id', $conferenceId)
+                ->where('status', 1)
+                ->whereNotNull('user_id')
+                ->whereHas('user.userDetail', function ($query) use ($scope) {
+                    if ($scope === 'national') {
+                        $query->where('country_id', 125); // Assuming 125 is domestic country
+                    } else {
+                        $query->where('country_id', '!=', 125);
+                    }
+                })
+                ->get();
+
+            // Update all registrations
+            foreach ($registrations as $registration) {
+                $registration->registrant_type = $toType;
+                $registration->save();
+            }
+
+            DB::commit();
+
+            return [
+                'success' => true,
+                'updated' => $registrations->count(),
+                'country_scope' => ucfirst($scope),
+                'to_type' => self::getRegistrantTypeLabel($toType),
+                'to_type_value' => $toType,
+            ];
+        } catch (\Exception $e) {
+            DB::rollBack();
+            throw $e;
+        }
+    }
+
+    /**
+     * Bulk update registrant type for multiple registrations by their IDs
+     * Commonly used for bulk operations from admin interface
+     */
+    public static function bulkUpdateRegistrantTypeByIds(
+        array $registrationIds,
+        int $conferenceId,
+        int $toType
+    ): array {
+        DB::beginTransaction();
+
+        try {
+            // Validate target type
+            $validTypes = [
+                self::REGISTRANT_ATTENDEE,
+                self::REGISTRANT_SPEAKER,
+                self::REGISTRANT_SESSION_CHAIR,
+                self::REGISTRANT_SPECIAL_GUEST,
+                self::REGISTRANT_ORGANIZER,
+                self::REGISTRANT_FACULTY,
+                self::REGISTRANT_VOLUNTEER,
+                self::REGISTRANT_INVITEE,
+            ];
+
+            if (!in_array($toType, $validTypes)) {
+                throw new \InvalidArgumentException('Invalid registrant type specified.');
+            }
+
+            if (empty($registrationIds)) {
+                throw new \InvalidArgumentException('No registration IDs provided.');
+            }
+
+            $updatedCount = 0;
+            $foundCount = 0;
+            $typeChanges = [];
+            $chunkSize = 500;
+
+            // Process selected registrations in chunks to avoid loading large datasets at once
+            foreach (array_chunk($registrationIds, $chunkSize) as $registrationIdChunk) {
+                $registrations = self::where('conference_id', $conferenceId)
+                    ->where('status', 1)
+                    ->whereIn('id', $registrationIdChunk)
+                    ->select('id', 'registrant_type')
+                    ->get();
+
+                if ($registrations->isEmpty()) {
+                    continue;
+                }
+
+                $foundCount += $registrations->count();
+
+                foreach ($registrations as $registration) {
+                    $oldType = $registration->registrant_type;
+                    $registration->registrant_type = $toType;
+                    $registration->save();
+
+                    $oldTypeLabel = self::getRegistrantTypeLabel($oldType);
+                    if (! isset($typeChanges[$oldTypeLabel])) {
+                        $typeChanges[$oldTypeLabel] = 0;
+                    }
+                    $typeChanges[$oldTypeLabel]++;
+                    $updatedCount++;
+                }
+            }
+
+            if ($foundCount === 0) {
+                throw new \InvalidArgumentException('No matching registrations found in the specified conference.');
+            }
+
+            DB::commit();
+
+            return [
+                'success' => true,
+                'updated' => $updatedCount,
+                'to_type' => self::getRegistrantTypeLabel($toType),
+                'to_type_value' => $toType,
+                'changes_from' => $typeChanges,
+                'requested_count' => count($registrationIds),
+                'found_count' => $foundCount,
+            ];
+        } catch (\Exception $e) {
+            DB::rollBack();
+            throw $e;
+        }
+    }
+
+    /**
+     * Bulk update registrant type for verified registrations only
+     * Update all verified registrations of a specific type to another type
+     */
+    public static function bulkUpdateVerifiedRegistrantType(
+        int $conferenceId,
+        int $fromType,
+        int $toType
+    ): array {
+        return self::bulkUpdateRegistrantType(
+            $conferenceId,
+            $fromType,
+            $toType,
+            null,
+            self::STATUS_ACCEPTED
+        );
+    }
+
+    /**
+     * Bulk update registrant type for unverified registrations only
+     * Update all pending registrations of a specific type to another type
+     */
+    public static function bulkUpdateUnverifiedRegistrantType(
+        int $conferenceId,
+        int $fromType,
+        int $toType
+    ): array {
+        return self::bulkUpdateRegistrantType(
+            $conferenceId,
+            $fromType,
+            $toType,
+            null,
+            self::STATUS_PENDING
+        );
+    }
+
+    /**
+     * Bulk update registrant type with advanced filters
+     * Allows multiple filter conditions
+     */
+    public static function bulkUpdateRegistrantTypeWithFilters(
+        int $conferenceId,
+        int $toType,
+        array $filters = []
+    ): array {
+        DB::beginTransaction();
+
+        try {
+            // Validate target type
+            $validTypes = [
+                self::REGISTRANT_ATTENDEE,
+                self::REGISTRANT_SPEAKER,
+                self::REGISTRANT_SESSION_CHAIR,
+                self::REGISTRANT_SPECIAL_GUEST,
+                self::REGISTRANT_ORGANIZER,
+                self::REGISTRANT_FACULTY,
+                self::REGISTRANT_VOLUNTEER,
+                self::REGISTRANT_INVITEE,
+            ];
+
+            if (!in_array($toType, $validTypes)) {
+                throw new \InvalidArgumentException('Invalid registrant type specified.');
+            }
+
+            // Build query with filters
+            $query = self::where('conference_id', $conferenceId)
+                ->where('status', 1);
+
+            // Apply filters
+            if (isset($filters['from_type']) && $filters['from_type'] !== null) {
+                $query->where('registrant_type', $filters['from_type']);
+            }
+
+            if (isset($filters['is_invited']) && $filters['is_invited'] !== null) {
+                $query->where('is_invited', $filters['is_invited']);
+            }
+
+            if (isset($filters['verified_status']) && $filters['verified_status'] !== null) {
+                $query->where('verified_status', $filters['verified_status']);
+            }
+
+            if (isset($filters['country_scope'])) {
+                $scope = strtolower($filters['country_scope']);
+                if (in_array($scope, ['national', 'international'])) {
+                    $countryId = $scope === 'national' ? 125 : null;
+                    $query->whereHas('user.userDetail', function ($q) use ($scope, $countryId) {
+                        if ($scope === 'national') {
+                            $q->where('country_id', 125);
+                        } else {
+                            $q->where('country_id', '!=', 125);
+                        }
+                    });
+                }
+            }
+
+            if (isset($filters['certificate_required']) && $filters['certificate_required'] !== null) {
+                $query->where('certificate_required', $filters['certificate_required']);
+            }
+
+            if (isset($filters['attend_type']) && $filters['attend_type'] !== null) {
+                $query->where('attend_type', $filters['attend_type']);
+            }
+
+            $updatedCount = 0;
+            $chunkSize = 500;
+
+            // Update matching registrations in chunks to keep memory usage stable
+            $query->orderBy('id')->chunkById($chunkSize, function ($registrations) use ($toType, &$updatedCount) {
+                foreach ($registrations as $registration) {
+                    $registration->registrant_type = $toType;
+                    $registration->save();
+                    $updatedCount++;
+                }
+            });
+
+            DB::commit();
+
+            return [
+                'success' => true,
+                'updated' => $updatedCount,
+                'to_type' => self::getRegistrantTypeLabel($toType),
+                'to_type_value' => $toType,
+                'filters_applied' => $filters,
+            ];
+        } catch (\Exception $e) {
+            DB::rollBack();
+            throw $e;
+        }
+    }
+
+    /**
+     * Get a summary of registrant type distribution in a conference
+     * Useful for analytics and reporting before bulk updates
+     */
+    public static function getRegistrantTypeDistribution(int $conferenceId, ?bool $onlyVerified = false): array
+    {
+        $query = self::where('conference_id', $conferenceId)
+            ->where('status', 1);
+
+        if ($onlyVerified) {
+            $query->where('verified_status', self::STATUS_ACCEPTED);
+        }
+
+        $distribution = $query->groupBy('registrant_type')
+            ->selectRaw('registrant_type, COUNT(*) as count, COUNT(DISTINCT user_id) as unique_users')
+            ->get();
+
+        $result = [
+            'total' => $query->count(),
+            'verified_only' => $onlyVerified,
+            'distribution' => [],
+        ];
+
+        foreach ($distribution as $item) {
+            $typeLabel = self::getRegistrantTypeLabel($item->registrant_type);
+            $result['distribution'][$typeLabel] = [
+                'type_id' => $item->registrant_type,
+                'count' => $item->count,
+                'unique_users' => $item->unique_users,
+                'percentage' => $result['total'] > 0 ? round(($item->count / $result['total']) * 100, 2) : 0,
+            ];
+        }
+
+        return $result;
     }
 }
