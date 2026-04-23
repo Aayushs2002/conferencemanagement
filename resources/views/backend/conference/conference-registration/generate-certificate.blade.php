@@ -236,7 +236,7 @@ header('Access-Control-Allow-Origin: *');
 
                                 <td width="550" style="text-align:left; font-size:80px; font-weight:bold;color:red;">
 
-                                    {{-- {{ $conference->abbreviation ?? 'CONFERENCE' }} --}}
+                                    {{ $conference->abbreviation ?? 'CONFERENCE' }}
                                 </td>
 
                                 <td width="450" style="text-align:left;">&nbsp;
