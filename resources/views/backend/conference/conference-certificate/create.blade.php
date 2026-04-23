@@ -188,6 +188,16 @@
                                                 Images must be JPG or PNG format.
                                             </div>
                                         @endif
+                                        @error('signature_order')
+                                            <div class="text-danger text-center mt-2">
+                                                <i class="ti tabler-alert-circle me-1"></i>{{ $message }}
+                                            </div>
+                                        @enderror
+                                        @error('signature_order_old')
+                                            <div class="text-danger text-center mt-2">
+                                                <i class="ti tabler-alert-circle me-1"></i>{{ $message }}
+                                            </div>
+                                        @enderror
                                     </div>
 
                                     <!-- File Selection Status -->
@@ -232,6 +242,14 @@
                                                                         class="form-control form-control-sm"
                                                                         placeholder="Enter Designation"
                                                                         value="{{ $signature['designation'] }}">
+                                                                </div>
+
+                                                                <div class="mb-3">
+                                                                    <label class="form-label small text-muted">Display Order:</label>
+                                                                    <input type="number" name="signature_order_old[]"
+                                                                        class="form-control form-control-sm"
+                                                                        min="1"
+                                                                        value="{{ $signature['order'] ?? $loop->iteration }}">
                                                                 </div>
 
                                                                 {{-- <a href="{{ route('hotel.image.delete', [$hotel->id, $signature['fileName']]) }}" --}}
@@ -298,6 +316,8 @@
         });
 
         // Multiple signature images handling
+        const existingSignatureCount = {{ isset($conference_certificate) && !empty($conference_certificate->signature) ? count($conference_certificate->signature) : 0 }};
+
         $("#imagesMultiple").change(function(e) {
             e.preventDefault();
             let files = e.target.files;
@@ -368,6 +388,10 @@
                     '<div class="mb-2">' +
                     '<label class="form-label small text-muted">Designation:</label>' +
                     '<input type="text" name="designation[]" class="form-control form-control-sm" placeholder="Enter Designation" required>' +
+                    '</div>' +
+                    '<div class="mb-2">' +
+                    '<label class="form-label small text-muted">Display Order:</label>' +
+                    '<input type="number" name="signature_order[]" class="form-control form-control-sm" min="1" value="' + (existingSignatureCount + i + 1) + '" required>' +
                     '</div>' +
                     '<small class="text-muted">Signature ' + (i + 1) + ' of ' + files.length + '</small>' +
                     '</div>' +
