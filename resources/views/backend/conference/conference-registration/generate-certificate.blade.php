@@ -235,7 +235,9 @@ header('Access-Control-Allow-Origin: *');
                                 <td width="500">&nbsp;</td>
 
                                 <td width="550" style="text-align:left; font-size:80px; font-weight:bold;color:red;">
-                                    {{ $conference->abbreviation ?? 'CONFERENCE' }}</td>
+
+                                    {{-- {{ $conference->abbreviation ?? 'CONFERENCE' }} --}}
+                                </td>
 
                                 <td width="450" style="text-align:left;">&nbsp;
                                 </td>
@@ -350,7 +352,12 @@ header('Access-Control-Allow-Origin: *');
                                 <tbody>
                                     <tr>
                                         @php
-                                            $signatures = $conference->conferenceCertificate->signature;
+                                            $signatures = collect($conference->conferenceCertificate->signature)
+                                                ->sortBy(function ($signature, $index) {
+                                                    return $signature['order'] ?? ($index + 1);
+                                                })
+                                                ->values()
+                                                ->all();
                                             $signatureCount = count($signatures);
                                             $paddingLeft = 150;
                                             $cellWidth = 300;

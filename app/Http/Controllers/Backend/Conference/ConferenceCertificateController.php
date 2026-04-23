@@ -46,10 +46,25 @@ class ConferenceCertificateController extends Controller
                 'name.*' => 'required',
                 'designation' => 'required',
                 'designation.*' => 'required',
+                'signature_order' => 'nullable|array',
+                'signature_order.*' => 'nullable|integer|min:1',
             ];
             $validated = $request->validate($rules);
             if (!empty($validated['signatures']) && count($validated['signatures']) > 5) {
                 return redirect()->back()->withInput()->with('delete', 'Images Limitation Crossed.');
+            }
+
+            if (!empty($validated['signatures'])) {
+                $orders = [];
+                foreach ($validated['signatures'] as $key => $pic) {
+                    $orders[] = (int) ($validated['signature_order'][$key] ?? ($key + 1));
+                }
+
+                if (count($orders) !== count(array_unique($orders))) {
+                    return redirect()->back()->withInput()->withErrors([
+                        'signature_order' => 'Signature display order must be unique for all signatures.',
+                    ]);
+                }
             }
 
             if (!empty($validated['background_image'])) {
@@ -60,9 +75,16 @@ class ConferenceCertificateController extends Controller
                     $validated['signature'][] = [
                         'fileName' => $this->file_service->fileUpload($pic, 'certificate-signature', 'conference/conference/certificate/signature/'),
                         'name' => $validated['name'][$key],
-                        'designation' => $validated['designation'][$key]
+                        'designation' => $validated['designation'][$key],
+                        'order' => (int) ($validated['signature_order'][$key] ?? ($key + 1)),
                     ];
                 }
+
+                usort($validated['signature'], function ($a, $b) {
+                    return ((int) ($a['order'] ?? 9999)) <=> ((int) ($b['order'] ?? 9999));
+                });
+
+                $validated['signature'] = array_values($validated['signature']);
             }
             $validated['conference_id'] = $conference->id;
             // dd($validated);
@@ -102,10 +124,14 @@ class ConferenceCertificateController extends Controller
                 'name.*' => 'nullable',
                 'designation' => 'nullable',
                 'designation.*' => 'nullable',
+                'signature_order' => 'nullable|array',
+                'signature_order.*' => 'nullable|integer|min:1',
                 'name_old' => 'nullable',
                 'name_old.*' => 'nullable',
                 'designation_old' => 'nullable',
                 'designation_old.*' => 'nullable',
+                'signature_order_old' => 'nullable|array',
+                'signature_order_old.*' => 'nullable|integer|min:1',
             ];
             $validated = $request->validate($rules);
             $countOldImages = 0;
@@ -115,6 +141,27 @@ class ConferenceCertificateController extends Controller
             if (!empty($validated['signatures']) && count($validated['signatures']) + $countOldImages > 5) {
                 return redirect()->back()->withInput()->with('delete', 'Images Limitation Crossed.');
             }
+
+            $allOrders = [];
+            if (!empty($conference_certificate->signature)) {
+                foreach ($conference_certificate->signature as $key => $signature) {
+                    $allOrders[] = (int) ($validated['signature_order_old'][$key] ?? ($signature['order'] ?? ($key + 1)));
+                }
+            }
+
+            if (!empty($validated['signatures'])) {
+                foreach ($validated['signatures'] as $key => $pic) {
+                    $allOrders[] = (int) ($validated['signature_order'][$key] ?? ($key + 1));
+                }
+            }
+
+            if (!empty($allOrders) && count($allOrders) !== count(array_unique($allOrders))) {
+                return redirect()->back()->withInput()->withErrors([
+                    'signature_order' => 'Signature display order must be unique for all signatures.',
+                    'signature_order_old' => 'Signature display order must be unique for all signatures.',
+                ]);
+            }
+
             if (!empty($validated['background_image'])) {
                 $this->file_service->deleteFile($conference_certificate->background_image, 'conference/conference/certificate/background/');
 
@@ -128,6 +175,7 @@ class ConferenceCertificateController extends Controller
                 foreach ($oldImages as $k => $v) {
                     $oldImages[$k]['name'] = $validated['name_old'][$k];
                     $oldImages[$k]['designation'] = $validated['designation_old'][$k];
+                    $oldImages[$k]['order'] = (int) ($validated['signature_order_old'][$k] ?? ($oldImages[$k]['order'] ?? ($k + 1)));
                 }
             }
             if (!empty($validated['signatures'])) {
@@ -135,7 +183,8 @@ class ConferenceCertificateController extends Controller
                     $newImage  = [
                         'fileName' => $this->file_service->fileUpload($pic, 'certificate-signature', 'conference/conference/certificate/signature/'),
                         'name' => $validated['name'][$key],
-                        'designation' => $validated['designation'][$key]
+                        'designation' => $validated['designation'][$key],
+                        'order' => (int) ($validated['signature_order'][$key] ?? ($key + 1)),
                     ];
 
                     $newImages[] = $newImage;
@@ -143,6 +192,12 @@ class ConferenceCertificateController extends Controller
             }
 
             $validated['signature'] = array_merge($oldImages, $newImages);
+
+            usort($validated['signature'], function ($a, $b) {
+                return ((int) ($a['order'] ?? 9999)) <=> ((int) ($b['order'] ?? 9999));
+            });
+
+            $validated['signature'] = array_values($validated['signature']);
             // dd($validated);
             $conference_certificate->update($validated);
             return redirect()->route('conference-certificate.index', [$society, $conference])->with('status', 'Certificate Setting Updated Successfully');

@@ -278,7 +278,12 @@ header('Access-Control-Allow-Origin: *');
                                 <tbody>
                                     <tr>
                                         @php
-                                            $signatures = $conference->conferenceCertificate->signature;
+                                            $signatures = collect($conference->conferenceCertificate->signature)
+                                                ->sortBy(function ($signature, $index) {
+                                                    return $signature['order'] ?? ($index + 1);
+                                                })
+                                                ->values()
+                                                ->all();
                                             $signatureCount = count($signatures);
                                             $paddingLeft = 150;
                                             $cellWidth = 300;

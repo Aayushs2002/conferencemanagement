@@ -290,10 +290,29 @@ header('Access-Control-Allow-Origin: *');
                 @php
                     // Combine conference signatures with workshop signature
                     $allSignatures = [];
+                    $selectedConferenceSignatures = $workshop->workshopCertificate?->selected_conference_signatures;
+                    $hasSpecificConferenceSignatureSelection = is_array($selectedConferenceSignatures);
+                    $includeConferenceSignatures =
+                        !$workshop->workshopCertificate ||
+                        (int) ($workshop->workshopCertificate->include_conference_signatures ?? 1) === 1;
                     
                     // First add conference signatures if available
-                    if ($conference->conferenceCertificate && !empty($conference->conferenceCertificate->signature)) {
-                        $allSignatures = $conference->conferenceCertificate->signature;
+                    if ($includeConferenceSignatures && $conference->conferenceCertificate && !empty($conference->conferenceCertificate->signature)) {
+                        $conferenceSignatures = collect($conference->conferenceCertificate->signature)
+                            ->sortBy(function ($signature, $index) {
+                                return $signature['order'] ?? ($index + 1);
+                            })
+                            ->values();
+
+                        if ($hasSpecificConferenceSignatureSelection) {
+                            $conferenceSignatures = $conferenceSignatures
+                                ->filter(function ($signature) use ($selectedConferenceSignatures) {
+                                    return in_array($signature['fileName'] ?? null, $selectedConferenceSignatures ?? []);
+                                })
+                                ->values();
+                        }
+
+                        $allSignatures = $conferenceSignatures->all();
                     }
                     
                     // Then add workshop signature if available

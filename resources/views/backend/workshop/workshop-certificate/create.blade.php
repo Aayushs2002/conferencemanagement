@@ -184,6 +184,79 @@
                                         @enderror
                                     </div>
 
+                                    <div class="mb-3">
+                                        <label class="form-label fw-semibold d-block" for="include_conference_signatures">
+                                            <i class="ti tabler-signature me-2"></i>Conference Signatures
+                                        </label>
+                                        <input type="hidden" name="include_conference_signatures" value="0">
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" type="checkbox" role="switch"
+                                                id="include_conference_signatures" name="include_conference_signatures" value="1"
+                                                {{ old('include_conference_signatures', isset($workshop_certificate) ? $workshop_certificate->include_conference_signatures : 1) ? 'checked' : '' }}>
+                                            <label class="form-check-label" for="include_conference_signatures">
+                                                Include signatures from Conference Certificate Settings
+                                            </label>
+                                        </div>
+                                        <div class="form-text">
+                                            Disable this if you want to use only workshop signature details.
+                                        </div>
+                                        @error('include_conference_signatures')
+                                            <div class="text-danger small mt-1">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+
+                                    @php
+                                        $conferenceSignatures = $conference->conferenceCertificate?->signature ?? [];
+                                        $defaultConferenceSignatureSelection = collect($conferenceSignatures)
+                                            ->pluck('fileName')
+                                            ->filter()
+                                            ->values()
+                                            ->all();
+                                        $selectedConferenceSignatures = old(
+                                            'selected_conference_signatures',
+                                            isset($workshop_certificate)
+                                                ? ($workshop_certificate->selected_conference_signatures ??
+                                                    $defaultConferenceSignatureSelection)
+                                                : $defaultConferenceSignatureSelection,
+                                        );
+                                    @endphp
+
+                                    @if (!empty($conferenceSignatures))
+                                        <div class="mb-3" id="conferenceSignatureSelectionBlock">
+                                            <label class="form-label fw-semibold d-block mb-2">
+                                                <i class="ti tabler-list-check me-2"></i>Select Conference Signatures
+                                            </label>
+                                            <div class="border rounded-3 p-3 bg-white" style="max-height: 250px; overflow-y: auto;">
+                                                @foreach ($conferenceSignatures as $conferenceSignature)
+                                                    @php
+                                                        $conferenceSignatureFileName = $conferenceSignature['fileName'] ?? null;
+                                                    @endphp
+                                                    @if ($conferenceSignatureFileName)
+                                                        <div class="form-check mb-2">
+                                                            <input class="form-check-input conference-signature-checkbox" type="checkbox"
+                                                                name="selected_conference_signatures[]"
+                                                                value="{{ $conferenceSignatureFileName }}"
+                                                                id="conference_signature_{{ $loop->index }}"
+                                                                {{ in_array($conferenceSignatureFileName, $selectedConferenceSignatures ?? []) ? 'checked' : '' }}>
+                                                            <label class="form-check-label" for="conference_signature_{{ $loop->index }}">
+                                                                <strong>{{ $conferenceSignature['name'] ?? 'Signature ' . $loop->iteration }}</strong>
+                                                                @if (!empty($conferenceSignature['designation']))
+                                                                    ({{ $conferenceSignature['designation'] }})
+                                                                @endif
+                                                            </label>
+                                                        </div>
+                                                    @endif
+                                                @endforeach
+                                            </div>
+                                            <div class="form-text">
+                                                Checked signatures will be shown in workshop certificates.
+                                            </div>
+                                            @error('selected_conference_signatures')
+                                                <div class="text-danger small mt-1">{{ $message }}</div>
+                                            @enderror
+                                        </div>
+                                    @endif
+
                                     <!-- Current Signature Preview -->
                                     @if (isset($workshop_certificate) && $workshop_certificate->signature_image)
                                         <div class="text-center">
@@ -298,5 +371,18 @@
                 );
             }
         });
+
+        function toggleConferenceSignatureSelection() {
+            const includeConferenceSignatures = $("#include_conference_signatures").is(":checked");
+            const selectionBlock = $("#conferenceSignatureSelectionBlock");
+
+            if (selectionBlock.length) {
+                selectionBlock.toggle(includeConferenceSignatures);
+                selectionBlock.find('.conference-signature-checkbox').prop('disabled', !includeConferenceSignatures);
+            }
+        }
+
+        toggleConferenceSignatureSelection();
+        $("#include_conference_signatures").on("change", toggleConferenceSignatureSelection);
     </script>
 @endsection

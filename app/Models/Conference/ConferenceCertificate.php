@@ -16,6 +16,20 @@ class ConferenceCertificate extends Model
         'signature' => 'array'
     ];
 
+    public function getSignatureAttribute($value)
+    {
+        $signatures = is_array($value) ? $value : (json_decode($value ?? '[]', true) ?: []);
+
+        usort($signatures, function ($a, $b) {
+            $orderA = (int) ($a['order'] ?? 9999);
+            $orderB = (int) ($b['order'] ?? 9999);
+
+            return $orderA <=> $orderB;
+        });
+
+        return array_values($signatures);
+    }
+
     public function conference()
     {
         return $this->belongsTo(Conference::class);

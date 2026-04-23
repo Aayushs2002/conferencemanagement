@@ -42,8 +42,27 @@ class WorkshopCertificateController extends Controller
                 'background_image' => 'nullable|mimes:jpg,png',
                 'signature_image' => 'nullable|mimes:jpg,png',
                 'signature_name' => 'nullable|string|max:255',
+                'signature_designation' => 'nullable|string|max:255',
+                'include_conference_signatures' => 'nullable|boolean',
+                'selected_conference_signatures' => 'nullable|array',
+                'selected_conference_signatures.*' => 'nullable|string',
             ];
             $validated = $request->validate($rules);
+            $validated['include_conference_signatures'] = $request->has('include_conference_signatures') ? 1 : 0;
+
+            $availableConferenceSignatureFileNames = collect($conference->conferenceCertificate?->signature ?? [])
+                ->pluck('fileName')
+                ->filter()
+                ->values()
+                ->all();
+
+            $selectedConferenceSignatures = array_values(array_intersect(
+                $request->input('selected_conference_signatures', []),
+                $availableConferenceSignatureFileNames,
+            ));
+
+            $validated['selected_conference_signatures'] =
+                (int) $validated['include_conference_signatures'] === 1 ? $selectedConferenceSignatures : [];
 
             if (!empty($validated['background_image'])) {
                 $validated['background_image'] = $this->file_service->fileUpload($validated['background_image'], 'certificate_background_image', 'workshop/certificate/background/');
@@ -88,8 +107,26 @@ class WorkshopCertificateController extends Controller
                 'signature_image' => 'nullable|mimes:jpg,png',
                 'signature_name' => 'nullable|string|max:255',
                 'signature_designation' => 'nullable|string|max:255',
+                'include_conference_signatures' => 'nullable|boolean',
+                'selected_conference_signatures' => 'nullable|array',
+                'selected_conference_signatures.*' => 'nullable|string',
             ];
             $validated = $request->validate($rules);
+            $validated['include_conference_signatures'] = $request->has('include_conference_signatures') ? 1 : 0;
+
+            $availableConferenceSignatureFileNames = collect($conference->conferenceCertificate?->signature ?? [])
+                ->pluck('fileName')
+                ->filter()
+                ->values()
+                ->all();
+
+            $selectedConferenceSignatures = array_values(array_intersect(
+                $request->input('selected_conference_signatures', []),
+                $availableConferenceSignatureFileNames,
+            ));
+
+            $validated['selected_conference_signatures'] =
+                (int) $validated['include_conference_signatures'] === 1 ? $selectedConferenceSignatures : [];
             
             if (!empty($validated['background_image'])) {
                 $this->file_service->deleteFile($workshop_certificate->background_image, 'workshop/certificate/background/');
