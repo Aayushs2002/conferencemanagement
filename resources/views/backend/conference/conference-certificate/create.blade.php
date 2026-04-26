@@ -119,13 +119,49 @@
                             </div>
                         </div>
 
+                        <!-- Custom CSS Section -->
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="d-flex align-items-center mb-4">
+                                    <div class="bg-warning text-white rounded-circle d-flex align-items-center justify-content-center me-3"
+                                        style="width: 40px; height: 40px;">
+                                        <span class="fw-bold">2</span>
+                                    </div>
+                                    <div>
+                                        <h5 class="mb-1 text-warning fw-bold">Certificate Custom CSS</h5>
+                                        <p class="text-muted mb-0 small">Add custom CSS code for certificate layout styling</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row mb-5">
+                            <div class="col-12">
+                                <div class="border rounded-3 p-4 bg-light">
+                                    <label class="form-label fw-semibold mb-2" for="custom_css">
+                                        <i class="ti tabler-code me-2"></i>Custom CSS Code
+                                    </label>
+                                    <textarea class="form-control font-monospace @error('custom_css') is-invalid @enderror" name="custom_css"
+                                        id="custom_css" rows="10"
+                                        placeholder="/* Example */&#10;.invoice-box {&#10;    color: #1f2937;&#10;}&#10;&#10;h3 {&#10;    font-size: 90px;&#10;}">{{ old('custom_css', $conference_certificate->custom_css ?? '') }}</textarea>
+                                    <div class="form-text">
+                                        <i class="ti tabler-info-circle me-1"></i>
+                                        This CSS is injected only in the certificate generate page.
+                                    </div>
+                                    @error('custom_css')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                            </div>
+                        </div>
+
                         <!-- Signatures Section -->
                         <div class="row">
                             <div class="col-12">
                                 <div class="d-flex align-items-center mb-4">
                                     <div class="bg-success text-white rounded-circle d-flex align-items-center justify-content-center me-3"
                                         style="width: 40px; height: 40px;">
-                                        <span class="fw-bold">2</span>
+                                        <span class="fw-bold">3</span>
                                     </div>
                                     <div>
                                         <h5 class="mb-1 text-success fw-bold">Certificate Signatures</h5>
@@ -139,6 +175,48 @@
                         <div class="row mb-4">
                             <div class="col-12">
                                 <div class="border rounded-3 p-4 bg-light">
+                                    <div class="mb-4">
+                                        <label class="form-label fw-semibold d-block" for="include_title">
+                                            <i class="ti tabler-heading me-2"></i>Show Certificate Title
+                                        </label>
+                                        <input type="hidden" name="include_title" value="0">
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" type="checkbox" role="switch"
+                                                id="include_title" name="include_title" value="1"
+                                                {{ old('include_title', isset($conference_certificate) ? ($conference_certificate->include_title ?? 1) : 1) ? 'checked' : '' }}>
+                                            <label class="form-check-label" for="include_title">
+                                                Show "Conference Abbreviation" heading in generated certificates
+                                            </label>
+                                        </div>
+                                        <div class="form-text">
+                                            Disable this if you want to hide the main certificate title block.
+                                        </div>
+                                        @error('include_title')
+                                            <div class="text-danger mt-1">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+
+                                    <div class="mb-4">
+                                        <label class="form-label fw-semibold d-block" for="include_signature">
+                                            <i class="ti tabler-signature me-2"></i>Include Signatures In Certificate
+                                        </label>
+                                        <input type="hidden" name="include_signature" value="0">
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" type="checkbox" role="switch"
+                                                id="include_signature" name="include_signature" value="1"
+                                                {{ old('include_signature', isset($conference_certificate) ? ($conference_certificate->include_signature ?? 1) : 1) ? 'checked' : '' }}>
+                                            <label class="form-check-label" for="include_signature">
+                                                Show signature block in generated certificates
+                                            </label>
+                                        </div>
+                                        <div class="form-text">
+                                            Disable this if you want certificate without signatures.
+                                        </div>
+                                        @error('include_signature')
+                                            <div class="text-danger mt-1">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+
                                     <label for="signature" class="form-label fw-semibold mb-3">
                                         <i class="ti tabler-writing-sign me-2"></i>Upload Signature Images
                                     </label>
@@ -411,10 +489,11 @@
 
         // Form validation enhancement
         $('form').on('submit', function(e) {
+            let includeSignature = $('#include_signature').is(':checked');
             let hasNewSignatures = $('#imagesMultiple')[0].files.length > 0;
             let hasExistingSignatures = $('.imgDelete').length > 0;
 
-            if (!hasNewSignatures && !hasExistingSignatures) {
+            if (includeSignature && !hasNewSignatures && !hasExistingSignatures) {
                 e.preventDefault();
                 alert('Please add at least one signature image.');
                 $('#imagesMultiple').focus();
@@ -422,7 +501,7 @@
             }
 
             // Check if names and designations are filled for new signatures
-            if (hasNewSignatures) {
+            if (includeSignature && hasNewSignatures) {
                 let allFilled = true;
                 $('#imagesPreview input[required]').each(function() {
                     if ($(this).val().trim() === '') {

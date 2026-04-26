@@ -56,6 +56,11 @@ header('Access-Control-Allow-Origin: *');
             vertical-align: super;
         }
     </style>
+    @if ($conference->conferenceCertificate && $conference->conferenceCertificate->custom_css)
+        <style>
+            {!! $conference->conferenceCertificate->custom_css !!}
+        </style>
+    @endif
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.3/html2pdf.bundle.min.js"></script>
 
 
@@ -233,11 +238,13 @@ header('Access-Control-Allow-Origin: *');
                             style="text-align:center; margin-top:10px;">
                             <tr>
                                 <td width="500">&nbsp;</td>
+                                @if ($conference->conferenceCertificate && ($conference->conferenceCertificate->include_title ?? 1))
+                                    <td width="550"
+                                        style="text-align:left; font-size:80px; font-weight:bold;color:red;">
 
-                                <td width="550" style="text-align:left; font-size:80px; font-weight:bold;color:red;">
-
-                                    {{ $conference->abbreviation ?? 'CONFERENCE' }}
-                                </td>
+                                        {{ $conference->abbreviation ?? 'CONFERENCE' }}
+                                    </td>
+                                @endif
 
                                 <td width="450" style="text-align:left;">&nbsp;
                                 </td>
@@ -328,7 +335,7 @@ header('Access-Control-Allow-Origin: *');
                                 <td width="1410">
                                     <h1 style="line-height:60px; margin-bottom:10px; font-weight:bold;">for
                                         Participating as a
-                                        {{ $registrantType }}  in <br />
+                                        {{ $registrantType }} in <br />
                                         <small style="font-weight:400;"><b
                                                 style="font-size:35px; font-weight:400; line-height:40px;  margin:0px 0px; color:red;">{{ $conference->conference_name }}</b>
                                             <br />held on {!! $dateDisplay !!}, {{ $venueLocation }}</small><br />
@@ -344,7 +351,10 @@ header('Access-Control-Allow-Origin: *');
                     </td>
                 </tr>
 
-                @if ($conference->conferenceCertificate && !empty($conference->conferenceCertificate->signature))
+                @if (
+                    $conference->conferenceCertificate &&
+                        ($conference->conferenceCertificate->include_signature ?? 1) &&
+                        !empty($conference->conferenceCertificate->signature))
                     <tr>
                         <td>
                             <table width="1600" border="0" cellspacing="0" cellpadding="0"
@@ -354,7 +364,7 @@ header('Access-Control-Allow-Origin: *');
                                         @php
                                             $signatures = collect($conference->conferenceCertificate->signature)
                                                 ->sortBy(function ($signature, $index) {
-                                                    return $signature['order'] ?? ($index + 1);
+                                                    return $signature['order'] ?? $index + 1;
                                                 })
                                                 ->values()
                                                 ->all();

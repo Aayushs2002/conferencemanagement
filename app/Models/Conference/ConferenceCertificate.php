@@ -10,10 +10,15 @@ class ConferenceCertificate extends Model
         'conference_id',
         'background_image',
         'signature',
+        'custom_css',
+        'include_signature',
+        'include_title',
     ];
 
     protected $casts = [
-        'signature' => 'array'
+        'signature' => 'array',
+        'include_signature' => 'boolean',
+        'include_title' => 'boolean',
     ];
 
     public function getSignatureAttribute($value)
