@@ -40,16 +40,25 @@ class ConferenceCertificateController extends Controller
         try {
             $rules = [
                 'background_image' => 'required|mimes:jpg,png',
-                'signatures' => 'required',
+                'include_title' => 'required|in:0,1',
+                'include_signature' => 'required|in:0,1',
+                'signatures' => 'nullable|array',
                 'signatures.*' => 'mimes:jpg,png',
-                'name' => 'required',
-                'name.*' => 'required',
-                'designation' => 'required',
-                'designation.*' => 'required',
+                'custom_css' => 'nullable|string',
+                'name' => 'nullable|array',
+                'name.*' => 'required_with:signatures.*',
+                'designation' => 'nullable|array',
+                'designation.*' => 'required_with:signatures.*',
                 'signature_order' => 'nullable|array',
                 'signature_order.*' => 'nullable|integer|min:1',
             ];
             $validated = $request->validate($rules);
+            if ((int) $validated['include_signature'] === 1 && empty($validated['signatures'])) {
+                return redirect()->back()->withInput()->withErrors([
+                    'signatures' => 'Please add at least one signature image or disable signature inclusion.',
+                ]);
+            }
+
             if (!empty($validated['signatures']) && count($validated['signatures']) > 5) {
                 return redirect()->back()->withInput()->with('delete', 'Images Limitation Crossed.');
             }
@@ -74,8 +83,8 @@ class ConferenceCertificateController extends Controller
                 foreach ($validated['signatures'] as $key => $pic) {
                     $validated['signature'][] = [
                         'fileName' => $this->file_service->fileUpload($pic, 'certificate-signature', 'conference/conference/certificate/signature/'),
-                        'name' => $validated['name'][$key],
-                        'designation' => $validated['designation'][$key],
+                        'name' => $validated['name'][$key] ?? '',
+                        'designation' => $validated['designation'][$key] ?? '',
                         'order' => (int) ($validated['signature_order'][$key] ?? ($key + 1)),
                     ];
                 }
@@ -118,17 +127,20 @@ class ConferenceCertificateController extends Controller
         try {
             $rules = [
                 'background_image' => 'nullable|mimes:jpg,png',
-                'signatures' => 'nullable',
+                'include_title' => 'required|in:0,1',
+                'include_signature' => 'required|in:0,1',
+                'signatures' => 'nullable|array',
                 'signatures.*' => 'mimes:jpg,png',
-                'name' => 'nullable',
-                'name.*' => 'nullable',
-                'designation' => 'nullable',
-                'designation.*' => 'nullable',
+                'custom_css' => 'nullable|string',
+                'name' => 'nullable|array',
+                'name.*' => 'required_with:signatures.*',
+                'designation' => 'nullable|array',
+                'designation.*' => 'required_with:signatures.*',
                 'signature_order' => 'nullable|array',
                 'signature_order.*' => 'nullable|integer|min:1',
-                'name_old' => 'nullable',
+                'name_old' => 'nullable|array',
                 'name_old.*' => 'nullable',
-                'designation_old' => 'nullable',
+                'designation_old' => 'nullable|array',
                 'designation_old.*' => 'nullable',
                 'signature_order_old' => 'nullable|array',
                 'signature_order_old.*' => 'nullable|integer|min:1',
@@ -140,6 +152,12 @@ class ConferenceCertificateController extends Controller
             }
             if (!empty($validated['signatures']) && count($validated['signatures']) + $countOldImages > 5) {
                 return redirect()->back()->withInput()->with('delete', 'Images Limitation Crossed.');
+            }
+
+            if ((int) $validated['include_signature'] === 1 && $countOldImages === 0 && empty($validated['signatures'])) {
+                return redirect()->back()->withInput()->withErrors([
+                    'signatures' => 'Please add at least one signature image or disable signature inclusion.',
+                ]);
             }
 
             $allOrders = [];
@@ -173,8 +191,8 @@ class ConferenceCertificateController extends Controller
             if (!empty($conference_certificate->signature)) {
                 $oldImages = $conference_certificate->signature;
                 foreach ($oldImages as $k => $v) {
-                    $oldImages[$k]['name'] = $validated['name_old'][$k];
-                    $oldImages[$k]['designation'] = $validated['designation_old'][$k];
+                    $oldImages[$k]['name'] = $validated['name_old'][$k] ?? ($oldImages[$k]['name'] ?? '');
+                    $oldImages[$k]['designation'] = $validated['designation_old'][$k] ?? ($oldImages[$k]['designation'] ?? '');
                     $oldImages[$k]['order'] = (int) ($validated['signature_order_old'][$k] ?? ($oldImages[$k]['order'] ?? ($k + 1)));
                 }
             }
@@ -182,8 +200,8 @@ class ConferenceCertificateController extends Controller
                 foreach ($validated['signatures'] as $key => $pic) {
                     $newImage  = [
                         'fileName' => $this->file_service->fileUpload($pic, 'certificate-signature', 'conference/conference/certificate/signature/'),
-                        'name' => $validated['name'][$key],
-                        'designation' => $validated['designation'][$key],
+                        'name' => $validated['name'][$key] ?? '',
+                        'designation' => $validated['designation'][$key] ?? '',
                         'order' => (int) ($validated['signature_order'][$key] ?? ($key + 1)),
                     ];
 
