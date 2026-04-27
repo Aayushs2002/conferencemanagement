@@ -215,9 +215,9 @@ header('Access-Control-Allow-Origin: *');
         <div class="invoice-box">
 
             <table width="1300" border="0" cellspacing="0" cellpadding="0"
-                style="font-size:18px; {{ $certificateBg }} padding-bottom:0px;">
+                style="font-size:18px; {{ $certificateBg }} padding-bottom:0px;" class="certificate">
 
-                <tr>
+                <tr class="ctrl_tr_1">
                     <td>
                         <table width="1600" border="0" cellspacing="0" cellpadding="0"
                             style="text-align:center; height:180px; margin-top:60px;">
@@ -232,7 +232,7 @@ header('Access-Control-Allow-Origin: *');
                     </td>
                 </tr>
 
-                <tr>
+                <tr class="ctrl_tr_2">
                     <td align="center">
                         <table width="1670" border="0" cellspacing="0" cellpadding="0"
                             style="text-align:center; margin-top:10px;">
@@ -253,7 +253,7 @@ header('Access-Control-Allow-Origin: *');
                         </table>
                     </td>
                 </tr>
-                <tr>
+                <tr class="ctrl_tr_3">
                     <td>
 
                         <table width="1698" border="0" cellspacing="0" cellpadding="0"
@@ -273,7 +273,7 @@ header('Access-Control-Allow-Origin: *');
                         </table>
                     </td>
                 </tr>
-                <tr>
+                <tr class="ctrl_tr_4">
                     <td>
 
                         <table width="1698" border="0" cellspacing="0" cellpadding="0"
@@ -292,7 +292,7 @@ header('Access-Control-Allow-Origin: *');
                     </td>
                 </tr>
 
-                <tr>
+                <tr class="ctrl_tr_5">
                     <td>
 
                         <table width="1698" border="0" cellspacing="0" cellpadding="0"
@@ -310,7 +310,7 @@ header('Access-Control-Allow-Origin: *');
                         </table>
                     </td>
                 </tr>
-                <tr>
+                <tr class="ctrl_tr_6">
                     <td>
                         <table width="1698" border="0" cellspacing="0" cellpadding="0"
                             style="text-align:center; line-height:0px;">
@@ -326,7 +326,7 @@ header('Access-Control-Allow-Origin: *');
                         </table>
                     </td>
                 </tr>
-                <tr>
+                <tr class="ctrl_tr_7">
                     <td>
                         <table width="1698" border="0" cellspacing="0" cellpadding="0"
                             style="text-align:center; font-size:22px; line-height:32px;">
@@ -355,7 +355,7 @@ header('Access-Control-Allow-Origin: *');
                     $conference->conferenceCertificate &&
                         ($conference->conferenceCertificate->include_signature ?? 1) &&
                         !empty($conference->conferenceCertificate->signature))
-                    <tr>
+                    <tr class="ctrl_tr_8">
                         <td>
                             <table width="1600" border="0" cellspacing="0" cellpadding="0"
                                 style="margin-top:5px; margin-bottom:50px;">
