@@ -66,31 +66,30 @@ header('Access-Control-Allow-Origin: *');
 
     <script type="text/javascript">
         $(document).ready(function() {
-            var element = document.getElementById('container_content');
+            $(document).on('click', '.btn_print', function(event) {
+                event.preventDefault();
 
-            var opt = {
-                margin: 0,
-                filename: 'san-certificate_' + new Date().getTime() + '.pdf', // Unique filename
-                image: {
-                    type: 'jpeg',
-                    quality: 1
-                },
-                html2canvas: {
-                    scale: 2,
-                    width: 1700
-                },
-                jsPDF: {
-                    unit: 'mm',
-                    format: 'a4',
-                    orientation: 'landscape'
-                }
-            };
+                var element = document.getElementById('container_content');
 
-            // Automatically generate and download the PDF when the page loads
-            html2pdf().set(opt).from(element).save().then(() => {
-                // Optionally return back after download
-                window.history.back(); // Takes the user back to the previous page
-                // window.location.href = 'https://conference.san.org.np/';
+                var opt = {
+                    margin: 0,
+                    filename: 'san-certificate_' + new Date().getTime() + '.pdf',
+                    image: {
+                        type: 'jpeg',
+                        quality: 1
+                    },
+                    html2canvas: {
+                        scale: 2,
+                        width: 1700
+                    },
+                    jsPDF: {
+                        unit: 'mm',
+                        format: 'a4',
+                        orientation: 'landscape'
+                    }
+                };
+
+                html2pdf().set(opt).from(element).save();
             });
         });
     </script>
