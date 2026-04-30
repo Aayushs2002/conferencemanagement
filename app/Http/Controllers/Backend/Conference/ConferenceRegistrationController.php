@@ -1903,7 +1903,7 @@ class ConferenceRegistrationController extends Controller
         $registrantType = '';
         switch ($conferenceRegistration->registrant_type) {
             case ConferenceRegistration::REGISTRANT_ATTENDEE:
-                $registrantType = 'Delegate';
+                $registrantType = 'Attendee';
                 break;
             case ConferenceRegistration::REGISTRANT_SPEAKER:
                 $registrantType = 'Speaker';
