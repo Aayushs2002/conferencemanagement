@@ -47,9 +47,9 @@ class RegisteredUserController extends Controller
 
             $validated = $request->validate(
                 [
-                    'f_name' => ['required', 'string', 'max:255'],
-                    'm_name' => ['nullable', 'string', 'max:255'],
-                    'l_name' => ['required', 'string', 'max:255'],
+                    'f_name' => ['required', 'string', 'max:255', 'lowercase'],
+                    'm_name' => ['nullable', 'string', 'max:255', 'lowercase'],
+                    'l_name' => ['required', 'string', 'max:255', 'lowercase'],
                     'gender' => 'required',
                     'country_id' => 'required',
                     // 'phone' => 'required|regex:/^\d{10}$/',
@@ -64,7 +64,10 @@ class RegisteredUserController extends Controller
                     'gender.required' => 'Gender is required',
                     'country_id.required' => 'Country is required',
                     'name_prefix_id.required' => 'Name Prefix is required',
-                    'member_type_id.required' => 'Member Type is required'
+                    'member_type_id.required' => 'Member Type is required',
+                    'f_name.lowercase' => 'First name must be in lowercase letters only',
+                    'm_name.lowercase' => 'Middle name must be in lowercase letters only',
+                    'l_name.lowercase' => 'Last name must be in lowercase letters only',
                 ]
             );
             if ($request->filled('website')) {

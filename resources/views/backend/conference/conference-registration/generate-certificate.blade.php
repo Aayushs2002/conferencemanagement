@@ -150,6 +150,7 @@ header('Access-Control-Allow-Origin: *');
     <script type="text/javascript">
         $(document).ready(function() {
             var isNormalUser = @json(auth()->check() ? (int) auth()->user()->type === 3 : false);
+            var registrantName = @json($registrantName);
 
             function showState(id) {
                 $('.cert-state').removeClass('active');
@@ -167,7 +168,7 @@ header('Access-Control-Allow-Origin: *');
 
                 var opt = {
                     margin: 0,
-                    filename: 'san-certificate_' + new Date().getTime() + '.pdf',
+                    filename: registrantName + '.pdf',
                     image: { type: 'jpeg', quality: 1 },
                     html2canvas: {
                         scale: 2,
