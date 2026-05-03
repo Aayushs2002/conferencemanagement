@@ -506,7 +506,7 @@ header('Access-Control-Allow-Origin: *');
                                 <td width="1410">
                                     <h1 style="line-height:60px; margin-bottom:10px; font-weight:bold;">for
                                         Participating as {{ in_array(strtoupper(substr($registrantType, 0, 1)), ['A','E','I','O','U']) ? 'an' : 'a' }}
-                                        {{ $registrantType }} in <br />
+                                        {{ $registrantType }}{{ isset($presentationTypeLabel) && $presentationTypeLabel ? ' (' . $presentationTypeLabel . ')' : '' }} in <br />
                                         <small style="font-weight:400;"><b
                                                 style="font-size:35px; font-weight:400; line-height:40px;  margin:0px 0px; color:red;">{{ $conference->conference_name }}</b>
                                             <br />held on {!! $dateDisplay !!}, {{ $venueLocation }}</small><br />

@@ -13,12 +13,14 @@ class ConferenceCertificate extends Model
         'custom_css',
         'include_signature',
         'include_title',
+        'show_presentation_type',
     ];
 
     protected $casts = [
         'signature' => 'array',
         'include_signature' => 'boolean',
         'include_title' => 'boolean',
+        'show_presentation_type' => 'boolean',
     ];
 
     public function getSignatureAttribute($value)

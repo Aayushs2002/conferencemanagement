@@ -197,6 +197,27 @@
                                     </div>
 
                                     <div class="mb-4">
+                                        <label class="form-label fw-semibold d-block" for="show_presentation_type">
+                                            <i class="ti tabler-presentation me-2"></i>Show Presentation Type for Speaker
+                                        </label>
+                                        <input type="hidden" name="show_presentation_type" value="0">
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" type="checkbox" role="switch"
+                                                id="show_presentation_type" name="show_presentation_type" value="1"
+                                                {{ old('show_presentation_type', isset($conference_certificate) ? ($conference_certificate->show_presentation_type ?? 0) : 0) ? 'checked' : '' }}>
+                                            <label class="form-check-label" for="show_presentation_type">
+                                                Show submission presentation type (e.g. "Oral-Original", "Poster-Review") for speakers who have a submission
+                                            </label>
+                                        </div>
+                                        <div class="form-text">
+                                            When enabled, the registrant type on the certificate will reflect the submission's presentation type and article type (e.g. "Oral-Original"). Applies only to registrants with a linked submission.
+                                        </div>
+                                        @error('show_presentation_type')
+                                            <div class="text-danger mt-1">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+
+                                    <div class="mb-4">
                                         <label class="form-label fw-semibold d-block" for="include_signature">
                                             <i class="ti tabler-signature me-2"></i>Include Signatures In Certificate
                                         </label>
