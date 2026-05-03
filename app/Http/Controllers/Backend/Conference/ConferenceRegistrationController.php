@@ -1891,7 +1891,7 @@ class ConferenceRegistrationController extends Controller
         // Load relationships
         $conference->load('conferenceCertificate', 'ConferenceVenueDetail', 'conferenceSetting');
         $conferenceRegistration->load('user.userDetail.namePrefix');
-        
+
         // Get registrant name with prefix
         $user = $conferenceRegistration->user;
         $registrantName = '';
@@ -1899,34 +1899,66 @@ class ConferenceRegistrationController extends Controller
             $prefix = $user->userDetail->namePrefix->prefix ?? '';
             $registrantName = trim($prefix . ' ' . $user->fullName($user));
         }
-        
-        // Get registrant type text
-        $registrantType = '';
-        switch ($conferenceRegistration->registrant_type) {
-            case ConferenceRegistration::REGISTRANT_ATTENDEE:
-                $registrantType = 'Delegate';
-                break;
-            case ConferenceRegistration::REGISTRANT_SPEAKER:
-                $registrantType = 'Speaker';
-                break;
-            case ConferenceRegistration::REGISTRANT_SESSION_CHAIR:
-                $registrantType = 'Session Chair';
-                break;
-            case ConferenceRegistration::REGISTRANT_SPECIAL_GUEST:
-                $registrantType = 'Special Guest';
-                break;
-            case ConferenceRegistration::REGISTRANT_ORGANIZER:
-                $registrantType = 'Organizer';
-                break;
-            case ConferenceRegistration::REGISTRANT_FACULTY:
-                $registrantType = 'Faculty';
-                break;
-            case ConferenceRegistration::REGISTRANT_VOLUNTEER:
-                $registrantType = 'Volunteer';
-                break;
-            case ConferenceRegistration::REGISTRANT_INVITEE:
-                $registrantType = 'Invitee';
-                break;
+
+        // Resolve registrant type label using certificate-specific label settings:
+        // Priority 1: Committee-based label (certificate committee tag table)
+        // Priority 2: Registrant-type label (certificate registrant tag table)
+        // Priority 3: Hardcoded default
+        $defaultLabels = [
+            ConferenceRegistration::REGISTRANT_ATTENDEE      => 'Delegate',
+            ConferenceRegistration::REGISTRANT_SPEAKER       => 'Speaker',
+            ConferenceRegistration::REGISTRANT_SESSION_CHAIR => 'Session Chair',
+            ConferenceRegistration::REGISTRANT_SPECIAL_GUEST => 'Special Guest',
+            ConferenceRegistration::REGISTRANT_ORGANIZER     => 'Organizer',
+            ConferenceRegistration::REGISTRANT_FACULTY       => 'Faculty',
+            ConferenceRegistration::REGISTRANT_VOLUNTEER     => 'Volunteer',
+            ConferenceRegistration::REGISTRANT_INVITEE       => 'Invitee',
+        ];
+
+        $registrantType = null;
+        $participatingText = null;
+
+        // Check committee-based override first
+        $committeeMember = CommitteeMember::where([
+            'conference_id' => $conference->id,
+            'user_id'       => $conferenceRegistration->user_id,
+            'status'        => 1,
+        ])->first();
+
+        if ($committeeMember) {
+            $committeeTag = \App\Models\Conference\ConferenceCertificateCommitteeTag::where('conference_id', $conference->id)
+                ->where('committee_id', $committeeMember->committee_id)
+                ->where(function ($q) use ($committeeMember) {
+                    $q->where('designation_id', $committeeMember->designation_id)
+                      ->orWhereNull('designation_id');
+                })
+                ->orderByRaw('designation_id IS NULL ASC') // specific designation match first
+                ->first();
+            if ($committeeTag) {
+                $registrantType   = $committeeTag->name_tag ?: null;
+                $participatingText = $committeeTag->participating_text ?: null;
+            }
+        }
+
+        // Fall back to registrant-type label from certificate settings
+        if (!$registrantType && !$participatingText) {
+            $regTag = \App\Models\Conference\ConferenceCertificateRegistrantTag::where([
+                'conference_id'   => $conference->id,
+                'registrant_type' => $conferenceRegistration->registrant_type,
+            ])->first();
+            if ($regTag) {
+                $registrantType    = $regTag->name_tag ?: null;
+                $participatingText = $regTag->participating_text ?: null;
+            }
+        }
+
+        // Final fallback to hardcoded defaults
+        if (!$registrantType) {
+            $registrantType = $defaultLabels[$conferenceRegistration->registrant_type] ?? 'Participant';
+        }
+        // Default phrase if not customised
+        if (!$participatingText) {
+            $participatingText = 'for Participating as';
         }
 
         // Build presentation type label (e.g. "Oral-Original", "Poster-Review") when setting is enabled and registrant is a Speaker
@@ -1957,6 +1989,7 @@ class ConferenceRegistrationController extends Controller
             'conferenceRegistration',
             'registrantName',
             'registrantType',
+            'participatingText',
             'presentationTypeLabel'
         ));
     }

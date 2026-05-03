@@ -368,6 +368,185 @@
                             </div>
                         </div>
 
+                        <!-- Certificate Label Settings Section -->
+                        <div class="row mt-2">
+                            <div class="col-12">
+                                <div class="d-flex align-items-center mb-4">
+                                    <div class="bg-info text-white rounded-circle d-flex align-items-center justify-content-center me-3"
+                                        style="width: 40px; height: 40px;">
+                                        <span class="fw-bold">4</span>
+                                    </div>
+                                    <div>
+                                        <h5 class="mb-1 text-info fw-bold">Certificate Label Settings</h5>
+                                        <p class="text-muted mb-0 small">Customise the "Participating as ..." label per registration type and per committee</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row mb-5">
+                            <div class="col-12">
+                                <div class="border rounded-3 p-4 bg-light">
+
+                                    {{-- Registration Type Labels --}}
+                                    <h6 class="fw-bold mb-3"><i class="ti tabler-tag me-2"></i>Registration Type Labels</h6>
+                                    <p class="text-muted small mb-3">
+                                        Set a custom label for each registration type. Leave blank to use the default (e.g. "Delegate", "Speaker").
+                                    </p>
+                                    @php
+                                        $regTypeDefaults = [
+                                            1 => 'Delegate (Attendee)',
+                                            2 => 'Speaker/Presenter',
+                                            3 => 'Session Chair',
+                                            4 => 'Special Guest',
+                                            5 => 'Organizer',
+                                            6 => 'Faculty',
+                                            7 => 'Volunteer',
+                                            8 => 'Invitee',
+                                        ];
+                                    @endphp
+                                    <div class="table-responsive mb-4">
+                                        <table class="table table-bordered table-sm align-middle mb-0">
+                                            <thead class="table-light">
+                                                <tr>
+                                                    <th style="width:30%">Registration Type</th>
+                                                    <th>"Participating as" Text <small class="text-muted fw-normal">(leave blank for default)</small></th>
+                                                    <th>Custom Label <small class="text-muted fw-normal">(leave blank for default)</small></th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @foreach ($regTypeDefaults as $typeId => $defaultLabel)
+                                                    <tr>
+                                                        <td class="fw-semibold">{{ $defaultLabel }}</td>
+                                                        <td>
+                                                            <input type="text"
+                                                                name="cert_reg_participating_text[{{ $typeId }}]"
+                                                                class="form-control form-control-sm"
+                                                                placeholder="Participating as"
+                                                                value="{{ old('cert_reg_participating_text.' . $typeId, isset($certRegistrantTags[$typeId]) ? $certRegistrantTags[$typeId]->participating_text : '') }}">
+                                                        </td>
+                                                        <td>
+                                                            <input type="text"
+                                                                name="cert_reg_tag[{{ $typeId }}]"
+                                                                class="form-control form-control-sm"
+                                                                placeholder="e.g. {{ $defaultLabel }}"
+                                                                value="{{ old('cert_reg_tag.' . $typeId, isset($certRegistrantTags[$typeId]) ? $certRegistrantTags[$typeId]->name_tag : '') }}">
+                                                        </td>
+                                                    </tr>
+                                                @endforeach
+                                            </tbody>
+                                        </table>
+                                    </div>
+
+                                    <hr class="my-4">
+
+                                    {{-- Committee Label Overrides --}}
+                                    <h6 class="fw-bold mb-3"><i class="ti tabler-users me-2"></i>Committee Label Overrides</h6>
+                                    <p class="text-muted small mb-3">
+                                        Set a label for committee members. This takes priority over registration type labels.
+                                    </p>
+
+                                    <div id="certCommitteeTagsWrapper">
+                                        @if (isset($certCommitteeTags) && $certCommitteeTags->count())
+                                            @foreach ($certCommitteeTags as $ct)
+                                                <div class="row g-2 mb-3 cert-committee-row align-items-end">
+                                                    <div class="col-md-4">
+                                                        <label class="form-label small text-muted">Committee</label>
+                                                        <select name="cert_comm_committee_id[]" class="form-select form-select-sm">
+                                                            <option value="">-- Select Committee --</option>
+                                                            @foreach ($committees as $committee)
+                                                                <option value="{{ $committee->id }}"
+                                                                    {{ $ct->committee_id == $committee->id ? 'selected' : '' }}>
+                                                                    {{ $committee->committee_name }}
+                                                                </option>
+                                                            @endforeach
+                                                        </select>
+                                                    </div>
+                                                    <div class="col-md-3">
+                                                        <label class="form-label small text-muted">Designation <span class="text-muted">(optional)</span></label>
+                                                        <select name="cert_comm_designation_id[]" class="form-select form-select-sm">
+                                                            <option value="">-- Any Designation --</option>
+                                                            @foreach ($committeeDesignations as $des)
+                                                                <option value="{{ $des->id }}"
+                                                                    {{ $ct->designation_id == $des->id ? 'selected' : '' }}>
+                                                                    {{ $des->designation }}
+                                                                </option>
+                                                            @endforeach
+                                                        </select>
+                                                    </div>
+                                                    <div class="col-md-2">
+                                                        <label class="form-label small text-muted">"Participating as" Text</label>
+                                                        <input type="text" name="cert_comm_participating_text[]"
+                                                            class="form-control form-control-sm"
+                                                            placeholder="Participating as"
+                                                            value="{{ $ct->participating_text }}">
+                                                    </div>
+                                                    <div class="col-md-3">
+                                                        <label class="form-label small text-muted">Label on Certificate</label>
+                                                        <input type="text" name="cert_comm_name_tag[]"
+                                                            class="form-control form-control-sm"
+                                                            placeholder="e.g. Scientific Committee Member"
+                                                            value="{{ $ct->name_tag }}">
+                                                    </div>
+                                                    <div class="col-md-1">
+                                                        <button type="button" class="btn btn-outline-danger btn-sm remove-cert-committee-row w-100">
+                                                            <i class="ti tabler-trash"></i>
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            @endforeach
+                                        @endif
+                                    </div>
+
+                                    <button type="button" id="addCertCommitteeRow" class="btn btn-outline-secondary btn-sm mt-1">
+                                        <i class="ti tabler-plus me-1"></i>Add Committee Override
+                                    </button>
+
+                                    {{-- Hidden template row --}}
+                                    <template id="certCommitteeRowTemplate">
+                                        <div class="row g-2 mb-3 cert-committee-row align-items-end">
+                                            <div class="col-md-4">
+                                                <label class="form-label small text-muted">Committee</label>
+                                                <select name="cert_comm_committee_id[]" class="form-select form-select-sm">
+                                                    <option value="">-- Select Committee --</option>
+                                                    @foreach ($committees as $committee)
+                                                        <option value="{{ $committee->id }}">{{ $committee->committee_name }}</option>
+                                                    @endforeach
+                                                </select>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <label class="form-label small text-muted">Designation <span class="text-muted">(optional)</span></label>
+                                                <select name="cert_comm_designation_id[]" class="form-select form-select-sm">
+                                                    <option value="">-- Any Designation --</option>
+                                                    @foreach ($committeeDesignations as $des)
+                                                        <option value="{{ $des->id }}">{{ $des->designation }}</option>
+                                                    @endforeach
+                                                </select>
+                                            </div>
+                                            <div class="col-md-2">
+                                                <label class="form-label small text-muted">"Participating as" Text</label>
+                                                <input type="text" name="cert_comm_participating_text[]"
+                                                    class="form-control form-control-sm"
+                                                    placeholder="Participating as">
+                                            </div>
+                                            <div class="col-md-3">
+                                                <label class="form-label small text-muted">Label on Certificate</label>
+                                                <input type="text" name="cert_comm_name_tag[]"
+                                                    class="form-control form-control-sm"
+                                                    placeholder="e.g. Scientific Committee Member">
+                                            </div>
+                                            <div class="col-md-1">
+                                                <button type="button" class="btn btn-outline-danger btn-sm remove-cert-committee-row w-100">
+                                                    <i class="ti tabler-trash"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </template>
+
+                                </div>
+                            </div>
+                        </div>
+
                         <!-- Submit Button -->
                         <div class="row">
                             <div class="col-12">
@@ -498,6 +677,17 @@
                     '</div>'
                 );
             }
+        });
+
+        // Committee override rows add/remove
+        $('#addCertCommitteeRow').on('click', function () {
+            const template = document.getElementById('certCommitteeRowTemplate');
+            const clone = template.content.cloneNode(true);
+            document.getElementById('certCommitteeTagsWrapper').appendChild(clone);
+        });
+
+        $(document).on('click', '.remove-cert-committee-row', function () {
+            $(this).closest('.cert-committee-row').remove();
         });
 
         // File input styling feedback

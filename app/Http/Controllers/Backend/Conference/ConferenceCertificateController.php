@@ -3,7 +3,11 @@
 namespace App\Http\Controllers\Backend\Conference;
 
 use App\Http\Controllers\Controller;
+use App\Models\Committee\Committee;
+use App\Models\Committee\CommitteeDesignation;
 use App\Models\Conference\ConferenceCertificate;
+use App\Models\Conference\ConferenceCertificateCommitteeTag;
+use App\Models\Conference\ConferenceCertificateRegistrantTag;
 use App\Services\File\FileService;
 use Exception;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
@@ -29,7 +33,15 @@ class ConferenceCertificateController extends Controller
      */
     public function create($society, $conference)
     {
-        return view('backend.conference.conference-certificate.create', compact('society', 'conference'));
+        $committees = Committee::where('society_id', $society->id)->where('status', 1)->get();
+        $committeeDesignations = CommitteeDesignation::where('society_id', $society->id)->where('status', 1)->get();
+        $certRegistrantTags = collect();
+        $certCommitteeTags = collect();
+
+        return view('backend.conference.conference-certificate.create', compact(
+            'society', 'conference', 'committees', 'committeeDesignations',
+            'certRegistrantTags', 'certCommitteeTags'
+        ));
     }
 
     /**
@@ -99,6 +111,50 @@ class ConferenceCertificateController extends Controller
             $validated['conference_id'] = $conference->id;
             // dd($validated);
             ConferenceCertificate::create($validated);
+
+            // Save certificate registrant type labels
+            $regTagData = [];
+            foreach (($request->cert_reg_tag ?? []) as $registrantType => $nameTag) {
+                $nameTag = trim($nameTag ?? '');
+                $participatingText = trim($request->cert_reg_participating_text[$registrantType] ?? '');
+                if (!empty($nameTag) || !empty($participatingText)) {
+                    $regTagData[] = [
+                        'conference_id'    => $conference->id,
+                        'registrant_type'  => (int) $registrantType,
+                        'name_tag'         => $nameTag,
+                        'participating_text' => $participatingText ?: null,
+                        'created_at'       => now(),
+                        'updated_at'       => now(),
+                    ];
+                }
+            }
+            if (!empty($regTagData)) {
+                ConferenceCertificateRegistrantTag::insert($regTagData);
+            }
+
+            // Save certificate committee labels
+            if (!empty($request->cert_comm_committee_id)) {
+                $commTagData = [];
+                foreach ($request->cert_comm_committee_id as $index => $committeeId) {
+                    $nameTag = trim($request->cert_comm_name_tag[$index] ?? '');
+                    $participatingText = trim($request->cert_comm_participating_text[$index] ?? '');
+                    if (!empty($committeeId) && (!empty($nameTag) || !empty($participatingText))) {
+                        $commTagData[] = [
+                            'conference_id'    => $conference->id,
+                            'committee_id'     => (int) $committeeId,
+                            'designation_id'   => !empty($request->cert_comm_designation_id[$index]) ? (int) $request->cert_comm_designation_id[$index] : null,
+                            'name_tag'         => $nameTag,
+                            'participating_text' => $participatingText ?: null,
+                            'created_at'       => now(),
+                            'updated_at'       => now(),
+                        ];
+                    }
+                }
+                if (!empty($commTagData)) {
+                    ConferenceCertificateCommitteeTag::insert($commTagData);
+                }
+            }
+
             return redirect()->route('conference-certificate.index', [$society, $conference])->with('status', 'Conference Setting Added Successfully');
         } catch (Exception $e) {
             throw $e;
@@ -117,7 +173,15 @@ class ConferenceCertificateController extends Controller
     {
         $this->authorize('edit', $conference_certificate);
 
-        return view('backend.conference.conference-certificate.create', compact('society', 'conference', 'conference_certificate'));
+        $committees = Committee::where('society_id', $society->id)->where('status', 1)->get();
+        $committeeDesignations = CommitteeDesignation::where('society_id', $society->id)->where('status', 1)->get();
+        $certRegistrantTags = ConferenceCertificateRegistrantTag::where('conference_id', $conference->id)->get()->keyBy('registrant_type');
+        $certCommitteeTags = ConferenceCertificateCommitteeTag::where('conference_id', $conference->id)->get();
+
+        return view('backend.conference.conference-certificate.create', compact(
+            'society', 'conference', 'conference_certificate',
+            'committees', 'committeeDesignations', 'certRegistrantTags', 'certCommitteeTags'
+        ));
     }
 
     /**
@@ -220,6 +284,52 @@ class ConferenceCertificateController extends Controller
             $validated['signature'] = array_values($validated['signature']);
             // dd($validated);
             $conference_certificate->update($validated);
+
+            // Replace certificate registrant type labels
+            ConferenceCertificateRegistrantTag::where('conference_id', $conference->id)->delete();
+            $regTagData = [];
+            foreach (($request->cert_reg_tag ?? []) as $registrantType => $nameTag) {
+                $nameTag = trim($nameTag ?? '');
+                $participatingText = trim($request->cert_reg_participating_text[$registrantType] ?? '');
+                if (!empty($nameTag) || !empty($participatingText)) {
+                    $regTagData[] = [
+                        'conference_id'    => $conference->id,
+                        'registrant_type'  => (int) $registrantType,
+                        'name_tag'         => $nameTag,
+                        'participating_text' => $participatingText ?: null,
+                        'created_at'       => now(),
+                        'updated_at'       => now(),
+                    ];
+                }
+            }
+            if (!empty($regTagData)) {
+                ConferenceCertificateRegistrantTag::insert($regTagData);
+            }
+
+            // Replace certificate committee labels
+            ConferenceCertificateCommitteeTag::where('conference_id', $conference->id)->delete();
+            if (!empty($request->cert_comm_committee_id)) {
+                $commTagData = [];
+                foreach ($request->cert_comm_committee_id as $index => $committeeId) {
+                    $nameTag = trim($request->cert_comm_name_tag[$index] ?? '');
+                    $participatingText = trim($request->cert_comm_participating_text[$index] ?? '');
+                    if (!empty($committeeId) && (!empty($nameTag) || !empty($participatingText))) {
+                        $commTagData[] = [
+                            'conference_id'    => $conference->id,
+                            'committee_id'     => (int) $committeeId,
+                            'designation_id'   => !empty($request->cert_comm_designation_id[$index]) ? (int) $request->cert_comm_designation_id[$index] : null,
+                            'name_tag'         => $nameTag,
+                            'participating_text' => $participatingText ?: null,
+                            'created_at'       => now(),
+                            'updated_at'       => now(),
+                        ];
+                    }
+                }
+                if (!empty($commTagData)) {
+                    ConferenceCertificateCommitteeTag::insert($commTagData);
+                }
+            }
+
             return redirect()->route('conference-certificate.index', [$society, $conference])->with('status', 'Certificate Setting Updated Successfully');
         } catch (\Exception $e) {
             throw $e;
