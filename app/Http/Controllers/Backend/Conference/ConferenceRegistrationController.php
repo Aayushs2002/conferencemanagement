@@ -28,6 +28,7 @@ use App\Models\Conference\Poll;
 use App\Models\Conference\UserVote;
 use App\Models\ConferenceCommitteePassDesignation;
 use App\Models\ConferenceMemberTypeNameTag;
+use App\Models\Conference\Submission;
 use App\Models\User;
 use App\Models\User\ConferenceUserPassDesignation;
 use App\Models\User\Department;
@@ -1927,12 +1928,36 @@ class ConferenceRegistrationController extends Controller
                 $registrantType = 'Invitee';
                 break;
         }
-        
+
+        // Build presentation type label (e.g. "Oral-Original", "Poster-Review") when setting is enabled and registrant is a Speaker
+        $presentationTypeLabel = null;
+        if (
+            $conferenceRegistration->registrant_type === ConferenceRegistration::REGISTRANT_SPEAKER &&
+            $conference->conferenceCertificate && ($conference->conferenceCertificate->show_presentation_type ?? false)
+        ) {
+            $submission = Submission::where('user_id', $conferenceRegistration->user_id)
+                ->where('conference_id', $conference->id)
+                ->where('status', 1)
+                ->where('request_status', 1)
+                ->with('articleType')
+                ->first();
+
+            if ($submission) {
+                $articleTypeName = $submission->articleType->name ?? null;
+                if ($submission->presentation_type == 2) {
+                    $presentationTypeLabel = 'Oral-Original' ;
+                } elseif ($submission->presentation_type == 1) {
+                    $presentationTypeLabel = 'Poster-Review';
+                }
+            }
+        }
+
         return view('backend.conference.conference-registration.generate-certificate', compact(
             'conference',
             'conferenceRegistration',
             'registrantName',
-            'registrantType'
+            'registrantType',
+            'presentationTypeLabel'
         ));
     }
 
