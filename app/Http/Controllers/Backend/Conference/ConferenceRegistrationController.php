@@ -1973,17 +1973,17 @@ class ConferenceRegistrationController extends Controller
                 ->where('request_status', 1)
                 ->with('articleType')
                 ->first();
-
+            // dd($submission,'ss');
             if ($submission) {
-                $articleTypeName = $submission->articleType->name ?? null;
+                $articleTypeName = $submission?->articleType?->name ?? null;
                 if ($submission->presentation_type == 2) {
-                    $presentationTypeLabel = 'Oral-Original' ;
+                    $presentationTypeLabel = ($articleTypeName ? $articleTypeName . '-' : '') . 'Oral Presentation';
                 } elseif ($submission->presentation_type == 1) {
-                    $presentationTypeLabel = 'Poster-Review';
+                    $presentationTypeLabel = ($articleTypeName ? $articleTypeName . '-' : '') . 'Poster Presentation';
                 }
             }
         }
-
+            // dd($presentationTypeLabel);
         return view('backend.conference.conference-registration.generate-certificate', compact(
             'conference',
             'conferenceRegistration',
