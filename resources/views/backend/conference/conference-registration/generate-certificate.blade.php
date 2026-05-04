@@ -149,7 +149,7 @@ header('Access-Control-Allow-Origin: *');
 
     <script type="text/javascript">
         $(document).ready(function() {
-            var isNormalUser = @json(auth()->check() ? (int) auth()->user()->type === 3 : false);
+            var isNormalUser = @json(!auth()->check() || (auth()->check() && (int) auth()->user()->type === 3));
             var registrantName = @json($registrantName);
 
             function showState(id) {
@@ -321,8 +321,8 @@ header('Access-Control-Allow-Origin: *');
     $showCpdPoints = $conference->conferenceSetting && $conference->conferenceSetting->cpd_points_required == 1;
 
     // User-type based download behavior
-    $userType = auth()->check() ? (int) auth()->user()->type : null;
-    $showDownloadButton = in_array($userType, [1, 2, 3], true);
+    $userType = auth()->check() ? (int) auth()->user()->type : 'guest';
+    $showDownloadButton = in_array($userType, [1, 2, 3, 'guest'], true);
 @endphp
 
 <body>
@@ -331,8 +331,8 @@ header('Access-Control-Allow-Origin: *');
     <div class="cert-page-wrap">
         <div class="cert-card">
 
-            {{-- Idle state: admin / super-admin only --}}
-            @if (in_array($userType, [1, 2], true))
+            {{-- Idle state: admin / super-admin / guest users --}}
+            @if (in_array($userType, [1, 2, 'guest'], true))
             <div id="state_idle" class="cert-state active">
                 <div class="icon-circle blue">
                     <i class="fa fa-file-pdf-o"></i>
@@ -352,7 +352,7 @@ header('Access-Control-Allow-Origin: *');
             @endif
 
             {{-- Loading / generating state --}}
-            <div id="state_loading" class="cert-state {{ $userType === 3 ? 'active' : '' }}">
+            <div id="state_loading" class="cert-state {{ in_array($userType, [3, 'guest'], true) ? 'active' : '' }}">
                 <div class="spinner-wrap">
                     <div class="spinner-ring"></div>
                 </div>
