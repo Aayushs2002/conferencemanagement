@@ -1977,9 +1977,9 @@ class ConferenceRegistrationController extends Controller
             if ($submission) {
                 $articleTypeName = $submission?->articleType?->name ?? null;
                 if ($submission->presentation_type == 2) {
-                    $presentationTypeLabel = ($articleTypeName ? $articleTypeName . '-' : '') . 'Oral';
+                    $presentationTypeLabel = ($articleTypeName ? $articleTypeName . '-' : '') . 'Oral Presentation';
                 } elseif ($submission->presentation_type == 1) {
-                    $presentationTypeLabel = ($articleTypeName ? $articleTypeName . '-' : '') . 'Poster';
+                    $presentationTypeLabel = ($articleTypeName ? $articleTypeName . '-' : '') . 'Poster Presentation';
                 }
             }
         }
