@@ -61,6 +61,13 @@
                     <p class="text-danger remarks"></p>
                 </div>
 
+                <div class="col-md-12 form-group mb-3">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="send_email" name="send_email" value="1" checked>
+                        <label class="form-check-label" for="send_email">Send Email Notification to Author</label>
+                    </div>
+                </div>
+
                 <div class="col-md-12 text-end">
                     <button type="submit" id="decideRequest" class="btn btn-primary">Send</button>
                 </div>

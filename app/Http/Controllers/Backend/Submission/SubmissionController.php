@@ -765,59 +765,67 @@ class SubmissionController extends Controller
                 'submission_topic' => $submission->title,
             ];
 
+            $sendEmail = $request->boolean('send_email');
+
             // Handle different request statuses
             if ($request->request_status == 1) {
                 $message = 'Request accepted successfully.';
-                // Determine template key based on presentation type
-                // Key 2 = Oral Accepted, Key 6 = Poster Accepted
-                $templateKey = $submission->presentation_type == 2 ? 2 : 6;
-                $template = EmailTemplate::where(['conference_id' => $submission->conference_id, 'key' => $templateKey])->first();
+                if ($sendEmail) {
+                    // Determine template key based on presentation type
+                    // Key 2 = Oral Accepted, Key 6 = Poster Accepted
+                    $templateKey = $submission->presentation_type == 2 ? 2 : 6;
+                    $template = EmailTemplate::where(['conference_id' => $submission->conference_id, 'key' => $templateKey])->first();
 
-                // Fallback to original key 2 if poster template not found
-                if (!$template && $templateKey == 6) {
-                    $template = EmailTemplate::where(['conference_id' => $submission->conference_id, 'key' => 2])->first();
+                    // Fallback to original key 2 if poster template not found
+                    if (!$template && $templateKey == 6) {
+                        $template = EmailTemplate::where(['conference_id' => $submission->conference_id, 'key' => 2])->first();
+                    }
+
+                    $subject = parseTemplate($template?->subject, $data);
+                    $body = parseTemplate($template?->body, $data);
+
+                    Mail::to($submission->presenter->email)->send(new SubmissionAcceptMail($validated, $subject, $body, $submission->conference->conference_name));
                 }
-
-                $subject = parseTemplate($template?->subject, $data);
-                $body = parseTemplate($template?->body, $data);
-
-                Mail::to($submission->presenter->email)->send(new SubmissionAcceptMail($validated, $subject, $body, $submission->conference->conference_name));
                 $this->handleSpeakerRegistration($submission);
             }
 
             if ($request->request_status == 2) {
                 $message = 'Request updated for correction.';
-                // Determine template key based on presentation type
-                // Key 3 = Oral Correction, Key 7 = Poster Correction
-                $templateKey = $submission->presentation_type == 2 ? 3 : 7;
-                $template = EmailTemplate::where(['conference_id' => $submission->conference_id, 'key' => $templateKey])->first();
+                if ($sendEmail) {
+                    // Determine template key based on presentation type
+                    // Key 3 = Oral Correction, Key 7 = Poster Correction
+                    $templateKey = $submission->presentation_type == 2 ? 3 : 7;
+                    $template = EmailTemplate::where(['conference_id' => $submission->conference_id, 'key' => $templateKey])->first();
 
-                // Fallback to original key 3 if poster template not found
-                if (!$template && $templateKey == 7) {
-                    $template = EmailTemplate::where(['conference_id' => $submission->conference_id, 'key' => 3])->first();
+                    // Fallback to original key 3 if poster template not found
+                    if (!$template && $templateKey == 7) {
+                        $template = EmailTemplate::where(['conference_id' => $submission->conference_id, 'key' => 3])->first();
+                    }
+
+                    $subject = parseTemplate($template?->subject, $data);
+                    $body = parseTemplate($template?->body, $data);
+                    Mail::to($submission->presenter->email)->send(new SubmissionCorrectionMail($validated, $subject, $body, $submission->conference->conference_name));
                 }
-
-                $subject = parseTemplate($template?->subject, $data);
-                $body = parseTemplate($template?->body, $data);
-                Mail::to($submission->presenter->email)->send(new SubmissionCorrectionMail($validated, $subject, $body, $submission->conference->conference_name));
             }
 
             if ($request->request_status == 3) {
                 $message = 'Request rejected successfully.';
-                // Determine template key based on presentation type
-                // Key 4 = Oral Rejected, Key 8 = Poster Rejected
-                $templateKey = $submission->presentation_type == 2 ? 4 : 8;
-                $template = EmailTemplate::where(['conference_id' => $submission->conference_id, 'key' => $templateKey])->first();
+                if ($sendEmail) {
+                    // Determine template key based on presentation type
+                    // Key 4 = Oral Rejected, Key 8 = Poster Rejected
+                    $templateKey = $submission->presentation_type == 2 ? 4 : 8;
+                    $template = EmailTemplate::where(['conference_id' => $submission->conference_id, 'key' => $templateKey])->first();
 
-                // Fallback to original key 4 if poster template not found
-                if (!$template && $templateKey == 8) {
-                    $template = EmailTemplate::where(['conference_id' => $submission->conference_id, 'key' => 4])->first();
+                    // Fallback to original key 4 if poster template not found
+                    if (!$template && $templateKey == 8) {
+                        $template = EmailTemplate::where(['conference_id' => $submission->conference_id, 'key' => 4])->first();
+                    }
+
+                    $data['reject_remark'] = $validated['remarks'];
+                    $subject = parseTemplate($template?->subject, $data);
+                    $body = parseTemplate($template?->body, $data);
+                    Mail::to($submission->presenter->email)->send(new SubmissionRejectMail($validated, $subject, $body, $submission->conference->conference_name));
                 }
-
-                $data['reject_remark'] = $validated['remarks'];
-                $subject = parseTemplate($template?->subject, $data);
-                $body = parseTemplate($template?->body, $data);
-                Mail::to($submission->presenter->email)->send(new SubmissionRejectMail($validated, $subject, $body, $submission->conference->conference_name));
             }
 
             DB::beginTransaction();
