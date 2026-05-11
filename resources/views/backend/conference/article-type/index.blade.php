@@ -51,6 +51,7 @@
                         <th style="width: 30px;"><i class="ti tabler-arrows-move"></i></th>
                         <th>#</th>
                         <th>Name</th>
+                        <th>Managers</th>
                         <th>Action</th>
                     </tr>
                 </thead>
@@ -62,6 +63,13 @@
                             </td>
                             <th scope="row">{{ $loop->iteration }}</th>
                             <td>{{ $articleType->name }}</td>
+                            <td>
+                                @forelse ($articleType->managers as $manager)
+                                    <span class="badge bg-label-primary me-1">{{ $manager->fullName($manager) }}</span>
+                                @empty
+                                    <span class="text-muted">—</span>
+                                @endforelse
+                            </td>
                             <td>
                                 <div class="dropdown">
                                     <button type="button" class="btn p-0 dropdown-toggle hide-arrow"
