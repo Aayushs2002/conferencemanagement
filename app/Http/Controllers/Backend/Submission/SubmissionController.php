@@ -63,6 +63,31 @@ class SubmissionController extends Controller
         return $query;
     }
 
+    private function managedArticleTypeIds($conferenceId): array
+    {
+        if (is_super_admin()) {
+            return [];
+        }
+
+        return ArticleType::where('conference_id', $conferenceId)
+            ->whereHas('managers', function ($query) {
+                $query->where('users.id', current_user()->id);
+            })
+            ->pluck('id')
+            ->toArray();
+    }
+
+    private function applyManagedArticleTypeScope($query, $conferenceId)
+    {
+        $managedArticleTypeIds = $this->managedArticleTypeIds($conferenceId);
+
+        if (!empty($managedArticleTypeIds)) {
+            $query->whereIn('article_type_id', $managedArticleTypeIds);
+        }
+
+        return $query;
+    }
+
     private function ensureSubmissionAccess($submission): void
     {
         if (! $submission instanceof Submission) {
@@ -88,6 +113,11 @@ class SubmissionController extends Controller
         $managedTrackIds = $this->managedTrackIds($submission->conference_id);
         if (!empty($managedTrackIds) && !in_array((int) $submission->submission_category_major_track_id, $managedTrackIds, true)) {
             abort(403, 'Unauthorized to manage this submission theme/sub-theme.');
+        }
+
+        $managedArticleTypeIds = $this->managedArticleTypeIds($submission->conference_id);
+        if (!empty($managedArticleTypeIds) && !in_array((int) $submission->article_type_id, $managedArticleTypeIds, true)) {
+            abort(403, 'Unauthorized to manage this submission presentation category.');
         }
     }
 
@@ -119,6 +149,7 @@ class SubmissionController extends Controller
         // dd($submission_setting);
         $query = Submission::with('discussions')->where(['conference_id' => $conference->id, 'status' => 1]);
         $this->applyManagedTrackScope($query, $conference->id);
+        $this->applyManagedArticleTypeScope($query, $conference->id);
         if ($request->filled('article_type_id')) {
             $query->where('article_type_id', $request->article_type_id);
         }
@@ -1130,6 +1161,7 @@ class SubmissionController extends Controller
             ->where('conference_id', $conference->id)
             ->where('status', 1);
         $this->applyManagedTrackScope($baseQuery, $conference->id);
+        $this->applyManagedArticleTypeScope($baseQuery, $conference->id);
 
         if ($requestStatus !== null && $requestStatus !== '') {
             // Keep backward compatibility where rejected can be stored/sent as 3 or 4.
@@ -1178,6 +1210,7 @@ class SubmissionController extends Controller
         $query = Submission::with(['authors', 'presenter.userDetail', 'submissionCategoryMajorTrack', 'articleType', 'expert.userDetail', 'submissionRating', 'articleType.setting'])
             ->where(['conference_id' => $conference->id, 'status' => 1]);
         $this->applyManagedTrackScope($query, $conference->id);
+        $this->applyManagedArticleTypeScope($query, $conference->id);
 
         if ($request->filled('article_type_id')) {
             $query->where('article_type_id', $request->article_type_id);
@@ -1289,6 +1322,7 @@ class SubmissionController extends Controller
         // $submissionTracks = SubmissionCategoryMajorTrack::where(['conference_id' => $conference->id, 'status' => 1])->get();
         $query = Submission::with('discussions')->where(['conference_id' => $conference->id, 'status' => 1]);
         $this->applyManagedTrackScope($query, $conference->id);
+        $this->applyManagedArticleTypeScope($query, $conference->id);
         if ($request->filled('article_type_id')) {
             $query->where('article_type_id', $request->article_type_id);
         }
@@ -1542,6 +1576,7 @@ class SubmissionController extends Controller
         $query = Submission::with(['authors', 'submissionCategoryMajorTrack', 'articleType.setting', 'expert'])
             ->where(['conference_id' => $conference->id, 'status' => 1]);
         $this->applyManagedTrackScope($query, $conference->id);
+        $this->applyManagedArticleTypeScope($query, $conference->id);
 
         if ($request->filled('article_type_id')) {
             $query->where('article_type_id', $request->article_type_id);

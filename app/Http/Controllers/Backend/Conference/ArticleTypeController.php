@@ -5,17 +5,31 @@ namespace App\Http\Controllers\Backend\Conference;
 use App\Http\Controllers\Controller;
 use App\Models\Conference\ArticleType;
 use App\Models\Conference\ArticleTypeSetting;
+use App\Models\User;
 use Exception;
 use Illuminate\Http\Request;
 
 class ArticleTypeController extends Controller
 {
+    private function getAssignableUsers($conference)
+    {
+        return User::whereHas('conferencePermissions', function ($query) use ($conference) {
+            $query->where('conference_user_permission.conference_id', $conference->id)
+                ->where('name', 'View Submission');
+        })
+            ->whereNotIn('type', [1, 2])
+            ->with('userDetail')
+            ->orderBy('f_name')
+            ->orderBy('l_name')
+            ->get();
+    }
+
     /**
      * Display a listing of the resource.
      */
     public function index($society, $conference)
     {
-        $articleTypes = ArticleType::where([
+        $articleTypes = ArticleType::with('managers')->where([
             'conference_id' => $conference->id,
             'status' => 1
         ])->orderBy('display_order', 'asc')->orderBy('id', 'asc')->get();
@@ -28,8 +42,8 @@ class ArticleTypeController extends Controller
      */
     public function create($society, $conference)
     {
-        // dd('sa'); 
-        return view('backend.conference.article-type.create-modal', compact('society', 'conference'));
+        $assignableUsers = $this->getAssignableUsers($conference);
+        return view('backend.conference.article-type.create-modal', compact('society', 'conference', 'assignableUsers'));
     }
 
     /**
@@ -40,10 +54,13 @@ class ArticleTypeController extends Controller
         try {
             $validated = $request->validate([
                 'name' => 'required|string|max:255',
+                'manager_user_ids' => 'nullable|array',
+                'manager_user_ids.*' => 'nullable|exists:users,id',
             ]);
 
             $validated['conference_id'] = $conference->id;
-            ArticleType::create($validated);
+            $articleType = ArticleType::create($validated);
+            $articleType->managers()->sync($request->input('manager_user_ids', []));
 
             return response()->json(['message' => 'Article Type Added Successfully']);
         } catch (Exception $e) {
@@ -56,7 +73,8 @@ class ArticleTypeController extends Controller
      */
     public function edit($society, $conference, ArticleType $articleType)
     {
-        return view('backend.conference.article-type.create-modal', compact('articleType', 'society', 'conference'));
+        $assignableUsers = $this->getAssignableUsers($conference);
+        return view('backend.conference.article-type.create-modal', compact('articleType', 'society', 'conference', 'assignableUsers'));
     }
 
     /**
@@ -67,9 +85,12 @@ class ArticleTypeController extends Controller
         try {
             $validated = $request->validate([
                 'name' => 'required|string|max:255',
+                'manager_user_ids' => 'nullable|array',
+                'manager_user_ids.*' => 'nullable|exists:users,id',
             ]);
 
             $articleType->update($validated);
+            $articleType->managers()->sync($request->input('manager_user_ids', []));
 
             return response()->json(['message' => 'Article Type Updated Successfully']);
         } catch (Exception $e) {
