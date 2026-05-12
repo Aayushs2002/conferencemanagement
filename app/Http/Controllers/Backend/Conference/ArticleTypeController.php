@@ -143,8 +143,9 @@ class ArticleTypeController extends Controller
         $articleTypeId =  $request->article_type_id;
         $articleType = ArticleType::findOrFail($articleTypeId);
         $setting = ArticleTypeSetting::firstOrNew(['article_type_id' => $articleType->id]);
+        $memberTypes = $society->memberTypes()->where('status', 1)->get();
 
-        return view('backend.conference.article-type.setting-modal', compact('articleType', 'setting', 'society', 'conference'));
+        return view('backend.conference.article-type.setting-modal', compact('articleType', 'setting', 'society', 'conference', 'memberTypes'));
     }
 
     /**
@@ -239,6 +240,7 @@ class ArticleTypeController extends Controller
                 'author_limit' => $request->author_limit,
                 'is_conflict_of_interest_required' => $request->has('is_conflict_of_interest_required') ? 1 : 0,
                 'is_source_of_funding_required' => $request->has('is_source_of_funding_required') ? 1 : 0,
+                'allowed_member_type_ids' => $request->input('allowed_member_type_ids') ?: null,
             ];
 
             ArticleTypeSetting::updateOrCreate(

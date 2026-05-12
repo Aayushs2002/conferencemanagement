@@ -25,7 +25,7 @@
                                        {{ old('scoring_allowed', $setting->scoring_allowed ?? 1) ? 'checked' : '' }}>
                                 <label class="form-check-label text-white fw-semibold ms-2" for="scoring_allowed">
                                     Scoring Enabled
-                                </label>
+                                </label> 
                             </div>
                         </div>
                     </div>
@@ -279,6 +279,98 @@
                                    value="{{ old('attachment_name', $setting->attachment_name ?? '') }}"
                                    placeholder="e.g., Research Paper PDF, Full Article Document">
                         </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Member Type Access Control -->
+            @php
+                $allowedIds = old('allowed_member_type_ids') ?? $setting->allowed_member_type_ids ?? [];
+                $restrictEnabled = !empty($allowedIds);
+            @endphp
+            <div class="col-12 mb-4">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header border-0" style="background: linear-gradient(135deg, #f7971e 0%, #ffd200 100%);">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div class="d-flex align-items-center">
+                                <div class="bg-white bg-opacity-25 rounded-circle p-2 me-2">
+                                    <i class="ti tabler-shield-lock fs-5 "></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-0 text-white fw-semibold">Submission Access Control</h6>
+                                    <small class="text-white opacity-75">Restrict which member types can submit this article type</small>
+                                </div>
+                            </div>
+                            <div class="form-check form-switch mb-0">
+                                <input class="form-check-input" type="checkbox" id="restrict_by_member_type"
+                                       style="width: 3rem; height: 1.5rem;"
+                                       {{ $restrictEnabled ? 'checked' : '' }}>
+                                <label class="form-check-label text-white fw-semibold ms-2" for="restrict_by_member_type">
+                                    Restrict Access
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body p-4" id="memberTypeBody" style="{{ $restrictEnabled ? '' : 'display: none;' }}">
+                        @if(isset($memberTypes) && $memberTypes->count() > 0)
+                            <div class="d-flex align-items-center mb-3 p-3 rounded-3" style="background: linear-gradient(135deg, #fff8e1 0%, #fff3cd 100%); border: 1px solid #ffd54f;">
+                                <i class="ti tabler-info-circle text-warning me-2 fs-5"></i>
+                                <small class="text-muted">Select the member types that are allowed to see and submit this article type. If <strong>no types</strong> are selected while restriction is enabled, all users can still submit.</small>
+                            </div>
+                            <div class="row g-3">
+                                @foreach($memberTypes as $memberType)
+                                    @php $isChecked = in_array($memberType->id, (array) $allowedIds); @endphp
+                                    <div class="col-md-4 col-sm-6">
+                                        <div class="member-type-card card h-100 cursor-pointer {{ $isChecked ? 'border-warning shadow-sm' : 'border' }}"
+                                             style="{{ $isChecked ? 'background: linear-gradient(135deg, #fff8e1 0%, #fff3cd 100%); border-color: #ffc107 !important;' : '' }}"
+                                             onclick="document.getElementById('member_type_{{ $memberType->id }}').click()">
+                                            <div class="card-body p-3">
+                                                <div class="d-flex align-items-start">
+                                                    <input class="form-check-input member-type-checkbox flex-shrink-0 mt-1 me-3"
+                                                           type="checkbox"
+                                                           id="member_type_{{ $memberType->id }}"
+                                                           name="allowed_member_type_ids[]"
+                                                           value="{{ $memberType->id }}"
+                                                           onclick="event.stopPropagation()"
+                                                           {{ $isChecked ? 'checked' : '' }}>
+                                                    <div class="flex-grow-1">
+                                                        <div class="d-flex align-items-center mb-1">
+                                                            <i class="ti tabler-id-badge-2 text-warning me-1 fs-5"></i>
+                                                            <span class="fw-semibold text-dark">{{ $memberType->type }}</span>
+                                                        </div>
+                                                        {{-- @if($memberType->is_society_member)
+                                                            <span class="badge bg-success-subtle text-success border border-success-subtle">
+                                                                <i class="ti tabler-check me-1"></i>Society Member
+                                                            </span>
+                                                        @else
+                                                            <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle">
+                                                                <i class="ti tabler-user me-1"></i>General
+                                                            </span>
+                                                        @endif --}}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+                            <div class="alert alert-warning border-0 mb-0 mt-3" style="background: linear-gradient(135deg, #fff3cd 0%, #ffe69c 100%);">
+                                <div class="d-flex align-items-center">
+                                    <i class="ti tabler-alert-triangle text-warning me-2 fs-5"></i>
+                                    <small><strong>Important:</strong> Users whose member type is not selected will not see this article type in the submission form.</small>
+                                </div>
+                            </div>
+                        @else
+                            <div class="alert alert-info border-0 mb-0" style="background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);">
+                                <div class="d-flex align-items-center">
+                                    <i class="ti tabler-info-circle text-info me-2 fs-5"></i>
+                                    <div>
+                                        <strong class="d-block mb-1">No Member Types Found</strong>
+                                        <small class="text-muted">No active member types are configured for this society. Add member types in the society settings to enable access control.</small>
+                                    </div>
+                                </div>
+                            </div>
+                        @endif
                     </div>
                 </div>
             </div>
@@ -599,6 +691,34 @@
                 $('#attachmentNameField').slideDown();
             } else {
                 $('#attachmentNameField').slideUp();
+            }
+        });
+
+        // Toggle member type restriction panel
+        $('#restrict_by_member_type').on('change', function() {
+            if ($(this).is(':checked')) {
+                $('#memberTypeBody').slideDown();
+            } else {
+                $('#memberTypeBody').slideUp();
+                // Uncheck all member type checkboxes and reset card styles
+                $('.member-type-checkbox').prop('checked', false);
+                $('.member-type-card').css('background', '').css('border-color', '').removeClass('shadow-sm');
+            }
+        });
+
+        // Member type card click visual feedback
+        $(document).on('change', '.member-type-checkbox', function() {
+            const card = $(this).closest('.member-type-card');
+            if ($(this).is(':checked')) {
+                card.css({
+                    'background': 'linear-gradient(135deg, #fff8e1 0%, #fff3cd 100%)',
+                    'border-color': '#ffc107'
+                }).addClass('shadow-sm');
+            } else {
+                card.css({
+                    'background': '',
+                    'border-color': ''
+                }).removeClass('shadow-sm');
             }
         });
 
