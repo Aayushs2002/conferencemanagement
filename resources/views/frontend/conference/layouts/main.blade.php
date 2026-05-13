@@ -68,7 +68,7 @@
 
             <div class="d-flex align-items-center justify-content-center gap-4 hero-logos mb-4">
                 <img src="{{ Storage::url('society/logo/' . $conference->society->logo) }}" alt="NESOG Logo"
-                    class="hero-logo">
+                    class="hero-logo main-logo">
                     @if (is_array($conference->partner_logos) && count($conference->partner_logos) > 0)
                         <div class="d-flex align-items-center gap-3">
                             @foreach ($conference->partner_logos as $logo)

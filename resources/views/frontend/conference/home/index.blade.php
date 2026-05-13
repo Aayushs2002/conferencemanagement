@@ -193,6 +193,15 @@
                         <h2 class="section-title">Abstract Submission Guidelines</h2>
 
                         {!! $submissionSetting?->abstract_guidelines !!}
+
+                        <div class="text-center mt-5 py-4" style="border-top: 1px solid #dde3f0;">
+                            <p class="mb-3 text-muted" style="font-size: 0.95rem;">Ready to submit your abstract?</p>
+                            <a href="{{ route('my-society.conference.submission.create', [$conference->society, $conference]) }}"
+                                class="btn btn-primary px-2 py-2 rounded-pill fw-semibold"
+                                style="font-size: 0.9rem; letter-spacing: 0.3px;">
+                                <i class="fa-solid fa-paper-plane me-2"></i> Submit Abstract Now
+                            </a>
+                        </div>
                     </div>
 
 
@@ -392,9 +401,10 @@
                         @php
                             $hasEarlyBird = collect($memberTypes)->contains(fn($mt) => $mt->early_bird_amount);
                             $hasRegular = collect($memberTypes)->contains(fn($mt) => $mt->regular_amount);
+                            $hasLate = collect($memberTypes)->contains(fn($mt) => $mt->late_amount);
                             $hasOnSite = collect($memberTypes)->contains(fn($mt) => $mt->on_site_amount);
                             $hasGuest = collect($memberTypes)->contains(fn($mt) => $mt->guest_amount);
-                            $hasData = $hasEarlyBird || $hasRegular || $hasOnSite || $hasGuest;
+                            $hasData = $hasEarlyBird || $hasRegular || $hasLate || $hasOnSite || $hasGuest;
                         @endphp
                         <table class="table table-bordered text-center align-middle">
                             @if($hasData)
@@ -409,6 +419,11 @@
                                         @if($hasRegular)
                                             <th scope="col">Regular (till
                                                 {{ \Carbon\Carbon::parse($conference->regular_registration_deadline)->format('M j') }})
+                                            </th>
+                                        @endif
+                                        @if($hasLate)
+                                            <th scope="col">Late (till
+                                                {{ !empty($conference->late_registration_deadline) ? \Carbon\Carbon::parse($conference->late_registration_deadline)->format('M j') : 'N/A' }})
                                             </th>
                                         @endif
                                         @if($hasOnSite)
@@ -426,6 +441,7 @@
                                     @if ( 
                                         $memberType->early_bird_amount ||
                                             $memberType->regular_amount || 
+                                            $memberType->late_amount ||
                                             $memberType->on_site_amount ||
                                             $memberType->guest_amount)
                                         <tr>
@@ -437,6 +453,10 @@
                                             @endif
                                             @if($hasRegular)
                                                 <td>{{ $memberType->regular_amount ?? 'N/A' }}
+                                                    {{ $memberType->delegate == 1 ? '(NRs)' : '(USD)' }}</td>
+                                            @endif
+                                            @if($hasLate)
+                                                <td>{{ $memberType->late_amount ?? 'N/A' }}
                                                     {{ $memberType->delegate == 1 ? '(NRs)' : '(USD)' }}</td>
                                             @endif
                                             @if($hasOnSite)
@@ -465,9 +485,10 @@
                             @php
                                 $hasAddonEarlyBird = $addons->contains(fn($a) => $a->early_bird_amount);
                                 $hasAddonRegular = $addons->contains(fn($a) => $a->regular_amount);
+                                $hasAddonLate = $addons->contains(fn($a) => $a->late_amount);
                                 $hasAddonOnSite = $addons->contains(fn($a) => $a->on_site_amount);
                                 $hasAddonGuest = $addons->contains(fn($a) => $a->guest_amount);
-                                $hasAddonData = $hasAddonEarlyBird || $hasAddonRegular || $hasAddonOnSite || $hasAddonGuest;
+                                $hasAddonData = $hasAddonEarlyBird || $hasAddonRegular || $hasAddonLate || $hasAddonOnSite || $hasAddonGuest;
                             @endphp
                             
                             @if($hasAddonData)
@@ -501,6 +522,11 @@
                                                         {{ \Carbon\Carbon::parse($conference->regular_registration_deadline)->format('M j') }})
                                                     </th>
                                                 @endif
+                                                @if($hasAddonLate)
+                                                    <th scope="col">Late (till
+                                                        {{ !empty($conference->late_registration_deadline) ? \Carbon\Carbon::parse($conference->late_registration_deadline)->format('M j') : 'N/A' }})
+                                                    </th>
+                                                @endif
                                                 @if($hasAddonOnSite)
                                                     <th scope="col">Spot Registration</th>
                                                 @endif
@@ -511,7 +537,7 @@
                                         </thead>
                                         <tbody>
                                             @foreach($addons as $addon)
-                                                @if($addon->early_bird_amount || $addon->regular_amount || $addon->on_site_amount || $addon->guest_amount)
+                                                @if($addon->early_bird_amount || $addon->regular_amount || $addon->late_amount || $addon->on_site_amount || $addon->guest_amount)
                                                     <tr>
                                                         <td>{{ $addon->memberType->type }}
                                                             {{ $addon->memberType->delegate == 1 ? '(Nepal)' : '(International)' }}</td>
@@ -521,6 +547,10 @@
                                                         @endif
                                                         @if($hasAddonRegular)
                                                             <td>{{ $addon->regular_amount ?? 'N/A' }}
+                                                                {{ $addon->memberType->delegate == 1 ? '(NRs)' : '(USD)' }}</td>
+                                                        @endif
+                                                        @if($hasAddonLate)
+                                                            <td>{{ $addon->late_amount ?? 'N/A' }}
                                                                 {{ $addon->memberType->delegate == 1 ? '(NRs)' : '(USD)' }}</td>
                                                         @endif
                                                         @if($hasAddonOnSite)

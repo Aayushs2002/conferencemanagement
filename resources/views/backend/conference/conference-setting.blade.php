@@ -20,7 +20,7 @@
                 <label>Signature</label>
                 <input type="file" class="form-control " name="signature"
                     value="{{ $conferenceSetting?->signature }}" id="image">
-                <div class="row" id="imgPreview">
+                <div class="row" id="imgPreview"> 
                     @if ($conferenceSetting?->signature)
                         <div class="col-3 mt-2">
                             <a href="{{ asset('storage/conference/voucher/signature/' . $conferenceSetting->signature) }}"

@@ -116,6 +116,20 @@
                             @enderror
                         </div>
                         <div class="mb-6 col-md-4">
+                            <label class="form-label" for="late_registration_deadline">Late Registration
+                                Deadline</label>
+                            <input type="text"
+                                class="form-control @error('late_registration_deadline') is-invalid @enderror"
+                                id="late_registration_deadline" placeholder="Enter Late Registration Deadline"
+                                name="late_registration_deadline"
+                                value="{{ !empty(old('late_registration_deadline')) ? old('late_registration_deadline') : @$conference->late_registration_deadline }}" />
+                            <div class="valid-feedback">Looks good!</div>
+                            <div class="invalid-feedback">Please enter Late Registration Deadline.</div>
+                            @error('late_registration_deadline')
+                                <p class="text-danger">{{ $message }}</p>
+                            @enderror
+                        </div>
+                        <div class="mb-6 col-md-4">
                             <label class="form-label" for="bs-validation-abb">Start Time <code>*</code></label>
                             <input type="text" class="form-control @error('start_time') is-invalid @enderror"
                                 id="flatpickr-time" placeholder="Enter Start Time" name="start_time"
@@ -481,6 +495,9 @@
             flatpickr("#regular_registration_deadline", {
                 dateFormat: "Y-m-d"
             });
+                flatpickr("#late_registration_deadline", {
+                    dateFormat: "Y-m-d"
+                });
 
             flatpickr("#flatpickr-time", {
                 enableTime: true,

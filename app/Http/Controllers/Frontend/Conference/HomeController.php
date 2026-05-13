@@ -43,6 +43,7 @@ class HomeController extends BaseConferenceController
                     MTP.member_type_id,
                     MTP.early_bird_amount,
                     MTP.regular_amount,
+                    MTP.late_amount,
                     MTP.on_site_amount,
                     MTP.guest_amount
                 FROM member_types AS MT
@@ -53,6 +54,7 @@ class HomeController extends BaseConferenceController
                         member_type_id,
                         early_bird_amount,
                         regular_amount,
+                        late_amount,
                         on_site_amount, 
                         guest_amount
                     FROM

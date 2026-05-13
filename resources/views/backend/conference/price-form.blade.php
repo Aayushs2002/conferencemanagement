@@ -17,7 +17,8 @@
                                 <th>Member Type</th>
                                 <th>Early Bird Amount</th>
                                 <th>Regular Amount</th>
-                                <th>On-Site Amount</th> 
+                                <th>Late Amount</th>
+                                <th>On-Site Amount</th>
                                 <th>Guest Amount</th>
                             </tr>
                         </thead>
@@ -39,6 +40,11 @@
                                     <td>
                                         <input type="number" name="regular_amount[]"
                                             value="{{ $memberType->regular_amount }}" placeholder="Enter regular amount"
+                                            class="form-control priceList" />
+                                    </td>
+                                    <td>
+                                        <input type="number" name="late_amount[]"
+                                            value="{{ $memberType->late_amount }}" placeholder="Enter late amount"
                                             class="form-control priceList" />
                                     </td>
                                     <td>

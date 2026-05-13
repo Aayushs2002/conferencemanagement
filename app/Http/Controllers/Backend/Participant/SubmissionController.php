@@ -59,11 +59,17 @@ class SubmissionController extends Controller
         }
         $submissionTracks = SubmissionCategoryMajorTrack::where(['conference_id' => $conference->id, 'status' => 1])->get();
 
-        // Get the current user's member type for this society
-        $userMemberTypeId = DB::table('user_societies')
+        // Get the current user's society membership
+        $userSociety = DB::table('user_societies')
             ->where('user_id', current_user()->id)
             ->where('society_id', $society->id)
-            ->value('member_type_id');
+            ->first();
+
+        if (!$userSociety) {
+            return redirect()->route('dashboard')->with('delete', 'You are not a member of this society.');
+        }
+
+        $userMemberTypeId = $userSociety->member_type_id;
 
         $articleTypes = ArticleType::with('setting')
             ->where(['conference_id' => $conference->id, 'status' => 1])
@@ -388,11 +394,17 @@ class SubmissionController extends Controller
         }
         $submissionTracks = SubmissionCategoryMajorTrack::where(['conference_id' => $conference->id, 'status' => 1])->get();
 
-        // Get the current user's member type for this society
-        $userMemberTypeId = DB::table('user_societies')
+        // Get the current user's society membership
+        $userSociety = DB::table('user_societies')
             ->where('user_id', current_user()->id)
             ->where('society_id', $society->id)
-            ->value('member_type_id');
+            ->first();
+
+        if (!$userSociety) {
+            return redirect()->route('dashboard')->with('delete', 'You are not a member of this society.');
+        }
+
+        $userMemberTypeId = $userSociety->member_type_id;
 
         $articleTypes = ArticleType::with('setting')
             ->where(['conference_id' => $conference->id, 'status' => 1])

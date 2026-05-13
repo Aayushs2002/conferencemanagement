@@ -413,6 +413,11 @@
                                                                 date('Y-m-d')
                                                             ) {
                                                                 $addonAmount = $addon->regular_amount ?? 0;
+                                                            } elseif (
+                                                                !empty($conference->late_registration_deadline) &&
+                                                                $conference->late_registration_deadline >= date('Y-m-d')
+                                                            ) {
+                                                                $addonAmount = $addon->late_amount ?? 0;
                                                             } else {
                                                                 $addonAmount = $addon->on_site_amount ?? 0;
                                                             }

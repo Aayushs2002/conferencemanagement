@@ -28,6 +28,7 @@
                                             <th>Member Type</th>
                                             <th>Early Bird Amount</th>
                                             <th>Regular Amount</th>
+                                            <th>Late Amount</th>
                                             <th>On-Site Amount</th>
                                             <th>Guest Amount</th>
                                         </tr>
@@ -57,6 +58,13 @@
                                                         name="regular_amounts[{{ $addonName }}][]"
                                                         value="{{ $addon->regular_amount ?? '' }}" 
                                                         placeholder="Enter regular amount"
+                                                        class="form-control" />
+                                                </td>
+                                                <td>
+                                                    <input type="number" step="0.01" 
+                                                        name="late_amounts[{{ $addonName }}][]"
+                                                        value="{{ $addon->late_amount ?? '' }}" 
+                                                        placeholder="Enter late amount"
                                                         class="form-control" />
                                                 </td>
                                                 <td>
@@ -151,6 +159,12 @@
                         </td>
                         <td>
                             <input type="number" step="0.01" 
+                                name="late_amounts[${addonName}][]"
+                                placeholder="Enter late amount"
+                                class="form-control" />
+                        </td>
+                        <td>
+                            <input type="number" step="0.01" 
                                 name="on_site_amounts[${addonName}][]"
                                 placeholder="Enter on-site amount"
                                 class="form-control" />
@@ -180,6 +194,7 @@
                                 <th>Member Type</th>
                                 <th>Early Bird Amount</th>
                                 <th>Regular Amount</th>
+                                <th>Late Amount</th>
                                 <th>On-Site Amount</th>
                                 <th>Guest Amount</th>
                             </tr>

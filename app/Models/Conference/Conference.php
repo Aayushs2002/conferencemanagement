@@ -25,6 +25,7 @@ class Conference extends Model
         'end_date',
         'start_time',
         'regular_registration_deadline',
+        'late_registration_deadline',
         'early_bird_registration_deadline',
         'conference_description',
         'scientific_session_pdf',
