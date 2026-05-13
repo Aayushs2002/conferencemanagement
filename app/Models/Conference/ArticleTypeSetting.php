@@ -21,6 +21,7 @@ class ArticleTypeSetting extends Model
         'author_limit',
         'is_conflict_of_interest_required',
         'is_source_of_funding_required',
+        'allowed_member_type_ids',
         'status'
     ];
 
@@ -31,6 +32,7 @@ class ArticleTypeSetting extends Model
         'title_scoring_enabled' => 'boolean',
         'is_conflict_of_interest_required' => 'boolean',
         'is_source_of_funding_required' => 'boolean',
+        'allowed_member_type_ids' => 'array',
     ];
 
     public function articleType()

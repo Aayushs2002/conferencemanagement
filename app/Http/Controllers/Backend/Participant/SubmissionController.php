@@ -58,7 +58,28 @@ class SubmissionController extends Controller
             return redirect()->back()->with('delete', 'Submission date has ended.');
         }
         $submissionTracks = SubmissionCategoryMajorTrack::where(['conference_id' => $conference->id, 'status' => 1])->get();
-        $articleTypes = ArticleType::with('setting')->where(['conference_id' => $conference->id, 'status' => 1])->orderBy('display_order', 'asc')->orderBy('id', 'asc')->get();
+
+        // Get the current user's member type for this society
+        $userMemberTypeId = DB::table('user_societies')
+            ->where('user_id', current_user()->id)
+            ->where('society_id', $society->id)
+            ->value('member_type_id');
+
+        $articleTypes = ArticleType::with('setting')
+            ->where(['conference_id' => $conference->id, 'status' => 1])
+            ->orderBy('display_order', 'asc')
+            ->orderBy('id', 'asc')
+            ->get()
+            ->filter(function ($articleType) use ($userMemberTypeId) {
+                $allowedIds = $articleType->setting->allowed_member_type_ids ?? null;
+                // No restriction configured — visible to everyone
+                if (empty($allowedIds)) {
+                    return true;
+                }
+                // Restriction applies — check if user's member type is in the list
+                return in_array($userMemberTypeId, $allowedIds);
+            })
+            ->values();
 
         // Get contributions if enabled
         $contributions = [];
@@ -366,7 +387,26 @@ class SubmissionController extends Controller
             return redirect()->back()->with('delete', 'Submission date has ended.');
         }
         $submissionTracks = SubmissionCategoryMajorTrack::where(['conference_id' => $conference->id, 'status' => 1])->get();
-        $articleTypes = ArticleType::with('setting')->where(['conference_id' => $conference->id, 'status' => 1])->orderBy('display_order', 'asc')->orderBy('id', 'asc')->get();
+
+        // Get the current user's member type for this society
+        $userMemberTypeId = DB::table('user_societies')
+            ->where('user_id', current_user()->id)
+            ->where('society_id', $society->id)
+            ->value('member_type_id');
+
+        $articleTypes = ArticleType::with('setting')
+            ->where(['conference_id' => $conference->id, 'status' => 1])
+            ->orderBy('display_order', 'asc')
+            ->orderBy('id', 'asc')
+            ->get()
+            ->filter(function ($articleType) use ($userMemberTypeId) {
+                $allowedIds = $articleType->setting->allowed_member_type_ids ?? null;
+                if (empty($allowedIds)) {
+                    return true;
+                }
+                return in_array($userMemberTypeId, $allowedIds);
+            })
+            ->values();
 
         // Get contributions if enabled
         $contributions = [];
