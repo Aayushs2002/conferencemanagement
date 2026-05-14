@@ -25,6 +25,7 @@ class ConferenceMemberTypePriceController extends Controller
                     MTP.member_type_id,
                     MTP.early_bird_amount,
                     MTP.regular_amount,
+                    MTP.late_amount,
                     MTP.on_site_amount,
                     MTP.guest_amount
                 FROM member_types AS MT
@@ -35,6 +36,7 @@ class ConferenceMemberTypePriceController extends Controller
                         member_type_id,
                         early_bird_amount,
                         regular_amount,
+                        late_amount,
                         on_site_amount,
                         guest_amount
                     FROM
@@ -63,6 +65,7 @@ class ConferenceMemberTypePriceController extends Controller
                     $array['member_type_id'] = $value;
                     $array['early_bird_amount'] = $request->early_bird_amount[$key];
                     $array['regular_amount'] = $request->regular_amount[$key];
+                    $array['late_amount'] = $request->late_amount[$key];
                     $array['on_site_amount'] = $request->on_site_amount[$key];
                     $array['guest_amount'] = $request->guest_amount[$key];
                     $array['created_at'] = now();
@@ -74,6 +77,7 @@ class ConferenceMemberTypePriceController extends Controller
                     $updatedDataArray['member_type_id'] = $value;
                     $updatedDataArray['early_bird_amount'] = $request->early_bird_amount[$key];
                     $updatedDataArray['regular_amount'] = $request->regular_amount[$key];
+                    $updatedDataArray['late_amount'] = $request->late_amount[$key];
                     $updatedDataArray['on_site_amount'] = $request->on_site_amount[$key];
                     $updatedDataArray['guest_amount'] = $request->guest_amount[$key];
                     $updatedDataArray['updated_at'] = now();

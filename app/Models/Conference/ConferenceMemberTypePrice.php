@@ -12,6 +12,7 @@ class ConferenceMemberTypePrice extends Model
         'member_type_id',
         'early_bird_amount',
         'regular_amount',
+        'late_amount',
         'on_site_amount',
         'guest_amount',
         'status'

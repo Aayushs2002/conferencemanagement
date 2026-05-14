@@ -32,6 +32,7 @@ class ConferenceRequest extends FormRequest
             'end_date' => 'required|date|after_or_equal:start_date',
             'early_bird_registration_deadline' => 'required|date',
             'regular_registration_deadline' => 'required|date|after_or_equal:early_bird_registration_deadline',
+            'late_registration_deadline' => 'nullable|date|after_or_equal:regular_registration_deadline',
             'primary_color' => 'required',
             'secendary_color' => 'required',
             'venue_name' => 'required',  

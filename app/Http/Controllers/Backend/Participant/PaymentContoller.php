@@ -23,7 +23,10 @@ class PaymentContoller extends Controller
     public function fonepay(Request $request, $society, $conference)
     {
         // dd($request->all());
-        if (is_past($conference->regular_registration_deadline)) {
+        $registrationDeadline = !empty($conference->late_registration_deadline)
+            ? $conference->late_registration_deadline
+            : $conference->regular_registration_deadline;
+        if (is_past($registrationDeadline)) {
             return redirect()->back()->with('delete', 'Conference Regisration date has ended.');
         }
 
@@ -74,7 +77,10 @@ class PaymentContoller extends Controller
 
     public function esewa(Request $request, $society, $conference)
     {
-        if (is_past($conference->regular_registration_deadline)) {
+        $registrationDeadline = !empty($conference->late_registration_deadline)
+            ? $conference->late_registration_deadline
+            : $conference->regular_registration_deadline;
+        if (is_past($registrationDeadline)) {
             return redirect()->back()->with('delete', 'Conference Regisration date has ended.');
         }
 
@@ -135,7 +141,10 @@ class PaymentContoller extends Controller
 
     public function khalti(Request $request, $society, $conference)
     {
-        if (is_past($conference->regular_registration_deadline)) {
+        $registrationDeadline = !empty($conference->late_registration_deadline)
+            ? $conference->late_registration_deadline
+            : $conference->regular_registration_deadline;
+        if (is_past($registrationDeadline)) {
             return redirect()->back()->with('delete', 'Conference Regisration date has ended.');
         }
 
@@ -206,7 +215,10 @@ class PaymentContoller extends Controller
 
     public function moco(Request $request, $society, $conference)
     {
-        if (is_past($conference->regular_registration_deadline)) {
+        $registrationDeadline = !empty($conference->late_registration_deadline)
+            ? $conference->late_registration_deadline
+            : $conference->regular_registration_deadline;
+        if (is_past($registrationDeadline)) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Conference Registration date has ended.',
@@ -352,7 +364,10 @@ class PaymentContoller extends Controller
 
     public function connectips(Request $request, $society, $conference)
     {
-        if (is_past($conference->regular_registration_deadline)) {
+        $registrationDeadline = !empty($conference->late_registration_deadline)
+            ? $conference->late_registration_deadline
+            : $conference->regular_registration_deadline;
+        if (is_past($registrationDeadline)) {
             return redirect()->back()->with('delete', 'Conference Registration date has ended.');
         }
 
@@ -679,8 +694,10 @@ class PaymentContoller extends Controller
     // }
     public function internationalPayment(Request $request, $society, $conference)
     {
-
-        if (is_past($conference->regular_registration_deadline)) {
+        $registrationDeadline = !empty($conference->late_registration_deadline)
+            ? $conference->late_registration_deadline
+            : $conference->regular_registration_deadline;
+        if (is_past($registrationDeadline)) {
             return redirect()->back()->with('delete', 'Conference Regisration date has ended.');
         }
         session(['onlinePayment' => $request->all()]);
@@ -837,6 +854,10 @@ class PaymentContoller extends Controller
                 $amount = ! empty($memberTypePrice->early_bird_amount) ? $memberTypePrice->early_bird_amount : '';
             } elseif ($conference->regular_registration_deadline >= date('Y-m-d')) {
                 $amount = ! empty($memberTypePrice->regular_amount) ? $memberTypePrice->regular_amount : '';
+            } elseif (!empty($conference->late_registration_deadline) && $conference->late_registration_deadline >= date('Y-m-d')) {
+                $amount = ! empty($memberTypePrice->late_amount) ? $memberTypePrice->late_amount : '';
+            } else {
+                $amount = ! empty($memberTypePrice->on_site_amount) ? $memberTypePrice->on_site_amount : '';
             }
         }
         $national_payemnt_setting = NationalPayment::where('society_id', $conference->society_id)->first();
@@ -928,6 +949,10 @@ class PaymentContoller extends Controller
                 $amount = ! empty($memberTypePrice->early_bird_amount) ? $memberTypePrice->early_bird_amount : '';
             } elseif ($conference->regular_registration_deadline >= date('Y-m-d')) {
                 $amount = ! empty($memberTypePrice->regular_amount) ? $memberTypePrice->regular_amount : '';
+            } elseif (!empty($conference->late_registration_deadline) && $conference->late_registration_deadline >= date('Y-m-d')) {
+                $amount = ! empty($memberTypePrice->late_amount) ? $memberTypePrice->late_amount : '';
+            } else {
+                $amount = ! empty($memberTypePrice->on_site_amount) ? $memberTypePrice->on_site_amount : '';
             }
         }
         $national_payemnt_setting = NationalPayment::where('society_id', $conference->society_id)->first();
@@ -993,6 +1018,10 @@ class PaymentContoller extends Controller
                 $amount = ! empty($memberTypePrice->early_bird_amount) ? $memberTypePrice->early_bird_amount : '';
             } elseif ($conference->regular_registration_deadline >= date('Y-m-d')) {
                 $amount = ! empty($memberTypePrice->regular_amount) ? $memberTypePrice->regular_amount : '';
+            } elseif (!empty($conference->late_registration_deadline) && $conference->late_registration_deadline >= date('Y-m-d')) {
+                $amount = ! empty($memberTypePrice->late_amount) ? $memberTypePrice->late_amount : '';
+            } else {
+                $amount = ! empty($memberTypePrice->on_site_amount) ? $memberTypePrice->on_site_amount : '';
             }
         }
         $national_payemnt_setting = NationalPayment::where('society_id', $conference->society_id)->first();

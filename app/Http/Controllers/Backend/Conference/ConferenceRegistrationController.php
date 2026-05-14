@@ -787,7 +787,7 @@ class ConferenceRegistrationController extends Controller
                 'member_type_id' => $memberType->id,
                 'status' => 1,
             ])
-                ->select('id', 'addon_name', 'early_bird_amount', 'regular_amount', 'on_site_amount', 'guest_amount')
+                ->select('id', 'addon_name', 'early_bird_amount', 'regular_amount', 'late_amount', 'on_site_amount', 'guest_amount')
                 ->get()
                 ->map(function ($addon) use ($conference) {
                     // Determine which amount to use based on registration period
@@ -796,6 +796,8 @@ class ConferenceRegistrationController extends Controller
                         $amount = $addon->early_bird_amount ?? $addon->on_site_amount;
                     } elseif ($conference->regular_registration_deadline >= date('Y-m-d')) {
                         $amount = $addon->regular_amount ?? $addon->on_site_amount;
+                    } elseif (!empty($conference->late_registration_deadline) && $conference->late_registration_deadline >= date('Y-m-d')) {
+                        $amount = $addon->late_amount ?? $addon->on_site_amount;
                     }
 
                     return [
@@ -836,7 +838,7 @@ class ConferenceRegistrationController extends Controller
                 'member_type_id' => $memberTypeId,
                 'status' => 1,
             ])
-                ->select('id', 'addon_name', 'early_bird_amount', 'regular_amount', 'on_site_amount', 'guest_amount')
+                ->select('id', 'addon_name', 'early_bird_amount', 'regular_amount', 'late_amount', 'on_site_amount', 'guest_amount')
                 ->get()
                 ->map(function ($addon) use ($conference) {
                     // Determine which amount to use based on registration period
@@ -845,6 +847,8 @@ class ConferenceRegistrationController extends Controller
                         $amount = $addon->early_bird_amount ?? $addon->on_site_amount;
                     } elseif ($conference->regular_registration_deadline >= date('Y-m-d')) {
                         $amount = $addon->regular_amount ?? $addon->on_site_amount;
+                    } elseif (!empty($conference->late_registration_deadline) && $conference->late_registration_deadline >= date('Y-m-d')) {
+                        $amount = $addon->late_amount ?? $addon->on_site_amount;
                     }
 
                     return [

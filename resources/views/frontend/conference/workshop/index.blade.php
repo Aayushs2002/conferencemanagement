@@ -17,7 +17,7 @@
     </div>
     <div class="col-10 mx-auto mt-5" style="background-color: #F1F4FC; padding: 50px; border-radius: 30px;">
         <h2 class="section-title">Specialized Workshops</h2>
-        <p class="section-subtitle">Hands-on training sessions with leading experts in Anesthesia specialties</p>
+        {{-- <p class="section-subtitle">Hands-on training sessions with leading experts in Anesthesia specialties</p> --}}
         <div class="row g-4 justify-content-center mb-5 mt-4">
             @foreach ($workshops as $workshop)
                 <div class="col-md-4">

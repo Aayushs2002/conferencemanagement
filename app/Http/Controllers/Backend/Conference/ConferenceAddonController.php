@@ -38,6 +38,7 @@ class ConferenceAddonController extends Controller
             'member_type_ids' => 'nullable|array',
             'early_bird_amounts' => 'nullable|array',
             'regular_amounts' => 'nullable|array',
+            'late_amounts' => 'nullable|array',
             'on_site_amounts' => 'nullable|array',
             'guest_amounts' => 'nullable|array',
         ]);
@@ -67,6 +68,7 @@ class ConferenceAddonController extends Controller
                         'member_type_id' => $memberTypeId,
                         'early_bird_amount' => $request->early_bird_amounts[$addonName][$mtIndex] ?? null,
                         'regular_amount' => $request->regular_amounts[$addonName][$mtIndex] ?? null,
+                        'late_amount' => $request->late_amounts[$addonName][$mtIndex] ?? null,
                         'on_site_amount' => $request->on_site_amounts[$addonName][$mtIndex] ?? null,
                         'guest_amount' => $request->guest_amounts[$addonName][$mtIndex] ?? null,
                     ];

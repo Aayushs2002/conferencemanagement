@@ -38,6 +38,12 @@
                 <p class="text-primary mb-1"><i class="i-ID-2 text-16 mr-1"></i>Regular Registration Deadline</p>
                 <span>{{ \Carbon\Carbon::parse($conference->regular_registration_deadline)->format('d M, Y') }}</span>
             </div>
+            @if (!empty($conference->late_registration_deadline))
+            <div class="col-md-4 mb-4">
+                <p class="text-primary mb-1"><i class="i-ID-2 text-16 mr-1"></i>Late Registration Deadline</p>
+                <span>{{ \Carbon\Carbon::parse($conference->late_registration_deadline)->format('d M, Y') }}</span>
+            </div>
+            @endif
             <div class="col-md-4 mb-4">
                 <p class="text-primary mb-1"><i class="i-ID-2 text-16 mr-1"></i>Conference Primary Color</p>
                 <span data-toggle="tooltip" data-placement="top" title="{{ $conference->primary_color }}"

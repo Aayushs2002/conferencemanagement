@@ -540,11 +540,16 @@ class ConferenceController extends Controller
 
             $earlyBirdDeadline = strtotime($conference->early_bird_registration_deadline);
             $regularDeadline = strtotime($conference->regular_registration_deadline);
+            $lateDeadline = !empty($conference->late_registration_deadline) ? strtotime($conference->late_registration_deadline) : null;
 
             if ($earlyBirdDeadline >= $today && $earlyBirdDeadline >= $createdAt) {
                 $conferenceAmount = ! empty($memberTypePrice->early_bird_amount) ? $memberTypePrice->early_bird_amount : '';
             } elseif ($regularDeadline >= $today && $regularDeadline >= $createdAt) {
                 $conferenceAmount = ! empty($memberTypePrice->regular_amount) ? $memberTypePrice->regular_amount : '';
+            } elseif ($lateDeadline && $lateDeadline >= $today && $lateDeadline >= $createdAt) {
+                $conferenceAmount = ! empty($memberTypePrice->late_amount) ? $memberTypePrice->late_amount : '';
+            } else {
+                $conferenceAmount = ! empty($memberTypePrice->on_site_amount) ? $memberTypePrice->on_site_amount : '';
             }
         }
 

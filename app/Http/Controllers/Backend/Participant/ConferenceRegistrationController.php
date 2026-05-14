@@ -44,6 +44,10 @@ class ConferenceRegistrationController extends Controller
                 $amount = !empty($memberTypePrice->early_bird_amount) ? $memberTypePrice->early_bird_amount : '';
             } elseif ($conference->regular_registration_deadline >= date('Y-m-d')) {
                 $amount = !empty($memberTypePrice->regular_amount) ? $memberTypePrice->regular_amount : '';
+            } elseif (!empty($conference->late_registration_deadline) && $conference->late_registration_deadline >= date('Y-m-d')) {
+                $amount = !empty($memberTypePrice->late_amount) ? $memberTypePrice->late_amount : '';
+            } else {
+                $amount = !empty($memberTypePrice->on_site_amount) ? $memberTypePrice->on_site_amount : '';
             }
         }
         $national_payemnt_setting = NationalPayment::where('society_id', $conference->society_id)->first();
@@ -96,7 +100,7 @@ class ConferenceRegistrationController extends Controller
             'member_type_id' => $membetType->id,
             'status' => 1
         ])
-            ->select('id', 'addon_name', 'early_bird_amount', 'regular_amount', 'on_site_amount', 'guest_amount', 'member_type_id')
+            ->select('id', 'addon_name', 'early_bird_amount', 'regular_amount', 'late_amount', 'on_site_amount', 'guest_amount', 'member_type_id')
             ->get()
             ->groupBy('addon_name')
             ->map(function ($group) {
@@ -280,7 +284,10 @@ class ConferenceRegistrationController extends Controller
 
         $validated = $request->validate($rules, $message);
         try {
-            if (is_past($conference->regular_registration_deadline)) {
+            $registrationDeadline = !empty($conference->late_registration_deadline)
+                ? $conference->late_registration_deadline
+                : $conference->regular_registration_deadline;
+            if (is_past($registrationDeadline)) {
                 return redirect()->back()->with('delete', 'Registration deadline has been ended.');
             } else {
                 $checkDuplicateRegistration = ConferenceRegistration::where(['user_id' => current_user()->id, 'conference_id' => $conference->id, 'status' => 1])->first();
@@ -322,6 +329,10 @@ class ConferenceRegistrationController extends Controller
                                 $conferenceAmount = !empty($memberTypePrice->early_bird_amount) ? $memberTypePrice->early_bird_amount : '';
                             } elseif ($conference->regular_registration_deadline >= date('Y-m-d')) {
                                 $conferenceAmount = !empty($memberTypePrice->regular_amount) ? $memberTypePrice->regular_amount : '';
+                            } elseif (!empty($conference->late_registration_deadline) && $conference->late_registration_deadline >= date('Y-m-d')) {
+                                $conferenceAmount = !empty($memberTypePrice->late_amount) ? $memberTypePrice->late_amount : '';
+                            } else {
+                                $conferenceAmount = !empty($memberTypePrice->on_site_amount) ? $memberTypePrice->on_site_amount : '';
                             }
                         }
                     }
@@ -634,7 +645,10 @@ class ConferenceRegistrationController extends Controller
  
         try {
             // dd($request->all());
-            if (is_past($conference->regular_registration_deadline)) {
+            $registrationDeadline = !empty($conference->late_registration_deadline)
+                ? $conference->late_registration_deadline
+                : $conference->regular_registration_deadline;
+            if (is_past($registrationDeadline)) {
                 return redirect()->back()->with('delete', 'Registration deadline has ended.');
             }
 
@@ -752,6 +766,10 @@ class ConferenceRegistrationController extends Controller
                         $conferenceAmount = !empty($memberTypePrice->early_bird_amount) ? $memberTypePrice->early_bird_amount : '';
                     } elseif ($conference->regular_registration_deadline >= date('Y-m-d')) {
                         $conferenceAmount = !empty($memberTypePrice->regular_amount) ? $memberTypePrice->regular_amount : '';
+                    } elseif (!empty($conference->late_registration_deadline) && $conference->late_registration_deadline >= date('Y-m-d')) {
+                        $conferenceAmount = !empty($memberTypePrice->late_amount) ? $memberTypePrice->late_amount : '';
+                    } else {
+                        $conferenceAmount = !empty($memberTypePrice->on_site_amount) ? $memberTypePrice->on_site_amount : '';
                     }
                 }
             }
