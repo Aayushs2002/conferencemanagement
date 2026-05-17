@@ -209,6 +209,10 @@ Route::middleware('auth')->group(function () {
         Route::get('/{submission}/view-discussion', 'viewDiscussion')->name('viewDiscussion');
         Route::get('/{submission}/download-slide', 'downloadSlide')->name('downloadSlide');
         Route::get('/convert-presentation-type-request/{id}', 'convertPresentationTypeRequest')->name('convertPresentationTypeRequest');
+        Route::get('/convert-article-category-request-form/{id}', 'convertArticleCategoryRequestForm')->name('convertArticleCategoryRequestForm');
+        Route::post('/convert-article-category-request/{id}', 'convertArticleCategoryRequest')->name('convertArticleCategoryRequest');
+        Route::post('/bulk-convert-article-category-form', 'bulkConvertArticleCategoryForm')->name('bulkConvertArticleCategoryForm');
+        Route::post('/bulk-convert-article-category-request', 'bulkConvertArticleCategoryRequest')->name('bulkConvertArticleCategoryRequest');
         Route::post('viewScore', 'viewScore')->name('viewScore');
         Route::post('send-mail', 'sendMail')->name('sendMail');
         Route::post('send-mail-submit', 'sendMailSubmit')->name('sendMailSubmit');

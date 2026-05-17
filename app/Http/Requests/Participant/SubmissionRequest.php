@@ -57,6 +57,7 @@ class SubmissionRequest extends FormRequest
             'sections.*.name' => 'nullable|string',
             'sections.*.word_limit' => 'nullable|integer',
             'abstract_content' => 'nullable|string',
+            'video_link' => 'nullable|url|max:500',
             'conflict_of_interest' => 'nullable|string',
             'source_of_funding' => 'nullable|string',
             'has_conflict_of_interest' => 'nullable|in:yes,no',

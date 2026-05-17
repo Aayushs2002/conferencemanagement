@@ -125,10 +125,34 @@
                                 <option value="2"
                                     @if (isset($submission)) {{ $submission->presentation_type == '2' ? 'selected' : '' }} @else @selected(old('presentation_type') == '2') @endif>
                                     Oral</option>
+                                <option value="3"
+                                    @if (isset($submission)) {{ $submission->presentation_type == '3' ? 'selected' : '' }} @else @selected(old('presentation_type') == '3') @endif>
+                                    Video</option>
                             </select>
                             <div class="valid-feedback">Looks good!</div>
                             <div class="invalid-feedback">Please select Presentation Type.</div>
                             @error('presentation_type')
+                                <p class="text-danger">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        <div class="mb-6 col-md-6" id="videoLinkContainer" style="display: none;">
+                            <label for="video_link" class="form-label">
+                                <i class="icon-base ti tabler-brand-youtube me-1 text-danger"></i>
+                                Video Link <code>*</code>
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="icon-base ti tabler-link"></i></span>
+                                <input type="url" class="form-control @error('video_link') is-invalid @enderror"
+                                    name="video_link" id="video_link"
+                                    placeholder="https://www.youtube.com/watch?v=..."
+                                    value="@if(isset($submission)){{ old('video_link', $submission->video_link) }}@else{{ old('video_link') }}@endif">
+                            </div>
+                            <div class="form-text text-muted">
+                                <i class="icon-base ti tabler-info-circle me-1"></i>
+                                Paste a YouTube, Vimeo, or other public video URL.
+                            </div>
+                            @error('video_link')
                                 <p class="text-danger">{{ $message }}</p>
                             @enderror
                         </div>
@@ -384,6 +408,20 @@
                 loadArticleTypeSettings(articleTypeId);
             });
 
+            // Show/hide video link field based on presentation type
+            function toggleVideoLinkField() {
+                const val = $('#presentation_type').val();
+                if (val === '3') {
+                    $('#videoLinkContainer').slideDown(200);
+                    $('#video_link').attr('required', true);
+                } else {
+                    $('#videoLinkContainer').slideUp(200);
+                    $('#video_link').removeAttr('required').val('');
+                }
+            }
+            $('#presentation_type').on('change', toggleVideoLinkField);
+            toggleVideoLinkField(); // run on page load (covers edit/validation-failed case)
+
             // Trigger on page load if editing or if validation failed
             @if (isset($submission) && $submission->article_type_id)
                 $('#article_type_id').trigger('change');
@@ -596,6 +634,17 @@
             const presentationType = $('#presentation_type option:selected').text() || 'Not selected';
             previewHtml +=
                 `<div class="col-md-6 mb-3"><strong>Presentation Type:</strong><br>${escapeHtml(presentationType)}</div>`;
+
+            // Show video link if Video is selected
+            const presentationTypeVal = $('#presentation_type').val();
+            if (presentationTypeVal === '3') {
+                const videoLink = $('#video_link').val() || '';
+                if (videoLink) {
+                    previewHtml += `<div class="col-md-12 mb-3"><strong><i class="ti tabler-brand-youtube me-1 text-danger"></i>Video Link:</strong><br><a href="${escapeHtml(videoLink)}" target="_blank" rel="noopener noreferrer" class="text-danger">${escapeHtml(videoLink)}</a></div>`;
+                } else {
+                    previewHtml += `<div class="col-md-12 mb-3"><strong><i class="ti tabler-brand-youtube me-1 text-danger"></i>Video Link:</strong><br><span class="text-danger">Not provided (required)</span></div>`;
+                }
+            }
 
             const track = $('#submission_category_major_track_id option:selected').text() || 'Not selected';
             previewHtml += `<div class="col-md-6 mb-3"><strong>Submission Track:</strong><br>${escapeHtml(track)}</div>`;

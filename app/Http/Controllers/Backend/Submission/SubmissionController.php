@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Participant\SubmissionRequest;
 use App\Jobs\SendSubmissionBulkMailJob;
 use App\Mail\Submission\ConvertPresentationTypeMail;
+use App\Mail\Submission\ConvertArticleTypeMail;
 use App\Mail\Submission\ExpertForwardMail;
 use App\Mail\Submission\SubmissionAcceptMail;
 use App\Mail\Submission\SubmissionCorrectionMail;
@@ -1029,6 +1030,191 @@ class SubmissionController extends Controller
 
             return redirect()->back()->with('delete', 'Something went wrong.');
             // throw $th;
+        }
+    }
+
+    public function convertArticleCategoryRequestForm(Request $request, $society, $conference, $id)
+    {
+        $submission = Submission::with('articleType')->whereId($id)->first();
+        $this->ensureSubmissionAccess($submission);
+
+        $articleTypes = ArticleType::where(['conference_id' => $conference->id, 'status' => 1])
+            ->where('id', '!=', $submission->article_type_id)
+            ->get();
+
+        return view('backend.submission.submission.convert-article-type-modal', compact('submission', 'articleTypes', 'society', 'conference'));
+    }
+
+    public function convertArticleCategoryRequest(Request $request, $society, $conference, $id)
+    {
+        $request->validate([
+            'requested_article_type_id' => 'required|exists:article_types,id',
+        ]);
+
+        try {
+            $submission = Submission::with('articleType', 'presenter.userDetail.namePrefix')->whereId($id)->first();
+            $this->ensureSubmissionAccess($submission);
+
+            $requestedArticleType = ArticleType::find($request->requested_article_type_id);
+            if (! $requestedArticleType) {
+                return redirect()->back()->with('delete', 'Invalid presentation category selected.');
+            }
+
+            $mailData = [
+                'presenter_name'        => $submission->presenter->fullName($submission->presenter),
+                'topic'                 => $submission->title,
+                'namePrefix'            => $submission->presenter->userDetail->namePrefix->prefix ?? '',
+                'conferenceTheme'       => $conference->conference_theme,
+                'conference_name'       => $conference->conference_name,
+                'current_article_type'  => $submission->articleType?->name ?? 'N/A',
+                'requested_article_type' => $requestedArticleType->name,
+                'response_link'         => route('my-society.conference.submission.convertArticleType', [$society, $conference, $submission->id]),
+            ];
+
+            DB::beginTransaction();
+
+            Mail::to($submission->presenter->email)->send(
+                new ConvertArticleTypeMail($mailData, $conference->conference_name)
+            );
+
+            $submission->update([
+                'article_type_change'        => 0,
+                'requested_article_type_id'  => $requestedArticleType->id,
+            ]);
+
+            logActivity(
+                $submission->conference_id,
+                'Convert Presentation Category',
+                'Category change request sent for "'.$submission->title.'" from "'.$submission->articleType?->name.'" to "'.$requestedArticleType->name.'"'
+            );
+
+            DB::commit();
+
+            return redirect()->back()->with('status', 'Category change request sent to the presenter successfully.');
+        } catch (Exception $e) {
+            DB::rollBack();
+
+            return redirect()->back()->with('delete', 'Something went wrong: '.$e->getMessage());
+        }
+    }
+
+    public function bulkConvertArticleCategoryForm(Request $request, $society, $conference)
+    {
+        try {
+            $submissionIds = $request->ids;
+
+            if (empty($submissionIds) || ! is_array($submissionIds)) {
+                return response()->json(['type' => 'error', 'message' => 'No submissions selected.']);
+            }
+
+            $submissions = Submission::with('articleType')
+                ->whereIn('id', $submissionIds)
+                ->where('conference_id', $conference->id)
+                ->where('status', 1)
+                ->whereNull('article_type_change')
+                ->get();
+
+            $managedTrackIds = $this->managedTrackIds($conference->id);
+            if (! empty($managedTrackIds)) {
+                $submissions = $submissions->whereIn('submission_category_major_track_id', $managedTrackIds);
+            }
+
+            if ($submissions->isEmpty()) {
+                return response()->json(['type' => 'error', 'message' => 'No eligible submissions found (already have a pending/accepted/rejected request, or invalid selection).']);
+            }
+
+            $articleTypes = ArticleType::where(['conference_id' => $conference->id, 'status' => 1])->get();
+
+            return view('backend.submission.submission.bulk-convert-article-category-modal',
+                compact('submissions', 'submissionIds', 'articleTypes', 'society', 'conference'));
+        } catch (Exception $e) {
+            return response()->json(['type' => 'error', 'message' => $e->getMessage()]);
+        }
+    }
+
+    public function bulkConvertArticleCategoryRequest(Request $request, $society, $conference)
+    {
+        $request->validate([
+            'requested_article_type_id' => 'required|exists:article_types,id',
+            'ids'                        => 'required|json',
+        ]);
+
+        try {
+            $submissionIds = json_decode($request->ids, true);
+
+            if (empty($submissionIds) || ! is_array($submissionIds)) {
+                throw new Exception('Invalid submission IDs.');
+            }
+
+            $requestedArticleType = ArticleType::find($request->requested_article_type_id);
+            if (! $requestedArticleType) {
+                throw new Exception('Invalid presentation category selected.');
+            }
+
+            $submissions = Submission::with('articleType', 'presenter.userDetail.namePrefix')
+                ->whereIn('id', $submissionIds)
+                ->where('conference_id', $conference->id)
+                ->where('status', 1)
+                ->whereNull('article_type_change')
+                ->get();
+
+            if ($submissions->isEmpty()) {
+                throw new Exception('No eligible submissions found.');
+            }
+
+            DB::beginTransaction();
+
+            $sent = 0;
+            $skipped = 0;
+
+            foreach ($submissions as $submission) {
+                // Skip if already the same category
+                if ($submission->article_type_id == $requestedArticleType->id) {
+                    $skipped++;
+                    continue;
+                }
+
+                $mailData = [
+                    'presenter_name'         => $submission->presenter->fullName($submission->presenter),
+                    'topic'                  => $submission->title,
+                    'namePrefix'             => $submission->presenter->userDetail->namePrefix->prefix ?? '',
+                    'conferenceTheme'        => $conference->conference_theme,
+                    'conference_name'        => $conference->conference_name,
+                    'current_article_type'   => $submission->articleType?->name ?? 'N/A',
+                    'requested_article_type' => $requestedArticleType->name,
+                    'response_link'          => route('my-society.conference.submission.convertArticleType', [$society, $conference, $submission->id]),
+                ];
+
+                Mail::to($submission->presenter->email)->send(
+                    new ConvertArticleTypeMail($mailData, $conference->conference_name)
+                );
+
+                $submission->update([
+                    'article_type_change'       => 0,
+                    'requested_article_type_id' => $requestedArticleType->id,
+                ]);
+
+                $sent++;
+            }
+
+            logActivity(
+                $conference->id,
+                'Bulk Convert Presentation Category',
+                'Category change request sent to '.$sent.' presenter(s) for category "'.$requestedArticleType->name.'"'.($skipped > 0 ? " ($skipped skipped - same category)" : '')
+            );
+
+            DB::commit();
+
+            $message = "Category change request sent to {$sent} presenter(s) successfully.";
+            if ($skipped > 0) {
+                $message .= " {$skipped} submission(s) skipped (already in the requested category).";
+            }
+
+            return redirect()->back()->with('status', $message);
+        } catch (Exception $e) {
+            DB::rollBack();
+
+            return redirect()->back()->with('delete', 'Something went wrong: '.$e->getMessage());
         }
     }
 

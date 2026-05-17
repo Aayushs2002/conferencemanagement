@@ -155,6 +155,13 @@
                                 <span class="badge bg-white text-warning ms-1" id="selectedDeadlineCount">0</span>
                             </button>
                         {{-- @endif --}}
+                        @if (auth()->user()->hasConferencePermissionBlade($conference, 'Convert Presentation Category'))
+                            <button type="button" class="btn btn-info" id="bulkCategoryChangeBtn" style="display: none;">
+                                <i class="icon-base ti tabler-category icon-xs me-sm-1"></i>
+                                <span class="d-none d-sm-inline-block">Bulk Recommend Category Change</span>
+                                <span class="badge bg-white text-info ms-1" id="selectedCategoryCount">0</span>
+                            </button>
+                        @endif
                         @if (auth()->user()->hasConferencePermissionBlade($conference, 'Send Mail'))
                             <a href="" class="btn btn-primary sendMail" data-bs-toggle="modal"
                                 data-bs-target="#pricingModal" tabindex="0">
@@ -189,7 +196,7 @@
                         @endif
                         <th>#</th>
                         <th scope="col">Speaker Name</th>
-                        {{-- <th>Presentation Category</th> --}}
+                        <th>Presentation Category</th>
                         {{-- <th>Theme/Sub-theme</th> --}}
                         <th>Topic</th>
                         <th>Presentation Type</th>
@@ -216,12 +223,41 @@
                             @endif
                             <th scope="row">{{ $loop->iteration }}</th>
                             <td>{{ $submission->presenter?->fullName($submission->presenter) }}</td>
-{{-- 
-                            <td> {{ $submission->articleType?->name ?? 'N/A' }}
+                            <td>
+                                <div class="d-flex flex-column gap-1" style="min-width: 130px;">
+                                    <span class="badge bg-label-info fw-semibold">
+                                        {{ $submission->articleType?->name ?? 'N/A' }}
+                                    </span>
+                                    @if ($submission->article_type_change === null)
+                                        @if (auth()->user()->hasConferencePermissionBlade($conference, 'Convert Presentation Category'))
+                                            <button type="button"
+                                                class="btn btn-sm btn-outline-primary convertArticleCategoryRequestBtn mt-1"
+                                                data-id="{{ $submission->id }}"
+                                                data-url="{{ route('submission.convertArticleCategoryRequestForm', [$society, $conference, $submission->id]) }}"
+                                                style="font-size: 10px; line-height: 1.3;">
+                                                <i class="ti tabler-arrows-exchange me-1"></i>Recommend Change
+                                            </button>
+                                        @endif
+                                    @elseif ($submission->article_type_change === 0)
+                                        <span class="badge bg-warning text-dark mt-1" style="font-size: 10px; white-space: normal;">
+                                            <i class="ti tabler-clock me-1"></i>Change Request Sent
+                                        </span>
+                                        @if ($submission->requestedArticleType)
+                                            <span class="text-muted" style="font-size: 10px;">
+                                                &rarr; {{ $submission->requestedArticleType->name }}
+                                            </span>
+                                        @endif
+                                    @elseif ($submission->article_type_change == 1)
+                                        <span class="badge bg-success mt-1" style="font-size: 10px;">
+                                            <i class="ti tabler-circle-check me-1"></i>Change Accepted
+                                        </span>
+                                    @elseif ($submission->article_type_change == 2)
+                                        <span class="badge bg-danger mt-1" style="font-size: 10px;">
+                                            <i class="ti tabler-circle-x me-1"></i>Change Rejected
+                                        </span>
+                                    @endif
+                                </div>
                             </td>
-                            <td >
-                                {{ $submission->submissionCategoryMajorTrack->title }}
-                            </td> --}}
                             <td class="viewData " data-id="{{ $submission->id }}" data-bs-toggle="modal" data-bs-target="#pricingModal" style="cursor: pointer;">
                                 {{ \Illuminate\Support\Str::words($submission->title, 5, '...') }}
                             </td>
@@ -231,6 +267,14 @@
                                     Poster
                                 @elseif($submission->presentation_type == 2)
                                     Oral(Abstract)
+                                @elseif($submission->presentation_type == 3)
+                                    <span class="badge bg-label-danger"><i class="ti tabler-brand-youtube me-1"></i>Video</span>
+                                    @if ($submission->video_link)
+                                        <br><a href="{{ $submission->video_link }}" target="_blank" rel="noopener noreferrer"
+                                            class="btn btn-sm btn-outline-danger mt-1" style="font-size: 10px;">
+                                            <i class="ti tabler-external-link me-1"></i>View
+                                        </a>
+                                    @endif
                                 @endif
                                 <br>
                                 @if ($submission->presentation_type_change === null)
@@ -518,6 +562,32 @@
                 })
             });
 
+            $(document).off("click", ".convertArticleCategoryRequestBtn");
+            $(document).on("click", ".convertArticleCategoryRequestBtn", function(e) {
+                e.preventDefault();
+                var url = $(this).data('url');
+                var _token = '{{ csrf_token() }}';
+                $('#modalContent').html(`
+                    <div class="modal-body text-center py-5">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                `);
+                $('#pricingModal').modal('show');
+                $.ajax({
+                    url: url,
+                    type: 'GET',
+                    success: function(response) {
+                        $('#pricingModal .modal-dialog').removeClass('custom-modal-width');
+                        $('#modalContent').html(response);
+                    },
+                    error: function() {
+                        $('#modalContent').html('<div class="modal-body text-center text-danger">Failed to load form. Please try again.</div>');
+                    }
+                });
+            });
+
             $(document).off("click", ".viewScore");
             $(document).on("click", ".viewScore", function(e) {
                 e.preventDefault();
@@ -691,13 +761,16 @@
                 var selectedCount = Object.keys(selectedSubmissions).length;
                 $('#selectedCount').text(selectedCount);
                 $('#selectedDeadlineCount').text(selectedCount);
+                $('#selectedCategoryCount').text(selectedCount);
                 
                 if (selectedCount > 0) {
                     $('#bulkAssignBtn').fadeIn();
                     $('#bulkDeadlineBtn').fadeIn();
+                    $('#bulkCategoryChangeBtn').fadeIn();
                 } else {
                     $('#bulkAssignBtn').fadeOut();
                     $('#bulkDeadlineBtn').fadeOut();
+                    $('#bulkCategoryChangeBtn').fadeOut();
                 }
             }
 
@@ -733,6 +806,39 @@
                         $('#modalContent').html(response);
                         $('#pricingModal').modal('show');
                     }, 500);
+                });
+            });
+
+            $('#bulkCategoryChangeBtn').on('click', function() {
+                var selectedIds = Object.keys(selectedSubmissions);
+
+                if (selectedIds.length === 0) {
+                    notyf.error('Please select at least one submission.');
+                    return;
+                }
+
+                var url = '{{ route('submission.bulkConvertArticleCategoryForm', [$society, $conference]) }}';
+                var _token = '{{ csrf_token() }}';
+
+                $('#modalContent').html(`
+                    <div class="modal-body text-center py-5">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                `);
+
+                var data = { _token: _token, ids: selectedIds };
+
+                $.post(url, data, function(response) {
+                    $('#pricingModal .modal-dialog').removeClass('modal-lg').addClass('modal-xl');
+                    setTimeout(function() {
+                        $('#modalContent').html(response);
+                        $('#pricingModal').modal('show');
+                    }, 500);
+                }).fail(function() {
+                    $('#modalContent').html('<div class="modal-body text-center text-danger">Failed to load form. Please try again.</div>');
+                    $('#pricingModal').modal('show');
                 });
             });
 

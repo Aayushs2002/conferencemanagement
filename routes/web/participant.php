@@ -84,6 +84,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/submission/{submission}/view-discussion', 'viewDiscussion')->name('viewDiscussion');
         Route::post('/submission/{submission}/upload-slide', 'uploadSlide')->name('uploadSlide');
         Route::get('/submission/convert-presentation-type/{id}', 'convertPresentationType')->name('convertPresentationType');
+        Route::get('/submission/convert-article-type/{id}', 'convertArticleType')->name('convertArticleType');
         Route::get('/submission/get-article-type-setting', 'getArticleTypeSetting')->name('get-article-type-setting');
     });
 
