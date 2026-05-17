@@ -263,7 +263,34 @@
                    @foreach ($submissions as $submission)
                        <tr>
                            <th scope="row">{{ $loop->iteration }}</th>
-                           <td> {{ $submission->articleType?->name ?? 'N/A' }}
+                           <td> 
+                               <div class="d-flex flex-column gap-1">
+                                   <span class="badge bg-label-info fw-semibold">
+                                       {{ $submission->articleType?->name ?? 'N/A' }}
+                                   </span>
+                                   @if ($submission->user_id == current_user()->id)
+                                       @if ($submission->article_type_change === 0)
+                                           <a href="{{ route('my-society.conference.submission.convertArticleType', [$society, $conference, $submission->id]) }}"
+                                              class="btn btn-sm btn-outline-primary mt-1 convertArticleTypeBtn"
+                                              style="font-size: 10px; line-height: 1.3;">
+                                               <i class="ti tabler-arrows-exchange me-1"></i>Respond to Category Change
+                                           </a>
+                                           @if ($submission->requestedArticleType)
+                                               <span class="text-muted" style="font-size: 10px;">
+                                                   Requested: <strong>{{ $submission->requestedArticleType->name }}</strong>
+                                               </span>
+                                           @endif
+                                       @elseif ($submission->article_type_change == 1)
+                                           <span class="badge bg-success mt-1" style="font-size: 10px;">
+                                               <i class="ti tabler-circle-check me-1"></i>Category Changed
+                                           </span>
+                                       @elseif ($submission->article_type_change == 2)
+                                           <span class="badge bg-danger mt-1" style="font-size: 10px;">
+                                               <i class="ti tabler-circle-x me-1"></i>Change Declined
+                                           </span>
+                                       @endif
+                                   @endif
+                               </div>
                            </td>
                            <td>
                                {{ \Illuminate\Support\Str::words($submission->title, 5, '...') }}
@@ -273,6 +300,14 @@
                                    Poster
                                @elseif($submission->presentation_type == 2)
                                    Oral(Abstract)
+                               @elseif($submission->presentation_type == 3)
+                                   <span class="badge bg-label-danger"><i class="ti tabler-brand-youtube me-1"></i>Video</span>
+                                   @if ($submission->video_link)
+                                       <br><a href="{{ $submission->video_link }}" target="_blank" rel="noopener noreferrer"
+                                           class="btn btn-sm btn-outline-danger mt-1" style="font-size: 10px;">
+                                           <i class="ti tabler-external-link me-1"></i>View Video
+                                       </a>
+                                   @endif
                                @endif
                                <br>
                                @if ($submission->presentation_type_change === 0)

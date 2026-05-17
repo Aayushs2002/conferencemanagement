@@ -172,6 +172,12 @@ class SubmissionController extends Controller
             if (!empty($validated['image'])) {
                 $validated['image'] = $this->file_service->fileUpload($validated['image'], 'diagram', 'participant/submission/image');
             }
+
+            // Clear video_link when presentation type is not Video
+            if (($validated['presentation_type'] ?? null) != 3) {
+                $validated['video_link'] = null;
+            }
+
             $authUser = User::whereId(current_user()->id)->first();
             $validated['user_id'] = current_user()->id;
             $validated['conference_id'] = $conference->id;
@@ -504,6 +510,11 @@ class SubmissionController extends Controller
             if (!empty($validated['image'])) {
                 $this->file_service->deleteFile($submission->image, 'participant/submission/image');
                 $validated['image'] = $this->file_service->fileUpload($validated['image'], 'diagram', 'participant/submission/image');
+            }
+
+            // Clear video_link when presentation type is not Video
+            if (($validated['presentation_type'] ?? null) != 3) {
+                $validated['video_link'] = null;
             }
 
             DB::beginTransaction();
@@ -948,5 +959,62 @@ class SubmissionController extends Controller
             'has_setting' => true,
             'setting' => $articleType->setting
         ]);
+    }
+
+    public function convertArticleType(Request $request, $society, $conference, $id)
+    {
+        $submission = Submission::with('articleType', 'requestedArticleType', 'presenter')->whereId($id)->first();
+
+        if (!$submission) {
+            return redirect()->back()->with('delete', 'Submission not found.');
+        }
+
+        if ($submission->article_type_change !== 0) {
+            return redirect()->route('my-society.conference.submission.index', [$society, $conference])
+                ->with('delete', 'No pending category change request found for this submission.');
+        }
+
+        // Show the response page if no confirmation param
+        if ($request->input('confirmation') === null) {
+            return view('backend.participant.submission.article-type-change', compact('submission', 'conference', 'society'));
+        }
+
+        $confirmation = $request->input('confirmation');
+
+        if ($confirmation === 'yes') {
+            $article_type_change = 1;
+            $message = 'Presentation category changed to "' . ($submission->requestedArticleType?->name ?? 'requested category') . '" successfully.';
+        } elseif ($confirmation === 'no') {
+            $article_type_change = 2;
+            $message = 'Presentation category change request declined.';
+        } else {
+            return redirect()->back()->with('delete', 'Invalid confirmation value.');
+        }
+
+        DB::beginTransaction();
+        try {
+            $updateData = ['article_type_change' => $article_type_change];
+
+            if ($confirmation === 'yes' && $submission->requested_article_type_id) {
+                $updateData['article_type_id'] = $submission->requested_article_type_id;
+            }
+
+            $submission->update($updateData);
+
+            logActivity(
+                $conference->id,
+                'Presentation Category Change Response',
+                $submission->title . ' - Author ' . ($article_type_change == 1 ? 'accepted' : 'rejected') .
+                ' category change from "' . ($submission->articleType?->name ?? 'N/A') . '"' .
+                ($article_type_change == 1 ? ' to "' . ($submission->requestedArticleType?->name ?? 'N/A') . '"' : '')
+            );
+
+            DB::commit();
+            return redirect()->route('my-society.conference.submission.index', [$society, $conference])
+                ->with('status', $message);
+        } catch (Exception $e) {
+            DB::rollBack();
+            return redirect()->back()->with('delete', 'Something went wrong: ' . $e->getMessage());
+        }
     }
 }

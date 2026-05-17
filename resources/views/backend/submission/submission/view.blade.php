@@ -15,11 +15,23 @@
                         Poster
                     @elseif($submission->presentation_type == 2)
                         Oral(Abstract)
+                    @elseif($submission->presentation_type == 3)
+                        <span class="badge bg-label-danger"><i class="ti tabler-brand-youtube me-1"></i>Video</span>
                     @else
                         Full Text
                     @endif
                 </span>
             </div>
+            @if ($submission->presentation_type == 3 && !empty($submission->video_link))
+                <div class="col-md-8 mb-4">
+                    <p class="text-primary mb-1"><i class="ti tabler-link text-16 mr-1"></i>Video Link</p>
+                    <a href="{{ $submission->video_link }}" target="_blank" rel="noopener noreferrer"
+                       class="btn btn-sm btn-outline-danger">
+                        <i class="ti tabler-brand-youtube me-1"></i>Watch Video
+                    </a>
+                    <small class="text-muted d-block mt-1" style="word-break: break-all;">{{ $submission->video_link }}</small>
+                </div>
+            @endif
             <div class="col-md-4 mb-4">
                 <p class="text-primary mb-1"><i class="i-ID-2 text-16 mr-1"></i>Topic</p>
                 <span>{{ $submission->title }}</span>

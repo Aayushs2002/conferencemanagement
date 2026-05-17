@@ -17,6 +17,8 @@ class Submission extends Model
         'submission_category_major_track_id',
         'title',
         'article_type_id',
+        'article_type_change',
+        'requested_article_type_id',
         'presentation_type',
         'competition_type',
         'presentation_type_change',
@@ -25,6 +27,7 @@ class Submission extends Model
         'sections',
         'image',
         'slide_file',
+        'video_link',
         'conflict_of_interest',
         'source_of_funding',
         'submitted_date',
@@ -99,6 +102,11 @@ class Submission extends Model
     public function articleType()
     {
         return $this->belongsTo(ArticleType::class, 'article_type_id', 'id');
+    }
+
+    public function requestedArticleType()
+    {
+        return $this->belongsTo(ArticleType::class, 'requested_article_type_id', 'id');
     }
 
     public function user()
