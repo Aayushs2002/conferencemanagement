@@ -73,7 +73,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @forelse ($activeConferences as $conference)
+                            @foreach ($activeConferences as $conference)
                                 <tr>
                                     <th scope="row">{{ $loop->iteration }}</th>
                                     <td>{{ $conference->conference_theme }}</td>
@@ -115,11 +115,8 @@
                                         </div>
                                     </td> 
                                 </tr>
-                            @empty
-                                <tr>
-                                    <td colspan="6" class="text-center">No active conferences found</td>
-                                </tr>
-                            @endforelse
+                            @endforeach
+                           
                         </tbody>
                     </table>
                 </div>
