@@ -136,7 +136,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @forelse ($archivedConferences as $conference)
+                            @foreach ($archivedConferences as $conference)
                                 <tr>
                                     <th scope="row">{{ $loop->iteration }}</th>
                                     <td>{{ $conference->conference_theme }}</td>
@@ -164,11 +164,7 @@
                                         </div>
                                     </td> 
                                 </tr>
-                            @empty
-                                <tr>
-                                    <td colspan="7" class="text-center">No archived conferences found</td>
-                                </tr>
-                            @endforelse
+                            @endforeach
                         </tbody>
                     </table>
                 </div>
