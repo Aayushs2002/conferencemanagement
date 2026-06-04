@@ -42,7 +42,7 @@ class SubmissionSettingController extends Controller
                 'competition_enabled' => 'nullable|boolean',
                 'submission_open_date' => 'nullable|date',
                 'copy_paste_allowed' => 'nullable|boolean',
-
+                'show_collaborative_partner' => 'nullable|boolean',
             ]);
 
             $message = empty($validated['id']) ? 'Successfully inserted submission setting.' : 'Successfully updated submission setting';

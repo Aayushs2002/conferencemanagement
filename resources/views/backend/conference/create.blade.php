@@ -218,44 +218,50 @@
                                 <p class="text-danger">{{ $message }}</p>
                             @enderror
                         </div>
-                        <div class="mb-6 col-md-8">
-                            <label class="form-label" for="partner_logos">Partner Logos <code> (Only JPG/PNG) (Max: 250 KB
-                                    each) (Multiple)</code></label>
-                            <input type="file" class="form-control" name="partner_logos[]" id="partner_logos"
-                                multiple accept="image/jpeg,image/png" />
-                            <small class="text-muted">You can select multiple logo files at once</small>
+                        <div class="mb-6 col-md-12">
+                            <label class="form-label">Partner Logos <code>(Only JPG/PNG, Max: 250 KB each)</code></label>
 
-                            <div class="row mt-3" id="partnerLogoPreview"></div>
-
+                            {{-- Existing partner logos (edit mode) --}}
                             @if (isset($conference) && is_array($conference->partner_logos) && count($conference->partner_logos) > 0)
-                                <div class="row mt-3" id="existingPartnerLogos">
+                                <div id="existingPartnerLogos" class="mb-3">
                                     <h6 class="mb-2">Existing Partner Logos:</h6>
-                                    @foreach ($conference->partner_logos as $index => $logo)
-                                        <div class="col-md-2 col-sm-3 mb-3 partner-logo-item"
-                                            data-logo="{{ $logo }}">
-                                            <div class="position-relative">
-                                                <a href="{{ asset('storage/conference/partner-logos/' . $logo) }}"
-                                                    target="_blank">
-                                                    <img src="{{ asset('storage/conference/partner-logos/' . $logo) }}"
-                                                        class="img-fluid rounded" alt="partner logo">
+                                    @foreach ($conference->partner_logos as $index => $logoItem)
+                                        @php
+                                            $logoFile = is_array($logoItem) ? $logoItem['logo'] : $logoItem;
+                                            $orgName  = is_array($logoItem) ? ($logoItem['organization_name'] ?? '') : '';
+                                            $abbr     = is_array($logoItem) ? ($logoItem['abbreviation'] ?? '') : '';
+                                        @endphp
+                                        <div class="row align-items-center mb-2 existing-partner-logo-row border rounded p-2" data-logo="{{ $logoFile }}">
+                                            <div class="col-md-2 text-center">
+                                                <a href="{{ asset('storage/conference/partner-logos/' . $logoFile) }}" target="_blank">
+                                                    <img src="{{ asset('storage/conference/partner-logos/' . $logoFile) }}" class="img-fluid rounded" style="max-height:70px" alt="partner logo">
                                                 </a>
-                                                <button type="button"
-                                                    class="btn btn-danger btn-sm position-absolute top-0 end-0 m-1 delete-existing-logo"
-                                                    data-logo="{{ $logo }}">
+                                                <input type="hidden" name="existing_partner_logo_logos[]" value="{{ $logoFile }}">
+                                            </div>
+                                            <div class="col-md-4">
+                                                <input type="text" class="form-control" name="existing_partner_logo_names[]" placeholder="Organization Name" value="{{ $orgName }}">
+                                            </div>
+                                            <div class="col-md-3">
+                                                <input type="text" class="form-control" name="existing_partner_logo_abbreviations[]" placeholder="Abbreviation" value="{{ $abbr }}">
+                                            </div>
+                                            <div class="col-md-1">
+                                                <button type="button" class="btn btn-danger btn-sm delete-existing-logo" data-logo="{{ $logoFile }}">
                                                     <i class="ti tabler-x"></i>
                                                 </button>
                                             </div>
                                         </div>
                                     @endforeach
                                 </div>
-                                <input type="hidden" name="deleted_partner_logos" id="deleted_partner_logos"
-                                    value="">
+                                <input type="hidden" name="deleted_partner_logos" id="deleted_partner_logos" value="">
                             @endif
 
-                            @error('partner_logos')
-                                <p class="text-danger">{{ $message }}</p>
-                            @enderror
-                            @error('partner_logos.*')
+                            {{-- New partner logos --}}
+                            <div id="newPartnerLogosContainer"></div>
+                            <button type="button" class="btn btn-outline-primary btn-sm mt-2" id="addPartnerLogo">
+                                <i class="ti tabler-plus"></i> Add Partner Logo
+                            </button>
+
+                            @error('partner_logo_files.*')
                                 <p class="text-danger">{{ $message }}</p>
                             @enderror
                         </div>
@@ -502,7 +508,7 @@
             flatpickr("#flatpickr-time", {
                 enableTime: true,
                 noCalendar: true,
-                dateFormat: "H:i",
+                dateFormat: "H:i", 
                 time_24hr: true
             });
 
@@ -524,60 +530,45 @@
                 reader.readAsDataURL(this.files[0]);
             });
 
-            // Multiple partner logos preview
-            let partnerLogoFiles = [];
-            $("#partner_logos").change(function() {
-                const files = Array.from(this.files);
-                const startIndex = partnerLogoFiles.length;
-
-                // Accumulate files instead of replacing
-                files.forEach((file) => {
-                    partnerLogoFiles.push(file);
-                });
-
-                renderPartnerLogoPreviews();
-
-                // Update file input with all accumulated files
-                updateFileInput();
+            // Add new partner logo row
+            let partnerLogoRowIndex = 0;
+            $('#addPartnerLogo').on('click', function() {
+                const idx = partnerLogoRowIndex++;
+                const row = $(
+                    '<div class="row align-items-center mb-2 new-partner-logo-row border rounded p-2" data-row-index="' + idx + '">' +
+                    '<div class="col-md-2">' +
+                    '<input type="file" class="form-control new-logo-file" name="partner_logo_files[]" accept="image/jpeg,image/png">' +
+                    '<div class="new-logo-preview mt-1"></div>' +
+                    '</div>' +
+                    '<div class="col-md-4">' +
+                    '<input type="text" class="form-control" name="partner_logo_names[]" placeholder="Organization Name">' +
+                    '</div>' +
+                    '<div class="col-md-3">' +
+                    '<input type="text" class="form-control" name="partner_logo_abbreviations[]" placeholder="Abbreviation">' +
+                    '</div>' +
+                    '<div class="col-md-1">' +
+                    '<button type="button" class="btn btn-danger btn-sm remove-new-logo"><i class="ti tabler-x"></i></button>' +
+                    '</div>' +
+                    '</div>'
+                );
+                $('#newPartnerLogosContainer').append(row);
             });
 
-            function updateFileInput() {
-                const dt = new DataTransfer();
-                partnerLogoFiles.forEach(file => dt.items.add(file));
-                document.getElementById('partner_logos').files = dt.files;
-            }
+            // Preview image for new logo row
+            $(document).on('change', '.new-logo-file', function() {
+                const preview = $(this).siblings('.new-logo-preview');
+                const file = this.files[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    preview.html('<img src="' + e.target.result + '" class="img-fluid rounded" style="max-height:70px">');
+                };
+                reader.readAsDataURL(file);
+            });
 
-            function renderPartnerLogoPreviews() {
-                $("#partnerLogoPreview").html('');
-
-                partnerLogoFiles.forEach((file, index) => {
-                    let reader = new FileReader();
-
-                    reader.onload = function(e) {
-                        $("#partnerLogoPreview").append(
-                            '<div class="col-md-2 col-sm-3 mb-3 new-logo-item" data-index="' +
-                            index + '">' +
-                            '<div class="position-relative">' +
-                            '<img src="' + e.target.result + '" class="img-fluid rounded" />' +
-                            '<button type="button" class="btn btn-danger btn-sm position-absolute top-0 end-0 m-1 delete-new-logo" data-index="' +
-                            index + '">' +
-                            '<i class="ti tabler-x"></i>' +
-                            '</button>' +
-                            '</div>' +
-                            '</div>'
-                        );
-                    };
-
-                    reader.readAsDataURL(file);
-                });
-            }
-
-            // Delete newly added logo from preview
-            $(document).on('click', '.delete-new-logo', function() {
-                const index = $(this).data('index');
-                partnerLogoFiles.splice(index, 1);
-                renderPartnerLogoPreviews();
-                updateFileInput();
+            // Remove new logo row
+            $(document).on('click', '.remove-new-logo', function() {
+                $(this).closest('.new-partner-logo-row').remove();
             });
 
             // Delete existing logo
@@ -586,7 +577,7 @@
                 const logo = $(this).data('logo');
                 deletedLogos.push(logo);
                 $('#deleted_partner_logos').val(JSON.stringify(deletedLogos));
-                $(this).closest('.partner-logo-item').fadeOut(300, function() {
+                $(this).closest('.existing-partner-logo-row').fadeOut(300, function() {
                     $(this).remove();
                 });
             });

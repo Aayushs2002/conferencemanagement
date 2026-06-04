@@ -25,6 +25,7 @@ class SubmissionSetting extends Model
         'competition_enabled',
         'submission_open_date',
         'copy_paste_allowed',
+        'show_collaborative_partner',
         'status'
     ];
 }

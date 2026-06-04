@@ -67,12 +67,21 @@
         <div class="container position-relative">
 
             <div class="d-flex align-items-center justify-content-center gap-4 hero-logos mb-4">
-                <img src="{{ Storage::url('society/logo/' . $conference->society->logo) }}" alt="NESOG Logo"
-                    class="hero-logo main-logo">
+                @if (!empty($conference->conference_logo))
+                    <img src="{{ asset('storage/conference/conference/logo/' . $conference->conference_logo) }}" alt="{{ $conference->conference_name }}"
+                        class="hero-logo main-logo">
+                @else
+                    <img src="{{ Storage::url('society/logo/' . $conference->society->logo) }}" alt="{{ $conference->society->name ?? 'Society Logo' }}"
+                        class="hero-logo main-logo">
+                @endif
                     @if (is_array($conference->partner_logos) && count($conference->partner_logos) > 0)
                         <div class="d-flex align-items-center gap-3">
-                            @foreach ($conference->partner_logos as $logo)
-                                <img src="{{ Storage::url('conference/partner-logos/' . $logo) }}" alt="Partner Logo"
+                            @foreach ($conference->partner_logos as $logoItem)
+                                @php
+                                    $logoFile = is_array($logoItem) ? $logoItem['logo'] : $logoItem;
+                                    $logoAlt  = is_array($logoItem) ? ($logoItem['organization_name'] ?? 'Partner Logo') : 'Partner Logo';
+                                @endphp
+                                <img src="{{ Storage::url('conference/partner-logos/' . $logoFile) }}" alt="{{ $logoAlt }}"
                                     class="hero-logo">
                             @endforeach
                         </div>
