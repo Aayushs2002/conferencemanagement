@@ -100,13 +100,19 @@ class ConferenceController extends Controller
             }
 
             // Handle multiple partner logos
-            if (!empty($request->file('partner_logos'))) {
+            if (!empty($request->file('partner_logo_files'))) {
                 $partnerLogos = [];
-                foreach ($request->file('partner_logos') as $index => $logo) {
+                foreach ($request->file('partner_logo_files') as $index => $logo) {
                     $fileName = $this->file_service->fileUpload($logo, 'partner_logo_' . $index, 'conference/partner-logos');
-                    $partnerLogos[] = $fileName;
+                    $partnerLogos[] = [
+                        'logo'              => $fileName,
+                        'organization_name' => $request->partner_logo_names[$index] ?? null,
+                        'abbreviation'      => $request->partner_logo_abbreviations[$index] ?? null,
+                    ];
                 }
-                $req['partner_logos'] = $partnerLogos; // No json_encode - model cast handles it
+                $req['partner_logos'] = $partnerLogos;
+            } else {
+                unset($req['partner_logos']);
             }
 
             //inserting in conference table
@@ -221,27 +227,56 @@ class ConferenceController extends Controller
             // Handle partner logos update
             $existingPartnerLogos = is_array($conference->partner_logos) ? $conference->partner_logos : [];
 
+            // Normalize to new format for backward compatibility
+            $existingPartnerLogos = array_map(function ($item) {
+                if (is_string($item)) {
+                    return ['logo' => $item, 'organization_name' => null, 'abbreviation' => null];
+                }
+                return $item;
+            }, $existingPartnerLogos);
+
             // Delete logos marked for deletion
             if (!empty($request->deleted_partner_logos)) {
                 $deletedLogos = json_decode($request->deleted_partner_logos, true) ?? [];
                 if (is_array($deletedLogos)) {
-                    foreach ($deletedLogos as $logo) {
-                        $this->file_service->deleteFile($logo, 'conference/partner-logos');
-                        $existingPartnerLogos = array_diff($existingPartnerLogos, [$logo]);
-                    }
-                    $existingPartnerLogos = array_values($existingPartnerLogos); // Re-index array
+                    $existingPartnerLogos = array_values(array_filter($existingPartnerLogos, function ($item) use ($deletedLogos) {
+                        $logoFile = is_array($item) ? $item['logo'] : $item;
+                        if (in_array($logoFile, $deletedLogos)) {
+                            $this->file_service->deleteFile($logoFile, 'conference/partner-logos');
+                            return false;
+                        }
+                        return true;
+                    }));
                 }
             }
+
+            // Update metadata for existing logos
+            $submittedLogos  = $request->existing_partner_logo_logos ?? [];
+            $submittedNames  = $request->existing_partner_logo_names ?? [];
+            $submittedAbbrs  = $request->existing_partner_logo_abbreviations ?? [];
+            foreach ($existingPartnerLogos as &$item) {
+                $logoFile = is_array($item) ? $item['logo'] : $item;
+                $subIdx   = array_search($logoFile, $submittedLogos);
+                if ($subIdx !== false) {
+                    $item['organization_name'] = $submittedNames[$subIdx] ?? null;
+                    $item['abbreviation']      = $submittedAbbrs[$subIdx] ?? null;
+                }
+            }
+            unset($item);
 
             // Upload new partner logos
-            if (!empty($request->file('partner_logos'))) {
-                foreach ($request->file('partner_logos') as $index => $logo) {
+            if (!empty($request->file('partner_logo_files'))) {
+                foreach ($request->file('partner_logo_files') as $index => $logo) {
                     $fileName = $this->file_service->fileUpload($logo, 'partner_logo_' . time() . '_' . $index, 'conference/partner-logos');
-                    $existingPartnerLogos[] = $fileName;
+                    $existingPartnerLogos[] = [
+                        'logo'              => $fileName,
+                        'organization_name' => $request->partner_logo_names[$index] ?? null,
+                        'abbreviation'      => $request->partner_logo_abbreviations[$index] ?? null,
+                    ];
                 }
             }
 
-            $req['partner_logos'] = !empty($existingPartnerLogos) ? $existingPartnerLogos : null; // No json_encode - model cast handles it
+            $req['partner_logos'] = !empty($existingPartnerLogos) ? $existingPartnerLogos : null;
 
             //updating in conference table
             $conference->update($req);

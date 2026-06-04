@@ -35,7 +35,8 @@ class Submission extends Model
         'request_status',
         'reject_remark',
         'is_student',
-        'status'
+        'status',
+        'collaborative_partner'
     ];
 
     protected $casts = [

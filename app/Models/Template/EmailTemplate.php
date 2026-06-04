@@ -11,7 +11,12 @@ class EmailTemplate extends Model
         'conference_id',
         'key',
         'subject',
-        'body'
+        'body',
+        'partner_filter'
+    ];
+
+    protected $casts = [
+        'partner_filter' => 'array',
     ];
 
     public function conference()

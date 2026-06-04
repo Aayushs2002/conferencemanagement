@@ -177,6 +177,23 @@
                                 @enderror
                             </div>
 
+                            {{-- Collaborative Partner --}}
+                            <div class="col-md-4 form-group mb-3">
+                                <label for="show_collaborative_partner">Show Collaborative Partner</label>
+                                <select name="show_collaborative_partner" id="show_collaborative_partner"
+                                    class="form-control @error('show_collaborative_partner') is-invalid @enderror">
+                                    <option value="0"
+                                        {{ !empty($conference->submissionSetting) && $conference->submissionSetting->show_collaborative_partner == 0 ? 'selected' : '' }}>
+                                        No</option>
+                                    <option value="1"
+                                        {{ !empty($conference->submissionSetting) && $conference->submissionSetting->show_collaborative_partner == 1 ? 'selected' : '' }}>
+                                        Yes</option>
+                                </select>
+                                @error('show_collaborative_partner')
+                                    <p class="text-danger">{{ $message }}</p>
+                                @enderror
+                            </div>
+
                             <div class="col-md-12 form-group mb-3">
                                 <label for="abstract_guidelines">Abstract Submission Guidelines </label>
                                 <textarea name="abstract_guidelines" class="form-control ckeditor @error('abstract_guidelines') is-invalid @enderror"
@@ -275,6 +292,18 @@
             $('#attachment_name').on('input', function() {
                 toggleAttachmentRequired();
             });
+
+            // Toggle collaborative partner - show info note
+            function toggleCollaborativePartner() {
+                // No extra UI needed - just the toggle itself
+            }
+            toggleCollaborativePartner();
+            $('#show_collaborative_partner').on('change', function() {
+                toggleCollaborativePartner();
+            });
+
+            // Init select2
+            // (no partner multiselect in submission setting anymore)
         });
     </script>
 @endsection

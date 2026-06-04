@@ -12,6 +12,14 @@ use Illuminate\Validation\Rule;
 class EmailTemplateController extends Controller
 {
     use AuthorizesRequests;
+
+    private function getPartnerLogos($conference)
+    {
+        return collect($conference->partner_logos ?? [])
+            ->filter(fn($p) => is_array($p) && !empty($p['abbreviation']))
+            ->values();
+    }
+
     /**
      * Display a listing of the resource.
      */
@@ -26,7 +34,8 @@ class EmailTemplateController extends Controller
      */
     public function create($society, $conference)
     {
-        return view('backend.template.email-template.create', compact('society', 'conference'));
+        $partnerLogos = $this->getPartnerLogos($conference);
+        return view('backend.template.email-template.create', compact('society', 'conference', 'partnerLogos'));
     }
 
     /**
@@ -35,17 +44,18 @@ class EmailTemplateController extends Controller
     public function store(Request $request, $society, $conference)
     {
         $validated = $request->validate([
-            'key' => [
-                'required',
-                Rule::unique('email_templates')
-                    ->where('conference_id', $conference->id)
-            ],
+            'key' => 'required',
             'subject' => 'required',
-            'body' => 'required'
+            'body' => 'required',
+            'partner_filter' => 'nullable|array',
+            'partner_filter.*' => 'nullable|string',
         ]);
         try {
 
             $validated['conference_id'] = $conference->id;
+            if (empty($validated['partner_filter'])) {
+                $validated['partner_filter'] = null;
+            }
 
             EmailTemplate::create($validated);
 
@@ -72,7 +82,8 @@ class EmailTemplateController extends Controller
     public function edit($society, $conference, EmailTemplate $email_template)
     {
         // $this->authorize('edit', $email_template);
-        return view('backend.template.email-template.create', compact('society', 'conference', 'email_template'));
+        $partnerLogos = $this->getPartnerLogos($conference);
+        return view('backend.template.email-template.create', compact('society', 'conference', 'email_template', 'partnerLogos'));
     }
 
     /**
@@ -81,17 +92,17 @@ class EmailTemplateController extends Controller
     public function update(Request $request, $society, $conference, EmailTemplate $email_template)
     {
         $validated = $request->validate([
-            'key' => [
-                'required',
-                Rule::unique('email_templates')
-                    ->where('conference_id', $conference->id)
-                    ->ignore($email_template->id)
-            ],
+            'key' => 'required',
             'subject' => 'required',
-            'body' => 'required'
+            'body' => 'required',
+            'partner_filter' => 'nullable|array',
+            'partner_filter.*' => 'nullable|string',
         ]);
 
         $validated['conference_id'] = $conference->id;
+        if (empty($validated['partner_filter'])) {
+            $validated['partner_filter'] = null;
+        }
         try {
             $email_template->update($validated);
 

@@ -178,6 +178,26 @@
                             </div>
                         @endif
 
+                        @if (!empty($collaborativePartners) && count($collaborativePartners) > 0)
+                            <div class="mb-6 col-md-6">
+                                <label for="collaborative_partner" class="form-label">Collaborative Partner <code>*</code></label>
+                                <select class="form-select @error('collaborative_partner') is-invalid @enderror"
+                                    name="collaborative_partner" id="collaborative_partner" required>
+                                    <option value="" hidden>-- Select Collaborative Partner --</option>
+                                    @foreach ($collaborativePartners as $partner)
+                                        <option value="{{ $partner['abbreviation'] }}"
+                                            @selected(old('collaborative_partner', @$submission->collaborative_partner) == $partner['abbreviation'])>
+                                            {{ $partner['abbreviation'] }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                                <div class="invalid-feedback">Please select a collaborative partner.</div>
+                                @error('collaborative_partner')
+                                    <p class="text-danger">{{ $message }}</p>
+                                @enderror
+                            </div>
+                        @endif
+
                         <div class="mb-6 col-md-9">
                             <label for="keyWord" class="form-label">Keywords <code>*(NOTE: Total number of Keywords
                                     limitation is

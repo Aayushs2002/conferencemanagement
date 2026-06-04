@@ -295,7 +295,7 @@ class SubmissionController extends Controller
     public function edit($society, $conference, $submission)
     {
         $setting = SubmissionSetting::where('conference_id', $conference->id)
-            ->select('abstract_word_limit', 'key_word_limit', 'deadline', 'attachment_name')
+            ->select('abstract_word_limit', 'key_word_limit', 'deadline', 'attachment_name', 'show_collaborative_partner')
             ->first();
         if (! $setting) {
             return redirect()->back()->with('delete', 'Submission settings not found.');
@@ -306,7 +306,14 @@ class SubmissionController extends Controller
         $submissionTracks = SubmissionCategoryMajorTrack::where(['conference_id' => $conference->id, 'status' => 1])->get();
         $articleTypes = ArticleType::where(['conference_id' => $conference->id, 'status' => 1])->get();
 
-        return view('backend.submission.submission.create', compact('society', 'conference', 'submissionTracks', 'setting', 'submission', 'articleTypes'));
+        $collaborativePartners = [];
+        if ($setting->show_collaborative_partner) {
+            $collaborativePartners = collect($conference->partner_logos ?? [])
+                ->filter(fn($p) => is_array($p) && !empty($p['abbreviation']))
+                ->values();
+        }
+
+        return view('backend.submission.submission.create', compact('society', 'conference', 'submissionTracks', 'setting', 'submission', 'articleTypes', 'collaborativePartners'));
     }
 
     public function update(SubmissionRequest $request, $society, $conference, $submission)

@@ -48,7 +48,7 @@ class SubmissionController extends Controller
     {
 
         $setting = SubmissionSetting::where('conference_id', $conference->id)
-            ->select('abstract_word_limit', 'key_word_limit', 'deadline', 'attachment_name', 'attachment_required', 'abstract_guidelines', 'competition_enabled', 'contribution_enabled', 'copy_paste_allowed')
+            ->select('abstract_word_limit', 'key_word_limit', 'deadline', 'attachment_name', 'attachment_required', 'abstract_guidelines', 'competition_enabled', 'contribution_enabled', 'copy_paste_allowed', 'show_collaborative_partner')
             ->first();
         // dd($setting);
         if (!$setting) {
@@ -98,7 +98,15 @@ class SubmissionController extends Controller
             ])->orderBy('name', 'asc')->get();
         }
 
-        return view('backend.participant.submission.create', compact('society', 'conference', 'submissionTracks', 'setting', 'articleTypes', 'contributions', 'contributionEnabled'));
+        // Build collaborative partner options from conference partner logos
+        $collaborativePartners = [];
+        if ($setting && $setting->show_collaborative_partner) {
+            $collaborativePartners = collect($conference->partner_logos ?? [])
+                ->filter(fn($p) => is_array($p) && !empty($p['abbreviation']))
+                ->values();
+        }
+
+        return view('backend.participant.submission.create', compact('society', 'conference', 'submissionTracks', 'setting', 'articleTypes', 'contributions', 'contributionEnabled', 'collaborativePartners'));
     }
 
     public function store(SubmissionRequest $request, $society, $conference)
@@ -233,7 +241,17 @@ class SubmissionController extends Controller
                 $conferenceDate = $start->format('d F Y') . ' - ' . $end->format('d F Y');
             }
 
-            $template = EmailTemplate::where(['conference_id' => $conference->id, 'key' => 1])->first();
+            $chosenPartner = $validated['collaborative_partner'] ?? null;
+            $allTemplates  = EmailTemplate::where(['conference_id' => $conference->id, 'key' => 1])->get();
+
+            // 1. Prefer template whose partner_filter contains the chosen partner
+            // 2. Fallback to the "all submitters" template (empty/null partner_filter)
+            // 3. If neither exists, $template is null → blade default content is used
+            $template = $allTemplates->first(function ($t) use ($chosenPartner) {
+                    return !empty($t->partner_filter) && $chosenPartner && in_array($chosenPartner, $t->partner_filter);
+                }) ?? $allTemplates->first(function ($t) {
+                    return empty($t->partner_filter);
+                }) ?? null;
 
             $userMailData = [
                 'name' => $authUser->fullName($authUser),
@@ -390,7 +408,7 @@ class SubmissionController extends Controller
         // dd($submission);
         $submission->load(['authors.contributions']);
         $setting = SubmissionSetting::where('conference_id', $conference->id)
-            ->select('abstract_word_limit', 'key_word_limit', 'deadline', 'attachment_name', 'attachment_required', 'abstract_guidelines', 'competition_enabled', 'contribution_enabled', 'copy_paste_allowed')
+            ->select('abstract_word_limit', 'key_word_limit', 'deadline', 'attachment_name', 'attachment_required', 'abstract_guidelines', 'competition_enabled', 'contribution_enabled', 'copy_paste_allowed', 'show_collaborative_partner')
             ->first();
         if (!$setting) {
             return redirect()->back()->with('delete', 'Submission settings not found.');
@@ -438,7 +456,16 @@ class SubmissionController extends Controller
         }
         // dd($contributions);
         // dd($contributionEnabled);
-        return view('backend.participant.submission.create', compact('society', 'conference', 'submissionTracks', 'setting', 'submission', 'articleTypes', 'contributions', 'contributionEnabled'));
+
+        // Build collaborative partner options from conference partner logos
+        $collaborativePartners = [];
+        if ($setting && $setting->show_collaborative_partner) {
+            $collaborativePartners = collect($conference->partner_logos ?? [])
+                ->filter(fn($p) => is_array($p) && !empty($p['abbreviation']))
+                ->values();
+        }
+
+        return view('backend.participant.submission.create', compact('society', 'conference', 'submissionTracks', 'setting', 'submission', 'articleTypes', 'contributions', 'contributionEnabled', 'collaborativePartners'));
     }
 
     public function update(SubmissionRequest $request, $society, $conference, $submission)

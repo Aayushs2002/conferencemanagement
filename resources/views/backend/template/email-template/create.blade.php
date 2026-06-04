@@ -81,6 +81,37 @@
                         </div>
                     </div>
 
+                    {{-- Partner Filter (only for User Submission template) --}}
+                    @php
+                        $savedFilter     = old('partner_filter', isset($email_template) ? ($email_template->partner_filter ?? []) : []);
+                        $filterType      = (isset($email_template) && !empty($email_template->partner_filter)) ? 'selected' : 'all';
+                    @endphp
+                    <div class="row mb-3" id="partner_filter_section"
+                        style="{{ (old('key', isset($email_template) ? $email_template->key : '') == 1) ? '' : 'display:none' }}">
+                        <div class="col-md-4">
+                            <label class="form-label">Send Submission Email To</label>
+                            <select id="partner_filter_type" class="form-select">
+                                <option value="all" {{ $filterType === 'all' ? 'selected' : '' }}>All Submitters</option>
+                                <option value="selected" {{ $filterType === 'selected' ? 'selected' : '' }}>Submitters by Partner</option>
+                            </select>
+                        </div>
+                        <div class="col-md-8" id="partner_filter_select_wrapper"
+                            style="{{ $filterType === 'selected' ? '' : 'display:none' }}">
+                            <label class="form-label">Select Partners</label>
+                            <select name="partner_filter[]" id="partner_filter" class="form-select select2" multiple>
+                                @foreach ($partnerLogos as $partner)
+                                    <option value="{{ $partner['abbreviation'] }}"
+                                        @if (is_array($savedFilter) && in_array($partner['abbreviation'], $savedFilter)) selected @endif>
+                                        {{ $partner['abbreviation'] }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            @error('partner_filter')
+                                <p class="text-danger">{{ $message }}</p>
+                            @enderror
+                        </div>
+                    </div>
+
                     <div class="mb-3">
                         <label class="form-label">Body <span class="text-danger">*</span></label>
                         <textarea id="bodyEditor" name="body">
@@ -209,11 +240,34 @@
 
         templateTypeSelect.addEventListener('change', (e) => {
             loadPlaceholders(e.target.value);
+            // Show partner filter only for User Submission (key=1)
+            if (e.target.value == '1') {
+                document.getElementById('partner_filter_section').style.display = '';
+            } else {
+                document.getElementById('partner_filter_section').style.display = 'none';
+            }
+        });
+
+        // Partner filter type toggle
+        document.getElementById('partner_filter_type').addEventListener('change', function() {
+            const wrapper = document.getElementById('partner_filter_select_wrapper');
+            if (this.value === 'selected') {
+                wrapper.style.display = '';
+            } else {
+                wrapper.style.display = 'none';
+                // Clear selections when switching to "all"
+                $('#partner_filter').val(null).trigger('change');
+            }
         });
 
         CKEDITOR.replace('bodyEditor', {
             height: 300,
             allowedContent: true
+        });
+
+        // Init select2 for partner filter
+        $(document).ready(function() {
+            $('#partner_filter').select2({ placeholder: 'Select partners', width: '100%' });
         });
     </script>
 @endsection
