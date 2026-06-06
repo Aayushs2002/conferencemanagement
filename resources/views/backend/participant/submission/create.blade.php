@@ -180,10 +180,10 @@
 
                         @if (!empty($collaborativePartners) && count($collaborativePartners) > 0)
                             <div class="mb-6 col-md-6">
-                                <label for="collaborative_partner" class="form-label">Collaborative Partner <code>*</code></label>
+                                <label for="collaborative_partner" class="form-label">Submission Under <code>*</code></label>
                                 <select class="form-select @error('collaborative_partner') is-invalid @enderror"
                                     name="collaborative_partner" id="collaborative_partner" required>
-                                    <option value="" hidden>-- Select Collaborative Partner --</option>
+                                    <option value="" hidden>-- Select Submission Under --</option>
                                     @foreach ($collaborativePartners as $partner)
                                         <option value="{{ $partner['abbreviation'] }}"
                                             @selected(old('collaborative_partner', @$submission->collaborative_partner) == $partner['abbreviation'])>
