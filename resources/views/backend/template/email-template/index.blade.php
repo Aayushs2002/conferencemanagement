@@ -58,25 +58,19 @@
                                         User Submission
                                         @break
                                     @case(2)
-                                        Submission Accepted - Oral
+                                        Submission Accepted
                                         @break
                                     @case(3)
-                                        Submission Correction - Oral
+                                        Submission Correction
                                         @break
                                     @case(4)
-                                        Submission Rejected - Oral
+                                        Submission Rejected
                                         @break
                                     @case(5)
                                         Expert Assigned
                                         @break
-                                    @case(6)
-                                        Submission Accepted - Poster
-                                        @break
-                                    @case(7)
-                                        Submission Correction - Poster
-                                        @break
-                                    @case(8)
-                                        Submission Rejected - Poster
+                                    @case(9)
+                                        Convert Oral to Poster
                                         @break
                                     @case(9)
                                         Convert Oral to Poster
@@ -95,8 +89,18 @@
                                     </button>
                                     <div class="dropdown-menu">
                                         <a class="dropdown-item"
-                                            href="{{ route('email-template.edit', [$society, $conference, $email_template->id]) }}"><i
-                                                class="icon-base ti tabler-pencil me-1"></i> Edit</a>
+                                            href="{{ route('email-template.edit', [$society, $conference, $email_template->id]) }}">
+                                            <i class="icon-base ti tabler-pencil me-1"></i> Edit
+                                        </a>
+                                        <form action="{{ route('email-template.destroy', [$society, $conference, $email_template->id]) }}"
+                                            method="POST"
+                                            onsubmit="return confirm('Are you sure you want to delete this template?')">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="dropdown-item text-danger">
+                                                <i class="icon-base ti tabler-trash me-1"></i> Delete
+                                            </button>
+                                        </form>
                                     </div>
 
                                 </div>

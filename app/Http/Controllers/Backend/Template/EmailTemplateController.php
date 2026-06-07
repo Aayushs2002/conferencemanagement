@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Backend\Template;
 
 use App\Http\Controllers\Controller;
+use App\Models\Conference\ArticleType;
 use App\Models\Template\EmailTemplate;
 use Exception;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
@@ -35,7 +36,8 @@ class EmailTemplateController extends Controller
     public function create($society, $conference)
     {
         $partnerLogos = $this->getPartnerLogos($conference);
-        return view('backend.template.email-template.create', compact('society', 'conference', 'partnerLogos'));
+        $articleTypes = ArticleType::where(['conference_id' => $conference->id, 'status' => 1])->get();
+        return view('backend.template.email-template.create', compact('society', 'conference', 'partnerLogos', 'articleTypes'));
     }
 
     /**
@@ -44,18 +46,22 @@ class EmailTemplateController extends Controller
     public function store(Request $request, $society, $conference)
     {
         $validated = $request->validate([
-            'key' => 'required',
-            'subject' => 'required',
-            'body' => 'required',
-            'partner_filter' => 'nullable|array',
-            'partner_filter.*' => 'nullable|string',
+            'key'                        => 'required',
+            'subject'                    => 'required',
+            'body'                       => 'required',
+            'partner_filter'             => 'nullable|array',
+            'partner_filter.*'           => 'nullable|string',
+            'article_type_filter'        => 'nullable|array',
+            'article_type_filter.*'      => 'nullable|integer',
+            'presentation_type_filter'   => 'nullable|array',
+            'presentation_type_filter.*' => 'nullable|string',
         ]);
         try {
 
             $validated['conference_id'] = $conference->id;
-            if (empty($validated['partner_filter'])) {
-                $validated['partner_filter'] = null;
-            }
+            if (empty($validated['partner_filter']))           $validated['partner_filter'] = null;
+            if (empty($validated['article_type_filter']))      $validated['article_type_filter'] = null;
+            if (empty($validated['presentation_type_filter'])) $validated['presentation_type_filter'] = null;
 
             EmailTemplate::create($validated);
 
@@ -83,7 +89,8 @@ class EmailTemplateController extends Controller
     {
         // $this->authorize('edit', $email_template);
         $partnerLogos = $this->getPartnerLogos($conference);
-        return view('backend.template.email-template.create', compact('society', 'conference', 'email_template', 'partnerLogos'));
+        $articleTypes = ArticleType::where(['conference_id' => $conference->id, 'status' => 1])->get();
+        return view('backend.template.email-template.create', compact('society', 'conference', 'email_template', 'partnerLogos', 'articleTypes'));
     }
 
     /**
@@ -92,17 +99,21 @@ class EmailTemplateController extends Controller
     public function update(Request $request, $society, $conference, EmailTemplate $email_template)
     {
         $validated = $request->validate([
-            'key' => 'required',
-            'subject' => 'required',
-            'body' => 'required',
-            'partner_filter' => 'nullable|array',
-            'partner_filter.*' => 'nullable|string',
+            'key'                        => 'required',
+            'subject'                    => 'required',
+            'body'                       => 'required',
+            'partner_filter'             => 'nullable|array',
+            'partner_filter.*'           => 'nullable|string',
+            'article_type_filter'        => 'nullable|array',
+            'article_type_filter.*'      => 'nullable|integer',
+            'presentation_type_filter'   => 'nullable|array',
+            'presentation_type_filter.*' => 'nullable|string',
         ]);
 
         $validated['conference_id'] = $conference->id;
-        if (empty($validated['partner_filter'])) {
-            $validated['partner_filter'] = null;
-        }
+        if (empty($validated['partner_filter']))           $validated['partner_filter'] = null;
+        if (empty($validated['article_type_filter']))      $validated['article_type_filter'] = null;
+        if (empty($validated['presentation_type_filter'])) $validated['presentation_type_filter'] = null;
         try {
             $email_template->update($validated);
 
@@ -117,8 +128,15 @@ class EmailTemplateController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy($society, $conference, EmailTemplate $email_template)
     {
-        //
+        try {
+            $email_template->delete();
+            return redirect()
+                ->route('email-template.index', [$society, $conference])
+                ->with('status', 'Email Template deleted successfully');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', $e->getMessage());
+        }
     }
 }

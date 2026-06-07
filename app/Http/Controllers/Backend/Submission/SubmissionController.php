@@ -89,6 +89,40 @@ class SubmissionController extends Controller
         return $query;
     }
 
+    /**
+     * Resolve the best-matching EmailTemplate for a submission.
+     * Filters (partner, article_type, presentation_type) that are empty on a template = match everything.
+     * Prefers the most-specific (filtered) template; falls back to an unfiltered catch-all; returns null if none exist.
+     */
+    private function resolveTemplate(int $conferenceId, int $key, $submission): ?EmailTemplate
+    {
+        $partner      = $submission->collaborative_partner ?? null;
+        $articleType  = $submission->article_type_id ?? null;
+        $presType     = $submission->presentation_type ?? null;
+
+        $allTemplates = EmailTemplate::where(['conference_id' => $conferenceId, 'key' => $key])->get();
+
+        $matches = function ($t) use ($partner, $articleType, $presType) {
+            $partnerOk  = empty($t->partner_filter)            || ($partner     && in_array($partner, $t->partner_filter));
+            $articleOk  = empty($t->article_type_filter)       || ($articleType && in_array((int)$articleType, array_map('intval', $t->article_type_filter)));
+            $presTypeOk = empty($t->presentation_type_filter)  || ($presType    && in_array((string)$presType, $t->presentation_type_filter));
+            return $partnerOk && $articleOk && $presTypeOk;
+        };
+
+        // Most-specific: has at least one filter set AND all match
+        $specific = $allTemplates->first(function ($t) use ($matches) {
+            return (!empty($t->partner_filter) || !empty($t->article_type_filter) || !empty($t->presentation_type_filter))
+                && $matches($t);
+        });
+
+        // Catch-all: no filters set at all
+        $catchAll = $allTemplates->first(function ($t) {
+            return empty($t->partner_filter) && empty($t->article_type_filter) && empty($t->presentation_type_filter);
+        });
+
+        return $specific ?? $catchAll ?? null;
+    }
+
     private function ensureSubmissionAccess($submission): void
     {
         if (! $submission instanceof Submission) {
@@ -446,7 +480,7 @@ class SubmissionController extends Controller
                 }
 
                 $expert = User::whereId($validated['expert_id'])->first();
-                $template = EmailTemplate::where(['conference_id' => $submission->conference_id, 'key' => 1])->first();
+                $template = $this->resolveTemplate($submission->conference_id, 1, $submission);
 
                 DB::beginTransaction();
 
@@ -633,7 +667,7 @@ class SubmissionController extends Controller
             }
 
             // Send email to expert
-            $template = EmailTemplate::where(['conference_id' => $conferenceId, 'key' => 1])->first();
+            $template = $this->resolveTemplate($conferenceId, 5, $submission ?? new Submission());
             $conference = Conference::find($conferenceId);
 
             $mailData = [
@@ -810,15 +844,7 @@ class SubmissionController extends Controller
             if ($request->request_status == 1) {
                 $message = 'Request accepted successfully.';
                 if ($sendEmail) {
-                    // Determine template key based on presentation type
-                    // Key 2 = Oral Accepted, Key 6 = Poster Accepted
-                    $templateKey = $submission->presentation_type == 2 ? 2 : 6;
-                    $template = EmailTemplate::where(['conference_id' => $submission->conference_id, 'key' => $templateKey])->first();
-
-                    // Fallback to original key 2 if poster template not found
-                    if (!$template && $templateKey == 6) {
-                        $template = EmailTemplate::where(['conference_id' => $submission->conference_id, 'key' => 2])->first();
-                    }
+                    $template = $this->resolveTemplate($submission->conference_id, 2, $submission);
 
                     $subject = parseTemplate($template?->subject, $data);
                     $body = parseTemplate($template?->body, $data);
@@ -831,15 +857,7 @@ class SubmissionController extends Controller
             if ($request->request_status == 2) {
                 $message = 'Request updated for correction.';
                 if ($sendEmail) {
-                    // Determine template key based on presentation type
-                    // Key 3 = Oral Correction, Key 7 = Poster Correction
-                    $templateKey = $submission->presentation_type == 2 ? 3 : 7;
-                    $template = EmailTemplate::where(['conference_id' => $submission->conference_id, 'key' => $templateKey])->first();
-
-                    // Fallback to original key 3 if poster template not found
-                    if (!$template && $templateKey == 7) {
-                        $template = EmailTemplate::where(['conference_id' => $submission->conference_id, 'key' => 3])->first();
-                    }
+                    $template = $this->resolveTemplate($submission->conference_id, 3, $submission);
 
                     $subject = parseTemplate($template?->subject, $data);
                     $body = parseTemplate($template?->body, $data);
@@ -850,15 +868,7 @@ class SubmissionController extends Controller
             if ($request->request_status == 3) {
                 $message = 'Request rejected successfully.';
                 if ($sendEmail) {
-                    // Determine template key based on presentation type
-                    // Key 4 = Oral Rejected, Key 8 = Poster Rejected
-                    $templateKey = $submission->presentation_type == 2 ? 4 : 8;
-                    $template = EmailTemplate::where(['conference_id' => $submission->conference_id, 'key' => $templateKey])->first();
-
-                    // Fallback to original key 4 if poster template not found
-                    if (!$template && $templateKey == 8) {
-                        $template = EmailTemplate::where(['conference_id' => $submission->conference_id, 'key' => 4])->first();
-                    }
+                    $template = $this->resolveTemplate($submission->conference_id, 4, $submission);
 
                     $data['reject_remark'] = $validated['remarks'];
                     $subject = parseTemplate($template?->subject, $data);
@@ -989,7 +999,7 @@ class SubmissionController extends Controller
             DB::beginTransaction();
 
             // Check for email template (Key 9 = Convert Oral to Poster)
-            $template = EmailTemplate::where(['conference_id' => $submission->conference_id, 'key' => 9])->first();
+            $template = $this->resolveTemplate($submission->conference_id, 9, $submission);
 
             // Generate response link
             $responseLink = route('my-society.conference.submission.convertPresentationType', [$society, $conference, $submission->id]);
