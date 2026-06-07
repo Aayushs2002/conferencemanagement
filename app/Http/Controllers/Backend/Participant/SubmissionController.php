@@ -241,17 +241,30 @@ class SubmissionController extends Controller
                 $conferenceDate = $start->format('d F Y') . ' - ' . $end->format('d F Y');
             }
 
-            $chosenPartner = $validated['collaborative_partner'] ?? null;
-            $allTemplates  = EmailTemplate::where(['conference_id' => $conference->id, 'key' => 1])->get();
+            $chosenPartner       = $validated['collaborative_partner'] ?? null;
+            $chosenArticleType   = $validated['article_type_id'] ?? null;
+            $chosenPresType      = $validated['presentation_type'] ?? null;
+            $allTemplates        = EmailTemplate::where(['conference_id' => $conference->id, 'key' => 1])->get();
 
-            // 1. Prefer template whose partner_filter contains the chosen partner
-            // 2. Fallback to the "all submitters" template (empty/null partner_filter)
-            // 3. If neither exists, $template is null → blade default content is used
-            $template = $allTemplates->first(function ($t) use ($chosenPartner) {
-                    return !empty($t->partner_filter) && $chosenPartner && in_array($chosenPartner, $t->partner_filter);
-                }) ?? $allTemplates->first(function ($t) {
-                    return empty($t->partner_filter);
-                }) ?? null;
+            // Helper: checks if a template's filter matches the submission (empty filter = matches all)
+            $matchesTemplate = function ($t) use ($chosenPartner, $chosenArticleType, $chosenPresType) {
+                $partnerOk   = empty($t->partner_filter)           || ($chosenPartner     && in_array($chosenPartner, $t->partner_filter));
+                $articleOk   = empty($t->article_type_filter)      || ($chosenArticleType && in_array((int)$chosenArticleType, array_map('intval', $t->article_type_filter)));
+                $presTypeOk  = empty($t->presentation_type_filter) || ($chosenPresType    && in_array((string)$chosenPresType, $t->presentation_type_filter));
+                return $partnerOk && $articleOk && $presTypeOk;
+            };
+
+            // 1. Most-specific match: all provided filters match
+            // 2. Fallback: a template with no filters at all (catches all)
+            // 3. If nothing exists, null → blade default content is used
+            $specificTemplate = $allTemplates->first(function ($t) use ($matchesTemplate) {
+                return (!empty($t->partner_filter) || !empty($t->article_type_filter) || !empty($t->presentation_type_filter))
+                    && $matchesTemplate($t);
+            });
+            $fallbackTemplate = $allTemplates->first(function ($t) {
+                return empty($t->partner_filter) && empty($t->article_type_filter) && empty($t->presentation_type_filter);
+            });
+            $template = $specificTemplate ?? $fallbackTemplate ?? null;
 
             $userMailData = [
                 'name' => $authUser->fullName($authUser),

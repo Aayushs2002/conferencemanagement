@@ -43,22 +43,13 @@
                                     User Submission</option>
                                 <option value="2"
                                     {{ old('key', isset($email_template) ? $email_template->key : '') == 2 ? 'selected' : '' }}>
-                                    Submission Accepted - Oral</option>
-                                <option value="6"
-                                    {{ old('key', isset($email_template) ? $email_template->key : '') == 6 ? 'selected' : '' }}>
-                                    Submission Accepted - Poster</option>
+                                    Submission Accepted</option>
                                 <option value="3"
                                     {{ old('key', isset($email_template) ? $email_template->key : '') == 3 ? 'selected' : '' }}>
-                                    Submission Correction - Oral</option>
-                                <option value="7"
-                                    {{ old('key', isset($email_template) ? $email_template->key : '') == 7 ? 'selected' : '' }}>
-                                    Submission Correction - Poster</option>
+                                    Submission Correction</option>
                                 <option value="4"
                                     {{ old('key', isset($email_template) ? $email_template->key : '') == 4 ? 'selected' : '' }}>
-                                    Submission Rejected - Oral</option>
-                                <option value="8"
-                                    {{ old('key', isset($email_template) ? $email_template->key : '') == 8 ? 'selected' : '' }}>
-                                    Submission Rejected - Poster</option>
+                                    Submission Rejected</option>
                                 <option value="5"
                                     {{ old('key', isset($email_template) ? $email_template->key : '') == 5 ? 'selected' : '' }}>
                                     Expert Assigned</option>
@@ -81,15 +72,16 @@
                         </div>
                     </div>
 
-                    {{-- Partner Filter (only for User Submission template) --}}
+                                    {{-- Partner / Category / Presentation Type filters --}}
                     @php
                         $savedFilter     = old('partner_filter', isset($email_template) ? ($email_template->partner_filter ?? []) : []);
                         $filterType      = (isset($email_template) && !empty($email_template->partner_filter)) ? 'selected' : 'all';
+                        $savedArticleTypes   = old('article_type_filter', isset($email_template) ? ($email_template->article_type_filter ?? []) : []);
+                        $savedPresTypes      = old('presentation_type_filter', isset($email_template) ? ($email_template->presentation_type_filter ?? []) : []);
                     @endphp
-                    <div class="row mb-3" id="partner_filter_section"
-                        style="{{ (old('key', isset($email_template) ? $email_template->key : '') == 1) ? '' : 'display:none' }}">
+                    <div class="row mb-3" id="partner_filter_section">
                         <div class="col-md-4">
-                            <label class="form-label">Send Submission Email To</label>
+                            <label class="form-label">Send Email To</label>
                             <select id="partner_filter_type" class="form-select">
                                 <option value="all" {{ $filterType === 'all' ? 'selected' : '' }}>All Submitters</option>
                                 <option value="selected" {{ $filterType === 'selected' ? 'selected' : '' }}>Submitters by Partner</option>
@@ -107,6 +99,35 @@
                                 @endforeach
                             </select>
                             @error('partner_filter')
+                                <p class="text-danger">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        {{-- Presentation Category filter --}}
+                        <div class="col-md-6 mt-3">
+                            <label class="form-label">Presentation Category <small class="text-muted">(leave empty = all categories)</small></label>
+                            <select name="article_type_filter[]" id="article_type_filter" class="form-select select2" multiple>
+                                @foreach ($articleTypes as $at)
+                                    <option value="{{ $at->id }}"
+                                        @if (is_array($savedArticleTypes) && in_array($at->id, $savedArticleTypes)) selected @endif>
+                                        {{ $at->name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            @error('article_type_filter')
+                                <p class="text-danger">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        {{-- Presentation Type filter --}}
+                        <div class="col-md-6 mt-3">
+                            <label class="form-label">Presentation Type <small class="text-muted">(leave empty = all types)</small></label>
+                            <select name="presentation_type_filter[]" id="presentation_type_filter" class="form-select select2" multiple>
+                                <option value="1" @if (is_array($savedPresTypes) && in_array('1', $savedPresTypes)) selected @endif>Poster</option>
+                                <option value="2" @if (is_array($savedPresTypes) && in_array('2', $savedPresTypes)) selected @endif>Oral</option>
+                                <option value="3" @if (is_array($savedPresTypes) && in_array('3', $savedPresTypes)) selected @endif>Video</option>
+                            </select>
+                            @error('presentation_type_filter')
                                 <p class="text-danger">{{ $message }}</p>
                             @enderror
                         </div>
@@ -174,23 +195,6 @@
                 tag: "{submission_topic}",
                 label: "Submission Topic"
             }, ],
-            6: [{
-                tag: "{submission_topic}",
-                label: "Submission Topic"
-            }, ],
-            7: [{
-                tag: "{submission_topic}",
-                label: "Submission Topic"
-            }, ],
-            8: [{
-                    tag: "{submission_topic}",
-                    label: "Submission Topic"
-                },
-                {
-                    tag: "{reject_remark}",
-                    label: "Reject Remark"
-                },
-            ],
             9: [{
                 tag: "{submission_topic}",
                 label: "Submission Topic"
@@ -240,12 +244,6 @@
 
         templateTypeSelect.addEventListener('change', (e) => {
             loadPlaceholders(e.target.value);
-            // Show partner filter only for User Submission (key=1)
-            if (e.target.value == '1') {
-                document.getElementById('partner_filter_section').style.display = '';
-            } else {
-                document.getElementById('partner_filter_section').style.display = 'none';
-            }
         });
 
         // Partner filter type toggle
@@ -268,6 +266,8 @@
         // Init select2 for partner filter
         $(document).ready(function() {
             $('#partner_filter').select2({ placeholder: 'Select partners', width: '100%' });
+            $('#article_type_filter').select2({ placeholder: 'Select categories (all if empty)', width: '100%' });
+            $('#presentation_type_filter').select2({ placeholder: 'Select types (all if empty)', width: '100%' });
         });
     </script>
 @endsection

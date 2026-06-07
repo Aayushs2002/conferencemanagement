@@ -248,6 +248,9 @@
                                    Poster
                                @elseif($submission->presentation_type == 2)
                                    Oral(Abstract)
+                                 @elseif($submission->presentation_type == 3)
+                                   <span class="badge bg-label-danger"><i class="ti tabler-brand-youtube me-1"></i>Video</span>
+                                 
                                @endif
                                <br>
                                @if ($submission->presentation_type_change === 0)
