@@ -39,6 +39,10 @@
                 @endphp
                 <span>{{ $memberType->type }}</span>
             </div>
+            <div class="col-md-4 mb-4">
+                <p class="text-primary mb-1"><i class="i-ID-2 text-14 mr-1"></i>Invitation Category</p>
+                <span>{{ $registrant->invitationCategory?->name ?? '-' }}</span>
+            </div>
             <div class="col-md-12 mb-4">
                 <p class="text-primary mb-1"><i class="i-ID-2 text-14 mr-1"></i>Addons</p>
                 @if($registrant->addons->isNotEmpty())

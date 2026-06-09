@@ -34,8 +34,11 @@
                             <label for="registrant_type">Registrant Type <code>*</code></label>
                             <select name="registrant_type" class="form-control" id="registrant_type" required>
                                 <option value="" hidden>-- Select Registrant Type --</option>
-                                <option value="1" @selected(old('registrant_type') == '1')>Attendee</option>
-                                <option value="2" @selected(old('registrant_type') == '2')>Speaker/Presenter</option>
+                                @foreach ($registrantTypes as $rType)
+                                    <option value="{{ $rType->id }}" @selected(old('registrant_type') == $rType->id)>
+                                        {{ $rType->name }}
+                                    </option>
+                                @endforeach
                             </select>
                             <div class="valid-feedback">Looks good!</div>
                             <div class="invalid-feedback">Please Select registrant type.</div>

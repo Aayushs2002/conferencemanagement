@@ -291,10 +291,9 @@
                             <label for="registrant_type">Registrant Type <code>*</code></label>
                             <select name="registrant_type" class="form-control" id="registrant_type">
                                 <option value="" hidden>-- Select Registrant Type --</option>
-                                <option value="1" @selected(old('registrant_type', $registrant->registrant_type) == '1')>Attendee</option>
-                                <option value="2" @selected(old('registrant_type', $registrant->registrant_type) == '2')>Speaker/Presenter</option>
-                                <option value="3" @selected(old('registrant_type', $registrant->registrant_type) == '3')>Session Chair</option>
-                                <option value="4" @selected(old('registrant_type', $registrant->registrant_type) == '4')>Special Guest</option>
+                                @foreach ($registrantTypes as $rType)
+                                    <option value="{{ $rType->id }}" @selected(old('registrant_type', $registrant->registrant_type) == $rType->id)>{{ $rType->name }}</option>
+                                @endforeach
                             </select>
                             @error('registrant_type')
                                 <p class="text-danger">{{ $message }}</p>

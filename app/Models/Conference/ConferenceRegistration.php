@@ -34,7 +34,8 @@ class ConferenceRegistration extends Model
         'short_cv',
         'status',
         'invitation_accepted_at',
-        'invitation_response_token'
+        'invitation_response_token',
+        'invitation_category_id'
     ];
 
     protected $casts = [
@@ -73,6 +74,11 @@ class ConferenceRegistration extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function invitationCategory()
+    {
+        return $this->belongsTo(InvitationCategory::class);
     }
 
     public function accompanyPersons()
@@ -141,14 +147,7 @@ class ConferenceRegistration extends Model
     protected function registrantTypeText(): Attribute
     {
         return Attribute::make(
-            get: fn() => match ($this->registrant_type) {
-                self::REGISTRANT_ATTENDEE => 'Attendee',
-                self::REGISTRANT_SPEAKER => 'Speaker/Presenter',
-                self::REGISTRANT_SESSION_CHAIR => 'Session Chair',
-                self::REGISTRANT_SPECIAL_GUEST => 'Special Guest',
-                self::REGISTRANT_ORGANIZER => 'Organizer',
-                default => 'Unknown'
-            }
+            get: fn() => RegistrantType::getLabel((int) $this->registrant_type)
         );
     }
 

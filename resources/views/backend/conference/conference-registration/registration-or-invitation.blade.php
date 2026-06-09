@@ -21,7 +21,7 @@
                         </div>
                     </div>
 
-                    <div class="row">
+                    <div class="row"> 
                         <div class="col-md-4 form-group mb-3">
                             <label for="name_prefix_id">Name Prefix <code>*</code></label>
                             <select name="name_prefix_id" class="form-control" id="name_prefix_id" required>
@@ -218,15 +218,33 @@
                             <label for="registrant_type">Registrant Type <code>*</code></label>
                             <select name="registrant_type" class="form-control" id="registrant_type">
                                 <option value="" hidden>-- Select Registrant Type --</option>
-                                <option value="1" @selected(old('registrant_type') == '1')>Attendee</option>
-                                <option value="2" @selected(old('registrant_type') == '2')>Speaker/Presenter</option>
-                                <option value="2" @selected(old('registrant_type') == '3')>Session Chair</option>
-                                <option value="2" @selected(old('registrant_type') == '3')>Special Guest</option>
+                                @foreach ($registrantTypes as $rType)
+                                    <option value="{{ $rType->id }}" @selected(old('registrant_type') == $rType->id)>
+                                        {{ $rType->name }}
+                                    </option>
+                                @endforeach
                             </select>
                             @error('registrant_type')
                                 <p class="text-danger">{{ $message }}</p>
                             @enderror
                         </div>
+
+                        @if ($invitationCategories->count() > 0)
+                        <div class="col-md-4 form-group mb-3" id="invitationCategoryWrapper" style="display: none;">
+                            <label for="invitation_category_id">Invitation Category</label>
+                            <select name="invitation_category_id" class="form-control" id="invitation_category_id">
+                                <option value="">-- Select Invitation Category --</option>
+                                @foreach ($invitationCategories as $category)
+                                    <option value="{{ $category->id }}" @selected(old('invitation_category_id') == $category->id)>
+                                        {{ $category->name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            @error('invitation_category_id')
+                                <p class="text-danger">{{ $message }}</p>
+                            @enderror
+                        </div>
+                        @endif
 
                         <div class="col-md-4 form-group mb-3 hideDiv paymentProofDiv" id="paymentVoucherWrapper">
                             <label for="payment_voucher">Payment Voucher <code>(Only JPG/PNG/PDF) (Max: 250
@@ -380,6 +398,8 @@
                     $('#payment_status').val('unpaid').trigger('change');
                     $('#councilNumberRequired').text('')
                     $('.certificateRequired').attr('hidden', false)
+                    // Show invitation category if it exists
+                    $('#invitationCategoryWrapper').slideDown(200);
                 } else {
                     if (!$('#payment_status').val()) {
                         $('#payment_status').val('paid');
@@ -387,6 +407,8 @@
                     $('#payment_status').trigger('change');
                     $('#councilNumberRequired').text('*')
                     $('.certificateRequired').attr('hidden', true)
+                    // Hide invitation category
+                    $('#invitationCategoryWrapper').slideUp(200);
                 }
             });
             $("#invited_guest").trigger('change');

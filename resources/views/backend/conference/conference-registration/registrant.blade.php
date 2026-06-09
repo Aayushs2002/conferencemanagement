@@ -14,30 +14,11 @@
                     <select name="registrant_type" id="registrant_type"
                         class="form-control @error('registrant_type') is-invalid @enderror">
                         <option value="">-- Select Registrant Type --</option>
-                        <option {{ request()->registrant_type == 1 ? 'selected' : '' }} value="1">
-                            Attendee
-                        </option>
-                        <option {{ request()->registrant_type == 2 ? 'selected' : '' }} value="2">
-                            Speaker
-                        </option>
-                        <option {{ request()->registrant_type == 3 ? 'selected' : '' }} value="3">
-                            Session Chair
-                        </option>
-                        <option {{ request()->registrant_type == 4 ? 'selected' : '' }} value="4">
-                            Special Guest
-                        </option>
-                        <option {{ request()->registrant_type == 5 ? 'selected' : '' }} value="5">
-                            Organizer 
-                        </option>
-                        <option {{ request()->registrant_type == 6 ? 'selected' : '' }} value="6">
-                            Faculty
-                        </option>
-                        <option {{ request()->registrant_type == 7 ? 'selected' : '' }} value="7">
-                            Volunteer
-                        </option>
-                        <option {{ request()->registrant_type == 8 ? 'selected' : '' }} value="8">
-                            Invitee
-                        </option>
+                        @foreach ($registrantTypes as $rType)
+                            <option {{ request()->registrant_type == $rType->id ? 'selected' : '' }} value="{{ $rType->id }}">
+                                {{ $rType->name }}
+                            </option>
+                        @endforeach
                     </select>
                 </div>
                 <div class="col-md-3 form-group mb-3">
@@ -287,6 +268,7 @@
                         <th>Transaction ID</th>
                         <th>Amount</th>
                         <th>Registraton Type</th>
+                        {{-- <th>Invitation Category</th> --}}
                         <th>No. of people</th>
                         <th>Is Verified?</th>
                         <th>Registration ID</th>
@@ -420,23 +402,7 @@
                                 @endif
                             </td>
                             <td>
-                                @if ($registrant->registrant_type == 1)
-                                    Attendee
-                                @elseif ($registrant->registrant_type == 2)
-                                    Speaker
-                                @elseif ($registrant->registrant_type == 3)
-                                    Session Chair
-                                @elseif ($registrant->registrant_type == 4)
-                                    Special Guest
-                                @elseif ($registrant->registrant_type == 5) 
-                                    Organizer
-                                @elseif ($registrant->registrant_type == 6)
-                                    Faculty
-                                @elseif ($registrant->registrant_type == 7)
-                                    Volunteer
-                                @elseif ($registrant->registrant_type == 8)
-                                    Invitee    
-                                @endif
+                                {{ $registrantTypes->firstWhere('id', $registrant->registrant_type)?->name ?? 'Unknown' }}
                                 @if ($registrant->is_invited == 1)
                                     <span title="Invited"
                                         style="background-color: green; color: white; padding: 8px; height: 6px; width: 6px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 12px;">
@@ -444,6 +410,7 @@
                                     </span>
                                 @endif
                             </td>
+                            {{-- <td>{{ $registrant->invitationCategory?->name ?? '-' }}</td> --}}
                             <td class="text-center">{{ $registrant->total_attendee }}<br>
                                 @if (auth()->user()->hasConferencePermissionBlade(getConference(request()->segment(4)), 'Add People'))
                                     <button class="btn btn-sm btn-primary addPerson mt-1" data-id="{{ $registrant->id }}"
@@ -558,11 +525,9 @@
                                 <label for="registrant_type" class="form-label">Registrant Type <code>*</code></label>
                                 <select class="form-control" id="registrant_type" name="registrant_type" required>
                                     <option value="">-- Select Registrant Type --</option>
-                                    <option value="1">Attendee</option>
-                                    <option value="2">Speaker/Presenter</option>
-                                    <option value="3">Session Chair</option>
-                                    <option value="4">Special Guest</option>
-                                    <option value="5">Organizer</option>
+                                    @foreach ($registrantTypes as $rType)
+                                        <option value="{{ $rType->id }}">{{ $rType->name }}</option>
+                                    @endforeach
                                 </select>
                             </div>
                             <div class="mb-3">
@@ -599,13 +564,9 @@
                                 <label for="update_registrant_type" class="form-label">Registrant Type <code>*</code></label>
                                 <select class="form-control" id="update_registrant_type" name="registrant_type" required>
                                     <option value="">-- Select Registrant Type --</option>
-                                    <option value="1">Attendee</option>
-                                    <option value="2">Speaker</option>
-                                    <option value="3">Session Chair</option>
-                                    <option value="4">Special Guest</option>
-                                    <option value="5">Organizer</option>
-                                    <option value="6">Faculty</option>
-                                    <option value="7">Volunteer</option>
+                                    @foreach ($registrantTypes as $rType)
+                                        <option value="{{ $rType->id }}">{{ $rType->name }}</option>
+                                    @endforeach
                                 </select>
                                 <small class="text-muted">Only the selected type will be re-numbered and updated.</small>
                             </div>

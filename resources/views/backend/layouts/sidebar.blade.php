@@ -80,6 +80,12 @@
                     <div data-i18n="Contact">Contact</div>
                 </a>
             </li>
+            <li class="menu-item {{ request()->segment(1) == 'registrant-type' ? 'active' : '' }}">
+                <a href="{{ route('registrant-type.global.index') }}" class="menu-link ">
+                    <i class="menu-icon icon-base ti tabler-adjustments"></i>
+                    <div data-i18n="Global Registration Types">Global Registration Types</div>
+                </a>
+            </li>
             <li class="menu-item {{ request()->segment(1) == 'cms' ? 'active open' : '' }}">
                 <a href="javascript:void(0);" class="menu-link menu-toggle">
                     <i class="menu-icon icon-base ti tabler-brand-pagekit"></i>
