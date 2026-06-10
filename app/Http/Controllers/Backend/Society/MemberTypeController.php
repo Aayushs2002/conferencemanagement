@@ -7,6 +7,8 @@ use App\Http\Requests\Society\MemberTypeRequest;
 use App\Models\Society\SocietySetting;
 use App\Models\User\MemberType;
 use Exception;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 
 class MemberTypeController extends Controller
@@ -19,7 +21,7 @@ class MemberTypeController extends Controller
         $types = MemberType::where([
             'society_id' => $society->id,
             'status' => 1
-        ])->latest()->get();
+        ])->get();
         return view('backend.users.member-type.index', compact('types', 'society'));
     }
 
@@ -39,6 +41,7 @@ class MemberTypeController extends Controller
         try {
             $req = $request->all();
             $req['society_id'] = $society->id;
+            $req['display_order'] = (int) (MemberType::where('society_id', $society->id)->max('display_order') ?? 0) + 1;
             MemberType::create($req);
 
             return redirect()->route('memberType.index', $society)->with('status', 'Member Type Added Successfully');
@@ -94,6 +97,33 @@ class MemberTypeController extends Controller
             return response()->json($response->json());
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
+
+    public function updateOrder(Request $request, $society)
+    {
+        try {
+            $validated = $request->validate([
+                'orders' => 'required|array',
+                'orders.*.id' => 'required|exists:member_types,id',
+                'orders.*.position' => 'required|integer|min:1',
+            ]);
+
+            foreach ($validated['orders'] as $order) {
+                MemberType::where('society_id', $society->id)
+                    ->where('id', $order['id'])
+                    ->update(['display_order' => $order['position']]);
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Order updated successfully',
+            ]);
+        } catch (Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to update order: ' . $e->getMessage(),
+            ], 500);
         }
     }
 }

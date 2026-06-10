@@ -14,24 +14,32 @@
                     <select name="registrant_type" id="registrant_type"
                         class="form-control @error('registrant_type') is-invalid @enderror">
                         <option value="">-- Select Registrant Type --</option>
-                        <option value="1">
-                            Attendee
-                        </option>
-                        <option value="2">
-                            Speaker
-                        </option> 
-                        <option value="3">
-                            Session Chair
-                        </option>
-                        <option value="4">
-                            Special Guest
-                        </option>
+                        @foreach ($registrantTypes as $rType)
+                            <option value="{{ $rType->id }}">{{ $rType->name }}</option>
+                        @endforeach
                     </select>
 
                     @error('registrant_type')
                         <p class="text-danger">{{ $message }}</p>
                     @enderror
                 </div>
+
+                @if ($invitationCategories->count() > 0)
+                <div class="col-md-12 form-group mb-3">
+                    <label for="invitation_category_id" class="mb-2">Invitation Category</label>
+                    <select name="invitation_category_id" id="invitation_category_id"
+                        class="form-control @error('invitation_category_id') is-invalid @enderror">
+                        <option value="">-- Select Invitation Category --</option>
+                        @foreach ($invitationCategories as $category)
+                            <option value="{{ $category->id }}">{{ $category->name }}</option>
+                        @endforeach
+                    </select>
+
+                    @error('invitation_category_id')
+                        <p class="text-danger">{{ $message }}</p>
+                    @enderror
+                </div>
+                @endif
 
                 <div class="col-md-12 form-group mb-3">
                     <label for="certificate_required" class="mb-2">Is Certificate Required? <code>*</code></label>
@@ -48,7 +56,7 @@
 
                     @error('certificate_required')
                         <p class="text-danger">{{ $message }}</p>
-                    @enderror
+                    @enderror 
                 </div>
 
                 <div class="col-md-12 text-end">

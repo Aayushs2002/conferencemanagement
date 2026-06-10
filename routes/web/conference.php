@@ -11,7 +11,9 @@ use App\Http\Controllers\Backend\Conference\ConferenceController;
 use App\Http\Controllers\Backend\Conference\ConferenceMemberTypePriceController;
 use App\Http\Controllers\Backend\Conference\ConferenceRegistrationController;
 use App\Http\Controllers\Backend\Conference\ConferenceSettingController;
+use App\Http\Controllers\Backend\Conference\InvitationCategoryController;
 use App\Http\Controllers\Backend\Conference\PassSettingController;
+use App\Http\Controllers\Backend\Conference\RegistrantTypeController;
 use App\Http\Controllers\Backend\Dashboard\ConferenceDashboardController;
 use App\Http\Controllers\Backend\Download\DownloadController;
 use App\Http\Controllers\Backend\Faq\FaqCategoryController;
@@ -137,6 +139,34 @@ Route::middleware('auth')->group(function () {
     Route::controller(PassSettingController::class)->middleware('auto.conf.permission')->prefix('/society/{society}/conference/{conference}/conference-registration')->group(function () {
         Route::resource('pass-setting', PassSettingController::class);
     });
+
+    // Registrant Type Management (dynamic registration types per conference)
+    Route::controller(RegistrantTypeController::class)
+        ->middleware('auto.conf.permission')
+        ->prefix('/society/{society}/conference/{conference}/registrant-type')
+        ->name('conference.registrant-type.')
+        ->group(function () {
+            Route::get('/', 'index')->name('index');
+            Route::post('/', 'store')->name('store');
+            Route::post('/{registrantType}/toggle-global', 'toggleGlobal')->name('toggleGlobal');
+            Route::put('/{registrantType}', 'update')->name('update');
+            Route::delete('/{registrantType}', 'destroy')->name('destroy');
+        });
+
+    // Invitation Category Management
+    Route::controller(InvitationCategoryController::class)
+        ->middleware('auto.conf.permission')
+        ->prefix('/society/{society}/conference/{conference}/invitation-category')
+        ->name('conference.invitation-category.')
+        ->group(function () {
+            Route::get('/', 'index')->name('index');
+            Route::get('/create', 'create')->name('create');
+            Route::post('/', 'store')->name('store');
+            Route::get('/{invitationCategory}/edit', 'edit')->name('edit');
+            Route::put('/{invitationCategory}', 'update')->name('update');
+            Route::delete('/{invitationCategory}', 'destroy')->name('destroy');
+            Route::post('/update-order', 'updateOrder')->name('updateOrder');
+        });
 
     Route::prefix('/society/{society}/conference/{conference}/conference-registration')->middleware('auto.conf.permission')->group(function () {
         Route::resource('conference-certificate', ConferenceCertificateController::class);

@@ -22,6 +22,7 @@ use App\Models\Conference\ConferenceRegistration_addon;
 use App\Models\Conference\ConferenceRegistrationKit;
 use App\Models\Conference\ConferenceSetting;
 use App\Models\Conference\Hall;
+use App\Models\Conference\InvitationCategory;
 use App\Models\Conference\Meal;
 use App\Models\Conference\PassSetting;
 use App\Models\Conference\Poll;
@@ -29,6 +30,7 @@ use App\Models\Conference\UserVote;
 use App\Models\ConferenceCommitteePassDesignation;
 use App\Models\ConferenceMemberTypeNameTag;
 use App\Models\Conference\Submission;
+use App\Models\Conference\RegistrantType;
 use App\Models\User;
 use App\Models\User\ConferenceUserPassDesignation;
 use App\Models\User\Department;
@@ -60,6 +62,7 @@ class ConferenceRegistrationController extends Controller
     {
         $society_id = $society->id;
         $query = ConferenceRegistration::with([
+            'invitationCategory',
             'user' => function ($query) use ($society_id) {
                 $query->with([ 
                     'userDetail.namePrefix',
@@ -209,17 +212,28 @@ class ConferenceRegistrationController extends Controller
         // Merge: real registrants first (with applied sorting), then dummy registrants
         $registrants = $realRegistrants->merge($dummyRegistrants)->values();
 
+        $registrantTypes = RegistrantType::forConference($conference->id);
+
         return view('backend.conference.conference-registration.registrant', [
-            'registrants' => $registrants,
-            'conference' => $conference,
-            'society' => $society,
-            'filters' => $request->only(['registrant_type', 'prefix', 'is_invited', 'payment_type', 'from', 'to', 'country_id', 'country_scope', 'member_type_id', 'sort_by']),
+            'registrants'     => $registrants,
+            'conference'      => $conference,
+            'society'         => $society,
+            'filters'         => $request->only(['registrant_type', 'prefix', 'is_invited', 'payment_type', 'from', 'to', 'country_id', 'country_scope', 'member_type_id', 'sort_by']),
+            'registrantTypes' => $registrantTypes,
         ]);
     }
 
     public function show(Request $request)
     {
-        $registrant = ConferenceRegistration::whereId($request->id)->first();
+        $registrant = ConferenceRegistration::with([
+            'user.userDetail.institution',
+            'user.userDetail.department',
+            'user.userDetail.country',
+            'user.societies',
+            'addons.ConferenceAddon',
+            'accompanyPersons',
+            'invitationCategory',
+        ])->whereId($request->id)->first();
 
         return view('backend.conference.conference-registration.view', compact('registrant'));
     }
@@ -295,9 +309,7 @@ class ConferenceRegistrationController extends Controller
         $userDesignation = UserDesignation::where('user_id', $registrant->user_id)->first();
         $userDepartment = UserDepartment::where('user_id', $registrant->user_id)->first();
 
-        // $institutions = \App\Models\User\Institution::where('status', 1)->get();
-        // $designations = \App\Models\User\Designation::where('status', 1)->get();
-        // $departments = \App\Models\User\Department::where('status', 1)->get();
+        $registrantTypes = RegistrantType::forConference($conference->id);
 
         return view('backend.conference.conference-registration.edit', compact(
             'registrant',
@@ -313,7 +325,8 @@ class ConferenceRegistrationController extends Controller
             'users',
             'userInstitution',
             'userDesignation',
-            'userDepartment'
+            'userDepartment',
+            'registrantTypes'
         ));
     }
 
@@ -753,8 +766,9 @@ class ConferenceRegistrationController extends Controller
             'status' => 1,
         ])->first();
         $users = $society ? $society->users : collect();
+        $registrantTypes = RegistrantType::forConference($conference->id);
 
-        return view('backend.conference.conference-registration.register-for-exceptional-case', compact('users', 'society', 'conference'));
+        return view('backend.conference.conference-registration.register-for-exceptional-case', compact('users', 'society', 'conference', 'registrantTypes'));
     }
 
     public function getUserMemberTypeAddons(Request $request, $society, $conference)
@@ -875,9 +889,10 @@ class ConferenceRegistrationController extends Controller
     {
         // dd($request->all());
         try {
+            $registrantTypeIds = RegistrantType::forConference($conference->id)->pluck('id')->toArray();
             $rules = [
                 'user_id' => 'required',
-                'registrant_type' => 'required',
+                'registrant_type' => ['required', 'integer', \Illuminate\Validation\Rule::in($registrantTypeIds)],
                 'payment_status' => 'required|in:paid,unpaid',
                 'transaction_id' => 'nullable|unique:conference_registrations,transaction_id',
                 'amount' => 'required|numeric',
@@ -1187,8 +1202,13 @@ class ConferenceRegistrationController extends Controller
         $designations = $loadData('designations', Designation::class);
         $departments = $loadData('departments', Department::class);
         $prefixesAll = $loadData('namePrefixes', NamePrefix::class);
+        $registrantTypes = RegistrantType::forConference($conference->id);
+        $invitationCategories = InvitationCategory::where('conference_id', $conference->id)
+            ->active()
+            ->ordered()
+            ->get();
 
-        return view('backend.conference.conference-registration.registration-or-invitation', compact('prefixesAll', 'society', 'conference', 'institutions', 'designations', 'departments'));
+        return view('backend.conference.conference-registration.registration-or-invitation', compact('prefixesAll', 'society', 'conference', 'institutions', 'designations', 'departments', 'registrantTypes', 'invitationCategories'));
     }
 
     public function registrationOrInvitationSubmit(Request $request, $society, $conference)
@@ -1196,6 +1216,7 @@ class ConferenceRegistrationController extends Controller
         try {
             // dd($request->all());
             $isInvitedGuest = $request->boolean('invited_guest');
+            $registrantTypeIds = RegistrantType::forConference($conference->id)->pluck('id')->toArray();
 
             $checkUser = User::whereEmail($request->email)->first();
             $conferenceRegistration = ConferenceRegistration::where(['conference_id' => $conference->id, 'user_id' => $checkUser?->id, 'status' => 1])->first();
@@ -1214,13 +1235,14 @@ class ConferenceRegistrationController extends Controller
                 'institution_id' => 'nullable',
                 'address' => 'nullable',
                 'member_type_id' => 'required',
-                'registrant_type' => 'required',
+                'registrant_type' => ['required', 'integer', \Illuminate\Validation\Rule::in($registrantTypeIds)],
                 'additional_guests' => 'nullable|numeric',
                 'country_id' => 'required',
                 'meal_type' => 'required',
                 'payment_status' => $isInvitedGuest ? 'nullable|in:paid,unpaid' : 'required|in:paid,unpaid',
                 'payment_voucher' => $isInvitedGuest ? 'nullable' : 'nullable|mimes:jpg,png,pdf|max:250',
                 'email' => 'required|email|unique:users,email',
+                'invitation_category_id' => ['nullable', 'integer', \Illuminate\Validation\Rule::exists('invitation_categories', 'id')->where('conference_id', $conference->id)]
             ];
 
             if ($request->institution_id == 'other') {

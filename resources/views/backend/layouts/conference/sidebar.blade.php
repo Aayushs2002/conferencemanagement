@@ -90,6 +90,18 @@
                                 </a>
                             </li>
                         @endif
+                        <li class="menu-item {{ request()->segment(6) == 'registrant-type' ? 'active' : '' }}">
+                            <a href="{{ route('conference.registrant-type.index', [request()->segment(2), request()->segment(4)]) }}"
+                                class="menu-link">
+                                <div data-i18n="Registration Types">Registration Types</div>
+                            </a>
+                        </li>
+                        <li class="menu-item {{ request()->segment(6) == 'invitation-category' ? 'active' : '' }}">
+                            <a href="{{ route('conference.invitation-category.index', [request()->segment(2), request()->segment(4)]) }}"
+                                class="menu-link">
+                                <div data-i18n="Invitation Categories">Invitation Categories</div>
+                            </a>
+                        </li>
                     </ul>
                 </li>
             @endif

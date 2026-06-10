@@ -7,6 +7,7 @@ use App\Http\Controllers\Backend\Society\DesignationController;
 use App\Http\Controllers\Backend\Society\InstitutionController;
 use App\Http\Controllers\Backend\Society\MemberTypeController;
 use App\Http\Controllers\Backend\Society\NamePrefixController;
+use App\Http\Controllers\Backend\Conference\RegistrantTypeController;
 use App\Http\Controllers\Backend\Society\SocietyController;
 use App\Http\Controllers\Backend\Society\SocietyNamePrefixController;
 use App\Http\Controllers\Backend\Society\SocietyInstitutionController;
@@ -15,7 +16,7 @@ use App\Http\Controllers\Backend\Society\SocietyDepartmentController;
 use App\Http\Controllers\Backend\Society\SocietySettingController;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware('auth','check.subdomain')->group(function () {
+Route::middleware(['auth', 'check.subdomain'])->group(function () {
     //society controller start    
     Route::resource('/society', SocietyController::class)->middleware('check.superadmin')->except('show');
 
@@ -31,6 +32,9 @@ Route::middleware('auth','check.subdomain')->group(function () {
     //society member type start
     Route::prefix('/society/{society}')->group(function () {
         Route::resource('/memberType', MemberTypeController::class)->middleware('check.societyadmin')->except('show',);
+        Route::post('/memberType/update-order', [MemberTypeController::class, 'updateOrder'])
+            ->name('memberType.update-order')
+            ->middleware('check.societyadmin');
         Route::get('/fetch-member-types', [MemberTypeController::class, 'fetchExternalMemberTypes'])
             ->name('memberType.fetch');
         
@@ -79,6 +83,15 @@ Route::middleware('auth','check.subdomain')->group(function () {
     //name department started
     Route::resource('/department', DepartmentController::class)->middleware('check.superadmin')->except('show');
     //name department ended
+
+    //registration type started
+    Route::controller(RegistrantTypeController::class)->middleware('check.superadmin')->group(function () {
+        Route::get('/registrant-type', 'globalIndex')->name('registrant-type.global.index');
+        Route::post('/registrant-type', 'globalStore')->name('registrant-type.global.store');
+        Route::put('/registrant-type/{registrantType}', 'globalUpdate')->name('registrant-type.global.update');
+        Route::delete('/registrant-type/{registrantType}', 'globalDestroy')->name('registrant-type.global.destroy');
+    });
+    //registration type ended
 
 
     //payment setting controller stared

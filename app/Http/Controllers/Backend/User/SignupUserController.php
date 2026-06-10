@@ -23,6 +23,8 @@ use App\Models\User\UserDetail;
 use App\Models\User\UserInstitution;
 use App\Models\User\UserDesignation;
 use App\Models\User\UserDepartment;
+use App\Models\Conference\RegistrantType;
+use App\Models\Conference\InvitationCategory;
 use App\Models\Workshop\Workshop;
 use App\Models\Workshop\WorkshopRegistration;
 use Exception;
@@ -91,15 +93,22 @@ class SignupUserController extends Controller
     public function inviteForConference(Request $request, $society, $conference)
     {
         $user = User::whereId($request->id)->first();
-        return view('backend.users.signup-user.invite-for-conference', compact('user', 'society', 'conference'));
+        $registrantTypes = RegistrantType::forConference($conference->id);
+        $invitationCategories = InvitationCategory::where('conference_id', $conference->id)
+            ->active()
+            ->ordered()
+            ->get();
+        return view('backend.users.signup-user.invite-for-conference', compact('user', 'society', 'conference', 'registrantTypes', 'invitationCategories'));
     }
 
     public function inviteForConferenceSubmit(Request $request, $society, $conference)
     {
         try {
+            $validTypeIds = RegistrantType::forConference($conference->id)->pluck('id')->toArray();
             $validated = $request->validate([
-                'registrant_type' => 'required|integer|in:1,2,3,4',
-                'certificate_required' => 'required|boolean'
+                'registrant_type' => ['required', 'integer', \Illuminate\Validation\Rule::in($validTypeIds)],
+                'certificate_required' => 'required|boolean',
+                'invitation_category_id' => ['nullable', 'integer', \Illuminate\Validation\Rule::exists('invitation_categories', 'id')->where('conference_id', $conference->id)]
             ]);
 
             $user = User::with('userDetail.namePrefix')->findOrFail($request->user_id);
@@ -125,6 +134,7 @@ class SignupUserController extends Controller
                 'conference_id' => $conference->id,
                 'registrant_type' => $validated['registrant_type'],
                 'certificate_required' => $validated['certificate_required'],
+                'invitation_category_id' => $validated['invitation_category_id'] ?? null,
                 'token' => random_word(60),
                 'verified_status' => ConferenceRegistration::STATUS_PENDING,
                 'is_invited' => true,
