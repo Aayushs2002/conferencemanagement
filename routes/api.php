@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\ConferenceApiController;
 use App\Http\Controllers\Api\ConferenceRegistrationController;
 use App\Http\Controllers\Api\MemberDataController;
+use App\Http\Controllers\DoctorController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -40,3 +41,4 @@ Route::prefix('conference/{slug}')->group(function () {
     Route::get('/official-messages', [ConferenceApiController::class, 'getOfficialMessages']);
     Route::get('/settings', [ConferenceApiController::class, 'getConferenceSettings']);
 });
+Route::get('/doctors', [DoctorController::class, 'index']);

@@ -133,6 +133,7 @@
 
             if (requiresVerification == 1) {
                 $('#studentDocumentsSection').slideDown();
+                $('#id_card_document, #official_letter_document').prop('required', true);
             } else {
                 $('#studentDocumentsSection').slideUp();
                 // Clear file inputs
@@ -140,6 +141,7 @@
                 $('#official_letter_document').val('');
                 $('#idCardPreview').html('');
                 $('#officialLetterPreview').html('');
+                $('#id_card_document, #official_letter_document').prop('required', false);
             }
         });
 
@@ -180,6 +182,12 @@
             $('input, select').removeClass('is-invalid');
             let $submitBtn = $(this).find('button[type="submit"]');
             $submitBtn.prop('disabled', true).text('Submitting...');
+
+            if (!this.checkValidity()) {
+                this.reportValidity();
+                $submitBtn.prop('disabled', false).text('Submit');
+                return;
+            }
 
             let society_id = $('#society_id').val();
             let member_type_id = $('#member_type_id').val();

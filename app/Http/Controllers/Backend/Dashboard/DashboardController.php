@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Backend\Dashboard;
 
 use App\Http\Controllers\Controller;
+use App\Imports\DoctorsImport;
 use App\Models\User;
 use App\Models\User\Department;
 use App\Models\User\Designation;
@@ -10,10 +11,10 @@ use App\Models\User\Institution;
 use App\Models\User\MemberType;
 use App\Models\User\NamePrefix;
 use App\Models\User\Society;
-use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Maatwebsite\Excel\Facades\Excel;
 
 class DashboardController extends Controller
 {
@@ -26,9 +27,10 @@ class DashboardController extends Controller
             $intitutionCount = Institution::where('status', 1)->count();
             $designationCount = Designation::where('status', 1)->count();
             $departmentCount = Department::where('status', 1)->count();
+
             return view('backend.dashboard.index', compact('joinedSocities', 'societyCount', 'namePrfixCount', 'intitutionCount', 'designationCount', 'departmentCount'));
         } catch (\Exception $e) {
-            //throw $th;
+            // throw $th;
             // Log::channel('sentry')->error('Dashboard Load Error: ' . $e->getMessage());
             return $e->getMessage();
         }
@@ -41,6 +43,7 @@ class DashboardController extends Controller
         $societies = Society::where('status', 1)
             ->whereNotIn('id', $joinedSocietyIds)
             ->get();
+
         return view('backend.dashboard.join-society-model', compact('societies'));
     }
 
@@ -55,7 +58,7 @@ class DashboardController extends Controller
             }
 
             $society_id = $request->society_id;
-            if (!$society_id) {
+            if (! $society_id) {
                 return response()->json(['type' => 'error', 'message' => 'Society ID is required.', 'data' => []]);
             }
 
@@ -63,88 +66,186 @@ class DashboardController extends Controller
                 $types = MemberType::where([
                     'delegate' => 1,
                     'society_id' => $society_id,
-                    'status' => 1
+                    'status' => 1,
                 ])->get();
             } else {
                 $types = MemberType::where([
                     'delegate' => 2,
                     'society_id' => $society_id,
-                    'status' => 1
+                    'status' => 1,
                 ])->get();
             }
+
             return response()->json([
                 'type' => 'success',
                 'message' => 'Member types fetched successfully.',
-                'data' => $types
+                'data' => $types,
             ]);
         } catch (\Exception $e) {
             return response()->json([
                 'type' => 'error',
                 'message' => 'Something went wrong.',
-                'data' => []
+                'data' => [],
             ]);
         }
     }
+
+    // public function checkCouncilMembership(Request $request)
+    // {
+    //     $user = auth()->user();
+    //     $userCouncilNum = $user->userDetail->council_number ?? null;
+    //     $userDob = $user->userDetail->dob_ad ?? null;
+
+    //     if (! $userCouncilNum) {
+    //         return response()->json([
+    //             'isMember' => false,
+    //             'error' => 'Your council number is missing.',
+    //         ]);
+    //     }
+
+    //     $memberType = MemberType::find($request->member_type_id)->type ?? null;
+
+    //     if (! $memberType) {
+    //         return response()->json([
+    //             'isMember' => false,
+    //             'error' => 'Invalid member type selected.',
+    //         ]);
+    //     }
+
+    //     // $apiResponse = Http::get('https://membership.san.org.np/api/updated-members');
+
+    //     // if (!$apiResponse->successful()) {
+    //     //     return response()->json([
+    //     //         'isMember' => false,
+    //     //         'error' => 'Could not fetch membership data from external API.'
+    //     //     ]);
+    //     // }
+
+    //     // $apiData = $apiResponse->json();
+
+    //     // $matchByCouncil = collect($apiData)->firstWhere('councilNum', $userCouncilNum);
+
+    //     // if (!$matchByCouncil) {
+    //     //     return response()->json([
+    //     //         'isMember' => false,
+    //     //         'error' => 'Council number not found in SAN membership records.'
+    //     //     ]);
+    //     // }
+
+    //     // if ($matchByCouncil['memberType'] !== $memberType) {
+    //     //     return response()->json([
+    //     //         'isMember' => false,
+    //     //         'error' => 'Member type does not match SAN records.'
+    //     //     ]);
+    //     // }
+
+    //     // if ($matchByCouncil['dobAD'] !== $userDob) {
+    //     //     return response()->json([
+    //     //         'isMember' => false,
+    //     //         'error' => 'Date of birth does not match SAN records.'
+    //     //     ]);
+    //     // }
+
+    //     // return response()->json([
+    //     //     'isMember' => true,
+    //     //     'message' => 'You are verified as a SAN member.'
+    //     // ]);
+
+    //     $doctors = Excel::toCollection(new DoctorsImport, storage_path('app/doctors/Name-list-updated.xlsx'))->first();
+
+    //     $matchByCouncil = $doctors->firstWhere('nmc_no', (int) $userCouncilNum);
+
+    //     if (! $matchByCouncil) {
+    //         return response()->json([
+    //             'isMember' => false,
+    //             'error' => 'Council number not found in membership records.',
+    //         ]);
+    //     }
+
+    //     // Build full name from Excel for comparison if needed
+    //     $fullName = trim(collect([
+    //         $matchByCouncil['first_name'],
+    //         $matchByCouncil['middle_name'],
+    //         $matchByCouncil['last_name'],
+    //     ])->filter()->implode(' '));
+
+    //     return response()->json([
+    //         'isMember' => true,
+    //         'message' => 'You are verified as a SAN member.',
+    //         'name' => $fullName,
+    //     ]);
+    // }
 
     public function checkCouncilMembership(Request $request)
     {
         $user = auth()->user();
         $userCouncilNum = $user->userDetail->council_number ?? null;
         $userDob = $user->userDetail->dob_ad ?? null;
+        $userFirstName = strtolower(trim($user->f_name ?? ''));
 
-        if (!$userCouncilNum) {
+        if (! $userCouncilNum) {
             return response()->json([
                 'isMember' => false,
-                'error' => 'Your council number is missing.'
+                'error' => 'Your council number is missing.',
             ]);
         }
 
         $memberType = MemberType::find($request->member_type_id)->type ?? null;
-
-        if (!$memberType) {
+        $requestMemberType = strtolower(trim($memberType));
+        if (! $memberType) {
             return response()->json([
                 'isMember' => false,
-                'error' => 'Invalid member type selected.'
+                'error' => 'Invalid member type selected.',
             ]);
         }
 
-        $apiResponse = Http::get('https://membership.san.org.np/api/updated-members');
+        $filePath = public_path('doctors/Name-list-updated.xlsx');
 
-        if (!$apiResponse->successful()) {
+        if (! file_exists($filePath)) {
             return response()->json([
                 'isMember' => false,
-                'error' => 'Could not fetch membership data from external API.'
+                'error' => 'Membership data file not found.',
             ]);
         }
 
-        $apiData = $apiResponse->json();
+        $doctors = Excel::toCollection(new DoctorsImport, $filePath)->first();
 
-        $matchByCouncil = collect($apiData)->firstWhere('councilNum', $userCouncilNum);
-
-        if (!$matchByCouncil) {
+        $matchByCouncil = $doctors->firstWhere('nmc_no', (int) $userCouncilNum);
+        $excelMemberType = strtolower(trim($matchByCouncil['member_type'] ?? ''));
+        if (! $matchByCouncil) {
             return response()->json([
                 'isMember' => false,
-                'error' => 'Council number not found in SAN membership records.'
+                'error' => 'Council number not found in membership records.',
             ]);
         }
 
-        if ($matchByCouncil['memberType'] !== $memberType) {
+        $excelFirstName = strtolower(trim($matchByCouncil['first_name'] ?? ''));
+
+        if ($excelMemberType !== $requestMemberType) {
             return response()->json([
                 'isMember' => false,
-                'error' => 'Member type does not match SAN records.'
+                'error' => 'Member type does not match membership records.',
             ]);
         }
 
-        if ($matchByCouncil['dobAD'] !== $userDob) {
+        if ($excelFirstName !== $userFirstName) {
             return response()->json([
                 'isMember' => false,
-                'error' => 'Date of birth does not match SAN records.'
+                'error' => 'First name does not match membership records.',
             ]);
         }
+
+
+        $fullName = trim(collect([
+            $matchByCouncil['first_name'],
+            $matchByCouncil['middle_name'],
+            $matchByCouncil['last_name'],
+        ])->filter()->implode(' '));
 
         return response()->json([
             'isMember' => true,
-            'message' => 'You are verified as a SAN member.'
+            'message' => 'You are Verified as a ' . $requestMemberType,
+            'name' => $fullName,
         ]);
     }
 }

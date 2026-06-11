@@ -37,6 +37,9 @@ class ConferenceRegistrationController extends Controller
     {
         $checkPayment = null;
         $membetType = current_user()->societies->where('id', $conference->society_id)->first()?->pivot?->memberType;
+        $requiresStudentVerification = (bool) ($membetType?->requires_student_verification ?? false);
+        $userSociety = current_user()->societies->where('id', $conference->society_id)->first()?->pivot;
+        $hasStudentVerificationDocuments = !empty($userSociety?->id_card_document) && !empty($userSociety?->official_letter_document);
         $memberTypePrice = ConferenceMemberTypePrice::where(['conference_id' => $conference->id, 'member_type_id' => $membetType->id])->first();
         $amount = '';
         if (!empty($conference)) {
@@ -112,8 +115,9 @@ class ConferenceRegistrationController extends Controller
         // Get conference setting for addon availability
         $conferenceSetting = $conference->conferenceSetting;
         $addonAvailability = $conferenceSetting?->addon_availability ?? 'both';
+        $galaDinnerEnabled = (bool) ($conferenceSetting?->gala_dinner_enabled ?? false);
 
-        return view('backend.participant.conference-registration.create', compact('conference', 'amount', 'memberTypePrice', 'society', 'national_payemnt_setting', 'international_payemnt_setting', 'static_qr_payment_setting', 'international_bank_transfer', 'checkPayment', 'workshops', 'conferenceAddons', 'addonAvailability'));
+        return view('backend.participant.conference-registration.create', compact('conference', 'amount', 'memberTypePrice', 'society', 'national_payemnt_setting', 'international_payemnt_setting', 'static_qr_payment_setting', 'international_bank_transfer', 'checkPayment', 'workshops', 'conferenceAddons', 'addonAvailability', 'galaDinnerEnabled', 'requiresStudentVerification', 'hasStudentVerificationDocuments'));
     }
 
     public function payNow($society, $conference, $registration)
@@ -293,10 +297,16 @@ class ConferenceRegistrationController extends Controller
                 $checkDuplicateRegistration = ConferenceRegistration::where(['user_id' => current_user()->id, 'conference_id' => $conference->id, 'status' => 1])->first();
                 $conferenceSetting = ConferenceSetting::where('conference_id', $conference->id)->first();
                 $membetType = current_user()->societies->where('id', $conference->society_id)->first()?->pivot?->memberType;
+                $userSociety = current_user()->societies->where('id', $conference->society_id)->first()?->pivot;
+                $requiresStudentVerification = (bool) ($membetType?->requires_student_verification ?? false);
                 
                 // Check if member type exists
                 if (!$membetType) {
                     return redirect()->back()->with('delete', 'Member type not found. Please contact administrator.');
+                }
+
+                if ($requiresStudentVerification && (empty($userSociety?->id_card_document) || empty($userSociety?->official_letter_document))) {
+                    return redirect()->back()->with('delete', 'Please upload your ID card and official letter before registering for the conference.');
                 }
                 
                 $memberTypePrice = ConferenceMemberTypePrice::where(['conference_id' => $conference->id, 'member_type_id' => $membetType->id])->first();
@@ -308,7 +318,7 @@ class ConferenceRegistrationController extends Controller
                 if (empty($checkDuplicateRegistration)) {
                     $authUser = current_user();
                     $validated['user_id'] = $authUser->id;
-                    $validated['verified_status'] = $validated['payment_type'] == 6 ? 0 : 1;
+                    $validated['verified_status'] = $requiresStudentVerification || $validated['payment_type'] == 6 ? 0 : 1;
                     $validated['conference_id'] = $conference->id;
                     $validated['total_attendee'] = empty($request->accompany_person) ? 1 : $request->accompany_person + 1;
                     $validated['token'] = random_word(60);
@@ -481,6 +491,7 @@ class ConferenceRegistrationController extends Controller
                         'addons'           => $addonsData,
                         'workshop'         => $workshopData,
                         'accompany' => $accompanyData,
+                        'verified_status'  => $validated['verified_status'],
                         'serviceCharge' => $authUser->userDetail->country_id != 125 ? $validated['amount'] * 0.035 : null
                     ];
 
@@ -678,9 +689,15 @@ class ConferenceRegistrationController extends Controller
 
             $conferenceSetting = ConferenceSetting::where('conference_id', $conference->id)->first();
             $membetType = current_user()->societies->where('id', $conference->society_id)->first()?->pivot?->memberType;
+            $userSociety = current_user()->societies->where('id', $conference->society_id)->first()?->pivot;
+            $requiresStudentVerification = (bool) ($membetType?->requires_student_verification ?? false);
             $memberTypePrice = ConferenceMemberTypePrice::where(['conference_id' => $conference->id, 'member_type_id' => $membetType->id])->first();
             if (!empty($checkDuplicateRegistration) && empty($outstandingRegistration)) {
                 return redirect()->back()->with('delete', 'Registration already done for current conference.');
+            }
+
+            if ($requiresStudentVerification && (empty($userSociety?->id_card_document) || empty($userSociety?->official_letter_document))) {
+                return redirect()->back()->with('delete', 'Please upload your ID card and official letter before registering for the conference.');
             }
 
             // Validation rules
@@ -706,7 +723,7 @@ class ConferenceRegistrationController extends Controller
             // Authenticated user
             $authUser = current_user();
             $validated['user_id']         = $authUser->id;
-            $validated['verified_status'] = 1;
+            $validated['verified_status'] = $requiresStudentVerification ? 0 : 1;
             $validated['conference_id']   = $conference->id;
             $validated['total_attendee']  = empty($outstandingRegistration)
                 ? (empty($request->accompany_person) ? 1 : $request->accompany_person + 1)
@@ -874,7 +891,8 @@ class ConferenceRegistrationController extends Controller
                 'conferenceAmount' => $conferenceAmount,
                 'addons'           => $addonsData,
                 'workshop'         => $workshopData,
-                'accompany'        => $accompanyData
+                'accompany'        => $accompanyData,
+                'verified_status'  => $validated['verified_status']
             ];
             
             DB::beginTransaction();
@@ -997,9 +1015,11 @@ class ConferenceRegistrationController extends Controller
 
             return redirect()
                 ->route('my-society.conference.index', [$society, $conference])
-                ->with('status', empty($outstandingRegistration)
-                    ? 'Successfully registered to conference.'
-                    : 'Outstanding payment completed successfully.');
+                ->with('status', $requiresStudentVerification
+                    ? 'Successfully registered to conference. Verification is pending.'
+                    : (empty($outstandingRegistration)
+                        ? 'Successfully registered to conference.'
+                        : 'Outstanding payment completed successfully.'));
         } catch (Exception $e) {
             DB::rollBack();
             throw $e;
