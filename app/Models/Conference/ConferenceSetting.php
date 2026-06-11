@@ -25,6 +25,7 @@ class ConferenceSetting extends Model
         'cpd_points_required',
         'show_stats_dashboard',
         'addon_availability',
+        'gala_dinner_enabled',
         'submission_cc_emails',
         'reviewer_assignment_cc_emails',
         'conference_registration_cc_emails',

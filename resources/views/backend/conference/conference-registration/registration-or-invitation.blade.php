@@ -546,7 +546,7 @@
 
             $('#country_id').on('change', function() {
                 var country_id = $(this).val();
-                var memberTypeId = '{{ old('member_type_id') }}';
+                var memberTypeId = @json(old('member_type_id'));
                 if (!country_id) return;
                 $.ajax({
                     type: 'GET',
@@ -555,9 +555,7 @@
                         country_id: country_id
                     },
                     success: function(response) {
-                        $('#member_type_id').empty().append(
-                            '<option value=""  hidden>-- Select Member Type --</option>');
-                        var optionsHtml;
+                        var optionsHtml = '<option value="" hidden>-- Select Member Type --</option>';
                         if (response.type === 'success' && response.data.length > 0) {
                             $.each(response.data, function(index, item) {
                                 var selected = (item.id ==
@@ -565,10 +563,10 @@
                                 optionsHtml += '<option value="' + item
                                     .id + '" ' + selected + '>' + item
                                     .type + '</option>';
-                                $('#member_type_id').append(optionsHtml);
                             });
+                            $('#member_type_id').empty().append(optionsHtml);
                         } else {
-                            $('#member_type_id').append(
+                            $('#member_type_id').empty().append(
                                 '<option disabled>No Member Types Found</option>');
                         }
                     },

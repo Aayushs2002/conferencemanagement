@@ -34,15 +34,47 @@
             <div class="col-md-4 mb-4">
                 <p class="text-primary mb-1"><i class="i-ID-2 text-14 mr-1"></i>Membership Type</p>
                 @php
-                    $userSociety = $registrant->user->societies->first();
+                    $userSociety = $registrant->user->societies->where('id', $registrant->conference->society_id)->first();
                     $memberType = $userSociety?->pivot?->memberType;
                 @endphp
-                <span>{{ $memberType->type }}</span>
+                <span>{{ $memberType?->type ?? '-' }}</span>
             </div>
             <div class="col-md-4 mb-4">
                 <p class="text-primary mb-1"><i class="i-ID-2 text-14 mr-1"></i>Invitation Category</p>
                 <span>{{ $registrant->invitationCategory?->name ?? '-' }}</span>
             </div>
+            {{-- <div class="col-12 mt-2">
+                <h6>Verification Documents</h6>
+                <hr class="mt-0" style="height:1px;border:none;color:#333;background-color:#333;" />
+            </div> --}}
+
+            <div class="col-md-6 mb-4">
+                @if ($userSociety && $userSociety->pivot && $userSociety->pivot->id_card_document)
+                <p class="text-primary mb-1"><i class="i-File-Text text-16 mr-1"></i>ID Card Document</p>
+                    <a href="{{ asset('storage/society/student-verification/' . $userSociety->pivot->id_card_document) }}"
+                        class="btn btn-sm btn-outline-primary" target="_blank">
+                        View ID Card
+                    </a>
+                @endif
+            </div>
+
+            <div class="col-md-6 mb-4">
+                @if ($userSociety && $userSociety->pivot && $userSociety->pivot->official_letter_document)
+                <p class="text-primary mb-1"><i class="i-File-Text text-16 mr-1"></i>Approval Letter Document</p>
+                    <a href="{{ asset('storage/society/student-verification/' . $userSociety->pivot->official_letter_document) }}"
+                        class="btn btn-sm btn-outline-primary" target="_blank">
+                        View Approval Letter
+                    </a>
+                @endif
+            </div>
+
+            @if ($userSociety && $userSociety->pivot && $userSociety->pivot->documents_uploaded_at)
+                <div class="col-12 mb-2">
+                    <small class="text-muted">Documents updated on:
+                        {{ \Carbon\Carbon::parse($userSociety->pivot->documents_uploaded_at)->format('M d, Y h:i A') }}</small>
+                </div>
+            @endif
+
             <div class="col-md-12 mb-4">
                 <p class="text-primary mb-1"><i class="i-ID-2 text-14 mr-1"></i>Addons</p>
                 @if($registrant->addons->isNotEmpty())

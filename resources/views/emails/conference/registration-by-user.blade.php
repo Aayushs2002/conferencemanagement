@@ -26,12 +26,21 @@
     </p>
 
     {{-- Payment Status --}}
-    @if (strtolower($data['paymentType']) == 'bank transfer')
+    @php
+        $isPendingVerification = (($data['verified_status'] ?? 1) == 0)
+            || strtolower($data['paymentType'] ?? '') == 'bank transfer';
+    @endphp
+
+    @if ($isPendingVerification)
         <p>
             We have received your registration details and your selected payment method is
             <strong>{{ $data['paymentType'] }}</strong>.
             Your registration is currently <strong>pending verification</strong>.
-            Once your payment is reviewed and approved, you will receive a confirmation email.
+            @if (strtolower($data['paymentType'] ?? '') == 'bank transfer')
+                Once your payment is reviewed and approved, you will receive a confirmation email.
+            @else
+                Once your registration details and documents are reviewed and approved, you will receive a confirmation email.
+            @endif
         </p>
     @else
         <p>

@@ -276,6 +276,15 @@
                         </p>
                     </div>
                     <div class="card-body">
+                        @if (!empty($requiresStudentVerification))
+                            <div class="alert alert-warning mb-4">
+                                <i class="fas fa-exclamation-triangle"></i>
+                                <strong>Verification Required:</strong>
+                                This member type requires student/resident verification. Your conference registration
+                                will remain pending until your documents are reviewed.
+                            </div>
+                        @endif
+
                         <!-- Registration Summary Card -->
                         <div id="registrationSummary" class="summary-card mt-5" style="display: none;">
                             <h5 class="mb-3">
@@ -285,8 +294,9 @@
                                 <div class="col-md-6">
                                     <p><strong>📋 Conference:</strong> {{ $conference->conference_name ?? 'N/A' }}</p>
                                     <p><strong>👤 Type:</strong> <span id="summaryRegistrantType">-</span></p>
-                                    <p><strong>🎯 Registration Type:</strong> <span id="summaryWorkshops">Conference
-                                            Only</span></p>
+                                    <p><strong>🎯 Registration Type:</strong> <span id="summaryWorkshops">
+                                            {{ $galaDinnerEnabled ? 'Conference + Gala Dinner' : 'Conference Only' }}
+                                        </span></p>
                                 </div>
                                 <div class="col-md-6">
                                     <p><strong>👥 Total Attendees:</strong> <span id="summaryAttendees">1</span></p>
@@ -323,7 +333,7 @@
                                         </label>
                                         <div class="card">
                                             <div class="card-body" style="max-height: 250px; overflow-y: auto;">
-                                                <!-- Conference Only Option -->
+                                                <!-- Conference Only / Gala Dinner Option -->
                                                 <div class="form-check mb-2 p-2 rounded workshop-selection-card">
                                                     <input class="form-check-input workshop-checkbox" type="checkbox"
                                                         name="selected_workshops[]" value="" id="conference_only"
@@ -332,9 +342,12 @@
                                                         class="form-check-label d-flex justify-content-between align-items-center w-100"
                                                         for="conference_only">
                                                         <div>
-                                                            <strong>Conference Only</strong>
+                                                            <strong>
+                                                                {{ $galaDinnerEnabled ? 'Conference + Gala Dinner' : 'Conference Only' }}
+                                                            </strong>
                                                             <br><small class="text-muted">Attend conference sessions without
-                                                                workshops</small>
+                                                                workshops
+                                                                {{ $galaDinnerEnabled ? 'and enjoy gala dinner' : '' }}</small>
                                                         </div>
                                                         <span class="badge bg-success ms-2">Included</span>
                                                     </label>
@@ -1566,7 +1579,7 @@
             function updateRegistrationSummary() {
                 const totalAttendees = parseInt($('#total_attendee').val() || 0) + 1;
 
-                let workshopText = 'Conference Only';
+                let workshopText = @json($galaDinnerEnabled ? 'Conference + Gala Dinner' : 'Conference Only');
                 let addOnText = 'None';
 
                 // Handle multiple workshops

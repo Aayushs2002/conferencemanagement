@@ -241,6 +241,23 @@
                 </small>
             </div>
 
+            <div class="col-md-6 mb-4">
+                <label>Gala Dinner in Registration <code>*</code></label>
+                <input type="hidden" name="gala_dinner_enabled" value="0">
+                <div class="form-check form-switch mt-2">
+                    <input class="form-check-input" type="checkbox" name="gala_dinner_enabled"
+                        id="gala_dinner_enabled" value="1"
+                        {{ ($conferenceSetting?->gala_dinner_enabled ?? 0) == 1 ? 'checked' : '' }}>
+                    <label class="form-check-label" for="gala_dinner_enabled">
+                        Show Gala Dinner as part of conference registration
+                    </label>
+                </div>
+                <small class="text-muted">
+                    <i class="ti tabler-info-circle"></i>
+                    When enabled, registration will show Conference + Gala Dinner. Otherwise it shows Conference Only.
+                </small>
+            </div>
+
             <div class="col-12 mt-3">
                 <h6>11. Email Notification CC Settings</h6>
                 <hr class="mt-0" style="height:1px;border:none;color:#333;background-color:#333;" />

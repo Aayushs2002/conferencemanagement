@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Backend\Participant;
 use App\Http\Controllers\Controller;
 use App\Models\Conference\Conference;
 use App\Models\User;
+use App\Models\User\MemberType;
 use App\Models\User\UserSociety;
 use App\Services\File\FileService;
 use Illuminate\Http\Request;
@@ -57,16 +58,21 @@ class MySocietyController extends Controller
     public function joinSocietySubmit(Request $request)
     {
         try {
+            $memberType = MemberType::find($request->member_type_id);
+            $requiresVerification = (bool) ($memberType?->requires_student_verification ?? false);
+
             $validator = Validator::make($request->all(), [
                 'society_id' => 'required',
                 'member_type_id' => 'required',
-                'id_card_document' => 'nullable|mimes:jpg,jpeg,png,pdf|max:5120',
-                'official_letter_document' => 'nullable|mimes:jpg,jpeg,png,pdf|max:5120',
+                'id_card_document' => [$requiresVerification ? 'required' : 'nullable', 'mimes:jpg,jpeg,png,pdf', 'max:5120'],
+                'official_letter_document' => [$requiresVerification ? 'required' : 'nullable', 'mimes:jpg,jpeg,png,pdf', 'max:5120'],
             ], [
                 'society_id.required' => 'Please select society.',
                 'member_type_id.required' => 'Please select Member Type.',
+                'id_card_document.required' => 'ID Card is required for this member type.',
                 'id_card_document.mimes' => 'ID card must be JPG, PNG, or PDF.',
                 'id_card_document.max' => 'ID card file size must not exceed 5MB.',
+                'official_letter_document.required' => 'Official Letter is required for this member type.',
                 'official_letter_document.mimes' => 'Official letter must be JPG, PNG, or PDF.',
                 'official_letter_document.max' => 'Official letter file size must not exceed 5MB.',
             ]);

@@ -41,6 +41,8 @@ class MemberTypeController extends Controller
         try {
             $req = $request->all();
             $req['society_id'] = $society->id;
+            $req['is_society_member'] = $request->boolean('is_society_member');
+            $req['requires_student_verification'] = $request->boolean('requires_student_verification');
             $req['display_order'] = (int) (MemberType::where('society_id', $society->id)->max('display_order') ?? 0) + 1;
             MemberType::create($req);
 
@@ -65,6 +67,8 @@ class MemberTypeController extends Controller
     {
         try {
             $req = $request->all();
+            $req['is_society_member'] = $request->boolean('is_society_member');
+            $req['requires_student_verification'] = $request->boolean('requires_student_verification');
 
             $memberType->update($req);
 
