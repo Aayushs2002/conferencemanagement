@@ -161,6 +161,8 @@
                                                             class="icon-base ti tabler-archive-off me-1"></i> Unarchive</a>
                                                 </form>
                                             </div>
+                                             <a href="{{ route('conference.openConferencePortal', [$society, $conference]) }}"
+                                                class="btn btn-info btn-sm mt-1">Open Portal</a>
                                         </div>
                                     </td> 
                                 </tr>
