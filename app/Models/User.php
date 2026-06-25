@@ -72,11 +72,10 @@ class User extends Authenticatable
     {
         $this->notify(new CustomResetPassword($token));
     }
-    public function fullName($user)
-    {
-        $name = $user->f_name . ' ' . $user->m_name . ' ' . $user->l_name;
-        return $name;
-    }
+  public function fullName($user)
+{
+    return ucwords(trim($user->f_name . ' ' . $user->m_name . ' ' . $user->l_name));
+}
 
     public function userDetail()
     {
