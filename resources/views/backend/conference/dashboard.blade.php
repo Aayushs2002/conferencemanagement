@@ -627,7 +627,15 @@
                                     </p>
                                 </div> 
                                 <div class="text-end">
-                                    @if (checkRegistrations($conference))
+                                    @php
+                                        $_isInvited = $userRegistration && $userRegistration->is_invited;
+                                        $_invitationPending = $_isInvited && is_null($userRegistration->invitation_accepted_at) && $userRegistration->verified_status == 0;
+                                    @endphp
+                                    @if ($_invitationPending)
+                                        <span class="badge bg-warning bg-opacity-10 text-white px-4 py-2 fs-6">
+                                            <i class="icon-base ti tabler-mail me-2"></i>Invitation Pending
+                                        </span>
+                                    @elseif (checkRegistrations($conference))
                                         <span class="badge bg-success bg-opacity-10 text-white px-4 py-2 fs-6">
                                             <i class="icon-base ti tabler-check me-2"></i>Registered
                                         </span>
@@ -650,68 +658,110 @@
                 <div class="col-lg-4 col-md-6">
                     <div class="card border-0 shadow-sm h-100 hover-shadow transition-all" style="transition: all 0.3s ease;">
                         <div class="card-body p-4">
-                            <div class="d-flex align-items-center justify-content-between mb-3">
-                                <div class="bg-primary bg-opacity-10 rounded-circle p-3">
-                                    <i class="icon-base ti tabler-user-check text-primary fs-4"></i>
-                                </div>
-                                @if (checkRegistrations($conference))
-                                    <span class="badge bg-success rounded-pill px-3 py-2">Active</span>
-                                @else
-                                    <span class="badge bg-warning rounded-pill px-3 py-2">Pending</span>
-                                @endif
-                            </div>
-                            <h6 class="fw-semibold text-muted mb-2">Registration Status</h6>
-                            @if (checkRegistrations($conference))
-                                <h5 class="fw-bold text-success mb-0">
-                                    <i class="icon-base ti tabler-circle-check me-1"></i>Confirmed
-                                </h5>
-                                <div class="mt-3 p-3 rounded-3 border" style="background: #f8fafc;">
-                                    @php
-                                        $currencyCode = $registrationFinancialSummary['currency'] ?? 'USD';
-                                        $currencySymbol = $currencyCode === 'INR' ? 'INR' : '$';
-                                        $baseAmount = (float) ($registrationFinancialSummary['base_amount'] ?? 0);
-                                        $addonAmount = (float) ($registrationFinancialSummary['addon_amount'] ?? 0);
-                                        $accompanyAmount = (float) ($registrationFinancialSummary['accompany_amount'] ?? 0);
-                                        $hasBreakdownRows = $baseAmount > 0 || $addonAmount > 0 || $accompanyAmount > 0;
-                                    @endphp
-                                    @if($baseAmount > 0)
-                                        <div class="d-flex justify-content-between small mb-1">
-                                            <span class="text-muted">Base Amount</span>
-                                            <span class="fw-semibold">{{ $currencySymbol }} {{ number_format($baseAmount, 2) }}</span>
-                                        </div>
-                                    @endif
-                                    @if($addonAmount > 0)
-                                        <div class="d-flex justify-content-between small mb-1">
-                                            <span class="text-muted">Add-ons</span>
-                                            <span class="fw-semibold">{{ $currencySymbol }} {{ number_format($addonAmount, 2) }}</span>
-                                        </div>
-                                    @endif
-                                    @if($accompanyAmount > 0)
-                                        <div class="d-flex justify-content-between small mb-1">
-                                            <span class="text-muted">Accompanying</span>
-                                            <span class="fw-semibold">{{ $currencySymbol }} {{ number_format($accompanyAmount, 2) }}</span>
-                                        </div>
-                                    @endif
-                                    @if($hasBreakdownRows)
-                                        <hr class="my-2">
-                                    @endif
-                                    <div class="d-flex justify-content-between small">
-                                        <span class="fw-semibold">Total Paid</span>
-                                        <span class="fw-bold text-success">{{ $currencySymbol }} {{ number_format($registrationFinancialSummary['total_amount'] ?? 0, 2) }}</span>
+                            @php
+                                $isInvited = $userRegistration && $userRegistration->is_invited;
+                                $invitationPending = $isInvited && is_null($userRegistration->invitation_accepted_at) && $userRegistration->verified_status == 0;
+                                $invitationDeclined = $isInvited && $userRegistration->verified_status == 2;
+                                $invitationAccepted = $isInvited && !is_null($userRegistration->invitation_accepted_at);
+                            @endphp
+
+                            @if ($invitationPending)
+                                <div class="text-center">
+                                    <div class="bg-warning bg-opacity-10 rounded-circle p-3 mx-auto mb-3" style="width: fit-content;">
+                                        <i class="icon-base ti tabler-mail text-warning fs-4"></i>
                                     </div>
+                                    <h6 class="fw-semibold text-muted mb-1">Conference Invitation</h6>
+                                    <p class="small text-muted mb-3">
+                                        You have been invited to <strong>{{ $conference->conference_name }}</strong>.
+                                        Please accept or decline this invitation.
+                                    </p>
+                                    <input type="hidden" id="invitationToken" value="{{ $userRegistration->invitation_response_token }}"
+                                        data-accept-url="{{ route('invitation.accept', '__TOKEN__') }}"
+                                        data-decline-url="{{ route('invitation.decline', '__TOKEN__') }}">
+                                    <div class="d-flex gap-2 justify-content-center">
+                                        <button type="button" id="acceptInvitationBtn" class="btn btn-success btn-sm rounded-pill px-4">
+                                            <i class="icon-base ti tabler-check me-1"></i>Accept
+                                        </button>
+                                        <button type="button" id="declineInvitationBtn" class="btn btn-outline-danger btn-sm rounded-pill px-4">
+                                            <i class="icon-base ti tabler-x me-1"></i>Decline
+                                        </button>
+                                    </div>
+                                    <div id="invitationFeedback" class="mt-2 small"></div>
                                 </div>
-                                @if(!empty($userRegistration?->amount))
-                                    <a href="{{ route('conference.downloadMyPaymentVoucher', [$society, $conference]) }}"
-                                       class="btn btn-sm btn-outline-primary rounded-pill mt-3 px-3">
-                                        <i class="icon-base ti tabler-download me-1"></i>Download Payment Voucher
+                            @elseif ($invitationDeclined)
+                                <div class="text-center">
+                                    <div class="bg-danger bg-opacity-10 rounded-circle p-3 mx-auto mb-3" style="width: fit-content;">
+                                        <i class="icon-base ti tabler-mail-x text-danger fs-4"></i>
+                                    </div>
+                                    <h6 class="fw-semibold text-muted mb-1">Registration Status</h6>
+                                    <h5 class="fw-bold text-danger mb-0">
+                                        <i class="icon-base ti tabler-circle-x me-1"></i>Invitation Declined
+                                    </h5>
+                                </div>
+                            @else
+                                <div class="d-flex align-items-center justify-content-between mb-3">
+                                    <div class="bg-primary bg-opacity-10 rounded-circle p-3">
+                                        <i class="icon-base ti tabler-user-check text-primary fs-4"></i>
+                                    </div>
+                                    @if (checkRegistrations($conference))
+                                        <span class="badge bg-success rounded-pill px-3 py-2">Active</span>
+                                    @else
+                                    <span></span>
+                                    @endif
+                                </div>
+                                <h6 class="fw-semibold text-muted mb-2">Registration Status</h6>
+                                @if (checkRegistrations($conference))
+                                    <h5 class="fw-bold text-success mb-0">
+                                        <i class="icon-base ti tabler-circle-check me-1"></i>{{ $invitationAccepted ? 'Invitation Accepted' : 'Confirmed' }}
+                                    </h5>
+                                    <div class="mt-3 p-3 rounded-3 border" style="background: #f8fafc;">
+                                        @php
+                                            $currencyCode = $registrationFinancialSummary['currency'] ?? 'USD';
+                                            $currencySymbol = $currencyCode === 'INR' ? 'INR' : '$';
+                                            $baseAmount = (float) ($registrationFinancialSummary['base_amount'] ?? 0);
+                                            $addonAmount = (float) ($registrationFinancialSummary['addon_amount'] ?? 0);
+                                            $accompanyAmount = (float) ($registrationFinancialSummary['accompany_amount'] ?? 0);
+                                            $hasBreakdownRows = $baseAmount > 0 || $addonAmount > 0 || $accompanyAmount > 0;
+                                        @endphp
+                                        @if($baseAmount > 0)
+                                            <div class="d-flex justify-content-between small mb-1">
+                                                <span class="text-muted">Base Amount</span>
+                                                <span class="fw-semibold">{{ $currencySymbol }} {{ number_format($baseAmount, 2) }}</span>
+                                            </div>
+                                        @endif
+                                        @if($addonAmount > 0)
+                                            <div class="d-flex justify-content-between small mb-1">
+                                                <span class="text-muted">Add-ons</span>
+                                                <span class="fw-semibold">{{ $currencySymbol }} {{ number_format($addonAmount, 2) }}</span>
+                                            </div>
+                                        @endif
+                                        @if($accompanyAmount > 0)
+                                            <div class="d-flex justify-content-between small mb-1">
+                                                <span class="text-muted">Accompanying</span>
+                                                <span class="fw-semibold">{{ $currencySymbol }} {{ number_format($accompanyAmount, 2) }}</span>
+                                            </div>
+                                        @endif
+                                        @if($hasBreakdownRows)
+                                            <hr class="my-2">
+                                        @endif
+                                        <div class="d-flex justify-content-between small">
+                                            <span class="fw-semibold">Total Paid</span>
+                                            <span class="fw-bold text-success">{{ $currencySymbol }} {{ number_format($registrationFinancialSummary['total_amount'] ?? 0, 2) }}</span>
+                                        </div>
+                                    </div>
+                                    @if(!empty($userRegistration?->amount))
+                                        <a href="{{ route('conference.downloadMyPaymentVoucher', [$society, $conference]) }}"
+                                           class="btn btn-sm btn-outline-primary rounded-pill mt-3 px-3">
+                                            <i class="icon-base ti tabler-download me-1"></i>Download Payment Voucher
+                                        </a>
+                                    @endif
+                                @else
+                                    <h5 class="fw-bold text-warning mb-0">Not Registered</h5>
+                                    <a href="{{ route('my-society.conference.create', [$society, $conference]) }}" 
+                                       class="btn btn-sm btn-primary rounded-pill mt-3 px-3">
+                                        <i class="icon-base ti tabler-plus me-1"></i>Register Now
                                     </a>
                                 @endif
-                            @else
-                                <h5 class="fw-bold text-warning mb-0">Not Registered</h5>
-                                <a href="{{ route('my-society.conference.create', [$society, $conference]) }}" 
-                                   class="btn btn-sm btn-primary rounded-pill mt-3 px-3">
-                                    <i class="icon-base ti tabler-plus me-1"></i>Register Now
-                                </a>
                             @endif
                         </div>
                     </div>
@@ -1958,5 +2008,65 @@
                 });
             }
         @endif
+    </script>
+
+    <script>
+        $(document).ready(function() {
+            const $acceptBtn = $('#acceptInvitationBtn');
+            const $declineBtn = $('#declineInvitationBtn');
+
+            function handleInvitation(action) {
+                const token = $('#invitationToken').val();
+                const $btn = action === 'accept' ? $acceptBtn : $declineBtn;
+                const url = $('#invitationToken').data(action + '-url').replace('__TOKEN__', token);
+
+                $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span>Processing...');
+                $('#invitationFeedback').html('');
+
+                $.ajax({
+                    type: 'POST',
+                    url: url,
+                    data: {
+                        _token: '{{ csrf_token() }}'
+                    },
+                    dataType: 'json',
+                    success: function(response) {
+                        if (response.type === 'success') {
+                            if (response.redirect) {
+                                window.location.href = response.redirect;
+                            } else {
+                                setTimeout(function() {
+                                    window.location.reload();
+                                }, 1000);
+                            }
+                        } else {
+                            $('#invitationFeedback').html(
+                                '<span class="text-danger">' + response.message + '</span>'
+                            );
+                            $btn.prop('disabled', false).html(action === 'accept'
+                                ? '<i class="icon-base ti tabler-check me-1"></i>Accept'
+                                : '<i class="icon-base ti tabler-x me-1"></i>Decline');
+                        }
+                    },
+                    error: function(xhr) {
+                        const msg = xhr.responseJSON?.message || 'Something went wrong. Please try again.';
+                        $('#invitationFeedback').html('<span class="text-danger">' + msg + '</span>');
+                        $btn.prop('disabled', false).html(action === 'accept'
+                            ? '<i class="icon-base ti tabler-check me-1"></i>Accept'
+                            : '<i class="icon-base ti tabler-x me-1"></i>Decline');
+                    }
+                });
+            }
+
+            $acceptBtn.on('click', function() {
+                handleInvitation('accept');
+            });
+
+            $declineBtn.on('click', function() {
+                if (confirm('Are you sure you want to decline this invitation?')) {
+                    handleInvitation('decline');
+                }
+            });
+        });
     </script>
 @endsection

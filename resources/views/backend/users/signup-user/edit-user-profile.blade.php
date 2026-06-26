@@ -188,6 +188,18 @@
                     @enderror
                 </div>
                 <div class="col-md-4 form-group mb-3">
+                    <label for="image">Photo</label>
+                    @if ($user->userDetail->image)
+                        <div class="mb-2">
+                            <img src="{{ asset('storage/profile/image/' . $user->userDetail->image) }}" alt="Current Photo" style="width: 80px; height: 80px; object-fit: cover; border-radius: 4px;">
+                        </div>
+                    @endif
+                    <input type="file" class="form-control @error('image') is-invalid @enderror" name="image" id="image" accept="image/jpeg,image/png,image/jpg" />
+                    @error('image')
+                        <p class="text-danger">{{ $message }}</p>
+                    @enderror
+                </div>
+                <div class="col-md-4 form-group mb-3">
                     <label for="country_id">Country <code>*</code></label>
                     <select class="form-control" name="country_id" id="country_id" required>
                         <option value="">-- Select Country --</option>
@@ -351,6 +363,19 @@
             });
         });
         
+        // Preview new image on file selection
+        $('#image').on('change', function() {
+            const [file] = this.files;
+            if (file) {
+                const $preview = $(this).closest('.form-group').find('img');
+                if ($preview.length) {
+                    $preview.attr('src', URL.createObjectURL(file));
+                } else {
+                    $(this).before('<div class="mb-2"><img src="' + URL.createObjectURL(file) + '" alt="New Photo" style="width: 80px; height: 80px; object-fit: cover; border-radius: 4px;"></div>');
+                }
+            }
+        });
+
         // Trigger change event after a short delay to ensure DOM is ready
         setTimeout(function() {
             $("#country_id").trigger('change');

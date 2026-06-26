@@ -22,24 +22,58 @@ class SubmissionRequest extends FormRequest
     public function rules(): array
     {
         $conferenceId = $this->route('conference')->id;
-        $submission = $this->route('submission'); // Get submission if editing
-        $isUpdating = $this->isMethod('patch') || $this->isMethod('put'); // Check if it's an update request
-        // dd($isUpdating);
+        $submission = $this->route('submission');
+        $isUpdating = $this->isMethod('patch') || $this->isMethod('put');
+        $isDraft = $this->boolean('is_draft');
+
+        if ($isDraft) {
+            return [
+                'title' => 'nullable|string|max:255',
+                'article_type_id' => 'nullable',
+                'submission_category_major_track_id' => 'nullable',
+                'presentation_type' => 'nullable',
+                'competition_type' => 'nullable',
+                'keywords' => 'nullable',
+                'image' => 'nullable|mimes:jpg,jpeg,png,pdf|max:250',
+                'sections' => 'nullable|array',
+                'sections.*.content' => 'nullable|string',
+                'sections.*.name' => 'nullable|string',
+                'sections.*.word_limit' => 'nullable|integer',
+                'abstract_content' => 'nullable|string',
+                'video_link' => 'nullable|url|max:500',
+                'conflict_of_interest' => 'nullable|string',
+                'source_of_funding' => 'nullable|string',
+                'has_conflict_of_interest' => 'nullable|in:yes,no',
+                'has_source_of_funding' => 'nullable|in:yes,no',
+                'main_author' => 'nullable|in:0,1',
+                'main_presenter' => 'nullable|in:0,1',
+                'authors' => 'nullable|array',
+                'authors.*.name' => 'nullable|string',
+                'authors.*.email' => 'nullable|email',
+                'authors.*.phone' => 'nullable|string',
+                'authors.*.designation' => 'nullable|string',
+                'authors.*.institution' => 'nullable|string',
+                'authors.*.institution_address' => 'nullable|string',
+                'authors.*.main_author' => 'nullable|in:0,1',
+                'authors.*.main_presenter' => 'nullable|in:0,1',
+                'authors.*.contributions' => 'nullable|array',
+                'authors.*.contribution_other_checkbox' => 'nullable',
+                'authors.*.contribution_other_text' => 'nullable',
+                'is_draft' => 'nullable|boolean',
+                'collaborative_partner' => 'nullable|string',
+            ];
+        }
 
         $setting = \App\Models\SubmissionSetting::where('conference_id', $conferenceId)
             ->select('attachment_name', 'attachment_required', 'competition_enabled', 'contribution_enabled')
             ->first();
 
-        // Default image rule
         $imageRule = 'nullable|mimes:jpg,jpeg,png,pdf|max:250';
 
-        // Check submission setting first (fallback)
         if ($setting && $setting->attachment_name && $setting->attachment_required == 1) {
-            // If updating and image already exists, make it optional
             if ($isUpdating && $submission && $submission->image) {
                 $imageRule = 'nullable|mimes:jpg,jpeg,png,pdf|max:250';
             } else {
-                // dd(123);
                 $imageRule = 'required|mimes:jpg,jpeg,png,pdf|max:250';
             }
         }
