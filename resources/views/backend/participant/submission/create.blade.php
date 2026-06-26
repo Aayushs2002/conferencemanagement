@@ -331,12 +331,19 @@
                         @endif
                         <div class="row">
                             <div class="col-12 text-end">
+                                <input type="hidden" name="is_draft" id="isDraftInput" value="0">
                                 @if (!isset($submission))
+                                    <button type="button" id="saveDraftBtn" class="btn btn-secondary me-2">
+                                        <i class="ti tabler-file me-1"></i>Save as Draft
+                                    </button>
                                     <button type="button" id="previewBtn" class="btn btn-primary">
                                         <i class="ti tabler-eye me-1"></i>Preview Submission
                                     </button>
                                 @else
-                                    <button type="submit" class="btn btn-primary">
+                                    <button type="button" id="saveDraftBtn" class="btn btn-secondary me-2">
+                                        <i class="ti tabler-file me-1"></i>Save as Draft
+                                    </button>
+                                    <button type="submit" class="btn btn-primary" id="updateSubmitBtn">
                                         <i class="ti tabler-device-floppy me-1"></i>Update
                                     </button>
                                 @endif
@@ -605,6 +612,13 @@
                 $('#' + errorId).text('');
             });
 
+            // Save as Draft button click handler
+            $('#saveDraftBtn').on('click', function(e) {
+                e.preventDefault();
+                $('#isDraftInput').val('1');
+                $('form.needs-validation')[0].submit();
+            });
+
             // Preview button click handler
             $('#previewBtn').on('click', function(e) {
                 e.preventDefault();
@@ -635,6 +649,7 @@
                     form.submit();
                 }, 100);
             });
+
         });
 
         function showPreview() {
@@ -820,10 +835,12 @@
             return String(text).replace(/[&<>"']/g, m => map[m]);
         }
 
+        var tagifyInstance = null;
+
         function initializeTagify() {
             const keywordInput = document.querySelector('#keyWord');
             if (keywordInput) {
-                new Tagify(keywordInput, {
+                tagifyInstance = new Tagify(keywordInput, {
                     maxTags: {{ @$setting->key_word_limit ?? 9999 }}
                 });
             }

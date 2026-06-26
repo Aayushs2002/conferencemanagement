@@ -78,6 +78,8 @@ Route::middleware('auth')->group(function () {
         Route::post('/submission/store', 'store')->name('store');
         Route::get('/submission/{submission}/edit', 'edit')->name('edit');
         Route::patch('/submission/{submission}/update', 'update')->name('update');
+        Route::post('/submission/{submission}/submit-draft', 'submitDraft')->name('submitDraft');
+        Route::delete('/submission/{submission}/destroy-draft', 'destroyDraft')->name('destroyDraft');
         Route::post('/submission/view', 'view')->name('view');
         Route::post('/submission/review', 'review')->name('review');
         Route::post('/submission/review-submit', 'reviewSubmit')->name('reviewSubmit');

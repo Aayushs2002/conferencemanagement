@@ -317,20 +317,19 @@
                                        Presentation Type</a>
                                @endif
                            </td>
-                           <td>
-                               @if ($submission->request_status === 0)
-                                   <span class="badge fw-light bg-primary text-white">Pending</span>
-                               @endif
-                               @if ($submission->request_status === 1)
-                                   <span class="badge fw-light bg-success text-white">Accepted</span>
-                               @endif
-                               @if ($submission->request_status === 2)
-                                   <span class="badge fw-light bg-warning text-white">Correction</span>
-                               @endif
-                               @if ($submission->request_status === 3)
-                                   <span class="badge fw-light bg-danger text-white">Rejected</span>
-                               @endif
-                           </td>
+                            <td>
+                                @if ($submission->is_draft)
+                                    <span class="badge fw-light bg-secondary text-white">Draft</span>
+                                @elseif ($submission->request_status === 0)
+                                    <span class="badge fw-light bg-primary text-white">Pending</span>
+                                @elseif ($submission->request_status === 1)
+                                    <span class="badge fw-light bg-success text-white">Accepted</span>
+                                @elseif ($submission->request_status === 2)
+                                    <span class="badge fw-light bg-warning text-white">Correction</span>
+                                @elseif ($submission->request_status === 3)
+                                    <span class="badge fw-light bg-danger text-white">Rejected</span>
+                                @endif
+                            </td>
                            <td>
                                @if ($submission->presentation_type == 2 && $submission->request_status === 1)
                                    <div class="slide-panel">
@@ -382,66 +381,86 @@
                                    <span class="badge bg-label-secondary">Not Available</span>
                                @endif
                            </td>
-                           <td>
-                               <div class="dropdown">
-                                   <button type="button" class="btn p-0 dropdown-toggle hide-arrow"
-                                       data-bs-toggle="dropdown">
-                                       <i class="icon-base ti tabler-dots-vertical"></i>
-                                   </button>
-                                   <div class="dropdown-menu">
-                                       @if ($submission->expert_id != current_user()->id && $submission->request_status == 2)
-                                           <a class="dropdown-item"
-                                               href="{{ route('my-society.conference.submission.edit', [$society, $conference, $submission]) }}"><i
-                                                   class="icon-base ti tabler-pencil me-1"></i> Edit</a>
-                                       @endif
-                                       <a class="dropdown-item viewData" data-id="{{ $submission->id }}"
-                                           data-bs-toggle="modal" data-bs-target="#pricingModal"><i
-                                               class="icon-base ti tabler-eye me-1"></i>
-                                           View</a>
+                            <td>
+                                <div class="dropdown">
+                                    <button type="button" class="btn p-0 dropdown-toggle hide-arrow"
+                                        data-bs-toggle="dropdown">
+                                        <i class="icon-base ti tabler-dots-vertical"></i>
+                                    </button>
+                                    <div class="dropdown-menu">
+                                        @if ($submission->is_draft)
+                                            <a class="dropdown-item"
+                                                href="{{ route('my-society.conference.submission.edit', [$society, $conference, $submission]) }}">
+                                                <i class="icon-base ti tabler-pencil me-1"></i> Continue Editing
+                                            </a>
+                                            <a class="dropdown-item"
+                                                href="{{ route('my-society.conference.submission.edit', [$society, $conference, $submission]) }}">
+                                                <i class="icon-base ti tabler-send me-1"></i> Complete & Submit
+                                            </a>
+                                            <form action="{{ route('my-society.conference.submission.destroyDraft', [$society, $conference, $submission]) }}"
+                                                method="POST" class="d-inline"
+                                                onsubmit="return confirm('Are you sure you want to delete this draft?')">
+                                                @csrf
+                                                @method('delete')
+                                                <button type="submit" class="dropdown-item text-danger">
+                                                    <i class="icon-base ti tabler-trash me-1"></i> Delete Draft
+                                                </button>
+                                            </form>
+                                        @else
+                                            @if ($submission->expert_id != current_user()->id && $submission->request_status == 2)
+                                                <a class="dropdown-item"
+                                                    href="{{ route('my-society.conference.submission.edit', [$society, $conference, $submission]) }}"><i
+                                                        class="icon-base ti tabler-pencil me-1"></i> Edit</a>
+                                            @endif
+                                            <a class="dropdown-item viewData" data-id="{{ $submission->id }}"
+                                                data-bs-toggle="modal" data-bs-target="#pricingModal"><i
+                                                    class="icon-base ti tabler-eye me-1"></i>
+                                                View</a>
 
-                                       @if ($submission->presentation_type == 2 && $submission->request_status === 1)
-                                           <hr class="my-1">
-                                           <small class="dropdown-item-text"
-                                               style="font-size: 11px; color: #6b7280;">ORAL SLIDES</small>
-                                           <form
-                                               action="{{ route('my-society.conference.submission.uploadSlide', [$society, $conference, $submission]) }}"
-                                               method="POST" enctype="multipart/form-data"
-                                               class="slide-upload-form">
-                                               @csrf
-                                               <input type="file" name="slide_file" class="d-none slideFileInput"
-                                                   id="slideFileInput{{ $submission->id }}" accept=".ppt,.pptx,.pdf"
-                                                   required>
-                                               <label for="slideFileInput{{ $submission->id }}" class="dropdown-item"
-                                                   style="cursor: pointer;">
-                                                   <i class="icon-base ti tabler-upload icon-xs me-1"></i>
-                                                   {{ $submission->slide_file ? 'Replace Slides' : 'Upload Slides' }}
-                                               </label>
-                                           </form>
-                                           @if ($submission->slide_file)
-                                               <a href="{{ asset('storage/participant/submission/slides/' . $submission->slide_file) }}"
-                                                   target="_blank" class="dropdown-item">
-                                                   <i class="icon-base ti tabler-eye icon-xs me-1"></i>View Slides
-                                               </a>
-                                               <a href="{{ asset('storage/participant/submission/slides/' . $submission->slide_file) }}"
-                                                   download class="dropdown-item">
-                                                   <i class="icon-base ti tabler-download icon-xs me-1"></i>Download
-                                                   Slides
-                                               </a>
-                                           @endif
-                                       @endif
-                                   </div>
+                                            @if ($submission->presentation_type == 2 && $submission->request_status === 1)
+                                                <hr class="my-1">
+                                                <small class="dropdown-item-text"
+                                                    style="font-size: 11px; color: #6b7280;">ORAL SLIDES</small>
+                                                <form
+                                                    action="{{ route('my-society.conference.submission.uploadSlide', [$society, $conference, $submission]) }}"
+                                                    method="POST" enctype="multipart/form-data"
+                                                    class="slide-upload-form">
+                                                    @csrf
+                                                    <input type="file" name="slide_file" class="d-none slideFileInput"
+                                                        id="slideFileInput{{ $submission->id }}" accept=".ppt,.pptx,.pdf"
+                                                        required>
+                                                    <label for="slideFileInput{{ $submission->id }}" class="dropdown-item"
+                                                        style="cursor: pointer;">
+                                                        <i class="icon-base ti tabler-upload icon-xs me-1"></i>
+                                                        {{ $submission->slide_file ? 'Replace Slides' : 'Upload Slides' }}
+                                                    </label>
+                                                </form>
+                                                @if ($submission->slide_file)
+                                                    <a href="{{ asset('storage/participant/submission/slides/' . $submission->slide_file) }}"
+                                                        target="_blank" class="dropdown-item">
+                                                        <i class="icon-base ti tabler-eye icon-xs me-1"></i>View Slides
+                                                    </a>
+                                                    <a href="{{ asset('storage/participant/submission/slides/' . $submission->slide_file) }}"
+                                                        download class="dropdown-item">
+                                                        <i class="icon-base ti tabler-download icon-xs me-1"></i>Download
+                                                        Slides
+                                                    </a>
+                                                @endif
+                                            @endif
+                                        @endif
+                                    </div>
 
-                                   <a href="{{ route('my-society.conference.submission.author.index', [$society, $conference, $submission]) }}"
-                                       class="btn btn-sm btn-success"
-                                       {{ $submission->expert_id == current_user()->id ? 'hidden' : '' }}>Authors</a>
+                                    <a href="{{ route('my-society.conference.submission.author.index', [$society, $conference, $submission]) }}"
+                                        class="btn btn-sm btn-success"
+                                        {{ $submission->expert_id == current_user()->id || $submission->is_draft ? 'hidden' : '' }}>Authors</a>
 
-                                   @if ($submission->discussions->isNotEmpty() && $submission->request_status === 2)
-                                       <span class="mt-1">
-                                           <a href="{{ route('my-society.conference.submission.viewDiscussion', [$society, $conference, $submission]) }}"
-                                               class="btn btn-sm btn-info">Discussion</a>
-                                       </span>
-                                   @endif
-                               </div>
+                                    @if ($submission->discussions->isNotEmpty() && $submission->request_status === 2)
+                                        <span class="mt-1">
+                                            <a href="{{ route('my-society.conference.submission.viewDiscussion', [$society, $conference, $submission]) }}"
+                                                class="btn btn-sm btn-info">Discussion</a>
+                                        </span>
+                                    @endif
+                                </div>
 
                            </td>
                        </tr>

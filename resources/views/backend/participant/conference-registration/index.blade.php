@@ -106,31 +106,36 @@
                                <td>{{ $registration->conference->conference_theme }}</td>
                                <td>{{ $registration->registrant_type == 1 ? 'Attendee' : 'Speaker' }}</td>
                                <td>
-                                   @if ((int) $registration->payment_type === 9)
-                                       <span class="badge bg-danger">Unpaid</span>
-                                       <div class="small mt-1">
-                                           Due: {{ $registration->payment_currency === 'INR' ? 'INR ' : ($registration->user->userDetail->country_id != 125 ? '$ ' : 'Rs.') }}{{ number_format((float) $registration->amount, 2) }}
-                                       </div>
-                                   @elseif (!empty($registration->amount))
-                                       {{ $registration->user->userDetail->country_id != 125 ? '$ ' : 'Rs.' }}{{ $registration->amount }}
-                                   @elseif (!empty($registration->payment_voucher))
-                                       @php
-                                           $explodeFileName = explode('.', $registration->payment_voucher); 
-                                       @endphp
-                                       @if ($explodeFileName[1] == 'pdf')
-                                           <a href="{{ asset('storage/conference/registration/payment-voucher/' . $registration->payment_voucher) }}"
-                                               target="_blank"><img src="{{ asset('default-image/pdf.png') }}"
-                                                   alt="voucher" height="50" width="40"></a>
-                                       @else
-                                           <a href="{{ asset('storage/conference/registration/payment-voucher/' . $registration->payment_voucher) }}"
-                                               target="_blank"><img
-                                                   src="{{ asset('storage/conference/registration/payment-voucher/' . $registration->payment_voucher) }}"
-                                                   alt="voucher" height="50" width="40"></a>
-                                       @endif
-                                   @else
-                                       Registered By Admin
-                                   @endif
-                               </td>
+                                @if ($registration->is_invited)
+                                    <span class="badge bg-info">Invited</span>
+
+                                @else
+                                @if ((int) $registration->payment_type === 9)
+                                    <span class="badge bg-danger">Unpaid</span>
+                                    <div class="small mt-1">
+                                        Due: {{ $registration->payment_currency === 'INR' ? 'INR ' : ($registration->user->userDetail->country_id != 125 ? '$ ' : 'Rs.') }}{{ number_format((float) $registration->amount, 2) }}
+                                    </div>
+                                @elseif (!empty($registration->amount))
+                                    {{ $registration->user->userDetail->country_id != 125 ? '$ ' : 'Rs.' }}{{ $registration->amount }}
+                                @elseif (!empty($registration->payment_voucher))
+                                    @php
+                                        $explodeFileName = explode('.', $registration->payment_voucher); 
+                                    @endphp
+                                    @if ($explodeFileName[1] == 'pdf')
+                                        <a href="{{ asset('storage/conference/registration/payment-voucher/' . $registration->payment_voucher) }}"
+                                            target="_blank"><img src="{{ asset('default-image/pdf.png') }}"
+                                                alt="voucher" height="50" width="40"></a>
+                                    @else
+                                        <a href="{{ asset('storage/conference/registration/payment-voucher/' . $registration->payment_voucher) }}"
+                                            target="_blank"><img
+                                                src="{{ asset('storage/conference/registration/payment-voucher/' . $registration->payment_voucher) }}"
+                                                alt="voucher" height="50" width="40"></a>
+                                    @endif
+                                @else
+                                    Registered By Admin
+                                @endif
+                            </td>
+                                @endif
                                <td>{{ $registration->transaction_id }}</td>
                                <td>
                                    @if ($registration->verified_status == 0)
@@ -143,15 +148,20 @@
                                </td>
                                <td>{{ $registration->total_attendee }}</td>
                                <td>
-                                   @if ((int) $registration->payment_type === 9)
-                                       <a href="{{ route('my-society.conference.payNow', [$society, $conference, $registration]) }}" class="btn btn-sm btn-primary">
-                                           Pay Now
-                                       </a>
-                                   @elseif ($registration->verified_status == 1)
-                                       <span class="badge bg-success">Paid</span>
-                                   @else
-                                       <span class="badge bg-warning">Pending Verification</span>
-                                   @endif
+                                @if (!$registration->is_invited)
+                                @if ((int) $registration->payment_type === 9)
+                                    <a href="{{ route('my-society.conference.payNow', [$society, $conference, $registration]) }}" class="btn btn-sm btn-primary">
+                                        Pay Now
+                                    </a>
+                                @elseif ($registration->verified_status == 1)
+                                    <span class="badge bg-success">Paid</span>
+                                @else
+                                    <span class="badge bg-warning">Pending Verification</span>
+                                @endif
+                                @else
+                                    <span class="badge bg-info">Invited</span>
+                                    
+                                @endif
                                </td>
                            </tr>
                        @endforeach

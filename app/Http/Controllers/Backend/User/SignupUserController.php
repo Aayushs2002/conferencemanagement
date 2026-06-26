@@ -27,6 +27,7 @@ use App\Models\Conference\RegistrantType;
 use App\Models\Conference\InvitationCategory;
 use App\Models\Workshop\Workshop;
 use App\Models\Workshop\WorkshopRegistration;
+use App\Services\File\FileService;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -34,6 +35,8 @@ use Illuminate\Support\Facades\Mail;
 
 class SignupUserController extends Controller
 {
+    public function __construct(protected FileService $file_service) {}
+
     public function index($society, $conference)
     {
         $conferenceId = $conference->id;
@@ -245,7 +248,8 @@ class SignupUserController extends Controller
                 'country_id' => 'required',
                 'council_number' => 'nullable',
                 'name_prefix_id' => 'required',
-                'member_type_id' => 'required'
+                'member_type_id' => 'required',
+                'image' => 'nullable|file|mimes:jpg,jpeg,png|max:2048'
             ];
 
             // Add validation for "other" options
@@ -272,6 +276,14 @@ class SignupUserController extends Controller
                 unset($validated['department_id']);
             }
 
+            // Handle image upload
+            if ($request->hasFile('image')) {
+                $this->file_service->deleteFile($user->userDetail->image, 'profile/image');
+                $validated['image'] = $this->file_service->fileUpload($request->file('image'), 'profile', 'profile/image');
+            } else {
+                unset($validated['image']);
+            }
+
             DB::beginTransaction();
 
             // Update user basic info
@@ -293,6 +305,7 @@ class SignupUserController extends Controller
                 'institute_address' => $validated['institute_address'],
                 'country_id' => $validated['country_id'],
                 'council_number' => $validated['council_number'],
+                'image' => $validated['image'] ?? $user->userDetail->image,
             ]);
 
             // Handle custom institution

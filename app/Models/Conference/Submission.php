@@ -36,6 +36,7 @@ class Submission extends Model
         'reject_remark',
         'is_student',
         'status',
+        'is_draft',
         'collaborative_partner'
     ];
 

@@ -182,7 +182,7 @@ class SubmissionController extends Controller
         $designations = $loadData('designations', Designation::class);
 
         // dd($submission_setting);
-        $query = Submission::with('discussions')->where(['conference_id' => $conference->id, 'status' => 1]);
+        $query = Submission::with('discussions')->where(['conference_id' => $conference->id,'is_draft' => 0,'status' => 1]);
         $this->applyManagedTrackScope($query, $conference->id);
         $this->applyManagedArticleTypeScope($query, $conference->id);
         if ($request->filled('article_type_id')) {
