@@ -174,7 +174,9 @@
             margin-bottom: 30px;">
             <tr>
                 <td style="width:100px;">
-                    <img src="{{ public_path('storage/society/logo/' . $data['societyLogo']) }}" alt="Logo">
+                    @if (!empty($data['societyLogo']))
+                        <img src="{{ public_path('storage/society/logo/' . $data['societyLogo']) }}" alt="Logo">
+                    @endif
                 </td>
                 <td>
                     <div class="header-text">
@@ -345,7 +347,9 @@
 
         <!-- Signature -->
         <div class="signature">
-            <img src="{{ public_path('storage/conference/voucher/signature/' . $data['signature']) }}" alt="Signature">
+            @if (!empty($data['signature']))
+                <img src="{{ public_path('storage/conference/voucher/signature/' . $data['signature']) }}" alt="Signature">
+            @endif
             <p>
                 <b> {{ $data['signatureName'] }}</b> <br />
                 {{ $data['conference_name'] }} - Registration Committee Chair
