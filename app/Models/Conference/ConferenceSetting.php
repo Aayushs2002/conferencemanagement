@@ -24,6 +24,7 @@ class ConferenceSetting extends Model
         'workshop_application_deadline',
         'cpd_points_required',
         'show_stats_dashboard',
+        'conference_registration_verification_for_all',
         'addon_availability',
         'gala_dinner_enabled',
         'submission_cc_emails',
