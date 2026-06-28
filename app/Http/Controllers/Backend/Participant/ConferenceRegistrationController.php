@@ -26,6 +26,19 @@ class ConferenceRegistrationController extends Controller
 {
     public function __construct(protected FileService $file_service) {}
 
+    protected function getVerifiedStatus(ConferenceSetting|null $conferenceSetting, bool $requiresStudentVerification, int|string|null $paymentType = null): int
+    {
+        if ((bool) ($conferenceSetting?->conference_registration_verification_for_all ?? false)) {
+            return 0;
+        }
+
+        if ($requiresStudentVerification) {
+            return 0;
+        }
+
+        return (int) $paymentType === 6 ? 0 : 1;
+    }
+
     public function index($society, $conference)
     {
         $registrations = ConferenceRegistration::where(['user_id' => current_user()->id, 'status' => 1, 'conference_id' => $conference->id])->get();
@@ -318,7 +331,7 @@ class ConferenceRegistrationController extends Controller
                 if (empty($checkDuplicateRegistration)) {
                     $authUser = current_user();
                     $validated['user_id'] = $authUser->id;
-                    $validated['verified_status'] = $requiresStudentVerification || $validated['payment_type'] == 6 ? 0 : 1;
+                    $validated['verified_status'] = $this->getVerifiedStatus($conferenceSetting, $requiresStudentVerification, $validated['payment_type']);
                     $validated['conference_id'] = $conference->id;
                     $validated['total_attendee'] = empty($request->accompany_person) ? 1 : $request->accompany_person + 1;
                     $validated['token'] = random_word(60);
@@ -723,7 +736,7 @@ class ConferenceRegistrationController extends Controller
             // Authenticated user
             $authUser = current_user();
             $validated['user_id']         = $authUser->id;
-            $validated['verified_status'] = $requiresStudentVerification ? 0 : 1;
+            $validated['verified_status'] = $this->getVerifiedStatus($conferenceSetting, $requiresStudentVerification, $validated['payment_type'] ?? null);
             $validated['conference_id']   = $conference->id;
             $validated['total_attendee']  = empty($outstandingRegistration)
                 ? (empty($request->accompany_person) ? 1 : $request->accompany_person + 1)
@@ -903,7 +916,7 @@ class ConferenceRegistrationController extends Controller
                     'payment_currency' => $validated['payment_currency'] ?? 'USD',
                     'transaction_id' => $validated['transaction_id'],
                     'amount' => $validated['amount'],
-                    'verified_status' => 1,
+                    'verified_status' => $this->getVerifiedStatus($conferenceSetting, $requiresStudentVerification, $validated['payment_type']),
                 ]);
                 $conference_registration = $outstandingRegistration->fresh();
             } else {

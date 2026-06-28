@@ -210,6 +210,20 @@
                             </label>
                         </div>
                     </div>
+
+                    <div class="col-md-5 mb-3">
+                        <div class="form-check form-switch">
+                            <input type="hidden" name="conference_registration_verification_for_all" value="0">
+                            <input class="form-check-input" type="checkbox"
+                                name="conference_registration_verification_for_all"
+                                id="conference_registration_verification_for_all" value="1"
+                                {{ $conferenceSetting?->conference_registration_verification_for_all ?? 0 ? 'checked' : '' }}>
+                            <label class="form-check-label" for="conference_registration_verification_for_all">
+                                <strong>Conference Registration Verification for All</strong>
+                                <small class="d-block text-muted">Keep every new conference registration in pending status until reviewed</small>
+                            </label>
+                        </div>
+                    </div>
                 </div>
             </div>
 
