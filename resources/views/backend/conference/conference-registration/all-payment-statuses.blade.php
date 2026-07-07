@@ -12,7 +12,7 @@
                 <h4 class="mb-1">
                     <i class="ti tabler-credit-card me-2"></i>Payment Status Overview
                 </h4>
-                <p class="text-muted mb-0">Track all card payment transactions for {{ $conference->conference_name }}</p>
+                <p class="text-muted mb-0">Track card and MoCo payment transactions for {{ $conference->conference_name }}</p>
             </div>
             <a href="{{ route('conference.conference-registration.index', [$society, $conference]) }}" class="btn btn-secondary">
                 <i class="ti tabler-arrow-left me-1"></i> Back to Registrants
@@ -90,6 +90,40 @@
                         </div>
                     </div>
                 </div>
+                <div class="col-md-3">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center">
+                                <div class="avatar flex-shrink-0 me-3">
+                                    <span class="avatar-initial rounded bg-label-info">
+                                        <i class="ti tabler-qrcode ti-md"></i>
+                                    </span>
+                                </div>
+                                <div>
+                                    <h5 class="mb-0">{{ $paymentStatuses->where('payment_method', 'moco')->count() }}</h5>
+                                    <small>MoCo</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center">
+                                <div class="avatar flex-shrink-0 me-3">
+                                    <span class="avatar-initial rounded bg-label-dark">
+                                        <i class="ti tabler-x ti-md"></i>
+                                    </span>
+                                </div>
+                                <div>
+                                    <h5 class="mb-0">{{ $paymentStatuses->where('payment_status', 'cancelled')->count() }}</h5>
+                                    <small>Cancelled</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         @endif
 
@@ -97,7 +131,7 @@
         <div class="card">
             <div class="card-header d-flex justify-content-between align-items-center">
                 <h5 class="mb-0">Payment Transactions</h5>
-                <div class="d-flex gap-2">
+                <div class="d-flex gap-2 flex-wrap justify-content-end">
                     <input type="text" id="searchInput" class="form-control form-control-sm" placeholder="Search by name, email, transaction ID..." style="width: 300px;">
                     <select id="statusFilter" class="form-select form-select-sm" style="width: 150px;">
                         <option value="">All Status</option>
@@ -106,6 +140,11 @@
                         <option value="failed">Failed</option>
                         <option value="cancelled">Cancelled</option>
                         <option value="processing">Processing</option>
+                    </select>
+                    <select id="methodFilter" class="form-select form-select-sm" style="width: 150px;">
+                        <option value="">All Methods</option>
+                        <option value="card">Card</option>
+                        <option value="moco">MoCo</option>
                     </select>
                 </div>
             </div>
@@ -127,7 +166,7 @@
                             </thead>
                             <tbody>
                                 @foreach($paymentStatuses as $status)
-                                    <tr data-status="{{ $status->payment_status }}">
+                                    <tr data-status="{{ $status->payment_status }}" data-method="{{ $status->payment_method ?? 'card' }}">
                                         <td>{{ $loop->iteration }}</td>
                                         <td>
                                             <div>
@@ -168,8 +207,8 @@
                                             @endif
                                         </td>
                                         <td>
-                                            <span class="badge bg-info">
-                                                <i class="ti tabler-credit-card me-1"></i>{{ ucfirst($status->payment_method ?? 'Card') }}
+                                            <span class="badge bg-{{ $status->payment_method === 'moco' ? 'info' : 'primary' }}">
+                                                <i class="ti {{ $status->payment_method === 'moco' ? 'tabler-qrcode' : 'tabler-credit-card' }} me-1"></i>{{ ucfirst($status->payment_method ?? 'Card') }}
                                             </span>
                                         </td>
                                         <td>
@@ -281,18 +320,25 @@
                 filterTable();
             });
 
+            $('#methodFilter').on('change', function() {
+                filterTable();
+            });
+
             function filterTable() {
                 var searchValue = $('#searchInput').val().toLowerCase();
                 var statusValue = $('#statusFilter').val().toLowerCase();
+                var methodValue = $('#methodFilter').val().toLowerCase();
 
                 $('#paymentStatusTable tbody tr:not(.collapse)').filter(function() {
                     var text = $(this).text().toLowerCase();
                     var status = $(this).data('status');
+                    var method = $(this).data('method');
                     
                     var matchesSearch = searchValue === '' || text.indexOf(searchValue) > -1;
                     var matchesStatus = statusValue === '' || status === statusValue;
+                    var matchesMethod = methodValue === '' || method === methodValue;
                     
-                    $(this).toggle(matchesSearch && matchesStatus);
+                    $(this).toggle(matchesSearch && matchesStatus && matchesMethod);
                 });
             }
 
