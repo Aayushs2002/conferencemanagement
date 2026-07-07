@@ -183,6 +183,254 @@
             border-color: #28a745;
             background-color: #f8fff9;
         }
+
+        .moco-hero {
+            background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
+            color: #fff;
+            border-radius: 18px;
+            padding: 18px;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        }
+
+        .moco-hero small,
+        .moco-hero .text-muted {
+            color: rgba(255, 255, 255, 0.8) !important;
+        }
+
+        .moco-status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 12px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.14);
+            font-weight: 600;
+            letter-spacing: 0.2px;
+        }
+
+        .moco-countdown-card {
+            background: linear-gradient(135deg, #fff8e1 0%, #fff 100%);
+            border: 1px solid rgba(255, 193, 7, 0.2);
+            border-radius: 16px;
+            padding: 14px 16px;
+        }
+
+        .moco-countdown-value {
+            font-size: 2.3rem;
+            line-height: 1;
+            font-weight: 800;
+            color: #0d6efd;
+        }
+
+        .moco-progress {
+            height: 10px;
+            border-radius: 999px;
+            overflow: hidden;
+            background: #eef2ff;
+        }
+
+        .moco-progress .progress-bar {
+            transition: width 0.9s linear;
+            background: linear-gradient(90deg, #0d6efd 0%, #00bcd4 100%);
+        }
+
+        .moco-lock-note {
+            border-radius: 14px;
+            border: 1px dashed rgba(13, 110, 253, 0.25);
+            background: rgba(13, 110, 253, 0.04);
+        }
+
+        .moco-modal-dialog {
+            max-width: 1080px;
+        }
+
+        .moco-modal-shell {
+            overflow: hidden;
+            border: 0;
+            border-radius: 24px;
+            background: #f8fafc;
+        }
+
+        .moco-modal-header {
+            background: linear-gradient(135deg, #0ea5e9 0%, #2563eb 50%, #1d4ed8 100%);
+            color: #fff;
+            border: 0;
+            padding: 1rem 1.25rem;
+        }
+
+        .moco-modal-title {
+            font-size: 1.05rem;
+            font-weight: 700;
+            letter-spacing: 0.2px;
+        }
+
+        .moco-modal-subtitle {
+            opacity: 0.9;
+            font-size: 0.92rem;
+        }
+
+        .moco-qr-panel,
+        .moco-side-panel {
+            background: #fff;
+            border: 1px solid rgba(15, 23, 42, 0.08);
+            border-radius: 20px;
+            box-shadow: 0 14px 35px rgba(15, 23, 42, 0.08);
+        }
+
+        .moco-qr-panel {
+            background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+        }
+
+        .moco-step-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 0.5rem 0.8rem;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.12);
+            backdrop-filter: blur(10px);
+            font-size: 0.88rem;
+            font-weight: 600;
+        }
+
+        .moco-mini-stat {
+            background: rgba(255, 255, 255, 0.12);
+            border-radius: 16px;
+            padding: 0.75rem 0.9rem;
+            min-width: 140px;
+        }
+
+        .moco-mini-stat .label {
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            opacity: 0.75;
+        }
+
+        .moco-mini-stat .value {
+            font-size: 1.15rem;
+            font-weight: 800;
+            line-height: 1.2;
+            word-break: break-word;
+        }
+
+        .moco-qr-frame {
+            padding: 1rem;
+            border-radius: 22px;
+            background: linear-gradient(180deg, #ffffff 0%, #f3f8ff 100%);
+            border: 1px solid rgba(37, 99, 235, 0.12);
+        }
+
+        .moco-qr-placeholder {
+            min-height: 320px;
+            display: grid;
+            place-items: center;
+            color: #64748b;
+        }
+
+        .moco-steps {
+            display: grid;
+            gap: 0.75rem;
+        }
+
+        .moco-step-item {
+            display: flex;
+            gap: 0.85rem;
+            align-items: flex-start;
+            padding: 0.85rem 0.95rem;
+            border-radius: 16px;
+            background: #f8fafc;
+            border: 1px solid rgba(148, 163, 184, 0.18);
+        }
+
+        .moco-step-index {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #0ea5e9 0%, #2563eb 100%);
+            color: #fff;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            flex-shrink: 0;
+        }
+
+        .moco-step-title {
+            font-weight: 700;
+            color: #0f172a;
+            margin-bottom: 0.1rem;
+        }
+
+        .moco-step-text {
+            color: #64748b;
+            font-size: 0.92rem;
+            margin-bottom: 0;
+        }
+
+        .moco-footer-hint {
+            font-size: 0.9rem;
+            color: #64748b;
+        }
+
+        .moco-qr-image {
+            width: min(100%, 320px);
+            height: auto;
+            display: block;
+            margin: 0 auto;
+        }
+
+        .moco-action-group .btn {
+            min-width: 170px;
+        }
+
+        @media (max-width: 991.98px) {
+            .moco-hero {
+                padding: 16px;
+            }
+
+            .moco-countdown-value {
+                font-size: 1.9rem;
+            }
+
+            .moco-action-group {
+                width: 100%;
+            }
+
+            .moco-action-group .btn {
+                width: 100%;
+                min-width: 0;
+            }
+
+            .moco-lock-note {
+                font-size: 0.92rem;
+            }
+        }
+
+        @media (max-width: 575.98px) {
+            .moco-hero {
+                padding: 14px;
+                border-radius: 14px;
+            }
+
+            .moco-countdown-value {
+                font-size: 1.65rem;
+            }
+
+            .moco-status-badge {
+                font-size: 0.9rem;
+                padding: 7px 10px;
+            }
+
+            .moco-lock-note {
+                padding: 12px !important;
+            }
+
+            #mocoPaymentDetails,
+            #mocoUserNote {
+                font-size: 0.92rem;
+            }
+        }
     </style>
     {{-- @if (!old() && !isset($conference_registration))
         <div class="modal fade" id="openModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle"
@@ -1224,44 +1472,123 @@
     <!-- MoCo QR Code Modal -->
     <div class="modal fade" id="mocoQrModal" tabindex="-1" aria-labelledby="mocoQrModalLabel" aria-hidden="true"
         data-bs-backdrop="static" data-bs-keyboard="false">
-        <div class="modal-dialog modal-dialog-centered modal-md">
-            <div class="modal-content registration-card">
-                <div class="modal-header bg-info text-white">
-                    <h5 class="modal-title" id="mocoQrModalLabel">
-                        <i class="ti tabler-qrcode text-white"></i>
-                        <span class="text-white">
-                            Scan QR Code to Pay
-                        </span>
-                    </h5>
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-xl moco-modal-dialog px-2 px-sm-3">
+            <div class="modal-content moco-modal-shell">
+                <div class="moco-modal-header d-flex flex-column flex-sm-row align-items-start align-items-sm-center justify-content-between gap-3">
+                    <div>
+                        <h5 class="modal-title moco-modal-title mb-1" id="mocoQrModalLabel">
+                            <i class="ti tabler-qrcode me-2"></i>Scan QR Code to Pay
+                        </h5>
+                        <div class="moco-modal-subtitle">Complete the payment, then keep this window open while we verify it automatically.</div>
+                    </div>
+                    <div class="d-flex flex-wrap gap-2 justify-content-sm-end align-items-start">
+                        <div class="moco-mini-stat">
+                            <div class="label">Next check in</div>
+                            <div class="value"><span id="mocoCountdownValue">30</span>s</div>
+                        </div>
+                        <div class="moco-mini-stat">
+                            <div class="label">Status</div>
+                            <div class="value" id="mocoSessionStatus">Waiting</div>
+                        </div>
+                     
+                    </div>
                 </div>
-                <div class="modal-body text-center">
-                    <div id="mocoQrCode" class="mb-3"></div>
-                    <div id="mocoUserNote" class="alert alert-warning py-2 small text-center">
-                        <i class="ti tabler-info-circle"></i>
-                        After payment, please click <strong>Check Status</strong> to confirm your transaction.
-                    </div>
-                    <div id="mocoPaymentDetails" class="alert alert-info text-start">
-                        <p><strong>Reference:</strong> <span id="mocoRefNumber"></span></p>
-                        <p><strong>Amount:</strong> Rs. <span id="mocoPayAmount"></span></p>
-                        <p><strong>Status:</strong> <span id="mocoPayStatus" class="badge bg-warning">Pending</span></p>
-                    </div>
-                    <div class="alert alert-warning text-start">
-                        <small>
-                            <i class="fas fa-exclamation-triangle"></i>
-                            Please scan the QR code using your mobile banking app. Do not close this window until payment is
-                            completed.
-                        </small>
-                    </div>
-                    <div class="d-flex justify-content-center gap-2">
-                        <button type="button" class="btn btn-primary" id="mocoCheckStatus">
-                            <span class="spinner-border spinner-border-sm d-none" role="status"></span>
-                            <i class="fas fa-sync-alt"></i> Check Status
-                        </button>
-                        <button type="button" class="btn btn-danger" id="mocoCancelPayment" data-bs-dismiss="modal">
-                            <i class="fas fa-times"></i> Cancel
-                        </button>
-                    </div>
+                <div class="modal-body p-3 p-sm-4 p-lg-4">
+                    <div class="row g-3 g-lg-4 align-items-stretch">
+                        <div class="col-lg-7">
+                            <div class="moco-qr-panel h-100 p-3 p-sm-4">
+                                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+                                    <div>
+                                        <div class="fw-bold text-primary mb-1">Payment QR</div>
+                                        <div class="moco-footer-hint">Scan from your bank app or wallet to complete the transaction.</div>
+                                    </div>
+                                    <span id="mocoPayStatus" class="badge bg-warning text-dark px-3 py-2">Pending</span>
+                                </div>
+                                <div class="moco-qr-frame text-center mb-3">
+                                    <div id="mocoQrCode" class="moco-qr-placeholder mb-0">
+                                        <div class="text-center py-4">
+                                            <div class="spinner-border text-primary mb-3" role="status"></div>
+                                            <div class="fw-semibold text-dark">Generating QR code...</div>
+                                            <div class="small text-muted">Please wait a moment.</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="moco-lock-note p-3">
+                                    <div class="d-flex align-items-start gap-2">
+                                        <i class="fas fa-lock text-primary mt-1"></i>
+                                        <div>
+                                            <div class="fw-semibold">Keep this window open</div>
+                                            <div class="small text-muted mb-0">We continue checking payment status in the background. The modal will redirect automatically when the payment is confirmed.</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-5">
+                            <div class="moco-side-panel h-100 p-3 p-sm-4 d-flex flex-column">
+                                <div id="mocoUserNote" class="alert alert-info border-0 mb-3">
+                                    <div class="d-flex gap-2 align-items-start">
+                                        <i class="ti tabler-info-circle mt-1"></i>
+                                        <div>
+                                            <div class="fw-semibold mb-1">Automatic confirmation</div>
+                                            <div class="small mb-0">You do not need to close the dialog or manually refresh. Status updates happen automatically.</div>
+                                        </div>
+                                    </div>
+                                </div>
 
+                                <div id="mocoPaymentDetails" class="border rounded-4 p-3 mb-3 bg-light">
+                                    <div class="small text-uppercase text-muted fw-semibold mb-3">Payment details</div>
+                                    <div class="mb-2">
+                                        <div class="small text-muted">Reference number</div>
+                                        <div class="fw-semibold text-break" id="mocoRefNumber"></div>
+                                    </div>
+                                    <div>
+                                        <div class="small text-muted">Amount</div>
+                                        <div class="fw-semibold">Rs. <span id="mocoPayAmount"></span></div>
+                                    </div>
+                                </div>
+
+                                <div class="moco-steps mb-3">
+                                    <div class="moco-step-item">
+                                        <div class="moco-step-index">1</div>
+                                        <div>
+                                            <div class="moco-step-title">Scan and pay</div>
+                                            <p class="moco-step-text">Use your banking app to scan the QR code and complete payment.</p>
+                                        </div>
+                                    </div>
+                                    <div class="moco-step-item">
+                                        <div class="moco-step-index">2</div>
+                                        <div>
+                                            <div class="moco-step-title">Wait for verification</div>
+                                            <p class="moco-step-text">We poll the gateway every 30 seconds and keep the window open for you.</p>
+                                        </div>
+                                    </div>
+                                    <div class="moco-step-item">
+                                        <div class="moco-step-index">3</div>
+                                        <div>
+                                            <div class="moco-step-title">Auto redirect</div>
+                                            <p class="moco-step-text">Once confirmed, you will be taken to the next page automatically.</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="mt-auto">
+                                    <div class="progress moco-progress mb-3">
+                                        <div class="progress-bar" id="mocoCountdownBar" role="progressbar" style="width: 100%;" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100"></div>
+                                    </div>
+                                    <div class="d-flex flex-column flex-sm-row gap-2 moco-action-group">
+                                        <button type="button" class="btn btn-primary flex-fill" id="mocoCheckStatus">
+                                            <span class="spinner-border spinner-border-sm d-none" role="status"></span>
+                                            <i class="fas fa-sync-alt me-1"></i>Check Now
+                                        </button>
+                                        <button type="button" class="btn btn-outline-danger flex-fill" id="mocoCancelPayment">
+                                            <i class="fas fa-times me-1"></i>Cancel
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -2296,7 +2623,102 @@
 
             // MoCo payment handling
             let paymentCheckInterval;
+            let mocoCountdownInterval;
             let mocoReferenceNumber = null;
+            let mocoCountdownSeconds = 30;
+            let mocoStatusRequestPending = false;
+            let mocoModalLocked = false;
+
+            function updateMocoCountdownUI() {
+                const percent = Math.max(0, Math.min(100, Math.round((mocoCountdownSeconds / 30) * 100)));
+                $('#mocoCountdownValue').text(mocoCountdownSeconds);
+                $('#mocoCountdownBar')
+                    .css('width', percent + '%')
+                    .attr('aria-valuenow', percent);
+            }
+
+            function setMocoModalLocked(locked) {
+                mocoModalLocked = locked;
+                $('#mocoCancelPayment')
+                    .prop('disabled', false)
+                    .toggleClass('btn-outline-danger', true)
+                    .html(locked
+                        ? '<i class="fas fa-times me-1"></i>Cancel payment'
+                        : '<i class="fas fa-times me-1"></i>Cancel');
+            }
+
+            function setMocoStatusBadge(status, text) {
+                const badge = $('#mocoPayStatus');
+                badge.removeClass('bg-warning bg-success bg-danger bg-secondary text-dark');
+
+                if (status === 'success') {
+                    badge.addClass('bg-success').text(text || 'Completed');
+                } else if (status === 'failed') {
+                    badge.addClass('bg-danger').text(text || 'Failed');
+                } else {
+                    badge.addClass('bg-warning text-dark').text(text || 'Pending');
+                }
+            }
+
+            function resetMocoPollingTimer() {
+                mocoCountdownSeconds = 30;
+                updateMocoCountdownUI();
+
+                if (mocoCountdownInterval) {
+                    clearInterval(mocoCountdownInterval);
+                }
+
+                mocoCountdownInterval = setInterval(function() {
+                    if (!mocoReferenceNumber || !mocoModalLocked || mocoStatusRequestPending) {
+                        return;
+                    }
+
+                    if (mocoCountdownSeconds > 0) {
+                        mocoCountdownSeconds--;
+                        updateMocoCountdownUI();
+                    }
+
+                    if (mocoCountdownSeconds <= 0) {
+                        mocoCountdownSeconds = 30;
+                        updateMocoCountdownUI();
+                        checkPaymentStatus(false);
+                    }
+                }, 1000);
+            }
+
+            function stopMocoPolling() {
+                if (paymentCheckInterval) {
+                    clearInterval(paymentCheckInterval);
+                    paymentCheckInterval = null;
+                }
+
+                if (mocoCountdownInterval) {
+                    clearInterval(mocoCountdownInterval);
+                    mocoCountdownInterval = null;
+                }
+
+                mocoStatusRequestPending = false;
+                $(window).off('beforeunload.moco');
+            }
+
+            function setMocoBeforeUnloadWarning() {
+                $(window).off('beforeunload.moco').on('beforeunload.moco', function(e) {
+                    if (!mocoModalLocked) {
+                        return undefined;
+                    }
+
+                    e.preventDefault();
+                    e.returnValue = '';
+                    return '';
+                });
+            }
+
+            $('#mocoQrModal').on('hidden.bs.modal', function() {
+                stopMocoPolling();
+                mocoReferenceNumber = null;
+                mocoCountdownSeconds = 30;
+                mocoModalLocked = false;
+            });
 
             $("#mocoForm").on('submit', function(e) {
                 e.preventDefault();
@@ -2332,7 +2754,7 @@
                         if (response.status === 'success') {
                             if (response.data.qr_data) {
                                 $("#mocoQrCode").html(
-                                    `<img src="${response.data.qr_data}" alt="QR Code" class="img-fluid" style="max-width: 300px;">`
+                                        `<img src="${response.data.qr_data}" alt="QR Code" class="img-fluid moco-qr-image" loading="lazy">`
                                 );
                             } else {
                                 $("#mocoQrCode").html(
@@ -2343,10 +2765,17 @@
                             $("#mocoRefNumber").text(response.data.referenceNumber);
                             $("#mocoPayAmount").text(response.data.amount);
                             mocoReferenceNumber = response.data.referenceNumber;
+                            mocoStatusRequestPending = false;
 
                             const modal = new bootstrap.Modal(document.getElementById(
                                 'mocoQrModal'));
                             modal.show();
+
+                            $('#mocoSessionStatus').text('Waiting for payment confirmation');
+                            setMocoStatusBadge('pending', 'Pending');
+                            setMocoModalLocked(true);
+                            setMocoBeforeUnloadWarning();
+                            resetMocoPollingTimer();
 
                             startPaymentStatusCheck();
                             updateStepIndicator(4);
@@ -2372,15 +2801,26 @@
 
             // MoCo payment status checking
             function startPaymentStatusCheck() {
-                paymentCheckInterval = setInterval(checkPaymentStatus, 30000);
+                resetMocoPollingTimer();
             }
 
-            function checkPaymentStatus() {
+            function checkPaymentStatus(resetCountdown = false) {
                 if (!mocoReferenceNumber) return;
+
+                if (mocoStatusRequestPending) return;
+
+                mocoStatusRequestPending = true;
 
                 const checkButton = $("#mocoCheckStatus");
                 const spinner = checkButton.find('.spinner-border');
                 spinner.removeClass('d-none');
+
+                $('#mocoSessionStatus').text('Checking payment status...');
+
+                if (resetCountdown) {
+                    mocoCountdownSeconds = 30;
+                    updateMocoCountdownUI();
+                }
 
                 $.ajax({
                     url: "{{ route('my-society.conference.mocoCheckStatus', [$society, $conference]) }}",
@@ -2392,9 +2832,11 @@
                     dataType: 'json',
                     success: function(response) {
                         if (response.txnStatus === 'success') {
-                            $("#mocoPayStatus").removeClass('bg-warning bg-danger').addClass(
-                                'bg-success').text('Completed');
-                            clearInterval(paymentCheckInterval);
+                            setMocoStatusBadge('success', 'Completed');
+                            $('#mocoSessionStatus').text('Payment confirmed. Redirecting you now...');
+                            stopMocoPolling();
+                            setMocoModalLocked(false);
+                            $('#mocoCancelPayment').addClass('btn-outline-danger').removeClass('btn-danger').prop('disabled', true).html('<i class="fas fa-check me-1"></i>Confirmed');
                             notyf.success('Payment completed successfully!');
 
                             setTimeout(function() {
@@ -2404,35 +2846,50 @@
                                     `${baseUrl}?txnID=${encodeURIComponent(response.txnID)}`;
                             }, 2000);
                         } else if (response.txnStatus === 'failed') {
-                            $("#mocoPayStatus").removeClass('bg-warning bg-success').addClass(
-                                'bg-danger').text('Failed');
-                            clearInterval(paymentCheckInterval);
+                            setMocoStatusBadge('failed', 'Failed');
+                            $('#mocoSessionStatus').text('Payment failed. You can close this dialog and try again.');
+                            stopMocoPolling();
+                            setMocoModalLocked(false);
+                            $('#mocoCancelPayment').prop('disabled', false).removeClass('btn-outline-danger').addClass('btn-danger').html('<i class="fas fa-times me-1"></i>Close');
                             notyf.error('Payment failed. Please try again.');
                         } else {
-                            $("#mocoPayStatus").removeClass('bg-success bg-danger').addClass(
-                                'bg-warning').text('Pending');
+                            setMocoStatusBadge('pending', 'Pending');
+                            $('#mocoSessionStatus').text('Payment still pending. We will check again automatically.');
                         }
                     },
                     error: function(xhr) {
                         console.error('Status check error:', xhr);
+                        $('#mocoSessionStatus').text('We could not confirm the payment yet. Retrying automatically.');
                         notyf.error('Error checking payment status.');
                     },
                     complete: function() {
                         spinner.addClass('d-none');
+                        mocoStatusRequestPending = false;
+                        if (mocoModalLocked) {
+                            setMocoBeforeUnloadWarning();
+                        }
                     }
                 });
             }
 
-            $("#mocoCheckStatus").on('click', checkPaymentStatus);
+            $("#mocoCheckStatus").on('click', function() {
+                checkPaymentStatus(true);
+            });
 
             $("#mocoCancelPayment").on('click', function(e) {
                 e.preventDefault();
-                if (confirm('Are you sure you want to cancel this payment?')) {
-                    clearInterval(paymentCheckInterval);
-                    mocoReferenceNumber = null;
-                    const modal = bootstrap.Modal.getInstance(document.getElementById('mocoQrModal'));
-                    if (modal) modal.hide();
+                if (!confirm('Cancel this payment and close the QR window?')) {
+                    return;
                 }
+
+                stopMocoPolling();
+                mocoReferenceNumber = null;
+                const modal = bootstrap.Modal.getInstance(document.getElementById('mocoQrModal'));
+                if (modal) modal.hide();
+            });
+
+            $("#mocoHeaderCloseButton").on('click', function() {
+                $("#mocoCancelPayment").trigger('click');
             });
 
             // File upload preview for bank transfer and static QR
