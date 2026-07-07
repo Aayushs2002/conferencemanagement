@@ -365,14 +365,14 @@ class PaymentContoller extends Controller
 
         $response = Http::get('https://mpi.moco.com.np/transaction/status', $queryParams);
 
-        // return response()->json($response->json(), $response->status());
-        return response()->json([
-           'status' => 'success',
-           'message' => 'Transaction completed successfully',
-           'txnStatus' => 'success',
-            'txnID' => 'test12345',
-            'referenceNumber' => $request->reference_number
-        ]);
+        return response()->json($response->json(), $response->status());
+        //return response()->json([
+         //  'status' => 'success',
+         //  'message' => 'Transaction completed successfully',
+          // 'txnStatus' => 'success',
+          //  'txnID' => 'test12345',
+          //  'referenceNumber' => $request->reference_number
+        // ]);
     }
 
     public function mocoSuccess(Request $request, $society, $conference)
