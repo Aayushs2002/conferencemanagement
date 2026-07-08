@@ -1,8 +1,21 @@
 <div class="row g-4 mb-5">
     @forelse ($conferences as $conference)
+        @php
+            $portalAccessEndAt = $conference->conferenceSetting?->portal_access_end_at
+                ? \Carbon\Carbon::parse($conference->conferenceSetting->portal_access_end_at)
+                : \Carbon\Carbon::parse($conference->end_date)->endOfDay();
+            $portalClosed = now()->greaterThan($portalAccessEndAt);
+        @endphp
         <div class="col-lg-4 col-md-6">
-            <a href="{{ route('conference.name', $conference->slug) }}" class="text-decoration-none conference-link">
+            <a href="{{ $portalClosed ? '#' : route('conference.name', $conference->slug) }}"
+                class="text-decoration-none conference-link {{ $portalClosed ? 'pe-none' : '' }}"
+                @if ($portalClosed) aria-disabled="true" tabindex="-1" @endif>
                 <div class="conference-card p-4 h-100">
+                    @if ($portalClosed)
+                        <div class="d-flex justify-content-end mb-2">
+                            <span class="badge bg-danger">Portal Closed</span>
+                        </div>
+                    @endif
                     <div class="d-flex gap-2 mb-3">
                         <img src="{{ Storage::url('society/logo/' . $conference->society?->logo) }}" class="logo-img"
                             alt="{{ $conference->conference_name }}" loading="lazy">

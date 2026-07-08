@@ -335,6 +335,22 @@
                 </small>
             </div>
 
+            <div class="col-12 mt-3">
+                <h6>13. Conference Portal Restriction</h6>
+                <hr class="mt-0" style="height:1px;border:none;color:#333;background-color:#333;" />
+                <p class="text-muted small">Set the exact date and time when this conference portal should stop being accessible.</p>
+            </div>
+
+            <div class="col-md-6 mb-4">
+                <label>Portal Access Until</label>
+                <input type="datetime-local" class="form-control" name="portal_access_end_at"
+                    value="{{ $conferenceSetting?->portal_access_end_at ? \Carbon\Carbon::parse($conferenceSetting->portal_access_end_at)->format('Y-m-d\TH:i') : '' }}">
+                <small class="text-muted">
+                    <i class="ti tabler-info-circle"></i>
+                    After this date and time, all conference portal pages will be blocked for visitors.
+                </small>
+            </div>
+
         </div>
         <div class="text-end mt-4">
             <button type="submit" class="btn btn-primary"
@@ -417,7 +433,7 @@
         $("#imgPreview").html('');
 
         reader.onload = function(e) {
-            let fileExtension = $("#image").val().split('.').pop().toLowerCase();
+            let fileExtension = $("#image").val().split('.').pop().toLowerCase(); 
 
             if (fileExtension === 'pdf') {
                 $("#imgPreview").append(

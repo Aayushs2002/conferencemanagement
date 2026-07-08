@@ -124,6 +124,12 @@
                 @include('frontend.main-page.conference.partials.conference-cards')
             </div>
 
+            @if (session('error'))
+                <div class="alert alert-warning mt-4 text-center">
+                    {{ session('error') }}
+                </div>
+            @endif
+
             @if ($conferences->isEmpty())
                 <div class="text-center py-5">
                     <div class="mb-3">

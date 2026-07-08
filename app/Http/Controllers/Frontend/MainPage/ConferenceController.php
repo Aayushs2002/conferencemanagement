@@ -60,7 +60,7 @@ class ConferenceController extends Controller
 
         // return Cache::remember($cacheKey, self::CACHE_TTL, function () use ($request) {
             $query = $this->conference
-                ->with(['society', 'ConferenceVenueDetail'])
+                ->with(['society', 'ConferenceVenueDetail', 'conferenceSetting'])
                 ->where('status', 1);
 
             $this->applyFilters($query, $request);
