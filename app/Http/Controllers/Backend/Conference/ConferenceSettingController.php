@@ -7,6 +7,7 @@ use App\Models\Conference\Conference;
 use App\Models\Conference\ConferenceCustomCss;
 use App\Models\Conference\ConferenceSetting;
 use App\Services\File\FileService;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 
 class ConferenceSettingController extends Controller
@@ -50,6 +51,7 @@ class ConferenceSettingController extends Controller
                 'conference_registration_cc_emails' => 'nullable|string',
                 'workshop_registration_cc_emails' => 'nullable|string',
                 'closing_message' => 'nullable|string',
+                'portal_access_end_at' => 'nullable|date',
                 'cpd_points_required' => 'required|in:0,1',
 
             ]);
@@ -111,6 +113,9 @@ class ConferenceSettingController extends Controller
                 'conference_registration_cc_emails' => $request->conference_registration_cc_emails,
                 'workshop_registration_cc_emails' => $request->workshop_registration_cc_emails,
                 'closing_message' => $request->closing_message,
+                'portal_access_end_at' => $request->filled('portal_access_end_at')
+                    ? Carbon::parse($request->portal_access_end_at)
+                    : null,
             ];
 
             if ($conferenceSetting) {

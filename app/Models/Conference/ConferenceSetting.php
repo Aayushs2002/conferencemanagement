@@ -32,6 +32,7 @@ class ConferenceSetting extends Model
         'conference_registration_cc_emails',
         'workshop_registration_cc_emails',
         'closing_message',
+        'portal_access_end_at',
         'committee_static_page_enabled',
         'committee_static_page_content',
     ];
