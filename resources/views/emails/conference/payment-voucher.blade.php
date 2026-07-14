@@ -182,7 +182,7 @@
                     <div class="header-text">
                         <h1>{{ $data['societyName'] }}</h1>
                         <p>{{ $data['societyAddress'] }}</p>
-                        <p>Phone: {{ $data['societyPhone'] }} | Email: {{ $data['email'] }}</p>
+                        <p>Phone: {{ $data['societyPhone'] ?? '' }} | Email: {{ $data['societyEmail'] ?? '' }}</p>
                     </div>
                 </td>
             </tr>

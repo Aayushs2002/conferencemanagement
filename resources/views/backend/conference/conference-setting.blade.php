@@ -31,6 +31,15 @@
                     @endif
                 </div>
             </div>
+
+            <div class="col-md-4 mb-4">
+                <label>Voucher Header Color</label>
+                <input type="color" class="form-control form-control-color" name="payment_voucher_header_color"
+                    value="{{ $conferenceSetting?->payment_voucher_header_color ?? ($conference?->primary_color ?? '#eeb6b9') }}"
+                    title="Choose voucher header color">
+                <small class="text-muted">Used in payment voucher header. Falls back to conference primary color if empty.</small>
+            </div>
+
             <div class="col-12 mt-3">
                 <h6>2. Registation Setting</h6>
                 <hr class="mt-0" style="height:1px;border:none;color:#333;background-color:#333;" />
