@@ -33,6 +33,7 @@ class ConferenceSetting extends Model
         'workshop_registration_cc_emails',
         'closing_message',
         'portal_access_end_at',
+        'payment_voucher_header_color',
         'committee_static_page_enabled',
         'committee_static_page_content',
     ];

@@ -614,6 +614,18 @@ class ConferenceController extends Controller
         }
 
         $societyOwner = $society->users->where('type', 2)->first();
+        $paymentTypes = [
+            1 => 'FonePay',
+            2 => 'Moco',
+            3 => 'Esewa',
+            4 => 'Khalti',
+            5 => 'Card Payment',
+            6 => 'Bank Transfer',
+            7 => 'ConnectIPS',
+            8 => 'Static QR',
+            9 => 'Credit',
+        ];
+        $paymentType = $paymentTypes[(int) $conferenceRegistration->payment_type] ?? 'Unknown';
 
         $data = [
             'conference_theme' => $conference->conference_theme,
@@ -621,7 +633,7 @@ class ConferenceController extends Controller
             'name' => $user->fullName($user),
             'namePrefix' => $user->userDetail->namePrefix->prefix ?? '',
             'email' => $user->email,
-            'paymentType' => 'Online Payment',
+            'paymentType' => $paymentType,
             'transactionId' => $conferenceRegistration->transaction_id,
             'amount' => $conferenceRegistration->amount,
             'amountInWord' => numberToWord($conferenceRegistration->amount),
@@ -631,7 +643,7 @@ class ConferenceController extends Controller
             'societyPhone' => $society->phone,
             'societyEmail' => $societyOwner?->email ?? '',
             'societyAddress' => $society->address,
-            'primaryColor' => $conference->primary_color,
+            'primaryColor' => $conferenceSetting?->payment_voucher_header_color ?? $conference->primary_color,
             'country' => $user->userDetail->country_id,
             'signatureName' => $conferenceSetting?->name,
             'signature' => $conferenceSetting?->signature,
