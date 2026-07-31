@@ -318,7 +318,7 @@
                         </tr>
                     @endforeach
                 @endif
-                @if (!empty($data['serviceCharge'])) 
+                @if (!empty($data['serviceCharge']) && strtolower((string) ($data['paymentType'] ?? '')) !== 'bank transfer') 
                     <tr>
                         <td>Service Charge (3.5%)</td>
                         <td>{{ $currencySymbol }}{{ $isINR ? number_format($data['serviceCharge'] * $conversionRate, 2) : $data['serviceCharge'] }}</td>
