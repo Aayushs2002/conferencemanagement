@@ -370,7 +370,7 @@
                                 <div class="tab-pane fade show active" id="homePIll" role="tabpanel"
                                     aria-labelledby="home-icon-pill">
                                     <div class="row">
-                                        <input type="hidden" name="international_id" id="international_id"
+                                        <input type="hidden" name="international_id" id="international_id_himalayan"
                                             value="{{ $internationalPayment ? $internationalPayment->id : '' }}">
                                         
                                         <!-- Country Selection Section -->
@@ -611,10 +611,10 @@
                                 
                                 <div class="tab-pane fade" id="profilePIll" role="tabpanel"
                                     aria-labelledby="profile-icon-pill">
-                                    <input type="hidden" name="international_id" id="international_id"
-                                        value="{{ $internationalPayment ? $internationalPayment->id : '' }}">
+                                    <input type="hidden" name="international_id" id="international_id_account_details"
+                                        value="{{ $accountDetailsPayment ? $accountDetailsPayment->id : '' }}">
                                     <div class="mb-6">
-                                        <textarea class="form-control ckeditor" id="bank_detail" name="bank_detail" rows="5" cols="30">{{ !empty(old('bank_detail')) ? old('bank_detail') : $internationalPayment?->bank_detail }}</textarea>
+                                        <textarea class="form-control ckeditor" id="bank_detail" name="bank_detail" rows="5" cols="30">{{ !empty(old('bank_detail')) ? old('bank_detail') : $accountDetailsPayment?->bank_detail }}</textarea>
                                         <div class="text-danger" id="bankDetailError"></div>
                                         @error('bank_detail')
                                             <p class="text-danger">{{ $message }}</p>
@@ -948,6 +948,13 @@
                 }
 
                 if (isValid) {
+                    let internationalId = '';
+                    if (activeSection === 'international' && activeTab === 'himalayan_bank') {
+                        internationalId = $('#international_id_himalayan').val();
+                    } else if (activeSection === 'international' && activeTab === 'account_details') {
+                        internationalId = $('#international_id_account_details').val();
+                    }
+
                     let formData = {
                         section: activeSection,
                         active_tab: activeTab,
@@ -986,7 +993,7 @@
                         static_qr_details: $('#static_qr_details').val(),
                         // IDs for updates
                         id: $('#id').val(),
-                        international_id: $('#international_id').val(),
+                        international_id: internationalId,
                     };
 
                     // Add selected countries for Himalayan Bank

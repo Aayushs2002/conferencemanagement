@@ -69,7 +69,7 @@ class ConferenceRegistrationController extends Controller
         $national_payemnt_setting = NationalPayment::where('society_id', $conference->society_id)->first();
         $international_payemnt_setting = InternationalPayment::with('countries')->where('society_id', $conference->society_id)->where('payment_type', 'himalayan_bank')->first();
         $static_qr_payment_setting = InternationalPayment::with('countries')->where('society_id', $conference->society_id)->where('payment_type', 'static_qr')->first();
-        $international_bank_transfer = InternationalPayment::where('society_id', $conference->society_id)->where('payment_type', 'himalayan_bank')->first();
+        $international_bank_transfer = InternationalPayment::where('society_id', $conference->society_id)->where('payment_type', 'account_details')->first();
         $workshops = Workshop::with(['registrations' => function ($q) {
             $q->where('status', 1);
         }])
@@ -157,7 +157,7 @@ class ConferenceRegistrationController extends Controller
             ->where('payment_type', 'static_qr')
             ->first();
         $international_bank_transfer = InternationalPayment::where('society_id', $conference->society_id)
-            ->where('payment_type', 'himalayan_bank')
+            ->where('payment_type', 'account_details')
             ->first();
 
         $memberType = current_user()->societies->where('id', $conference->society_id)->first()?->pivot?->memberType;
@@ -505,7 +505,9 @@ class ConferenceRegistrationController extends Controller
                         'workshop'         => $workshopData,
                         'accompany' => $accompanyData,
                         'verified_status'  => $validated['verified_status'],
-                        'serviceCharge' => $authUser->userDetail->country_id != 125 ? $validated['amount'] * 0.035 : null
+                        'serviceCharge' => ($authUser->userDetail->country_id != 125 && (int) ($validated['payment_type'] ?? 0) !== 6)
+                            ? $validated['amount'] * 0.035
+                            : null
                     ];
 
                     DB::beginTransaction();

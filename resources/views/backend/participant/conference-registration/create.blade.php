@@ -1672,6 +1672,8 @@
             let totalPrice = 0;
             let calculatedAmount = 0;
             let calculatedAmountUSD = 0; // Store original USD amount
+            let calculatedAmountWithService = 0;
+            let calculatedAmountWithoutService = 0;
             let isConvertedToINR = false; // Track if currently in INR
             let isPriceCalculated = false;
             let currencySymbol = '{{ @$memberTypePrice->memberType->delegate == 1 ? 'Rs. ' : '$ ' }}';
@@ -1895,6 +1897,8 @@
                 isPriceCalculated = false;
                 calculatedAmount = 0;
                 calculatedAmountUSD = 0;
+                calculatedAmountWithService = 0;
+                calculatedAmountWithoutService = 0;
                 $('input[name="paymentMode"]').prop('checked', false);
                 $('.payment-method-card').removeClass('selected');
 
@@ -2219,7 +2223,7 @@
                     if (delegate == 2) {
                         const additionalCharge = preTotalPrice * 0.035;
                         totalPrice = preTotalPrice + additionalCharge;
-                        calculatedData.append(generatePriceTableRow(
+                        const serviceChargeRow = $(generatePriceTableRow(
                             rowNumber++,
                             `Service Charge (3.5%)`,
                             '',
@@ -2227,6 +2231,9 @@
                             additionalCharge,
                             currencyCondition
                         ));
+                        serviceChargeRow.addClass('service-charge-row');
+                        serviceChargeRow.hide();
+                        calculatedData.append(serviceChargeRow);
                     }
 
                     // Calculate total workshop amount for tracking
@@ -2246,19 +2253,23 @@
                         true
                     ));
 
+                    const defaultAmount = parseFloat(delegate == 2 ? preTotalPrice : totalPrice);
+
                     // Store calculated values
-                    calculatedAmount = parseFloat(totalPrice).toFixed(2);
-                    calculatedAmountUSD = parseFloat(totalPrice).toFixed(2); // Store original USD amount
+                    calculatedAmount = defaultAmount.toFixed(2);
+                    calculatedAmountUSD = defaultAmount.toFixed(2); // Store currently selected USD amount
+                    calculatedAmountWithService = parseFloat(totalPrice).toFixed(2);
+                    calculatedAmountWithoutService = parseFloat(delegate == 2 ? preTotalPrice : totalPrice).toFixed(2);
                     isPriceCalculated = true;
 
                     // Update all amount fields
-                    $(".amount").val(parseFloat(totalPrice).toFixed(2));
+                    $(".amount").val(defaultAmount.toFixed(2));
 
                     // Update workshop amount fields
                     $("input[name='workshop_amount']").val(workshopAmount);
 
                     // Update summary
-                    $('#summaryAmount').text(currencyCondition + totalPrice.toFixed(2));
+                    $('#summaryAmount').text(currencyCondition + defaultAmount.toFixed(2));
 
                     // Show price table with animation
                     $("#priceTable").fadeIn(500);
@@ -2277,7 +2288,7 @@
                         ` with ${selectedAddOns.length} add-on${selectedAddOns.length > 1 ? 's' : ''}` :
                         '';
                     notyf.success(
-                        `Price calculated successfully! Conference${workshopText}${addOnText} total: ${currencyCondition}${totalPrice.toFixed(2)}`
+                        `Price calculated successfully! Conference${workshopText}${addOnText} total: ${currencyCondition}${defaultAmount.toFixed(2)}`
                     );
 
                     // Scroll to payment section
@@ -2349,6 +2360,41 @@
                 $('input[name="workshop_amount"]').val(totalWorkshopAmount);
             }
 
+            function applyAmountByPaymentMode(selectedValue, delegate) {
+                const isInternational = String(delegate) === '2';
+                const excludeServiceCharge = isInternational && selectedValue === 'bankTransfer';
+                const selectedAmount = excludeServiceCharge
+                    ? parseFloat(calculatedAmountWithoutService || 0)
+                    : parseFloat(calculatedAmountWithService || 0);
+
+                if (!selectedAmount) {
+                    return;
+                }
+
+                const currencyCondition = String(delegate) === '1' ? 'Rs. ' : '$ ';
+
+                calculatedAmount = selectedAmount.toFixed(2);
+                calculatedAmountUSD = selectedAmount.toFixed(2);
+                isConvertedToINR = false;
+
+                $('.amount').val(selectedAmount.toFixed(2));
+                $('#fonePayCurrency').val('USD');
+                $('#staticQrCurrency').val('USD');
+
+                if (isInternational) {
+                    if (excludeServiceCharge) {
+                        $('.service-charge-row').hide();
+                    } else {
+                        $('.service-charge-row').show();
+                    }
+                }
+
+                $('#calculatedData tr:last-child td:last-child').html(
+                    '<strong>' + currencyCondition + selectedAmount.toFixed(2) + '</strong>'
+                );
+                $('#summaryAmount').text(currencyCondition + selectedAmount.toFixed(2));
+            }
+
             // Payment method selection handler
             $('input[name="paymentMode"]').change(function() {
                 if (!isPriceCalculated) {
@@ -2384,6 +2430,9 @@
                 // Update all hidden fields with current values
                 updateAllHiddenFields();
 
+                // Bank transfer for international users should exclude service charge.
+                applyAmountByPaymentMode(selectedValue, delegate);
+
                 // Show selected payment method processing div
                 if (selectedValue === 'staticQr') {
                     $('.staticQrProcessingDiv').fadeIn();
@@ -2413,32 +2462,6 @@
                     console.log('Converting to INR...');
                     convertUsdToInr(selectedValue);
                 } else {
-                    // Restore USD for other payment methods when delegate is international
-                    if (delegate == 2 && isConvertedToINR) {
-                        // Only restore if we previously converted to INR
-                        console.log('Restoring USD from INR...');
-                        calculatedAmount = calculatedAmountUSD;
-                        const currencyCondition = '$ ';
-                        
-                        // Update all amount fields with USD
-                        $(".amount").val(parseFloat(calculatedAmountUSD).toFixed(2));
-                        
-                        // Reset currency fields to USD
-                        $("#fonePayCurrency").val('USD');
-                        $("#staticQrCurrency").val('USD');
-                        
-                        // Restore USD in price table
-                        $("#calculatedData tr:last-child td:last-child").html(
-                            '<strong>' + currencyCondition + parseFloat(calculatedAmountUSD).toFixed(2) + '</strong>'
-                        );
-                        
-                        // Show notification that we've reverted to USD
-                        notyf.info('Amount displayed in USD: $' + parseFloat(calculatedAmountUSD).toFixed(2));
-                        
-                        // Reset the conversion flag
-                        isConvertedToINR = false;
-                    }
-                    
                     // Enable appropriate payment button
                     console.log('Enabling button for:', selectedValue);
                     if (selectedValue == "fonePay") {

@@ -15,6 +15,7 @@ class PaymentSettingController extends Controller
     {
         $nationalPayment = NationalPayment::where(['society_id' => $society->id, 'status' => 1])->first();
         $internationalPayment = InternationalPayment::where(['society_id' => $society->id, 'status' => 1,'payment_type' => 'himalayan_bank'])->first();
+        $accountDetailsPayment = InternationalPayment::where(['society_id' => $society->id, 'status' => 1, 'payment_type' => 'account_details'])->first();
         $countries = Country::where('status', 1)->orderBy('country_name', 'asc')->get();
         
         // Get selected countries for international payment if exists
@@ -30,10 +31,10 @@ class PaymentSettingController extends Controller
             $staticQrSelectedCountries = $staticQrPayment->countries()->pluck('country_id')->toArray();
         }
         
-        return view('backend.payment-setting.index', compact('nationalPayment', 'internationalPayment', 'society', 'countries', 'selectedCountries', 'staticQrPayment', 'staticQrSelectedCountries'));
+        return view('backend.payment-setting.index', compact('nationalPayment', 'internationalPayment', 'accountDetailsPayment', 'society', 'countries', 'selectedCountries', 'staticQrPayment', 'staticQrSelectedCountries'));
     }
  
-    public function store(Request $request, $society)
+    public function store(Request $request, $society) 
     {
         // dd($request->all());
         $section = $request->input('section');
@@ -235,14 +236,31 @@ class PaymentSettingController extends Controller
                     'bank_detail' => 'required',
                     'international_id' => 'nullable'
                 ]);
-                if (empty($validated['international_id'])) {
-                    $validated['society_id'] = $society->id;
-                    $validated['payment_type'] = 'account_details';
-                    // dd($validated);
-                    $submitData = InternationalPayment::create($validated);
-                } else {
+
+                $internationalPayment = null;
+                if (!empty($validated['international_id'])) {
                     $internationalPayment = InternationalPayment::whereId($validated['international_id'])->first();
-                    $submitData = $internationalPayment->update($validated);
+                }
+
+                // Fallback to existing account_details record to avoid duplicate rows.
+                if (!$internationalPayment) {
+                    $internationalPayment = InternationalPayment::where([
+                        'society_id' => $society->id,
+                        'status' => 1,
+                        'payment_type' => 'account_details'
+                    ])->first();
+                }
+
+                if ($internationalPayment) {
+                    $submitData = $internationalPayment->update([
+                        'bank_detail' => $validated['bank_detail']
+                    ]);
+                } else {
+                    $submitData = InternationalPayment::create([
+                        'society_id' => $society->id,
+                        'payment_type' => 'account_details',
+                        'bank_detail' => $validated['bank_detail']
+                    ]);
                 }
 
                 $message = empty($validated['international_id']) ? 'Successfully inserted Accout Detail.' : 'Successfully updated Account Detail';
