@@ -717,7 +717,9 @@
                                     <div class="mt-3 p-3 rounded-3 border" style="background: #f8fafc;">
                                         @php
                                             $currencyCode = $registrationFinancialSummary['currency'] ?? 'USD';
-                                            $currencySymbol = $currencyCode === 'INR' ? 'INR' : '$';
+                                            $currencySymbol = $currencyCode === 'INR'
+                                                ? 'INR'
+                                                : ((current_user()->userDetail->country_id ?? null) == 125 ? 'Rs.' : '$');
                                             $baseAmount = (float) ($registrationFinancialSummary['base_amount'] ?? 0);
                                             $addonAmount = (float) ($registrationFinancialSummary['addon_amount'] ?? 0);
                                             $accompanyAmount = (float) ($registrationFinancialSummary['accompany_amount'] ?? 0);
