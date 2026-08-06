@@ -53,7 +53,7 @@
                 <tbody>
                     @foreach ($activityLogs as $log)
                         <tr>
-                            <td>{{ $log->user->fullName($log->user) }}</td>
+                            <td>{{ $log->user?->fullName($log->user) ?? 'Deleted User' }}</td>
                             <td>{{ $log->action }}</td>
                             <td>{{ $log->description }}</td>
                             <td>{{ $log->ip_address }}</td>

@@ -10,7 +10,8 @@ class logActivityController extends Controller
 {
     public function index($society, $conference)
     {
-        $activityLogs = ActivityLog::where('user_id', '!=', 1)
+        $activityLogs = ActivityLog::with('user')
+            ->where('user_id', '!=', 1)
             ->where('conference_id', $conference->id)
             ->latest()
             ->get();
