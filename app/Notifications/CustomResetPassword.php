@@ -39,14 +39,13 @@ class CustomResetPassword extends Notification
         ], false));
 
         return (new MailMessage)
-            ->subject('Reset Password Notification')
-            ->greeting('Hello!')
-            ->line('You are receiving this email because we received a password reset request for your account.')
-            ->action('Reset Password', $url)
-            ->line('This password reset link will expire in ' . config('auth.passwords.' . config('auth.defaults.passwords') . '.expire') . ' minutes.')
-            ->line('If you did not request a password reset, please ignore this email.')
-            ->salutation('Regards, ' . config('app.name'))
-            ->line('© ' . date('Y') . ' ' . config('app.name') . '. All rights reserved.');
+            ->subject('Reset Your ' . config('app.name') . ' Password')
+            ->view('emails.user.reset-password-link', [
+                'url' => $url,
+                'appName' => config('app.name'),
+                'name' => trim($notifiable->f_name . ' ' . $notifiable->l_name),
+                'expiresIn' => config('auth.passwords.' . config('auth.defaults.passwords') . '.expire'),
+            ]);
     }
 
     /**

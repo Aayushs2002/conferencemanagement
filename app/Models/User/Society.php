@@ -43,6 +43,23 @@ class Society extends Model
     {
         return $this->belongsToMany(User::class, 'user_societies', 'society_id', 'user_id');
     }
+
+    /**
+     * The society's display name.
+     *
+     * There is no name column on `societies`; SocietyController stores the society
+     * name as `f_name` on the linked society-admin user (type 2). Falls back to the
+     * abbreviation when no admin is attached.
+     */
+    public function getNameAttribute(): ?string
+    {
+        // ponytail: one small query per society, memoised per instance. Add an
+        // admin() relation + eager loading if a listing page shows this at scale.
+        return $this->nameCache ??= $this->users()->where('type', 2)->value('f_name')
+            ?? $this->abbreviation;
+    }
+
+    protected ?string $nameCache = null;
     public function conferences()
     {
         return $this->hasMany(Conference::class, 'society_id', 'id');
