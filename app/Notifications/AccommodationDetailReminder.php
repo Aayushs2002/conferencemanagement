@@ -53,18 +53,12 @@ class AccommodationDetailReminder extends Notification implements ShouldQueue
     {
         return (new MailMessage)
             ->subject("Update Your Accommodation Details - {$conferenceName}")
-            ->greeting("Dear {$userName},")
-            ->line('We noticed that you haven\'t provided your accommodation and flight details for the upcoming conference.')
-            ->line('As an international participant, it\'s important for us to have this information to ensure your comfortable stay.')
-            ->line('**Please update your:**')
-            ->line('• Flight arrival and departure details')
-            ->line('• Hotel accommodation preferences') 
-            ->line('• Airport pickup requirements')
-            ->action('Update Details Now', $this->getAccommodationUrl())
-            ->line('This information helps us better prepare for your arrival and ensure a smooth conference experience.')
-            ->line('Thank you for your cooperation!')
-            ->salutation('Best regards,')
-            ->salutation("The {$this->conference->society->society_name} Team");
+            ->view('emails.conference.accommodation-reminder', [
+                'userName' => $userName,
+                'conferenceName' => $conferenceName,
+                'actionUrl' => $this->getAccommodationUrl(),
+                'brand' => $this->conference->society->name ?: config('app.name'),
+            ]);
     }
 
     /**
