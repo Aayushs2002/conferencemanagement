@@ -8,6 +8,7 @@ use App\Models\User\Designation;
 use App\Models\User\Institution;
 use App\Models\User\NamePrefix;
 use App\Models\User\Society;
+use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\View;
 use Laravel\Fortify\Contracts\LoginResponse;
 use Illuminate\Support\ServiceProvider;
@@ -28,6 +29,13 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Laravel defaults to the Tailwind paginator, but this app is Bootstrap
+        // and never loads Tailwind — so its utility classes (including the w-5/h-5
+        // that size the chevron SVGs) do nothing and the arrows render at their
+        // intrinsic size. The three frontend paginators pass an explicit view and
+        // are unaffected.
+        Paginator::useBootstrapFive();
+
         $sharedData = [
             'countries'    => Country::whereStatus(1)->get(),
             'name_prefiexs' => NamePrefix::whereStatus(1)->get(),
