@@ -11,6 +11,7 @@ use App\Http\Controllers\Backend\Conference\ConferenceController;
 use App\Http\Controllers\Backend\Conference\ConferenceMemberTypePriceController;
 use App\Http\Controllers\Backend\Conference\ConferenceRegistrationController;
 use App\Http\Controllers\Backend\Conference\ConferenceSettingController;
+use App\Http\Controllers\Backend\Conference\FinancialAnalysisController;
 use App\Http\Controllers\Backend\Conference\InvitationCategoryController;
 use App\Http\Controllers\Backend\Conference\PassSettingController;
 use App\Http\Controllers\Backend\Conference\RegistrantTypeController;
@@ -139,6 +140,17 @@ Route::middleware('auth')->group(function () {
     Route::controller(PassSettingController::class)->middleware('auto.conf.permission')->prefix('/society/{society}/conference/{conference}/conference-registration')->group(function () {
         Route::resource('pass-setting', PassSettingController::class);
     });
+
+    // Financial Analysis — a report over registration data, so it reuses the
+    // registration feature flag rather than introducing a new one.
+    Route::controller(FinancialAnalysisController::class)
+        ->middleware(['auto.conf.permission', 'feature:conference-registration-management'])
+        ->prefix('/society/{society}/conference/{conference}/financial-analysis')
+        ->name('conference.financial-analysis.')
+        ->group(function () {
+            Route::get('/', 'index')->name('index');
+            Route::get('/export', 'export')->name('export');
+        });
 
     // Registrant Type Management (dynamic registration types per conference)
     Route::controller(RegistrantTypeController::class)

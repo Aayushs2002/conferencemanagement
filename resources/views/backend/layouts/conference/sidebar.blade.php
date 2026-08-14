@@ -37,9 +37,10 @@
                         'Exceptional Case',
                         'View Pass Setting',
                         'View Certificate Setting',
+                        'View Financial Analysis',
                     ]))
                 <li
-                    class="menu-item {{ request()->segment(5) == 'conference-registration' && request()->segment(1) != 'my-society' ? 'active open' : '' }}">
+                    class="menu-item {{ in_array(request()->segment(5), ['conference-registration', 'financial-analysis']) && request()->segment(1) != 'my-society' ? 'active open' : '' }}">
                     <a href="javascript:void(0);" class="menu-link menu-toggle">
                         <i class="menu-icon icon-base ti tabler-registered"></i>
 
@@ -51,6 +52,14 @@
                                 <a href="{{ route('conference.conference-registration.index', [request()->segment(2), request()->segment(4)]) }}"
                                     class="menu-link">
                                     <div data-i18n="Registrant">Registrant</div>
+                                </a>
+                            </li>
+                        @endif
+                        @if (auth()->user()->hasConferencePermissionBlade($conference, 'View Financial Analysis'))
+                            <li class="menu-item {{ request()->segment(5) == 'financial-analysis' ? 'active' : '' }}">
+                                <a href="{{ route('conference.financial-analysis.index', [request()->segment(2), request()->segment(4)]) }}"
+                                    class="menu-link">
+                                    <div data-i18n="Financial Analysis">Financial Analysis</div>
                                 </a>
                             </li>
                         @endif
