@@ -46,6 +46,11 @@ class PermissionSeeder extends Seeder
                 'parent' => 'Conference Registration'
             ],
             [
+                'name' => 'View Financial Analysis',
+                'guard_name' => 'web',
+                'parent' => 'Conference Registration'
+            ],
+            [
                 'name' => 'Registration And Invitation',
                 'guard_name' => 'web',
                 'parent' => 'Conference Registration'

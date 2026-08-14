@@ -16,6 +16,10 @@ return [
         'conference.conference-registration.convertRegistrantTypesubmit' => 'Convert Registrant Type',
         'conference.conference-registration.excelExport' => 'Export',
 
+        // Financial Analysis
+        'conference.financial-analysis.index' => 'View Financial Analysis',
+        'conference.financial-analysis.export' => 'Export',
+
         //conference pass setting
         'pass-setting.index' => 'View Pass Setting',
         'pass-setting.create' => 'Add Pass Setting',

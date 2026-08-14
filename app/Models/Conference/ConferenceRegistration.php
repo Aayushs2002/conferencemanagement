@@ -142,6 +142,113 @@ class ConferenceRegistration extends Model
     }
 
     /**
+     * The registrant-page filter set, in one place.
+     *
+     * This block used to be copy-pasted across index(), excelExport(),
+     * generatePass() and the two bulk-email queries in
+     * ConferenceRegistrationController, drifting apart as it went. Takes a plain
+     * array (usually $request->all()) so it can be exercised without a Request.
+     */
+    public function scopeApplyRegistrantFilters(Builder $query, array $filters, int $conferenceId, ?int $societyId = null): Builder
+    {
+        $has = fn (string $key) => isset($filters[$key]) && $filters[$key] !== '' && $filters[$key] !== null;
+
+        if ($has('registrant_type')) {
+            $committeeMemberUserIds = CommitteeMember::where('conference_id', $conferenceId)
+                ->where('status', 1)
+                ->pluck('user_id')
+                ->toArray();
+
+            // For Organizer (type 5), include committee members since they get ORG_ IDs.
+            // For all other types, explicitly exclude committee members.
+            if ($filters['registrant_type'] == self::REGISTRANT_ORGANIZER) {
+                $query->where(function ($q) use ($filters, $committeeMemberUserIds) {
+                    $q->where('registrant_type', $filters['registrant_type'])
+                        ->orWhereIn('user_id', $committeeMemberUserIds);
+                });
+            } else {
+                $query->where('registrant_type', $filters['registrant_type'])
+                    ->where(function ($q) use ($committeeMemberUserIds) {
+                        $q->whereNull('user_id');
+
+                        if (! empty($committeeMemberUserIds)) {
+                            $q->orWhereNotIn('user_id', $committeeMemberUserIds);
+                        } else {
+                            $q->orWhereNotNull('user_id');
+                        }
+                    });
+            }
+        }
+
+        if ($has('meal_type')) {
+            $query->where('meal_type', $filters['meal_type']);
+        }
+
+        if ($has('is_invited')) {
+            $query->where('is_invited', $filters['is_invited']);
+        }
+
+        if ($has('payment_type')) {
+            $query->where('payment_type', $filters['payment_type']);
+        }
+
+        if ($has('from')) {
+            $query->whereDate('created_at', '>=', $filters['from']);
+        }
+
+        if ($has('to')) {
+            $query->whereDate('created_at', '<=', $filters['to']);
+        }
+
+        if ($has('country_id')) {
+            $query->whereHas('user.userDetail', function ($q) use ($filters) {
+                $q->where('country_id', $filters['country_id']);
+            });
+        }
+
+        if ($has('prefix')) {
+            $query->whereHas('user.userDetail', function ($q) use ($filters) {
+                $q->where('name_prefix_id', $filters['prefix']);
+            });
+        }
+
+        if ($has('member_type_id') && $societyId) {
+            $query->whereHas('user.societies', function ($q) use ($filters, $societyId) {
+                $q->where('society_id', $societyId)
+                    ->where('member_type_id', $filters['member_type_id']);
+            });
+        }
+
+        return $query->applyCountryScope($filters['country_scope'] ?? null);
+    }
+
+    /**
+     * National = Nepal, or a NAT-DUMMY placeholder. International is the inverse.
+     * Dummy registrants have no user_details row, so they are matched on their
+     * transaction id prefix instead.
+     */
+    public function scopeApplyCountryScope(Builder $query, ?string $scope): Builder
+    {
+        $domestic = (int) config('finance.domestic_country_id', 125);
+
+        if ($scope === 'national') {
+            return $query->where(function ($q) use ($domestic) {
+                $q->whereHas('user.userDetail', fn ($sub) => $sub->where('country_id', $domestic))
+                    ->orWhere(fn ($sub) => $sub->whereNull('user_id')->where('transaction_id', 'like', 'NAT-DUMMY-%'));
+            });
+        }
+
+        if ($scope === 'international') {
+            return $query->where(function ($q) use ($domestic) {
+                $q->whereHas('user.userDetail', fn ($sub) => $sub->where('country_id', '!=', $domestic))
+                    ->orWhere(fn ($sub) => $sub->whereNull('user_id')->where('transaction_id', 'like', 'INT-DUMMY-%'));
+            });
+        }
+
+        return $query;
+    }
+
+    /**
      * Accessors & Mutators
      */
     protected function registrantTypeText(): Attribute

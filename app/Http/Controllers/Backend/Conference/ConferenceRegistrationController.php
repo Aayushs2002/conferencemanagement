@@ -85,73 +85,7 @@ class ConferenceRegistrationController extends Controller
             ->where('conference_id', $conference->id)
             ->where('status', 1);
 
-        if ($request->filled('registrant_type')) {
-            $committeeMemberUserIds = \App\Models\Committee\CommitteeMember::where('conference_id', $conference->id)
-                ->where('status', 1)
-                ->pluck('user_id')
-                ->toArray();
-
-            // For Organizer (type 5), include committee members since they get ORG_ IDs.
-            // For all other types, explicitly exclude committee members.
-            if ($request->registrant_type == 5) {
-                $query->where(function ($q) use ($request, $committeeMemberUserIds) {
-                    $q->where('registrant_type', $request->registrant_type)
-                        ->orWhereIn('user_id', $committeeMemberUserIds);
-                });
-            } else {
-                $query->where('registrant_type', $request->registrant_type)
-                    ->where(function ($q) use ($committeeMemberUserIds) {
-                        $q->whereNull('user_id');
-
-                        if (! empty($committeeMemberUserIds)) {
-                            $q->orWhereNotIn('user_id', $committeeMemberUserIds);
-                        } else {
-                            $q->orWhereNotNull('user_id');
-                        }
-                    });
-            }
-        }
-
-        if ($request->filled('meal_type')) { 
-            $query->where('meal_type', $request->meal_type);
-        }
-
-        if ($request->filled('is_invited')) {
-            $query->where('is_invited', $request->is_invited);
-        }
-
-        if ($request->filled('payment_type')) {
-            $query->where('payment_type', $request->payment_type);
-        }
-
-        if ($request->filled('from')) {
-            $query->whereDate('created_at', '>=', $request->from);
-        }
-
-        if ($request->filled('country_id')) {
-            $query->whereHas('user.userDetail', function ($q) use ($request) {
-                $q->where('country_id', $request->country_id);
-            });
-        }
-
-        $this->applyCountryScopeFilter($query, $request);
-
-        if ($request->filled('prefix')) {
-            $query->whereHas('user.userDetail', function ($q) use ($request) {
-                $q->where('name_prefix_id', $request->prefix);
-            });
-        }
-
-        if ($request->filled('to')) {
-            $query->whereDate('created_at', '<=', $request->to);
-        }
-
-        if ($request->filled('member_type_id')) {
-            $query->whereHas('user.societies', function ($q) use ($request, $society_id) {
-                $q->where('society_id', $society_id)
-                    ->where('member_type_id', $request->member_type_id);
-            });
-        }
+        $query->applyRegistrantFilters($request->all(), $conference->id, $society_id);
 
         // Get all registrants
         $registrants = $query->get();
@@ -1513,62 +1447,7 @@ class ConferenceRegistrationController extends Controller
             ->where('conference_id', $conference->id)
             ->where('status', 1);
 
-        if ($request->filled('registrant_type')) {
-            $committeeMemberUserIds = \App\Models\Committee\CommitteeMember::where('conference_id', $conference->id)
-                ->where('status', 1)
-                ->pluck('user_id')
-                ->toArray();
-
-            // For Organizer (type 5), include committee members since they get ORG_ IDs.
-            // For all other types, explicitly exclude committee members.
-            if ($request->registrant_type == 5) {
-                $query->where(function ($q) use ($request, $committeeMemberUserIds) {
-                    $q->where('registrant_type', $request->registrant_type)
-                        ->orWhereIn('user_id', $committeeMemberUserIds);
-                });
-            } else {
-                $query->where('registrant_type', $request->registrant_type)
-                    ->where(function ($q) use ($committeeMemberUserIds) {
-                        $q->whereNull('user_id');
-
-                        if (! empty($committeeMemberUserIds)) {
-                            $q->orWhereNotIn('user_id', $committeeMemberUserIds);
-                        } else {
-                            $q->orWhereNotNull('user_id');
-                        }
-                    });
-            }
-        }
-
-        if ($request->filled('is_invited')) {
-            $query->where('is_invited', $request->is_invited);
-        }
-
-        if ($request->filled('payment_type')) {
-            $query->where('payment_type', $request->payment_type);
-        }
-
-        if ($request->filled('from')) {
-            $query->whereDate('created_at', '>=', $request->from);
-        }
-
-        if ($request->filled('country_id')) {
-            $query->whereHas('user.userDetail', function ($q) use ($request) {
-                $q->where('country_id', $request->country_id);
-            });
-        }
-
-        $this->applyCountryScopeFilter($query, $request);
-
-        if ($request->filled('prefix')) {
-            $query->whereHas('user.userDetail', function ($q) use ($request) {
-                $q->where('name_prefix_id', $request->prefix);
-            });
-        }
-
-        if ($request->filled('to')) {
-            $query->whereDate('created_at', '<=', $request->to);
-        }
+        $query->applyRegistrantFilters($request->all(), $conference->id, $society_id);
 
         // Get all registrants
         $registrants = $query->get();
@@ -2667,35 +2546,7 @@ class ConferenceRegistrationController extends Controller
 
     private function applyCountryScopeFilter($query, Request $request): void
     {
-        if (! $request->filled('country_scope')) {
-            return;
-        }
-
-        if ($request->country_scope === 'national') {
-            $query->where(function ($q) {
-                $q->whereHas('user.userDetail', function ($subQuery) {
-                    $subQuery->where('country_id', 125);
-                })
-                    ->orWhere(function ($dummyQuery) {
-                        $dummyQuery->whereNull('user_id')
-                            ->where('transaction_id', 'like', 'NAT-DUMMY-%');
-                    });
-            });
-
-            return;
-        }
-
-        if ($request->country_scope === 'international') {
-            $query->where(function ($q) {
-                $q->whereHas('user.userDetail', function ($subQuery) {
-                    $subQuery->where('country_id', '!=', 125);
-                })
-                    ->orWhere(function ($dummyQuery) {
-                        $dummyQuery->whereNull('user_id')
-                            ->where('transaction_id', 'like', 'INT-DUMMY-%');
-                    });
-            });
-        }
+        $query->applyCountryScope($request->input('country_scope'));
     }
 
     /**
